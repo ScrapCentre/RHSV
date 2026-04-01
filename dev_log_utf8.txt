@@ -1,0 +1,39 @@
+﻿   Γû▓ Next.js 15.5.11
+   - Local:        http://localhost:3008
+   - Network:      http://192.168.31.168:3008
+   - Environments: .env.local
+
+ Γ£ô Starting...
+node.exe :  ΓÜá Mismatching @next/swc 
+version, detected: 15.5.7 while Next.js is 
+on 15.5.11. Please ensure these match
+At C:\Program Files\nodejs\npx.ps1:29 char:3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: 
+    ( ΓÜá Mismatchin...ure these match:Str  
+  ing) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommand 
+   Error
+ 
+ Γ£ô Ready in 2.6s
+ Γùï Compiling /login ...
+
+[1m[33mwarn[39m[22m - The class `ease-[c
+ubic-bezier(0.175,0.885,0.32,1.275)]` is 
+ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is 
+content and not a class, replace it with `ea
+se-&lsqb;cubic-bezier(0.175,0.885,0.32,1.275
+)&rsqb;` to silence this warning.
+ Γ£ô Compiled /login in 3.9s (1699 modules)
+ Γ£ô Compiled in 1132ms (788 modules)
+ Γ£ô Compiled in 407ms (788 modules)
+ Γ£ô Compiled in 625ms (788 modules)
+ Γ£ô Compiled in 615ms (788 modules)
+ Γ£ô Compiled in 713ms (788 modules)
+ Γ£ô Compiled in 713ms (788 modules)
+ Γ£ô Compiled in 521ms (788 modules)
+ Γ£ô Compiled in 654ms (788 modules)
+ Γ£ô Compiled in 682ms (788 modules)
+ Γ£ô Compiled in 572ms (788 modules)

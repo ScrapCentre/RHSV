@@ -1,0 +1,24 @@
+﻿.next/types/validator.ts(405,31): error TS2344: Type 'typeof import("C:/Users/simar/mern/autoscrap/app/api/admin/ekyc/[type]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/admin/ekyc/[type]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: Request, { params }: { params: { type: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<any[]>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ type: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ type: string; }>; }' is not assignable to type '{ params: { type: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'type' is missing in type 'Promise<{ type: string; }>' but required in type '{ type: string; }'.
+.next/types/validator.ts(414,31): error TS2344: Type 'typeof import("C:/Users/simar/mern/autoscrap/app/api/admin/ekyc/view/[type]/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/admin/ekyc/view/[type]/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: Request, { params }: { params: { type: string; id: string; }; }) => Promise<NextResponse<any>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ type: string; id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ type: string; id: string; }>; }' is not assignable to type '{ params: { type: string; id: string; }; }'.
+          Types of property 'params' are incompatible.
+            Type 'Promise<{ type: string; id: string; }>' is missing the following properties from type '{ type: string; id: string; }': type, id
+.next/types/validator.ts(540,31): error TS2344: Type 'typeof import("C:/Users/simar/mern/autoscrap/app/api/ekyc/[type]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/ekyc/[type]">'.
+  Types of property 'POST' are incompatible.
+    Type '(req: NextRequest, { params }: { params: { type: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ success: boolean; message: string; document: any; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ type: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ type: string; }>; }' is not assignable to type '{ params: { type: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'type' is missing in type 'Promise<{ type: string; }>' but required in type '{ type: string; }'.
+app/api/admin/ekyc/[type]/route.ts(35,33): error TS18048: 'Model' is possibly 'undefined'.
+app/api/admin/ekyc/view/[type]/[id]/route.ts(41,32): error TS18048: 'Model' is possibly 'undefined'.
+app/api/ekyc/[type]/route.ts(77,34): error TS18048: 'Model' is possibly 'undefined'.
