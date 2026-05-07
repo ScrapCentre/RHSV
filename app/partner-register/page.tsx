@@ -18,12 +18,26 @@ export default function PartnerRegistrationPage() {
     const router = useRouter()
     const { toast } = useToast()
 
-    // Hard redirect to B2B login if not authenticated
+    // Remove immediate redirect - allow filling the form first
     useEffect(() => {
-        if (status === "unauthenticated") {
-            router.replace("/login?tab=b2b")
-        }
+        // We handle redirect in handleSubmit now
     }, [status, router])
+
+    const [showLoginModal, setShowLoginModal] = useState(false)
+
+    // Load saved data on mount
+    useEffect(() => {
+        const savedData = localStorage.getItem("pendingPartnerData")
+        if (savedData) {
+            try {
+                setFormData(JSON.parse(savedData))
+                // Clear immediately so it doesn't survive a manual refresh
+                localStorage.removeItem("pendingPartnerData")
+            } catch (e) {
+                console.error("Failed to parse saved partner data", e)
+            }
+        }
+    }, [])
 
     // Form State
     const [formData, setFormData] = useState({
@@ -77,7 +91,7 @@ export default function PartnerRegistrationPage() {
         }
     }, [session, status])
 
-    if (status === "loading" || status === "unauthenticated") {
+    if (status === "loading") {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 gap-4">
                 <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
@@ -99,6 +113,13 @@ export default function PartnerRegistrationPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (status !== "authenticated") {
+            localStorage.setItem("pendingPartnerData", JSON.stringify(formData))
+            setShowLoginModal(true)
+            return
+        }
+
         setIsLoading(true)
 
         try {
@@ -120,6 +141,9 @@ export default function PartnerRegistrationPage() {
                 throw new Error(data.message || "Something went wrong")
             }
 
+            // Clear saved data on success
+            localStorage.removeItem("pendingPartnerData")
+
             setIsLoading(false)
             setIsSubmitted(true)
             confetti({
@@ -139,6 +163,52 @@ export default function PartnerRegistrationPage() {
 
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col justify-center pt-32 pb-16 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+            {/* Login Required Modal */}
+            <AnimatePresence>
+                {showLoginModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4"
+                        onClick={() => setShowLoginModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-[#0E192D] border border-slate-800 rounded-[2rem] shadow-2xl max-w-sm w-full p-8 relative overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="relative z-10 text-center">
+                                <div className="w-20 h-20 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
+                                    <Lock className="w-10 h-10 text-blue-500" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Partner Login Required</h3>
+                                <p className="text-slate-400 mb-8 leading-relaxed text-sm">
+                                    To submit your partner application, please log in or create a standard account first.
+                                </p>
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={() => router.push(`/login?callbackUrl=${encodeURIComponent("/partner-register")}`)}
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group"
+                                    >
+                                        <span>Continue to Login</span>
+                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                    <button
+                                        onClick={() => setShowLoginModal(false)}
+                                        className="w-full bg-slate-900 border border-slate-800 text-slate-400 font-semibold py-3 px-6 rounded-xl transition-all text-sm"
+                                    >
+                                        Maybe Later
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Background Gradients */}
             <div className="absolute inset-0 pointer-events-none focus:outline-none">
             </div>

@@ -29,9 +29,10 @@ export default async function QuoteValuationsPage() {
                     </span>
                 )
             case "reviewed":
+            case "reviewing":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50">
-                        <Calendar className="w-3.5 h-3.5" /> Reviewed
+                        <Calendar className="w-3.5 h-3.5" /> Reviewing
                     </span>
                 )
             case "completed":

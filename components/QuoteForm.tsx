@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Car, Bike, Truck, MessageCircle, CheckCircle, Phone, MapPin, FileText, User, Zap, Sparkles } from "lucide-react"
 import Image from "next/image"
 import ValuationModals from "./ValuationModals"
-import AuthGuard from "./AuthGuard"
+import LoginRequiredModal from "./LoginRequiredModal"
+import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { indiaData, states } from "@/lib/india-data"
 import { useToast } from "@/hooks/use-toast"
@@ -92,6 +93,8 @@ export default function QuoteForm() {
   const [isLoading, setIsLoading] = useState(false)
 
   const { toast } = useToast()
+  const { status } = useSession()
+  const [showLoginModal, setShowLoginModal] = useState(false)
 
   const handleVehicleType = (type: string) => {
     setFormData({
@@ -104,8 +107,29 @@ export default function QuoteForm() {
     })
   }
 
+  // Effect to load saved data on mount
+  React.useEffect(() => {
+    const savedData = localStorage.getItem("pendingQuoteData")
+    if (savedData) {
+      try {
+        setFormData(JSON.parse(savedData))
+        // Clear it immediately after loading so it doesn't survive a manual refresh
+        localStorage.removeItem("pendingQuoteData")
+      } catch (e) {
+        console.error("Failed to parse saved quote data", e)
+      }
+    }
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (status !== "authenticated") {
+      // Save data before redirecting/showing modal
+      localStorage.setItem("pendingQuoteData", JSON.stringify(formData))
+      setShowLoginModal(true)
+      return
+    }
 
     // Basic validation check
     const brandToUse = formData.brand || formData.customBrand
@@ -150,6 +174,8 @@ export default function QuoteForm() {
         const data = await response.json()
         if (data.id) {
           setValuationId(data.id)
+          // Clear saved data on successful submission
+          localStorage.removeItem("pendingQuoteData")
         }
         if (data.estimatedValue !== undefined) {
           setEstimatedValue(data.estimatedValue)
@@ -195,7 +221,7 @@ export default function QuoteForm() {
 
   return (
     <div className="bg-gray-50 min-h-screen text-gray-900 selection:bg-emerald-500/30">
-      <AuthGuard />
+      <LoginRequiredModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
 
       {/* Valuation Modals Flow */}
       <AnimatePresence>

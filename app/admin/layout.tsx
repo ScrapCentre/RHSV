@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -26,8 +26,10 @@ import {
     Database
 } from "lucide-react"
 
-import { signOut } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 
 import { ThemeToggle } from "@/components/ThemeToggle"
 import NotificationBox from "@/components/admin/NotificationBox"
@@ -53,12 +55,45 @@ const sidebarContainerVariants = {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const { data: session, status } = useSession()
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
     const [isValuationsOpen, setIsValuationsOpen] = useState(true)
     const pathname = usePathname()
+    const router = useRouter()
 
     // Helper to check if a link is active
     const isActive = (path: string) => pathname === path || pathname?.startsWith(path)
+
+    useEffect(() => {
+        if (status !== "loading") {
+            const isAdmin = session && (session.user as any).role === "admin"
+            if (!isAdmin && pathname !== "/admin") {
+                router.push("/admin")
+            }
+        }
+    }, [session, status, pathname, router])
+
+    // Handle Auth States
+    if (status === "loading") {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-[#020617]">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
+                    <p className="text-emerald-500/50 text-[10px] uppercase tracking-widest font-bold">Verifying Clearance</p>
+                </div>
+            </div>
+        )
+    }
+
+    const isAdmin = session && (session.user as any).role === "admin"
+
+    // If not admin, show the login page (children) without the sidebar/layout
+    if (!isAdmin) {
+        if (pathname !== "/admin") {
+            return null // Wait for redirect
+        }
+        return <div className="bg-[#020617] min-h-screen w-full">{children}</div>
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex font-sans overflow-hidden transition-colors duration-300">
@@ -133,7 +168,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         >
                             <div className="flex items-center">
                                 <FileText className="w-5 h-5 mr-3.5 text-slate-400 group-hover:text-white" />
-                                <span className="font-semibold">Valuations</span>
+                                <span className="font-semibold">Market Data</span>
                             </div>
                             <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isValuationsOpen ? 'rotate-180' : ''}`} />
                         </button>
@@ -225,6 +260,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     )}
                                     <Users className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/partners') ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`} />
                                     <span className="font-semibold">B2B Partners</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/executives" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/executives') ? 'bg-blue-500/10 text-blue-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/executives') && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500 rounded-r-full" />
+                                    )}
+                                    <Shield className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/executives') ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Executives</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/scrap-center-users" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/scrap-center-users') ? 'bg-emerald-500/10 text-emerald-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/scrap-center-users') && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-full" />
+                                    )}
+                                    <Shield className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/scrap-center-users') ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">ScrapCentre Users</span>
                                 </Link>
                             </motion.div>
                             <motion.div variants={sidebarLinkVariants}>

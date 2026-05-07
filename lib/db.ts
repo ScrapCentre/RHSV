@@ -31,7 +31,9 @@ async function connectToDatabase() {
             bufferCommands: false,
         }
 
+        console.log("[DB] Connecting to MongoDB...");
         cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+            console.log("[DB] Connection Established");
             return mongoose
         })
     }
@@ -39,6 +41,7 @@ async function connectToDatabase() {
     try {
         cached.conn = await cached.promise
     } catch (e) {
+        console.error("[DB] Connection Failed:", e);
         cached.promise = null
         throw e
     }

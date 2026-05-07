@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation"
 import { indiaData, states } from "@/lib/india-data"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
+import { useSession } from "next-auth/react"
+import LoginRequiredModal from "./LoginRequiredModal"
 
 interface BuyNewVehicleFormProps {
     onClose: () => void
@@ -48,6 +50,8 @@ export default function BuyNewVehicleForm({ onClose }: BuyNewVehicleFormProps) {
     const [showSuccess, setShowSuccess] = useState(false)
     const [loading, setLoading] = useState(false)
     const { toast } = useToast()
+    const { status } = useSession()
+    const [showLoginModal, setShowLoginModal] = useState(false)
 
     const benefits = [
         {
@@ -83,6 +87,11 @@ export default function BuyNewVehicleForm({ onClose }: BuyNewVehicleFormProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (status !== "authenticated") {
+            setShowLoginModal(true)
+            return
+        }
 
         const requiredFields = [
             formData.vehicleBrand === "other" ? formData.customBrand : formData.vehicleBrand,
@@ -139,6 +148,7 @@ export default function BuyNewVehicleForm({ onClose }: BuyNewVehicleFormProps) {
 
     return (
         <div className="grid grid-cols-1 items-start">
+            <LoginRequiredModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
             {/* Form Section - Full Width */}
             <motion.div
                 initial={{ opacity: 0, x: 30 }}

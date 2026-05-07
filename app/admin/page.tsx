@@ -9,6 +9,7 @@ import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import DashboardOverview from "@/components/admin/DashboardOverview"
+import AdminLoginForm from "@/components/admin/AdminLoginForm"
 
 export const dynamic = "force-dynamic"
 
@@ -17,7 +18,7 @@ export default async function AdminPage() {
 
     // Role Check
     if (!session || (session.user as any).role !== "admin") {
-        redirect("/")
+        return <AdminLoginForm />
     }
 
     // Fetch Data for Charts & Cards

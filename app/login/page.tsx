@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, getSession, signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Mail, Lock, ArrowRight, Loader2, Sparkles, Building2, User, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
@@ -109,18 +109,47 @@ function LoginContent() {
 
             if (result?.error) {
                 setIsLoading(false)
+                let errorMsg = "Access denied. Please check your credentials."
+                
+                if (result.error.includes("AUTH_ERROR:")) {
+                    errorMsg = result.error.split("AUTH_ERROR:")[1]
+                } else if (result.error.includes("DATABASE_CONNECTION_ERROR")) {
+                    errorMsg = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
+                } else if (result.error !== "CredentialsSignin") {
+                    errorMsg = result.error
+                }
+
                 toast({
-                    title: "Login Failed",
-                    description: "Invalid credentials. Please check your email and password.",
+                    title: "Authentication Error",
+                    description: errorMsg,
                     variant: "destructive"
                 })
             } else {
-                // Successful login
+                const session = await getSession()
+                const role = (session?.user as any)?.role
+
                 toast({
-                    title: "Success",
-                    description: "Welcome back!",
+                    title: "Authentication Successful",
+                    description: `Welcome back, ${session?.user?.name || 'User'}!`,
                 })
-                window.location.href = "/"
+
+                const callbackUrl = searchParams.get("callbackUrl")
+                if (callbackUrl) {
+                    window.location.href = callbackUrl
+                } else if (!isLogin) {
+                    // If they just registered, take them to their profile
+                    window.location.href = "/profile"
+                } else if (role === "admin") {
+                    window.location.href = "/admin/dashboard"
+                } else if (role === "partner") {
+                    window.location.href = "/b2b/marketplace"
+                } else if (role === "executive") {
+                    window.location.href = "/executive/dashboard"
+                } else if (role === "scrapcentre") {
+                    window.location.href = "/scrapcentre/dashboard"
+                } else {
+                    window.location.href = "/"
+                }
             }
         } catch (error) {
             console.error(error)
@@ -156,7 +185,12 @@ function LoginContent() {
                     title: "Welcome Partner",
                     description: "Redirecting to your marketplace...",
                 })
-                window.location.href = "/b2b" // Redirect to dedicated B2B marketplace
+                const callbackUrl = searchParams.get("callbackUrl")
+                if (callbackUrl) {
+                    window.location.href = callbackUrl
+                } else {
+                    window.location.href = "/b2b/marketplace"
+                }
             }
         } catch (error) {
             console.error(error)
@@ -278,17 +312,17 @@ function LoginContent() {
                                     )}
 
                                     <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-300 ml-1">Email Address</label>
+                                        <label className="text-xs font-semibold text-gray-300 ml-1">Email Address or Identity</label>
                                         <div className="relative group transition-all">
                                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                                                 <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
                                             </div>
                                             <input
-                                                type="email"
+                                                type="text"
                                                 required
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="name@example.com"
+                                                placeholder="Email or Login ID"
                                                 className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
                                             />
                                         </div>
@@ -348,7 +382,7 @@ function LoginContent() {
                                         </div>
 
                                         <button
-                                            onClick={() => handleGoogleLogin("/")}
+                                            onClick={() => handleGoogleLogin(searchParams.get("callbackUrl") || "/")}
                                             className="w-full bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 group mt-1"
                                         >
                                             <img

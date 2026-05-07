@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
         try {
             // Get all B2B Partners to act as collection centers (destinations)
-            const B2BPartner = require("@/models/B2BPartner").default || mongoose.model("B2BPartner");
+            const B2BPartner = (await import("@/models/B2BPartner")).default;
             const partners = await B2BPartner.find({ city: { $exists: true }, state: { $exists: true } });
 
             if (partners.length > 0 && body.address?.city && body.address?.state) {

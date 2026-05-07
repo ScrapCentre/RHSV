@@ -41,9 +41,11 @@ const ValuationSchema = new Schema(
         },
         status: {
             type: String,
-            enum: ["pending", "reviewed", "completed", "approved"],
+            enum: ["pending", "reviewed", "completed", "approved", "pickup_scheduled", "reached_collection_centre", "car_scrapped"],
             default: "pending",
         },
+        b2bPickupId: { type: String },
+        b2bPartnerId: { type: String },
         estimatedValue: {
             type: Number, // Calculated scrap value (weight in tons * 1000 * scrapPricePerKg)
         },

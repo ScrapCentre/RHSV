@@ -25,9 +25,11 @@ const SellVehicleSchema = new Schema(
         insuranceName: { type: String },
         status: {
             type: String,
-            enum: ['pending', 'contacted', 'completed', 'rejected', 'approved'],
+            enum: ['pending', 'contacted', 'completed', 'rejected', 'approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'],
             default: 'pending'
         },
+        b2bPickupId: { type: String },
+        b2bPartnerId: { type: String },
         // eKYC Data
         firstName: { type: String },
         dob: { type: String },

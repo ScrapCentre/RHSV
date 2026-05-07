@@ -173,8 +173,8 @@ export default function DashboardOverview({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-                            {marketFeed.map((item: any) => (
-                                <tr key={item._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                            {marketFeed.map((item: any, index: number) => (
+                                <tr key={item._id} onClick={() => window.location.href = `/admin/valuations/${item.type}/${item._id}`} className={`transition-all duration-300 group hover:scale-[1.01] hover:shadow-lg relative z-0 hover:z-10 cursor-pointer ${index % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50 dark:bg-slate-800/40'} hover:bg-gray-100 dark:hover:bg-slate-800/70`}>
                                     <td className="px-6 py-4">
                                         {item.type === 'quote' && (
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50">
@@ -236,9 +236,9 @@ export default function DashboardOverview({
                             No recent activity found.
                         </div>
                     ) : (
-                        marketFeed.map((item: any) => (
+                        marketFeed.map((item: any, index: number) => (
                             <Link key={item._id} href={`/admin/valuations/${item.type}/${item._id}`} className="block">
-                                <div className="bg-white dark:bg-[#0E192D] rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all active:scale-[0.98]">
+                                <div className={`rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:hover:border-slate-700 active:scale-[0.98] ${index % 2 === 0 ? 'bg-white dark:bg-[#0E192D]' : 'bg-gray-50 dark:bg-slate-800/40'}`}>
                                     <div className="p-4 space-y-3">
                                         <div className="flex justify-between items-start">
                                             {item.type === 'quote' && (

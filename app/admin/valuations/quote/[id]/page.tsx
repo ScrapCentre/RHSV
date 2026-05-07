@@ -49,17 +49,6 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
             if (res.ok) {
                 const data = await res.json()
                 setRequest(data)
-
-                // Auto-update status from pending to reviewed
-                if (data.status === "pending") {
-                    await fetch("/api/admin/requests/approve", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id: id, type: "quote", status: "reviewed" })
-                    })
-                    // Update local state to reflect the change
-                    setRequest({ ...data, status: "reviewed" })
-                }
             } else {
                 toast({
                     title: "Error",
@@ -78,33 +67,33 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
         }
     }
 
-    const handleApprove = async () => {
-        if (!confirm("Are you sure you want to approve this request?")) return
+    const handleStatusUpdate = async (newStatus: string) => {
+        if (!confirm(`Confirm status transition to ${newStatus.toUpperCase()}?`)) return
 
         try {
             const res = await fetch("/api/admin/requests/approve", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: id, type: "quote" })
+                body: JSON.stringify({ id: id, type: "quote", status: newStatus })
             })
 
             if (res.ok) {
                 toast({
-                    title: "Success",
-                    description: "Request approved successfully"
+                    title: "Status Updated",
+                    description: `Lead status has been successfully transitioned to ${newStatus}.`
                 })
                 fetchRequest()
             } else {
                 toast({
                     title: "Error",
-                    description: "Failed to approve request",
+                    description: "Failed to update lead status.",
                     variant: "destructive"
                 })
             }
         } catch (error) {
             toast({
                 title: "Error",
-                description: "Something went wrong",
+                description: "Critical failure during status update.",
                 variant: "destructive"
             })
         }
@@ -145,7 +134,8 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
             case "pending":
                 return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border border-yellow-200 dark:border-yellow-900/50">Pending</span>
             case "reviewed":
-                return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500 border border-blue-200 dark:border-blue-900/50">Reviewed</span>
+            case "reviewing":
+                return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500 border border-blue-200 dark:border-blue-900/50">Reviewing</span>
             case "completed":
                 return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-900/50">Completed</span>
             case "approved":
@@ -200,15 +190,16 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                         <MessageCircle className="w-4 h-4" />
                         Chat
                     </a>
-                    {request.status !== "approved" && (
-                        <button
-                            onClick={handleApprove}
-                            className="flex-1 md:flex-none justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm flex items-center gap-2"
+                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-gray-200 dark:border-slate-700">
+                        <select 
+                            value={request.status} 
+                            onChange={(e) => handleStatusUpdate(e.target.value)}
+                            className="bg-transparent text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white border-none focus:ring-0 cursor-pointer outline-none px-2"
                         >
-                            <CheckCircle className="w-4 h-4" />
-                            Approve
-                        </button>
-                    )}
+                            <option value="pending" className="bg-white dark:bg-slate-900">Pending</option>
+                            <option value="reviewing" className="bg-white dark:bg-slate-900">Reviewing</option>
+                        </select>
+                    </div>
                     <button
                         onClick={handleDelete}
                         className="flex-1 md:flex-none justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm flex items-center gap-2"

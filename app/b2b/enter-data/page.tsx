@@ -26,7 +26,7 @@ interface VehicleEntry {
 }
 
 export default function EnterDataPage() {
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
     const { toast } = useToast()
     const router = useRouter()
 
@@ -35,6 +35,36 @@ export default function EnterDataPage() {
     ])
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
+
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-600"></div>
+            </div>
+        )
+    }
+
+    if (status === "unauthenticated" || (session?.user as any)?.role !== "partner") {
+        return (
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center px-4 pt-20 transition-colors duration-300">
+                <div className="max-w-md w-full text-center space-y-6 bg-white dark:bg-[#0E192D] p-8 rounded-2xl shadow-xl shadow-black/20 border border-gray-100 dark:border-slate-800">
+                    <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto text-red-600 dark:text-red-500">
+                        <AlertCircle className="w-10 h-10" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900 dark:text-white">Access Denied</h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Only verified B2B partners can access the marketplace. Please sign in with your partner credentials.</p>
+                    </div>
+                    <button
+                        onClick={() => router.push("/b2b")}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5"
+                    >
+                        Go to Partner Login
+                    </button>
+                </div>
+            </div>
+        )
+    }
 
     const handleAddEntry = () => {
         setEntries([

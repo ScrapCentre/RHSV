@@ -25,7 +25,7 @@ export default async function ProfilePage() {
 
     // Check for Partner Role
     if ((session.user as any).role === "partner") {
-        redirect("/b2b") // Redirect partners to their dedicated marketplace
+        redirect("/b2b/marketplace") // Redirect partners to their dedicated marketplace
     }
 
     // Standard User Logic

@@ -4,7 +4,6 @@ import Navbar from "@/components/Navbar"
 import SellVehicleForm from "@/components/SellVehicleForm"
 import { motion } from "framer-motion"
 import Image from "next/image"
-import AuthGuard from "@/components/AuthGuard"
 import { Zap, Truck, CreditCard, Shield } from "lucide-react"
 
 export default function SellVehiclePage() {
@@ -33,7 +32,6 @@ export default function SellVehiclePage() {
 
   return (
     <div className="bg-gray-50 min-h-screen text-gray-900 selection:bg-emerald-500/30">
-      <AuthGuard />
       <Navbar />
 
       {/* Hero Section */}

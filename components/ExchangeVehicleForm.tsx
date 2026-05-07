@@ -7,6 +7,8 @@ import { indiaData, states } from "@/lib/india-data"
 import EKYCForm from "./eKYCForm"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
+import { useSession } from "next-auth/react"
+import LoginRequiredModal from "./LoginRequiredModal"
 
 interface ExchangeVehicleFormProps {
     onClose: () => void
@@ -51,6 +53,8 @@ export default function ExchangeVehicleForm({ onClose }: ExchangeVehicleFormProp
     const [showIntermediateModal, setShowIntermediateModal] = useState(false)
     const [loading, setLoading] = useState(false)
     const { toast } = useToast()
+    const { status } = useSession()
+    const [showLoginModal, setShowLoginModal] = useState(false)
 
     const fuelTypes = ["Petrol", "Diesel", "CNG", "LPG", "Electric", "Hybrid"]
     const years = Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i)
@@ -63,6 +67,11 @@ export default function ExchangeVehicleForm({ onClose }: ExchangeVehicleFormProp
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (status !== "authenticated") {
+            setShowLoginModal(true)
+            return
+        }
 
         const requiredFields = [
             formData.oldVehicleRegistration,
@@ -127,6 +136,7 @@ export default function ExchangeVehicleForm({ onClose }: ExchangeVehicleFormProp
 
     return (
         <div className="relative">
+            <LoginRequiredModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Section header: Old Vehicle */}
                 <div className="space-y-4">

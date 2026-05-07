@@ -53,9 +53,34 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                 )
             case "contacted":
             case "reviewed":
+            case "reviewing":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-900/20 text-blue-400 border border-blue-900/30">
-                        <Calendar className="w-3.5 h-3.5" /> Reviewing
+                        <CheckCircle className="w-3.5 h-3.5" /> Reviewed
+                    </span>
+                )
+            case "approved":
+                return (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-900/20 text-emerald-400 border border-emerald-900/30">
+                        <CheckCircle className="w-3.5 h-3.5" /> Approved
+                    </span>
+                )
+            case "pickup_scheduled":
+                return (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-900/20 text-blue-400 border border-blue-900/30">
+                        <Car className="w-3.5 h-3.5" /> Pickup Scheduled
+                    </span>
+                )
+            case "reached_collection_centre":
+                return (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-900/20 text-purple-400 border border-purple-900/30">
+                        <CheckCircle className="w-3.5 h-3.5" /> Reached Collection Centre
+                    </span>
+                )
+            case "car_scrapped":
+                return (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-900/20 text-red-400 border border-red-900/30">
+                        <CheckCircle className="w-3.5 h-3.5" /> Car Scrapped Successfully
                     </span>
                 )
             case "completed":
@@ -63,16 +88,6 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-900/20 text-green-400 border border-green-900/30">
                         <CheckCircle className="w-3.5 h-3.5" /> Completed
                     </span>
-                )
-            case "approved":
-                return (
-                    <div className="flex flex-col gap-2">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-900/20 text-emerald-400 border-2 border-emerald-900/30">
-                            <CheckCircle className="w-4 h-4" />
-                            Your request was moved to CC soon we reach you
-                        </span>
-                        <span className="text-xs font-medium text-gray-400 italic">Thank you for your patience! 🙏</span>
-                    </div>
                 )
             case "rejected":
                 return (
@@ -229,9 +244,36 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 )}
 
                                 {/* Status Section */}
-                                <div className="flex items-center justify-between p-4 bg-slate-900 rounded-2xl border border-slate-800">
-                                    <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">Status</span>
-                                    {getStatusBadge(selectedRequest.status)}
+                                <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">Status</span>
+                                        {getStatusBadge(selectedRequest.status)}
+                                    </div>
+                                    {(selectedRequest.status === 'reviewing' || selectedRequest.status === 'reviewed' || selectedRequest.status === 'contacted') && (
+                                        <p className="text-xs text-blue-400/70 italic">
+                                            Our team has reviewed your request and will contact you shortly.
+                                        </p>
+                                    )}
+                                    {selectedRequest.status === 'approved' && (
+                                        <p className="text-xs text-emerald-400/70 italic">
+                                            Your request has been approved. Our team will reach out for next steps.
+                                        </p>
+                                    )}
+                                    {selectedRequest.status === 'pickup_scheduled' && (
+                                        <p className="text-xs text-blue-400/70 italic">
+                                            A partner has accepted your lead and a pickup is scheduled.
+                                        </p>
+                                    )}
+                                    {selectedRequest.status === 'reached_collection_centre' && (
+                                        <p className="text-xs text-purple-400/70 italic">
+                                            Your vehicle has been successfully picked up and reached the collection centre.
+                                        </p>
+                                    )}
+                                    {selectedRequest.status === 'car_scrapped' && (
+                                        <p className="text-xs text-red-400/70 italic">
+                                            Your vehicle has been successfully scrapped and processed.
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* Details Grid - Dynamic based on type */}
