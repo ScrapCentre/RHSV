@@ -188,7 +188,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                     </div>
                                     {req.type === 'valuation' && req.estimatedValue != null && (
                                         <div className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-900/20 px-2.5 py-1.5 rounded-lg border border-emerald-900/30">
-                                            ₹{req.estimatedValue.toLocaleString('en-IN')}
+                                            ₹{(req.estimatedValue * 0.8).toLocaleString('en-IN')} - ₹{(req.estimatedValue * 1.2).toLocaleString('en-IN')}
                                         </div>
                                     )}
                                 </div>
@@ -238,7 +238,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                             Estimated Scrap Value
                                         </span>
                                         <span className="text-xl sm:text-2xl font-black text-emerald-300">
-                                            ₹{selectedRequest.estimatedValue.toLocaleString('en-IN')}
+                                            ₹{(selectedRequest.estimatedValue * 0.8).toLocaleString('en-IN')} - ₹{(selectedRequest.estimatedValue * 1.2).toLocaleString('en-IN')}
                                         </span>
                                     </div>
                                 )}
@@ -291,7 +291,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                                 <DetailItem icon={<IndianRupee />} label="Pickup Cost" value={selectedRequest.pickupCost === 0 ? "Free (< 100km)" : `${selectedRequest.pickupCost.toLocaleString("en-IN")}`} />
                                             )}
                                             {selectedRequest.estimatedValue != null && (
-                                                <DetailItem icon={null} label="Estimated Value" value={`₹${selectedRequest.estimatedValue.toLocaleString("en-IN")}`} />
+                                                <DetailItem icon={null} label="Estimated Value" value={`₹${(selectedRequest.estimatedValue * 0.8).toLocaleString("en-IN")} - ₹${(selectedRequest.estimatedValue * 1.2).toLocaleString("en-IN")}`} />
                                             )}
                                         </>
                                     )}

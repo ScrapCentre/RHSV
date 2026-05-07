@@ -21,8 +21,11 @@ export default function ValuationModals({ formData, valuationId, estimatedValue,
     const [step, setStep] = useState<1 | 2 | 3>(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    // Format estimated value (Fallback to 0 if API didn't return one)
-    const formattedValue = (estimatedValue || 0).toLocaleString("en-IN")
+    // Format estimated value as a range (0.8x to 1.2x of base value)
+    const baseValue = estimatedValue || 0
+    const minVal = baseValue * 0.8
+    const maxVal = baseValue * 1.2
+    const formattedValue = `${minVal.toLocaleString("en-IN")} - ₹${maxVal.toLocaleString("en-IN")}`
 
     // Pre-generate confetti pieces (stable across renders)
     const confettiPieces = useMemo(() => Array.from({ length: 60 }, (_, i) => ({
@@ -103,9 +106,9 @@ export default function ValuationModals({ formData, valuationId, estimatedValue,
                             <h2 className="text-xl sm:text-2xl font-bold mb-1 relative z-10 w-[90%] mx-auto">Build Your Quote</h2>
                             <p className="opacity-90 text-xs sm:text-sm text-emerald-100 relative z-10">Based on your {formData.vehicleType} details</p>
 
-                            <div className="mt-4 bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-emerald-500/30 inline-block w-full max-w-[280px] sm:max-w-xs mx-auto relative z-10 shadow-xl">
-                                <p className="text-xs font-medium text-emerald-400 uppercase tracking-widest mb-1">Estimated Valuation</p>
-                                <div className="text-3xl sm:text-4xl font-black tracking-tight text-white drop-shadow-md break-words">
+                            <div className="mt-4 bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-emerald-500/30 inline-block w-full max-w-[320px] sm:max-w-sm mx-auto relative z-10 shadow-xl">
+                                <p className="text-[11px] sm:text-xs font-medium text-emerald-400 uppercase tracking-widest mb-1 sm:mb-2">Estimated Valuation</p>
+                                <div className="text-xl sm:text-2xl md:text-[28px] font-black tracking-tight text-white drop-shadow-md whitespace-nowrap">
                                     ₹{formattedValue}
                                 </div>
                                 {distance !== undefined && distance !== null && pickupCost !== undefined && pickupCost !== null && (

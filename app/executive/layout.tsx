@@ -213,7 +213,7 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
                                     {[
                                         { href: "/executive/valuations/quote", label: "Free Quotes" },
                                         { href: "/executive/valuations/sell", label: "Sell Inquiries" },
-                                        { href: "/executive/valuations/exchange", label: "Exchange Leads" },
+                                        // { href: "/executive/valuations/exchange", label: "Exchange Leads" },
                                         { href: "/executive/valuations/buy", label: "Purchase Leads" }
                                     ].map((item) => (
                                         <Link

@@ -92,7 +92,7 @@ export default function Footer() {
               {[
                 { label: "Sell Your Car", href: "/services/sell-vehicle" },
                 { label: "Buy Used Parts", href: "/services/buy-vehicle" },
-                { label: "Exchange Vehicle", href: "/services/exchange-vehicle" },
+                // { label: "Exchange Vehicle", href: "/services/exchange-vehicle" },
                 { label: "Instant Valuation", href: "/quote" }
               ].map((link, idx) => (
                 <li key={idx}>

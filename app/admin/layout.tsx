@@ -184,7 +184,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     {[
                                         { href: "/admin/valuations/quote", label: "Get Free Quote", color: "blue" },
                                         { href: "/admin/valuations/sell", label: "Sell Old Vehicle", color: "green" },
-                                        { href: "/admin/valuations/exchange", label: "Exchange Vehicle", color: "purple" },
+                                        // { href: "/admin/valuations/exchange", label: "Exchange Vehicle", color: "purple" },
                                         { href: "/admin/valuations/buy", label: "Buy New Vehicle", color: "orange" }
                                     ].map((item) => (
                                         <Link

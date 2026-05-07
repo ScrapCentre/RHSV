@@ -16,12 +16,12 @@ export default function ServicesSection() {
       description: "Get the best scrap value for your end-of-life vehicle instantly.",
       image: "/frontpage/selloldvehicle.jpg",
     },
-    {
-      id: 2,
-      title: "Exchange Vehicle",
-      description: "Scrap your old vehicle and get amazing benefits on a new purchase.",
-      image: "/frontpage/exchangevehical.jpg",
-    },
+    // {
+    //   id: 2,
+    //   title: "Exchange Vehicle",
+    //   description: "Scrap your old vehicle and get amazing benefits on a new purchase.",
+    //   image: "/frontpage/exchangevehical.jpg",
+    // },
     {
       id: 3,
       title: "Buy New Vehicle",
@@ -63,8 +63,8 @@ export default function ServicesSection() {
           </motion.p>
         </div>
 
-        {/* Services Grid - 3 Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        {/* Services Grid - 2 Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {services.map((service, index) => (
             <ServicesCard
               key={service.id}

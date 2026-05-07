@@ -131,9 +131,6 @@ export default function ExecutiveDashboardOverview({
                                 <FileText className="w-4 h-4 text-blue-500" />
                                 Market Feed
                             </h2>
-                            <Link href="/executive/valuations" className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 hover:opacity-80 transition-colors flex items-center gap-1">
-                                View Full <ArrowUpRight className="w-3 h-3" />
-                            </Link>
                         </div>
                         
                         {/* Data Type Legend */}
@@ -146,9 +143,9 @@ export default function ExecutiveDashboardOverview({
                                 <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
                                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Sell Vehicle
                                 </span>
-                                <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
+                                {/* <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
                                     <span className="w-2 h-2 rounded-full bg-purple-500"></span> Exchange
-                                </span>
+                                </span> */}
                                 <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
                                     <span className="w-2 h-2 rounded-full bg-orange-500"></span> Buy Vehicle
                                 </span>
@@ -169,7 +166,7 @@ export default function ExecutiveDashboardOverview({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 dark:divide-white/5">
-                                    {marketFeed.map((item: any, index: number) => (
+                                    {marketFeed.filter((item: any) => item.type !== 'exchange').map((item: any, index: number) => (
                                         <tr key={item._id} onClick={() => window.location.href = `/executive/valuations/${item.type}/${item._id}`} className={`transition-all duration-300 group hover:scale-[1.01] hover:shadow-lg relative z-0 hover:z-10 cursor-pointer ${index % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50 dark:bg-white/[0.02]'} hover:bg-gray-100 dark:hover:bg-white/[0.06]`}>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${getTypeColor(item.type)}`}>
@@ -221,7 +218,7 @@ export default function ExecutiveDashboardOverview({
                                     No recent activity found.
                                 </div>
                             ) : (
-                                marketFeed.map((item: any, index: number) => (
+                                marketFeed.filter((item: any) => item.type !== 'exchange').map((item: any, index: number) => (
                                     <Link key={item._id} href={`/executive/valuations/${item.type}/${item._id}`} className="block">
                                         <div className={`rounded-xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:hover:border-white/20 active:scale-[0.98] ${index % 2 === 0 ? 'bg-white dark:bg-zinc-900' : 'bg-gray-50 dark:bg-zinc-800/60'}`}>
                                             <div className="p-4 space-y-3">

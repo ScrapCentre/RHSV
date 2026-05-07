@@ -57,7 +57,7 @@ export default function Navbar() {
 
   const servicesDropdown = [
     { name: "Sell Old Vehicle", href: "/services/sell-vehicle", icon: Car, description: "Get the best price for your old vehicle" },
-    { name: "Exchange Vehicle", href: "/services/exchange-vehicle", icon: RefreshCw, description: "Exchange your old vehicle for a new one" },
+    // { name: "Exchange Vehicle", href: "/services/exchange-vehicle", icon: RefreshCw, description: "Exchange your old vehicle for a new one" },
     { name: "Buy New Vehicle", href: "/services/buy-vehicle", icon: ShoppingCart, description: "Explore our range of quality vehicles" },
   ]
 

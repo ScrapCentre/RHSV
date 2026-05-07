@@ -87,10 +87,10 @@ export default function DashboardOverview({
                         <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200 dark:shadow-none"></div>
                         <span className="text-xs font-bold text-green-700 dark:text-green-400">Sell Vehicle</span>
                     </div>
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
+                    {/* <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
                         <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-200 dark:shadow-none"></div>
                         <span className="text-xs font-bold text-purple-700 dark:text-purple-400">Exchange</span>
-                    </div>
+                    </div> */}
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/30">
                         <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-200 dark:shadow-none"></div>
                         <span className="text-xs font-bold text-orange-700 dark:text-orange-400">Buy Vehicle</span>
@@ -173,7 +173,7 @@ export default function DashboardOverview({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-                            {marketFeed.map((item: any, index: number) => (
+                            {marketFeed.filter((item: any) => item.type !== 'exchange').map((item: any, index: number) => (
                                 <tr key={item._id} onClick={() => window.location.href = `/admin/valuations/${item.type}/${item._id}`} className={`transition-all duration-300 group hover:scale-[1.01] hover:shadow-lg relative z-0 hover:z-10 cursor-pointer ${index % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50 dark:bg-slate-800/40'} hover:bg-gray-100 dark:hover:bg-slate-800/70`}>
                                     <td className="px-6 py-4">
                                         {item.type === 'quote' && (
@@ -236,7 +236,7 @@ export default function DashboardOverview({
                             No recent activity found.
                         </div>
                     ) : (
-                        marketFeed.map((item: any, index: number) => (
+                        marketFeed.filter((item: any) => item.type !== 'exchange').map((item: any, index: number) => (
                             <Link key={item._id} href={`/admin/valuations/${item.type}/${item._id}`} className="block">
                                 <div className={`rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:hover:border-slate-700 active:scale-[0.98] ${index % 2 === 0 ? 'bg-white dark:bg-[#0E192D]' : 'bg-gray-50 dark:bg-slate-800/40'}`}>
                                     <div className="p-4 space-y-3">
