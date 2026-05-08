@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import B2BPickup from "@/models/B2BPickup"
-import { Construction, Home, LogOut, Truck, Clock, CheckCircle, Package, AlertTriangle } from "lucide-react"
+import { Construction, Home, LogOut, Truck, Clock, CheckCircle, Package, AlertTriangle, FileText } from "lucide-react"
 import Link from "next/link"
 import ScrapCentreActionBtn from "@/components/ScrapCentreActionBtn"
 
@@ -25,7 +25,11 @@ export default async function ScrapCentreDashboard() {
     const completedPickups = pickups.filter(p => p.status === 'completed')
 
     return (
-        <div className="min-h-screen bg-[#020617] text-white flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+        <div className="min-h-screen bg-[#020617] text-white flex flex-col font-sans selection:bg-emerald-500 selection:text-white relative overflow-hidden">
+            {/* Background Ambient Glows */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[128px] pointer-events-none -z-10" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[128px] pointer-events-none -z-10" />
+
             {/* Header */}
             <header className="border-b border-white/5 bg-slate-900/50 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -56,22 +60,22 @@ export default async function ScrapCentreDashboard() {
             <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 space-y-8">
                 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6 relative overflow-hidden group">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.1)] hover:-translate-y-1">
                         <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Truck className="w-16 h-16 text-blue-400" />
                         </div>
                         <p className="text-xs font-black uppercase tracking-widest text-white/40 mb-2">Total Network Pickups</p>
                         <p className="text-4xl font-black text-white">{pickups.length}</p>
                     </div>
-                    <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6 relative overflow-hidden group">
+                    <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-yellow-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(234,179,8,0.1)] hover:-translate-y-1">
                         <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Clock className="w-16 h-16 text-yellow-400" />
                         </div>
                         <p className="text-xs font-black uppercase tracking-widest text-white/40 mb-2">Active / In Progress</p>
                         <p className="text-4xl font-black text-yellow-400">{activePickups.length}</p>
                     </div>
-                    <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6 relative overflow-hidden group">
+                    <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:-translate-y-1">
                         <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                             <CheckCircle className="w-16 h-16 text-emerald-400" />
                         </div>
@@ -81,84 +85,143 @@ export default async function ScrapCentreDashboard() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-slate-900/50 border border-white/5 rounded-2xl overflow-hidden">
-                    <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                        <div>
-                            <h2 className="text-lg font-black uppercase tracking-widest text-white">Network Pickups log</h2>
-                            <p className="text-xs font-medium text-white/40 mt-1">Live feed of all pickups accepted by B2B partners.</p>
-                        </div>
+                <div className="bg-[#0E192D] rounded-2xl border border-slate-800 overflow-hidden shadow-sm relative">
+                    <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-blue-500" />
+                            Network Pickups log
+                        </h2>
                     </div>
                     
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-black/20 text-[10px] font-black uppercase tracking-widest text-white/40 border-b border-white/5">
+                    {/* Desktop View (Table) */}
+                    <div className="hidden md:block overflow-hidden">
+                        <table className="w-full text-left text-sm table-fixed">
+                            <thead className="bg-slate-900/50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-800">
                                 <tr>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4">B2B Partner</th>
-                                    <th className="px-6 py-4">Lead Info</th>
-                                    <th className="px-6 py-4">Location</th>
-                                    <th className="px-6 py-4 text-right">Date Accepted</th>
+                                    <th className="px-3 py-3 w-[15%]">Status</th>
+                                    <th className="px-3 py-3 w-[20%]">B2B Partner</th>
+                                    <th className="px-3 py-3 w-[25%]">Lead Info</th>
+                                    <th className="px-3 py-3 w-[15%]">Location</th>
+                                    <th className="px-3 py-3 w-[10%]">Date</th>
+                                    <th className="px-3 py-3 w-[15%] text-right">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {pickups.map((pickup: any) => (
-                                    <tr key={pickup._id.toString()} className="hover:bg-white/[0.02] transition-colors group">
-                                        <td className="px-6 py-4">
+                            <tbody className="divide-y divide-slate-800">
+                                {pickups.map((pickup: any, index: number) => (
+                                    <tr key={pickup._id.toString()} className={`transition-all duration-300 group hover:scale-[1.01] hover:shadow-lg relative z-0 hover:z-10 cursor-default ${index % 2 === 0 ? 'bg-[#0E192D]' : 'bg-slate-800/40'} hover:bg-slate-800/70`}>
+                                        <td className="px-3 py-3">
                                             {pickup.status === 'accepted' ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                                    <Truck className="w-3 h-3" /> Scheduled
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 max-w-full truncate">
+                                                    <Truck className="w-3 h-3 shrink-0" /> <span className="truncate">Scheduled</span>
                                                 </span>
                                             ) : pickup.status === 'picked_up' ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                                                    <Package className="w-3 h-3" /> Picked Up
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-400 border border-purple-500/20 max-w-full truncate">
+                                                    <Package className="w-3 h-3 shrink-0" /> <span className="truncate">Picked Up</span>
                                                 </span>
                                             ) : pickup.status === 'car_scrapped' ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20">
-                                                    <AlertTriangle className="w-3 h-3" /> Scrapped
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20 max-w-full truncate">
+                                                    <AlertTriangle className="w-3 h-3 shrink-0" /> <span className="truncate">Scrapped</span>
                                                 </span>
                                             ) : pickup.status === 'completed' ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                    <CheckCircle className="w-3 h-3" /> Arrived
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 max-w-full truncate">
+                                                    <CheckCircle className="w-3 h-3 shrink-0" /> <span className="truncate">Arrived</span>
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-slate-800 text-gray-300 border border-slate-700">
-                                                    {pickup.status}
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-slate-800 text-gray-300 border border-slate-700 max-w-full truncate">
+                                                    <span className="truncate">{pickup.status}</span>
                                                 </span>
                                             )}
-                                            <ScrapCentreActionBtn pickupId={pickup._id.toString()} currentStatus={pickup.status} />
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-white">{pickup.partnerName}</span>
-                                                <span className="text-[10px] font-medium text-white/40">{pickup.partnerId}</span>
+                                        <td className="px-3 py-3">
+                                            <div className="flex flex-col overflow-hidden w-full">
+                                                <span className="font-bold text-white group-hover:text-emerald-400 transition-colors truncate">{pickup.partnerName}</span>
+                                                <span className="text-[10px] font-medium text-white/40 truncate">{pickup.partnerId}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-emerald-400">{pickup.leadType.toUpperCase()}</span>
-                                                <span className="text-[11px] font-medium text-white/60">{pickup.vehicleInfo}</span>
-                                            </div>
+                                        <td className="px-3 py-3 text-[13px] font-medium text-white/70 truncate">
+                                            {pickup.leadType.toUpperCase()} - {pickup.vehicleInfo}
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col">
-                                                <span className="font-medium text-white/80">{pickup.city}, {pickup.state}</span>
-                                                <span className="text-[10px] font-medium text-white/40">{pickup.pincode}</span>
-                                            </div>
+                                        <td className="px-3 py-3 text-[12px] font-medium text-white/60 truncate">
+                                            {pickup.city}, {pickup.state}
                                         </td>
-                                        <td className="px-6 py-4 text-right text-[11px] font-medium text-white/40">
+                                        <td className="px-3 py-3 text-[11px] font-medium text-white/40 truncate">
                                             {new Date(pickup.createdAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-3 py-3 text-right">
+                                            <div className="flex justify-end">
+                                                <ScrapCentreActionBtn pickupId={pickup._id.toString()} currentStatus={pickup.status} />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
                                 {pickups.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-white/20 text-xs font-bold uppercase tracking-widest">
+                                        <td colSpan={6} className="px-3 py-12 text-center text-slate-500 text-xs font-bold uppercase tracking-widest">
                                             No pickups in the network yet
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile View (Cards) */}
+                    <div className="md:hidden p-4 space-y-4 bg-slate-900/20">
+                        {pickups.length === 0 ? (
+                            <div className="px-6 py-8 text-center text-slate-500 text-xs font-bold uppercase tracking-widest bg-[#0E192D] rounded-xl border border-slate-800">
+                                No pickups in the network yet
+                            </div>
+                        ) : (
+                            pickups.map((pickup: any, index: number) => (
+                                <div key={pickup._id.toString()} className={`rounded-xl border border-slate-800 shadow-sm overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:border-slate-700 active:scale-[0.98] ${index % 2 === 0 ? 'bg-[#0E192D]' : 'bg-slate-800/40'}`}>
+                                    <div className="p-4 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            {pickup.status === 'accepted' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                                    Scheduled
+                                                </span>
+                                            ) : pickup.status === 'picked_up' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                                    Picked Up
+                                                </span>
+                                            ) : pickup.status === 'car_scrapped' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+                                                    Scrapped
+                                                </span>
+                                            ) : pickup.status === 'completed' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                    Arrived
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-800 text-gray-300 border border-slate-700">
+                                                    {pickup.status}
+                                                </span>
+                                            )}
+                                            <p className="text-[11px] text-white/40 font-medium">
+                                                {new Date(pickup.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] text-white/30 font-bold uppercase tracking-wider">Lead Info</p>
+                                            <p className="text-sm font-bold text-white leading-snug line-clamp-2">
+                                                {pickup.leadType.toUpperCase()} - {pickup.vehicleInfo}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-2 border-t border-slate-800/50">
+                                            <div className="flex flex-col">
+                                                <p className="text-[13px] font-bold text-white">{pickup.partnerName}</p>
+                                                <p className="text-[10px] font-mono text-white/40">{pickup.city}, {pickup.state}</p>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <ScrapCentreActionBtn pickupId={pickup._id.toString()} currentStatus={pickup.status} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </main>

@@ -340,6 +340,39 @@ export default function B2BPickupsPage() {
                                         </div>
                                     </div>
 
+                                    {/* Tracking Timeline */}
+                                    <div>
+                                        <h3 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-4 mt-6">Tracking Journey</h3>
+                                        <div className="bg-gray-50 dark:bg-slate-900/50 p-6 rounded-xl border border-gray-100 dark:border-slate-800">
+                                            <div className="relative border-l-2 border-emerald-200 dark:border-emerald-900/50 ml-3 space-y-6">
+                                                {[
+                                                    { id: 'scheduled', label: 'Pickup Scheduled', desc: 'A B2B Partner has accepted the lead.', icon: <Calendar className="w-3.5 h-3.5" /> },
+                                                    { id: 'picked_up', label: 'Reached Collection Centre', desc: 'Vehicle successfully arrived at ScrapCentre.', icon: <Truck className="w-3.5 h-3.5" /> },
+                                                    { id: 'completed', label: 'Car Scrapped Successfully', desc: 'Final processing completed.', icon: <CheckCircle className="w-3.5 h-3.5" /> }
+                                                ].map((step, idx) => {
+                                                    // Determine completion based on B2B status
+                                                    const s = selectedPickup.status
+                                                    let isCompleted = false
+                                                    if (idx === 0) isCompleted = ['accepted', 'scheduled', 'picked_up', 'completed'].includes(s)
+                                                    if (idx === 1) isCompleted = ['picked_up', 'completed'].includes(s)
+                                                    if (idx === 2) isCompleted = ['completed'].includes(s)
+                                                    
+                                                    return (
+                                                        <div key={step.id} className="relative pl-6">
+                                                            <div className={`absolute -left-[13px] top-0.5 w-6 h-6 rounded-full border-4 border-gray-50 dark:border-slate-900 flex items-center justify-center transition-colors ${isCompleted ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-slate-700 text-transparent'}`}>
+                                                                {isCompleted ? <CheckCircle className="w-2.5 h-2.5" /> : step.icon}
+                                                            </div>
+                                                            <div>
+                                                                <h4 className={`text-sm font-bold ${isCompleted ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>{step.label}</h4>
+                                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{step.desc}</p>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {/* Timestamps */}
                                     <div className="pt-4 border-t border-gray-100 dark:border-slate-800 text-center">
                                         <p className="text-xs text-gray-400 italic flex items-center justify-center gap-2">

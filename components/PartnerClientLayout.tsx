@@ -111,6 +111,16 @@ export default function PartnerClientLayout({ children }: { children: React.Reac
                     animate="visible"
                     className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 scrollbar-hide"
                 >
+                    {/* Dashboard */}
+                    <motion.div variants={sidebarLinkVariants}>
+                        <Link href="/b2b/dashboard" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${pathname === '/b2b/dashboard' ? 'bg-indigo-500/10 text-indigo-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                            {pathname === '/b2b/dashboard' && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-r-full" />
+                            )}
+                            <Home className={`w-5 h-5 mr-3.5 transition-colors ${pathname === '/b2b/dashboard' ? 'text-indigo-400' : 'text-slate-400 group-hover:text-white'}`} />
+                            <span className="font-semibold">Dashboard</span>
+                        </Link>
+                    </motion.div>
 
                     {/* Market Feed */}
                     <motion.div variants={sidebarLinkVariants}>

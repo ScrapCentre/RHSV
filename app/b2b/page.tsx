@@ -40,7 +40,7 @@ export default function B2BLoginPage() {
                 setIsLoading(false)
                 setError("Invalid Partner ID or password. Please try again.")
             } else {
-                router.push("/b2b/marketplace")
+                router.push("/b2b/dashboard")
             }
         } catch (err) {
             setIsLoading(false)

@@ -36,10 +36,19 @@ export default function ScrapCentreActionBtn({ pickupId, currentStatus }: { pick
         <button
             onClick={handleCarScrapped}
             disabled={isLoading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all ml-2"
+            className={`
+                group relative overflow-hidden inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all duration-300 w-full sm:w-auto
+                ${isLoading 
+                    ? 'bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700' 
+                    : 'bg-gradient-to-r from-red-500/10 to-orange-500/10 hover:from-red-500 hover:to-orange-600 text-red-400 hover:text-white border border-red-500/30 hover:border-transparent hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:scale-105 active:scale-95'
+                }
+            `}
         >
-            {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
-            Car Scrapped
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+            <span className="relative z-10 flex items-center gap-2">
+                {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                {isLoading ? 'Processing...' : 'Mark as Scrapped'}
+            </span>
         </button>
     )
 }
