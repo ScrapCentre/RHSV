@@ -351,7 +351,6 @@ export default function SellOldWizardCard() {
                       placeholder="e.g. DL-01-AB-1234"
                       value={regNum}
                       onChange={e => setRegNum(e.target.value.toUpperCase())}
-                      autoFocus
                     />
                     {isLooking && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
