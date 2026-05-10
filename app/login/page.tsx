@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { signIn, getSession, signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Mail, Lock, ArrowRight, Loader2, Sparkles, Building2, User, Eye, EyeOff } from "lucide-react"
+import { Mail, Lock, ArrowRight, Loader2, Sparkles, Building2, User, Eye, EyeOff, Phone, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
@@ -65,6 +65,12 @@ function LoginContent() {
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+
+    // Phone Auth State
+    const [loginMethod, setLoginMethod] = useState<"email" | "phone">("phone")
+    const [phone, setPhone] = useState("")
+    const [otp, setOtp] = useState("")
+    const [otpSent, setOtpSent] = useState(false)
 
     // B2B State
     const [b2bUserId, setB2BUserId] = useState("")
@@ -147,6 +153,61 @@ function LoginContent() {
                     window.location.href = "/executive/dashboard"
                 } else if (role === "scrapcentre") {
                     window.location.href = "/scrapcentre/dashboard"
+                } else {
+                    window.location.href = "/"
+                }
+            }
+        } catch (error) {
+            console.error(error)
+            setIsLoading(false)
+            toast({
+                title: "Error",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handlePhoneAuth = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!otpSent) {
+            if (phone.length !== 10) {
+                toast({ title: "Invalid Phone", description: "Enter a valid 10-digit number.", variant: "destructive" })
+                return
+            }
+            setIsLoading(true)
+            // Simulate sending OTP
+            setTimeout(() => {
+                setIsLoading(false)
+                setOtpSent(true)
+                toast({ title: "OTP Sent", description: "Use demo OTP 1234 to login." })
+            }, 800)
+            return
+        }
+
+        setIsLoading(true)
+        try {
+            const result = await signIn("phone-otp", {
+                phone,
+                otp,
+                redirect: false,
+            })
+
+            if (result?.error) {
+                setIsLoading(false)
+                toast({
+                    title: "Authentication Error",
+                    description: "Invalid OTP. Please use 1234.",
+                    variant: "destructive"
+                })
+            } else {
+                toast({
+                    title: "Authentication Successful",
+                    description: "Welcome!",
+                })
+                const callbackUrl = searchParams.get("callbackUrl")
+                if (callbackUrl) {
+                    window.location.href = callbackUrl
                 } else {
                     window.location.href = "/"
                 }
@@ -247,11 +308,11 @@ function LoginContent() {
                     {/* Header */}
                     <div className="text-center lg:text-left space-y-1.5">
                         <h2 className="text-3xl font-bold text-white tracking-tight">
-                            {activeTab === "standard" ? (isLogin ? "Welcome Back" : "Create Account") : "Partner Portal"}
+                            {activeTab === "standard" ? (loginMethod === "phone" ? "Welcome" : isLogin ? "Welcome Back" : "Create Account") : "Partner Portal"}
                         </h2>
                         <p className="text-gray-400 text-sm">
                             {activeTab === "standard"
-                                ? (isLogin ? "Please enter your details to sign in." : "Join us to get the best value for your scrap.")
+                                ? (loginMethod === "phone" ? "Sign in or create an account with your phone number." : isLogin ? "Please enter your details to sign in." : "Join us to get the best value for your scrap.")
                                 : "Access for registered corporate partners."}
                         </p>
                     </div>
@@ -290,85 +351,167 @@ function LoginContent() {
                                 transition={{ duration: 0.2 }}
                                 className="space-y-4"
                             >
-                                {/* Standard Auth Form */}
-                                <form onSubmit={handleAuth} className="space-y-4">
-                                    {!isLogin && (
+                                {/* Login Method Toggle (Phone vs Email) */}
+                                <div className="flex gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl mb-4">
+                                    <button
+                                        onClick={() => { setLoginMethod("phone"); setOtpSent(false); setOtp(""); }}
+                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${loginMethod === "phone" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
+                                    >
+                                        Phone OTP
+                                    </button>
+                                    <button
+                                        onClick={() => setLoginMethod("email")}
+                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${loginMethod === "email" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
+                                    >
+                                        Email / Password
+                                    </button>
+                                </div>
+
+                                {loginMethod === "phone" ? (
+                                    <form onSubmit={handlePhoneAuth} className="space-y-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-300 ml-1">Full Name</label>
+                                            <label className="text-xs font-semibold text-gray-300 ml-1">Phone Number</label>
+                                            <div className="relative group transition-all flex gap-2">
+                                                <div className="flex items-center gap-2 px-3 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 text-sm font-bold shrink-0">
+                                                    🇮🇳 +91
+                                                </div>
+                                                <input
+                                                    type="tel"
+                                                    required
+                                                    value={phone}
+                                                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                                                    placeholder="10-digit number"
+                                                    disabled={otpSent}
+                                                    className="block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200 disabled:opacity-50"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {otpSent && (
+                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-1">
+                                                    <label className="text-xs font-semibold text-gray-300 ml-1">Enter OTP (Demo: 1234)</label>
+                                                    <div className="relative group transition-all">
+                                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                                            <ShieldCheck className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={otp}
+                                                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                                                            placeholder="••••"
+                                                            className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200 tracking-[0.5em] font-bold"
+                                                        />
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading || (otpSent && otp.length !== 4) || (!otpSent && phone.length !== 10)}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-xl shadow-emerald-900/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
+                                        >
+                                            {isLoading ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : otpSent ? (
+                                                "Verify & Login"
+                                            ) : (
+                                                "Send OTP"
+                                            )}
+                                        </button>
+                                        
+                                        {otpSent && (
+                                            <button 
+                                                type="button" 
+                                                onClick={() => { setOtpSent(false); setOtp("") }}
+                                                className="w-full text-center text-xs text-emerald-500 hover:text-emerald-400 mt-2 font-semibold"
+                                            >
+                                                Change Phone Number
+                                            </button>
+                                        )}
+                                    </form>
+                                ) : (
+                                    <form onSubmit={handleAuth} className="space-y-4">
+                                        {!isLogin && (
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-semibold text-gray-300 ml-1">Full Name</label>
+                                                <div className="relative group transition-all">
+                                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                                        <User className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={name}
+                                                        onChange={(e) => setName(e.target.value)}
+                                                        placeholder="John Doe"
+                                                        className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-gray-300 ml-1">Email Address or Identity</label>
                                             <div className="relative group transition-all">
                                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                    <User className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                                    <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
                                                 </div>
                                                 <input
                                                     type="text"
                                                     required
-                                                    value={name}
-                                                    onChange={(e) => setName(e.target.value)}
-                                                    placeholder="John Doe"
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    placeholder="Email or Login ID"
                                                     className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
                                                 />
                                             </div>
                                         </div>
-                                    )}
 
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-300 ml-1">Email Address or Identity</label>
-                                        <div className="relative group transition-all">
-                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between items-center ml-1">
+                                                <label className="text-xs font-semibold text-gray-300">Password</label>
                                             </div>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="Email or Login ID"
-                                                className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between items-center ml-1">
-                                            <label className="text-xs font-semibold text-gray-300">Password</label>
-                                        </div>
-                                        <div className="relative group transition-all">
-                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                <Lock className="h-4 w-4 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                            <div className="relative group transition-all">
+                                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                                    <Lock className="h-4 w-4 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                                </div>
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    required
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    placeholder="••••••••"
+                                                    className="block w-full pl-10 pr-10 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-emerald-500 transition-colors"
+                                                >
+                                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
                                             </div>
-                                            <input
-                                                type={showPassword ? "text" : "password"}
-                                                required
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                placeholder="••••••••"
-                                                className="block w-full pl-10 pr-10 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-emerald-500 transition-colors"
-                                            >
-                                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </button>
                                         </div>
-                                    </div>
 
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-xl shadow-emerald-900/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
-                                    >
-                                        {isLoading ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            <>
-                                                {isLogin ? "Sign In" : "Create Account"}
-                                                <ArrowRight className="w-4 h-4" />
-                                            </>
-                                        )}
-                                    </button>
-                                </form>
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-xl shadow-emerald-900/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
+                                        >
+                                            {isLoading ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    {isLogin ? "Sign In" : "Create Account"}
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </>
+                                            )}
+                                        </button>
+                                    </form>
+                                )}
 
                                 {isLogin && (
                                     <>
@@ -396,16 +539,17 @@ function LoginContent() {
                                 )}
 
 
-
-                                <p className="text-center text-xs text-gray-500 mt-4">
-                                    {isLogin ? "New to ScrapCenter?" : "Already have an account?"}
-                                    <button
-                                        onClick={() => setIsLogin(!isLogin)}
-                                        className="font-bold text-white hover:text-emerald-400 ml-1 transition-colors"
-                                    >
-                                        {isLogin ? "Create an account" : "Sign in"}
-                                    </button>
-                                </p>
+                                {loginMethod === "email" && (
+                                    <p className="text-center text-xs text-gray-500 mt-4">
+                                        {isLogin ? "New to ScrapCenter?" : "Already have an account?"}
+                                        <button
+                                            onClick={() => setIsLogin(!isLogin)}
+                                            className="font-bold text-white hover:text-emerald-400 ml-1 transition-colors"
+                                        >
+                                            {isLogin ? "Create an account" : "Sign in"}
+                                        </button>
+                                    </p>
+                                )}
                             </motion.div>
                         ) : (
                             <motion.div

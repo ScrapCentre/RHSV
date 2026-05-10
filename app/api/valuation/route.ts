@@ -12,9 +12,12 @@ export async function POST(req: Request) {
         const body = await req.json()
 
         // Basic validation
-        if (!body.vehicleType || !body.vehicleNumber || !body.contact?.phone) {
+        if (!body.contact?.phone) {
+            return NextResponse.json({ message: "Phone number is required" }, { status: 400 });
+        }
+        if (body.requestType !== "buy" && (!body.vehicleType || !body.vehicleNumber)) {
             return NextResponse.json(
-                { message: "Missing required fields" },
+                { message: "Missing required vehicle fields" },
                 { status: 400 }
             )
         }

@@ -6,9 +6,13 @@ const ValuationSchema = new Schema(
             type: String, // Store as string for better NextAuth compatibility
             required: false,
         },
+        requestType: {
+            type: String,
+            enum: ["valuation", "sell", "buy"],
+            default: "valuation"
+        },
         vehicleType: {
             type: String,
-            required: [true, "Vehicle type is required"],
         },
         brand: {
             type: String,
@@ -16,20 +20,20 @@ const ValuationSchema = new Schema(
         },
         model: {
             type: String,
-            required: [true, "Model is required"],
         },
         year: {
             type: String,
-            required: [true, "Year is required"],
         },
         vehicleNumber: {
             type: String,
-            required: [true, "Vehicle number is required"],
         },
         vehicleWeight: {
             type: String,
-            required: [true, "Vehicle weight is required"],
         },
+        // Buy Vehicle specific fields
+        budget: String,
+        fuelType: String,
+        modelType: String,
         address: {
             pincode: String,
             state: String,
@@ -38,6 +42,7 @@ const ValuationSchema = new Schema(
         contact: {
             name: String,
             phone: String,
+            email: String,
         },
         status: {
             type: String,

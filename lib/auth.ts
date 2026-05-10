@@ -158,6 +158,34 @@ export const authOptions: NextAuthOptions = {
                 }
             }
         }),
+        CredentialsProvider({
+            id: "phone-otp",
+            name: "Phone Number",
+            credentials: {
+                phone: { label: "Phone", type: "text" },
+                otp: { label: "OTP", type: "text" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.phone || credentials?.otp !== "1234") return null;
+                try {
+                    await connectToDatabase();
+                    const dummyEmail = `${credentials.phone}@otp.com`;
+                    let user = await User.findOne({ email: dummyEmail });
+                    if (!user) {
+                        user = await User.create({
+                           name: `User ${credentials.phone.slice(-4)}`,
+                           email: dummyEmail,
+                           role: "client",
+                           provider: "phone"
+                        });
+                    }
+                    return { id: user._id.toString(), name: user.name, email: user.email, role: "client" }
+                } catch (err) {
+                    console.error(err);
+                    return null;
+                }
+            }
+        }),
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
