@@ -20,6 +20,9 @@ import type { QualityTier } from "@/components/QualityBadge"
 
 /** Map MarketplaceLead API record to LeadCard props */
 function mapToLeadCard(raw: any): LeadCardData {
+  // QA-fix: LeadCardData.pricePerKg is per-kg rate (₹/kg), not total price.
+  // Engineering-design §8: 2W = ₹0.75/kg, 4W/truck = ₹1.0/kg.
+  const pricePerKg = raw.vehicleType === "2W" ? 0.75 : 1.0
   return {
     id: raw._id,
     tier: (raw.qualityScore ?? "bronze") as QualityTier,
@@ -33,9 +36,11 @@ function mapToLeadCard(raw: any): LeadCardData {
     isAadhaarVerified: raw.aadhaarVerified ?? false,
     isRCVerified: true, // All marketplace leads have gone through triage
     photoUrls: raw.photoUrlsBlurred ?? [],
-    leadPriceInr: raw.leadPriceInr ?? 0,
+    // QA-fix: was passing leadPriceInr (total) into pricePerKg (rate) — caused NaN total in LeadCard.
+    pricePerKg,
     expiresAt: raw.expiresAt ? new Date(raw.expiresAt) : new Date(Date.now() + 14 * 86400000),
-    isRelisted: raw.isRelisted ?? false,
+    // QA-fix: referenceId was missing — LeadCard showed empty string at bottom of card.
+    referenceId: raw._id ? `SC-${String(raw._id).slice(-5).toUpperCase()}` : "SC-?????",
   }
 }
 
