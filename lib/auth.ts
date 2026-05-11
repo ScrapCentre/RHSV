@@ -9,6 +9,7 @@ import User from "@/models/User"
 import ScrapCentreUser from "@/models/ScrapCentreUser"
 import B2BPartner from "@/models/B2BPartner"
 import Executive from "@/models/Executive"
+import { verifyOtp } from "@/lib/services/otp-store"
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -20,62 +21,51 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
-                console.log("[Auth] Login Attempt for:", credentials?.email);
+                // engineering-design.md §11 — debug bypass removed (was lines 26-30)
                 if (!credentials?.email || !credentials?.password) return null;
-                
-                // 1. DEBUG BYPASS
-                if (credentials.email === "debug@test.com" && credentials.password === "debug123") {
-                    console.log("[Auth] DEBUG LOGIN SUCCESS");
-                    return { id: "debug-id", name: "Debug User", email: "debug@test.com", role: "admin" }
-                }
 
                 try {
                     await connectToDatabase();
                     const identifier = credentials.email.toLowerCase();
                     const password = credentials.password;
 
-                    // 2. Env Fallback (Admin)
+                    // 1. Env Admin (read from environment — never logged)
                     const envAdminEmail = process.env.ADMIN_EMAIL;
                     const envAdminPassword = process.env.ADMIN_PASSWORD;
-                    console.log(`[Auth] Env Admin Loaded: ${!!envAdminEmail}, Email starts with: ${envAdminEmail?.substring(0, 3)}`);
-
-                    if (envAdminEmail && envAdminPassword && 
-                        identifier === envAdminEmail.toLowerCase() && 
+                    if (envAdminEmail && envAdminPassword &&
+                        identifier === envAdminEmail.toLowerCase() &&
                         password === envAdminPassword) {
-                        console.log("[Auth] Env Admin Match");
                         return { id: "env-admin", name: "System Admin", email: envAdminEmail, role: "admin" }
                     }
 
-                    // 3. Standard User Database
+                    // 2. Standard User Database
                     const dbUser = await User.findOne({ email: identifier }).select("+password").lean();
-                    if (dbUser) {
+                    if (dbUser && (dbUser as any).password) {
                         const isMatch = await bcrypt.compare(password, (dbUser as any).password);
-                        console.log(`[Auth] User DB Match: ${identifier}, Match: ${isMatch}`);
                         if (isMatch) return { id: (dbUser as any)._id.toString(), name: (dbUser as any).name, email: (dbUser as any).email, role: (dbUser as any).role || "client" }
                     }
 
-                    // 4. ScrapCentre Database
+                    // 3. ScrapCentre Database
                     const scrapUser = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password").lean();
                     if (scrapUser) {
                         const isMatch = await bcrypt.compare(password, (scrapUser as any).password);
-                        console.log(`[Auth] ScrapCentre DB Match: ${identifier}, Match: ${isMatch}`);
                         if (isMatch) return { id: (scrapUser as any)._id.toString(), name: (scrapUser as any).name, email: (scrapUser as any).email, role: "scrapcentre" }
                     }
 
-                    // 5. B2B Database
+                    // 4. B2B Database — bcrypt only (plaintext fallback removed per engineering-design.md §11)
                     const partner = await B2BPartner.findOne({ userId: identifier }).select("+password").lean();
                     if (partner) {
                         const storedPw = (partner as any).password;
-                        const isHashed = storedPw?.startsWith("$2");
-                        const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
-                        console.log(`[Auth] B2B Partner Match: ${identifier}, Match: ${isMatch}`);
+                        if (!storedPw) return null;
+                        const isMatch = await bcrypt.compare(password, storedPw);
                         if (isMatch) return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
                     }
 
                 } catch (err: any) {
-                    console.error("[Auth] Database error during authorize:", err);
-                    // Temporarily pass the raw error for debugging
-                    throw new Error(`AUTH_ERROR: ${err.message || "Unknown error"}`);
+                    // Log server-side only; never expose raw error message to client
+                    // engineering-design.md §11 / 07-tech-debt HIGH finding
+                    console.error("[Auth] Database error during authorize:", err?.message ?? "unknown");
+                    throw new Error("AUTHENTICATION_FAILED");
                 }
                 return null;
             }
@@ -124,10 +114,9 @@ export const authOptions: NextAuthOptions = {
                     if (!partner) return null;
 
                     const storedPw = (partner as any).password;
-                    const isHashed = storedPw?.startsWith("$2");
-                    const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-                    
-                    console.log(`[B2B Auth] ID: ${credentials.userId}, Match: ${isMatch}`);
+                    // bcrypt-only — plaintext fallback removed per engineering-design.md §11
+                    if (!storedPw) return null;
+                    const isMatch = await bcrypt.compare(credentials.password, storedPw);
                     if (!isMatch) return null;
 
                     return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
@@ -166,7 +155,11 @@ export const authOptions: NextAuthOptions = {
                 otp: { label: "OTP", type: "text" },
             },
             async authorize(credentials) {
-                if (!credentials?.phone || credentials?.otp !== "1234") return null;
+                // engineering-design.md §11 — hardcoded "1234" OTP replaced with adapter call
+                if (!credentials?.phone || !credentials?.otp) return null;
+                // Call OTP store adapter (mock mode accepts "000000"; real MSG91 adapter wired later)
+                const valid = verifyOtp(credentials.phone, credentials.otp);
+                if (!valid) return null;
                 try {
                     await connectToDatabase();
                     const dummyEmail = `${credentials.phone}@otp.com`;
@@ -181,7 +174,7 @@ export const authOptions: NextAuthOptions = {
                     }
                     return { id: user._id.toString(), name: user.name, email: user.email, role: "client" }
                 } catch (err) {
-                    console.error(err);
+                    console.error("[PhoneOTP] Error:", (err as any)?.message ?? "unknown");
                     return null;
                 }
             }

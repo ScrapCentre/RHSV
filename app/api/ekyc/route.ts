@@ -1,4 +1,8 @@
+// engineering-design.md §11 / 07-tech-debt HIGH — session check + ownership check added
+// ekycStatus no longer auto-set to "verified" (set to "pending" per tech debt fix)
 import { type NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
@@ -6,6 +10,13 @@ import ExchangeVehicle from "@/models/ExchangeVehicle"
 import { uploadToCloudinary } from "@/lib/cloudinary"
 
 export async function PATCH(req: NextRequest) {
+    // Require authentication — engineering-design.md §11 / 07-tech-debt HIGH
+    const session = await getServerSession(authOptions)
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const userId = (session.user as any).id as string
+
     try {
         const formData = await req.formData()
         const valuationId = formData.get("valuationId") as string
@@ -29,16 +40,34 @@ export async function PATCH(req: NextRequest) {
 
         await connectToDatabase()
 
+        // Ownership check — only allow update of own records (IDOR fix)
+        let Model: typeof Valuation | typeof SellVehicle | typeof ExchangeVehicle
+        if (source === "sell-vehicle") {
+            Model = SellVehicle
+        } else if (source === "exchange-vehicle") {
+            Model = ExchangeVehicle
+        } else {
+            Model = Valuation
+        }
+
+        const existingRecord = await (Model as any).findOne({ _id: valuationId, userId })
+        if (!existingRecord) {
+            return NextResponse.json(
+                { message: "Record not found or access denied" },
+                { status: 404 }
+            )
+        }
+
         const uploadFile = async (file: File | null, folder: string) => {
             if (!file || typeof file === "string") return null
+            // Validate file type and size — engineering-design.md §11 / 07-tech-debt MEDIUM
+            const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
+            if (!allowedTypes.includes(file.type)) return null
+            if (file.size > 5 * 1024 * 1024) return null  // 5MB cap
             const buffer = Buffer.from(await file.arrayBuffer())
-
-            // Clean publicId - remove extension if present
             const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9.\-_]/g, '')
             const publicId = `${folder}_${Date.now()}_${cleanName}`
-
-            // Use resource_type: "auto" for all documents (now images)
-            return await uploadToCloudinary(buffer, `autoscrap/ekyc/${valuationId}`, publicId, "auto")
+            return await uploadToCloudinary(buffer, `scrapcentre/ekyc/${valuationId}`, publicId, "auto")
         }
 
         const [aadharUrl, rcUrl, carPhotoUrl] = await Promise.all([
@@ -52,54 +81,33 @@ export async function PATCH(req: NextRequest) {
             dob,
             aadharPhone,
             aadharNumber,
-            ekycStatus: "verified"
+            // Set to "pending" not "verified" — real validation happens via admin/integration
+            // engineering-design.md §11 / 07-tech-debt HIGH
+            ekycStatus: "pending"
         }
 
         if (aadharUrl) ekycData.aadharFile = aadharUrl
         if (rcUrl) ekycData.rcFile = rcUrl
         if (carPhotoUrl) ekycData.carPhoto = carPhotoUrl
 
-        let Model;
-        let updateStatus = "pending";
+        let updateStatus = source === "sell-vehicle" || source === "exchange-vehicle" ? "pending" : "reviewed"
 
-        if (source === "sell-vehicle") {
-            Model = SellVehicle
-        } else if (source === "exchange-vehicle") {
-            Model = ExchangeVehicle
-        } else {
-            Model = Valuation
-            updateStatus = "reviewed"
-        }
-
-        const updatedRecord = await Model.findByIdAndUpdate(
+        const updatedRecord = await (Model as any).findByIdAndUpdate(
             valuationId,
-            {
-                $set: {
-                    ...ekycData,
-                    status: updateStatus
-                }
-            },
+            { $set: { ...ekycData, status: updateStatus } },
             { new: true }
         )
 
-        if (!updatedRecord) {
-            return NextResponse.json(
-                { message: "Record not found" },
-                { status: 404 }
-            )
-        }
-
         return NextResponse.json(
-            { message: "eKYC Details updated successfully", success: true, record: updatedRecord },
+            { message: "eKYC Details submitted successfully", success: true, record: updatedRecord },
             { status: 200 }
         )
 
     } catch (error) {
-        console.error("eKYC update error:", error)
+        console.error("eKYC update error:", (error as any)?.message)
         return NextResponse.json(
-            { message: "Internal server error", error: String(error) },
+            { message: "Internal server error" },
             { status: 500 }
         )
     }
 }
-
