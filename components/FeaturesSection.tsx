@@ -118,11 +118,11 @@ export default function FeaturesSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: "easeOut" as const }}
         >
-            <span className="text-emerald-400 font-bold uppercase tracking-[0.2em] mb-3 block text-sm">
-            Why Choose ScrapCenter
+            <span className="text-[var(--brand-red)] font-bold uppercase tracking-[0.2em] mb-3 block text-sm">
+            Why Choose ScrapCentre.com
           </span>
           <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight leading-tight">
-            Premium <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Features</span>
+            Why us? <span className="text-[var(--brand-red)]">Six reasons.</span>
           </h2>
           <p className="text-slate-400 max-w-2xl mx-auto text-lg font-light leading-relaxed">
             Experience a hassle-free car scrapping process with our exclusive services designed for your absolute convenience and trust.
@@ -139,7 +139,7 @@ export default function FeaturesSection() {
             transition={{ duration: 0.8, ease: [0.2, 0.65, 0.3, 0.9] as any }}
             className="relative lg:col-span-2"
           >
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-emerald-500/10 border border-slate-700/50">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-[var(--brand-red)]/10 border border-slate-700/50">
               <img
                 src="/frontpage/features.jpg"
                 alt="ScrapCenter Features"
@@ -148,8 +148,8 @@ export default function FeaturesSection() {
             </div>
 
             {/* Decorative Elements around image */}
-            <div className="absolute -z-10 top-10 -left-10 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl animate-pulse"></div>
-            <div className="absolute -z-10 -bottom-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl animate-pulse delay-700"></div>
+            <div className="absolute -z-10 top-10 -left-10 w-24 h-24 bg-[var(--brand-red)]/10 rounded-full blur-2xl animate-pulse"></div>
+            <div className="absolute -z-10 -bottom-10 -right-10 w-32 h-32 bg-[var(--brand-red)]/5 rounded-full blur-2xl animate-pulse delay-700"></div>
           </motion.div>
 
 
@@ -193,7 +193,7 @@ export default function FeaturesSection() {
                         {/* Glowing Border/Backdrop (Before) */}
                         <div className={`
                                     absolute inset-0 -left-[3px] m-auto w-[calc(100%+6px)] h-[calc(100%+6px)] rounded-[14px]
-                                    bg-gradient-to-br from-emerald-400 to-teal-400
+                                    bg-gradient-to-br from-[var(--brand-red)] to-[var(--brand-red-dark)]
                                     -z-10 pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]
                                     ${isExpanded ? 'rotate-0 opacity-100' : 'group-hover:rotate-[-3deg] group-hover:scale-x-[1.03] group-hover:scale-y-[1.03]'}
                                     opacity-0 group-hover:opacity-100
@@ -205,7 +205,7 @@ export default function FeaturesSection() {
                         {/* Blurred Glow (After) */}
                         <div className={`
                                     absolute inset-0 -z-20 transform scale-[0.90] blur-[15px]
-                                    bg-gradient-to-br from-emerald-400 to-teal-400
+                                    bg-gradient-to-br from-[var(--brand-red)] to-[var(--brand-red-dark)]
                                     opacity-0 group-hover:opacity-100 transition-opacity duration-300
                                 `}></div>
 
@@ -213,7 +213,7 @@ export default function FeaturesSection() {
                         {/* Content */}
                         <div className="flex flex-col h-full relative z-10">
                           <div className="mb-auto pt-1">
-                            <div className="p-2.5 bg-slate-50 w-fit rounded-lg mb-3 text-emerald-600 group-hover:text-white group-hover:bg-emerald-500 transition-colors border border-slate-100 group-hover:border-emerald-500/30">
+                            <div className="p-2.5 bg-slate-50 w-fit rounded-lg mb-3 text-[var(--brand-red)] group-hover:text-white group-hover:bg-[var(--brand-red)] transition-colors border border-slate-100 group-hover:border-[var(--brand-red)]/30">
                               <IconComponent size={24} />
                             </div>
                           </div>
@@ -240,7 +240,7 @@ export default function FeaturesSection() {
                           </AnimatePresence>
 
                           {!isExpanded && (
-                            <div className="mt-2 text-[10px] font-bold text-emerald-600 group-hover:text-emerald-700 transition-colors flex items-center gap-1">
+                            <div className="mt-2 text-[10px] font-bold text-[var(--brand-red)] group-hover:text-[var(--brand-red-dark)] transition-colors flex items-center gap-1">
                               Read More <ArrowRight size={12} />
                             </div>
                           )}

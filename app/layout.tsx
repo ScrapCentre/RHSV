@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Noto_Sans_Devanagari } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -8,38 +8,53 @@ import AuthProvider from "@/components/AuthProvider"
 import AdminAwareLayout from "@/components/AdminAwareLayout"
 import GoogleAnalytics from "@/components/GoogleAnalytics"
 
-const inter = Inter({ subsets: ["latin"] })
+/* ── Primary font: Inter Variable (design-system §2.2) ── */
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+/* ── Secondary font: Noto Sans Devanagari (design-system §2.2) ──
+   Hindi copy will use .font-devanagari utility class.
+   Translations are deferred; font is loaded ready for Wave 2. */
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-noto-devanagari",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
-  title: "ScrapCenter India - Vehicle Scrapping Services",
+  title: "ScrapCentre.com — Sell Your Old Vehicle the Right Way",
   description:
-    "Official authorized vehicle scrapping center in India. We specialize in environmentally friendly disposal of end-of-life vehicles (ELVs) in compliance with current regulations.",
+    "Government-authorised RVSF in Auraiya, UP. Get the exact scrap value + Certificate of Deposit benefit for your old car or bike — free pickup, full paperwork, same-day cash.",
   keywords:
-    "scrap center, vehicle scrapping, car scrap, authorized scrapper, rto scrap, scrap car india",
-  authors: [{ name: "ScrapCenter India" }],
-  creator: "ScrapCenter India",
-  publisher: "ScrapCenter India",
+    "scrap centre, vehicle scrapping, RVSF, scrap car India, certificate of deposit vehicle, CD benefit, Kanpur scrap, Auraiya RVSF, authorised vehicle scrapping",
+  authors: [{ name: "ScrapCentre.com" }],
+  creator: "ScrapCentre.com",
+  publisher: "RestoreHealth Medicare Pvt. Ltd.",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://scrapcenter.in"),
+  metadataBase: new URL("https://scrapcentre.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "ScrapCenter India - Vehicle Scrapping Services",
+    title: "ScrapCentre.com — Sell Your Old Vehicle the Right Way",
     description:
-      "Official authorized vehicle scrapping center in India. Get best price for your old car, bike or vehicle.",
-    url: "https://scrapcenter.in",
-    siteName: "ScrapCenter India",
+      "Government-authorised RVSF. Get your vehicle's exact scrap value + Certificate of Deposit benefit. Free pickup, full paperwork, same-day cash.",
+    url: "https://scrapcentre.com",
+    siteName: "ScrapCentre.com",
     images: [
       {
-        url: "/logo.png",
+        url: "/brand/logo.png",
         width: 1200,
         height: 630,
-        alt: "ScrapCenter India Logo",
+        alt: "ScrapCentre.com — Government-authorised RVSF",
       },
     ],
     locale: "en_IN",
@@ -47,11 +62,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ScrapCenter India - Vehicle Scrapping Services",
+    title: "ScrapCentre.com — Sell Your Old Vehicle the Right Way",
     description:
-      "Official authorized vehicle scrapping center in India. Get best price for your old car, bike or vehicle.",
-    images: ["/logo.png"],
-    creator: "@scrapcenter_in",
+      "Government-authorised RVSF. Get your vehicle's exact scrap value + Certificate of Deposit benefit.",
+    images: ["/brand/logo.png"],
+    /* TODO[frontend-dev]: update @scrapcenter_in to real Twitter handle once founder registers */
   },
   robots: {
     index: true,
@@ -64,9 +79,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "your-google-verification-code",
-  },
+  /* Removed placeholder google verification code — add real token when Search Console is set up */
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon-16x16.png",
@@ -87,11 +100,11 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#D92027" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <GoogleAnalytics />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.variable} ${notoDevanagari.variable} ${inter.className} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <AuthProvider>
             <AdminAwareLayout>
@@ -104,4 +117,3 @@ export default function RootLayout({
     </html>
   )
 }
-

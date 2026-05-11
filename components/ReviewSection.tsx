@@ -86,11 +86,11 @@ export default function ReviewSection() {
                             transition={{ duration: 0.8, ease: "easeOut" as const }}
                             className="mb-12"
                         >
-                            <span className="text-emerald-600 font-bold uppercase tracking-wider text-sm mb-3 block">
+                            <span className="text-[var(--brand-red)] font-bold uppercase tracking-wider text-sm mb-3 block">
                                 Testimonials
                             </span>
                             <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">
-                                What Our <span className="text-emerald-600">Customers Say</span>
+                                What Our <span className="text-[var(--brand-red)]">Customers Say</span>
                             </h2>
                             <p className="text-slate-600 text-lg max-w-lg">
                                 Trusted by thousands of vehicle owners across India. Reliability and transparency are our core values.
@@ -108,11 +108,11 @@ export default function ReviewSection() {
                                     style={{ transformStyle: "preserve-3d" }}
                                     className="absolute inset-0"
                                 >
-                                    <div className="bg-[#0E192D] p-10 rounded-3xl shadow-xl border border-emerald-900/30 relative h-full flex flex-col justify-between">
-                                        <Quote className="absolute top-8 right-8 w-16 h-16 text-emerald-800 fill-current transform rotate-180" />
+                                    <div className="bg-[#0E192D] p-10 rounded-3xl shadow-xl border border-[var(--brand-red-dark)]/30 relative h-full flex flex-col justify-between">
+                                        <Quote className="absolute top-8 right-8 w-16 h-16 text-[var(--brand-red-dark)] fill-current transform rotate-180" />
 
                                         <div>
-                                            <div className="flex gap-1 mb-6 text-emerald-400">
+                                            <div className="flex gap-1 mb-6 text-[var(--brand-red)]">
                                                 {[...Array(5)].map((_, i) => (
                                                     <Star
                                                         key={i}
@@ -127,7 +127,7 @@ export default function ReviewSection() {
                                         </div>
 
                                         <div className="flex items-center gap-5">
-                                            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-100 shadow-sm">
+                                            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--brand-red-light)] shadow-sm">
                                                 <Image
                                                     src={reviews[activeIndex].image}
                                                     alt={reviews[activeIndex].name}
@@ -138,7 +138,7 @@ export default function ReviewSection() {
                                             <div>
                                                 <h3 className="font-bold text-white text-lg">{reviews[activeIndex].name}</h3>
                                                 <div className="flex items-center gap-2">
-                                                    <p className="text-sm text-emerald-600 font-medium">{reviews[activeIndex].role}</p>
+                                                    <p className="text-sm text-[var(--brand-red)] font-medium">{reviews[activeIndex].role}</p>
                                                     <BadgeCheck className="w-4 h-4 text-emerald-500" />
                                                 </div>
                                             </div>
@@ -152,7 +152,7 @@ export default function ReviewSection() {
                         <div className="flex items-center gap-4 mt-8">
                             <button
                                 onClick={prevReview}
-                                className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-emerald-600 hover:border-emerald-600 hover:text-white transition-all shadow-sm active:scale-95 text-slate-600"
+                                className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-[var(--brand-red)] hover:border-[var(--brand-red)] hover:text-white transition-all shadow-sm active:scale-95 text-slate-600"
                             >
                                 <ChevronLeft className="w-6 h-6" />
                             </button>
@@ -161,14 +161,14 @@ export default function ReviewSection() {
                                     <button
                                         key={idx}
                                         onClick={() => setActiveIndex(idx)}
-                                        className={`w-3 h-3 rounded-full transition-all ${idx === activeIndex ? "bg-emerald-600 w-8" : "bg-slate-300 hover:bg-slate-400"
+                                        className={`w-3 h-3 rounded-full transition-all ${idx === activeIndex ? "bg-[var(--brand-red)] w-8" : "bg-slate-300 hover:bg-slate-400"
                                             }`}
                                     />
                                 ))}
                             </div>
                             <button
                                 onClick={nextReview}
-                                className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-emerald-600 hover:border-emerald-600 hover:text-white transition-all shadow-sm active:scale-95 text-slate-600"
+                                className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-[var(--brand-red)] hover:border-[var(--brand-red)] hover:text-white transition-all shadow-sm active:scale-95 text-slate-600"
                             >
                                 <ChevronRight className="w-6 h-6" />
                             </button>
@@ -200,7 +200,7 @@ export default function ReviewSection() {
                             whileInView={{ y: 0, opacity: 1 }}
                             viewport={{ once: false }}
                             transition={{ delay: 0.4, duration: 0.6 }}
-                            className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 bg-[#0E192D] backdrop-blur-sm p-3 lg:p-4 rounded-xl shadow-lg max-w-[150px] lg:max-w-[200px] border-l-2 lg:border-l-4 border-emerald-500"
+                            className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 bg-[#0E192D] backdrop-blur-sm p-3 lg:p-4 rounded-xl shadow-lg max-w-[150px] lg:max-w-[200px] border-l-2 lg:border-l-4 border-[var(--brand-red)]"
                         >
                             <p className="text-xl lg:text-2xl font-black text-white mb-0.5">15k+</p>
                             <p className="text-slate-300 text-xs lg:text-sm font-medium leading-snug">Happy customers served across India</p>

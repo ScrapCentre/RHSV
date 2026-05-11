@@ -14,20 +14,21 @@ export default function FAQSection({ variant = "red" }: { variant?: "red" | "gre
     const isRed = variant === "red";
 
     // Define color classes based on variant
-    const textPrimary = isRed ? "text-red-600" : "text-emerald-500";
-    const textHover = isRed ? "hover:text-red-600" : "hover:text-emerald-500";
-    const textHoverDark = isRed ? "hover:text-red-700" : "hover:text-emerald-600";
-    const bgPrimary = isRed ? "bg-red-600" : "bg-emerald-600";
-    const bgHover = isRed ? "hover:bg-red-700" : "hover:bg-emerald-700";
-    const borderPrimary = isRed ? "border-red-100" : "border-emerald-500/20";
+    // RESTYLED: brand-red replaces red-600 for the "red" variant (design-system §6)
+    const textPrimary = isRed ? "text-[var(--brand-red)]" : "text-emerald-500";
+    const textHover = isRed ? "hover:text-[var(--brand-red)]" : "hover:text-emerald-500";
+    const textHoverDark = isRed ? "hover:text-[var(--brand-red-dark)]" : "hover:text-emerald-600";
+    const bgPrimary = isRed ? "bg-[var(--brand-red)]" : "bg-emerald-600";
+    const bgHover = isRed ? "hover:bg-[var(--brand-red-dark)]" : "hover:bg-emerald-700";
+    const borderPrimary = isRed ? "border-[var(--brand-red-light)]" : "border-emerald-500/20";
     const shadowPrimary = isRed ? "shadow-red-600/30" : "shadow-emerald-600/30";
     const shadowHover = isRed ? "hover:shadow-red-600/40" : "hover:shadow-emerald-600/40";
     const bgBadge = isRed ? "bg-green-100" : "bg-yellow-400/20";
     const textBadge = isRed ? "text-green-600" : "text-yellow-400";
 
     // Background blobs colors
-    const blob1 = isRed ? "bg-red-100/40" : "bg-emerald-500/10";
-    const blob2 = isRed ? "bg-red-50/40" : "bg-yellow-500/10";
+    const blob1 = isRed ? "bg-[var(--brand-red-light)]/40" : "bg-emerald-500/10";
+    const blob2 = isRed ? "bg-[var(--brand-red-xlight)]/40" : "bg-yellow-500/10";
     const sectionBg = isRed ? "bg-[#FFFDF5]" : "bg-[#0E192D]";
     const headingText = isRed ? "text-gray-900" : "text-white";
     const subText = isRed ? "text-gray-600" : "text-gray-400";
