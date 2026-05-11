@@ -298,7 +298,7 @@ export default function ContactPage() {
             <div className="relative z-10 mt-12 flex gap-4">
               {/* Social placeholders or extra info could go here */}
               <div className="text-xs text-slate-500">
-                &copy; 2026 ScrapCenter. All rights reserved.
+                &copy; 2026 ScrapCentre.com. All rights reserved.
               </div>
             </div>
           </div>

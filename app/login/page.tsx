@@ -1,647 +1,285 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { signIn, getSession, signOut } from "next-auth/react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Mail, Lock, ArrowRight, Loader2, Sparkles, Building2, User, Eye, EyeOff, Phone, ShieldCheck } from "lucide-react"
+/**
+ * /login — Login Page — ScrapCentre.com
+ * MODIFIED: reduced from 647L → ~200L per design-system §4.14.
+ * Keeps multi-portal (Customer OTP / Customer Email / RVSF Partner) but makes it sane.
+ * Removed: "Use demo OTP 1234" label from visible UI.
+ * Auth: NextAuth signIn with "credentials" and "phone-otp" providers.
+ * Uses: OTPInput, shadcn Tabs
+ */
+
+import React, { useState, useEffect, Suspense } from "react"
+import { signIn, getSession } from "next-auth/react"
+import { Loader2, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { useSearchParams } from "next/navigation"
-
-export default function LoginPage() {
-    return (
-        <React.Suspense fallback={
-            <div className="h-screen w-full flex items-center justify-center bg-gray-50">
-                <Loader2 className="w-10 h-10 animate-spin text-orange-600" />
-            </div>
-        }>
-            <LoginContent />
-        </React.Suspense>
-    )
-}
+import { useSearchParams, useRouter } from "next/navigation"
+import OTPInput from "@/components/OTPInput"
+import Image from "next/image"
 
 function LoginContent() {
-    const [activeTab, setActiveTab] = useState<"standard" | "b2b">("standard")
-    const [isLogin, setIsLogin] = useState(true)
-    const { toast } = useToast()
-    const searchParams = useSearchParams()
+  const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const router = useRouter()
 
-    // Auto-select B2B tab if redirected from partner-register
-    useEffect(() => {
-        if (searchParams.get("tab") === "b2b") {
-            setActiveTab("b2b")
-        }
+  const [tab, setTab] = useState<"customer" | "partner">(
+    searchParams.get("tab") === "b2b" ? "partner" : "customer"
+  )
+  const [loginMethod, setLoginMethod] = useState<"phone" | "email">("phone")
 
-        // Handle NextAuth URL errors
-        const error = searchParams.get("error")
-        if (error) {
-            let errorMessage = "An unexpected error occurred during login."
-            if (error === "CredentialsSignin") {
-                errorMessage = "Invalid credentials provided."
-            } else if (error === "OAuthAccountNotLinked") {
-                errorMessage = "Email already in use with a different login method."
-            } else if (error === "AccessDenied") {
-                errorMessage = "Access denied. You do not have permission to log in."
-            } else if (error === "OAuthSignin" || error === "OAuthCallback") {
-                errorMessage = "Failed to communicate with Google authentication."
-            } else if (error === "Configuration") {
-                errorMessage = "Server authentication configuration error."
-            }
+  // Phone OTP state
+  const [phone, setPhone] = useState("")
+  const [otp, setOtp] = useState("")
+  const [otpSent, setOtpSent] = useState(false)
+  const [isSendingOtp, setIsSendingOtp] = useState(false)
 
-            // Using setTimeout to ensure toast fires correctly post-render mounting
-            setTimeout(() => {
-                toast({
-                    title: "Authentication Error",
-                    description: errorMessage,
-                    variant: "destructive",
-                })
-            }, 100)
-        }
-    }, [searchParams, toast])
+  // Email state
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPw, setShowPw] = useState(false)
 
-    // Standard (User/Admin) State
-    const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [showPassword, setShowPassword] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
+  // B2B state
+  const [b2bUserId, setB2bUserId] = useState("")
+  const [b2bPassword, setB2bPassword] = useState("")
+  const [showB2bPw, setShowB2bPw] = useState(false)
 
-    // Phone Auth State
-    const [loginMethod, setLoginMethod] = useState<"email" | "phone">("phone")
-    const [phone, setPhone] = useState("")
-    const [otp, setOtp] = useState("")
-    const [otpSent, setOtpSent] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-    // B2B State
-    const [b2bUserId, setB2BUserId] = useState("")
-    const [b2bPassword, setB2BPassword] = useState("")
-    const [showB2BPassword, setShowB2BPassword] = useState(false)
-
-    const handleAuth = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setIsLoading(true)
-
-        try {
-            if (!isLogin) {
-                // Registration Flow
-                const res = await fetch("/api/register", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name, email, password }),
-                })
-
-                if (!res.ok) {
-                    const data = await res.json()
-                    toast({
-                        title: "Registration Failed",
-                        description: data.message || "Something went wrong. Please try again.",
-                        variant: "destructive"
-                    })
-                    setIsLoading(false)
-                    return
-                }
-                toast({
-                    title: "Account Created",
-                    description: "You've successfully registered. Signing you in...",
-                })
-            }
-
-            // Login Flow
-            const result = await signIn("credentials", {
-                email,
-                password,
-                redirect: false,
-            })
-
-            if (result?.error) {
-                setIsLoading(false)
-                let errorMsg = "Access denied. Please check your credentials."
-                
-                if (result.error.includes("AUTH_ERROR:")) {
-                    errorMsg = result.error.split("AUTH_ERROR:")[1]
-                } else if (result.error.includes("DATABASE_CONNECTION_ERROR")) {
-                    errorMsg = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
-                } else if (result.error !== "CredentialsSignin") {
-                    errorMsg = result.error
-                }
-
-                toast({
-                    title: "Authentication Error",
-                    description: errorMsg,
-                    variant: "destructive"
-                })
-            } else {
-                const session = await getSession()
-                const role = (session?.user as any)?.role
-
-                toast({
-                    title: "Authentication Successful",
-                    description: `Welcome back, ${session?.user?.name || 'User'}!`,
-                })
-
-                const callbackUrl = searchParams.get("callbackUrl")
-                if (callbackUrl) {
-                    window.location.href = callbackUrl
-                } else if (!isLogin) {
-                    // If they just registered, take them to their profile
-                    window.location.href = "/profile"
-                } else if (role === "admin") {
-                    window.location.href = "/admin/dashboard"
-                } else if (role === "partner") {
-                    window.location.href = "/b2b/marketplace"
-                } else if (role === "executive") {
-                    window.location.href = "/executive/dashboard"
-                } else if (role === "scrapcentre") {
-                    window.location.href = "/scrapcentre/dashboard"
-                } else {
-                    window.location.href = "/"
-                }
-            }
-        } catch (error) {
-            console.error(error)
-            setIsLoading(false)
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred. Please try again.",
-                variant: "destructive"
-            })
-        }
+  // Handle NextAuth URL errors
+  useEffect(() => {
+    const error = searchParams.get("error")
+    if (!error) return
+    const msgs: Record<string, string> = {
+      CredentialsSignin: "Invalid credentials provided.",
+      OAuthAccountNotLinked: "Email already in use with a different login method.",
+      AccessDenied: "Access denied.",
     }
+    toast({
+      title: "Authentication Error",
+      description: msgs[error] ?? "An unexpected error occurred during login.",
+      variant: "destructive",
+    })
+  }, [searchParams, toast])
 
-    const handlePhoneAuth = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!otpSent) {
-            if (phone.length !== 10) {
-                toast({ title: "Invalid Phone", description: "Enter a valid 10-digit number.", variant: "destructive" })
-                return
-            }
-            setIsLoading(true)
-            // Simulate sending OTP
-            setTimeout(() => {
-                setIsLoading(false)
-                setOtpSent(true)
-                toast({ title: "OTP Sent", description: "Use demo OTP 1234 to login." })
-            }, 800)
-            return
-        }
+  async function postSignInRedirect() {
+    const session = await getSession()
+    const role = (session?.user as any)?.role
+    const callbackUrl = searchParams.get("callbackUrl")
+    if (callbackUrl) { window.location.href = callbackUrl; return }
+    if (role === "admin") window.location.href = "/admin"
+    else if (role === "partner") window.location.href = "/b2b/marketplace"
+    else if (role === "executive") window.location.href = "/executive"
+    else window.location.href = "/"
+  }
 
-        setIsLoading(true)
-        try {
-            const result = await signIn("phone-otp", {
-                phone,
-                otp,
-                redirect: false,
-            })
-
-            if (result?.error) {
-                setIsLoading(false)
-                toast({
-                    title: "Authentication Error",
-                    description: "Invalid OTP. Please use 1234.",
-                    variant: "destructive"
-                })
-            } else {
-                toast({
-                    title: "Authentication Successful",
-                    description: "Welcome!",
-                })
-                const callbackUrl = searchParams.get("callbackUrl")
-                if (callbackUrl) {
-                    window.location.href = callbackUrl
-                } else {
-                    window.location.href = "/"
-                }
-            }
-        } catch (error) {
-            console.error(error)
-            setIsLoading(false)
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred. Please try again.",
-                variant: "destructive"
-            })
-        }
+  async function handleSendOtp() {
+    if (phone.length !== 10) {
+      toast({ title: "Invalid number", description: "Enter a valid 10-digit mobile number.", variant: "destructive" })
+      return
     }
-
-    const handleB2BLogin = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setIsLoading(true)
-
-        try {
-            const result = await signIn("b2b-credentials", {
-                userId: b2bUserId,
-                password: b2bPassword,
-                redirect: false,
-            })
-
-            if (result?.error) {
-                setIsLoading(false)
-                toast({
-                    title: "B2B Login Failed",
-                    description: "Invalid Partner ID or Password. Please check your credentials.",
-                    variant: "destructive"
-                })
-            } else {
-                toast({
-                    title: "Welcome Partner",
-                    description: "Redirecting to your marketplace...",
-                })
-                const callbackUrl = searchParams.get("callbackUrl")
-                if (callbackUrl) {
-                    window.location.href = callbackUrl
-                } else {
-                    window.location.href = "/b2b/marketplace"
-                }
-            }
-        } catch (error) {
-            console.error(error)
-            setIsLoading(false)
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred. Please try again.",
-                variant: "destructive"
-            })
-        }
+    setIsSendingOtp(true)
+    try {
+      const res = await fetch("/api/otp/issue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error ?? "OTP send failed")
+      setOtpSent(true)
+      toast({ title: `OTP sent to +91 ${phone.slice(0, 5)} XXXXX`, description: d._demoHint ?? "Check your messages." })
+    } catch (err: any) {
+      toast({ title: err.message, variant: "destructive" })
+    } finally {
+      setIsSendingOtp(false)
     }
+  }
 
-
-
-    const handleGoogleLogin = (callbackUrl = "/") => {
-        setIsLoading(true)
-        signIn("google", { callbackUrl })
+  async function handlePhoneVerify() {
+    if (otp.length !== 6) return
+    setIsLoading(true)
+    try {
+      const result = await signIn("phone-otp", { phone, otp, redirect: false })
+      if (result?.error) {
+        toast({ title: "Wrong code", description: "That code doesn't match. Try again, or request a new one.", variant: "destructive" })
+        setOtp("")
+      } else {
+        toast({ title: "Signed in successfully." })
+        await postSignInRedirect()
+      }
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    return (
-        <div className="h-screen flex items-stretch bg-[#0E192D] overflow-hidden font-sans pt-24 lg:pt-28">
-            {/* Left Side - Image Background & Branding */}
-            <motion.div
-                initial={{ x: -100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" as const }}
-                className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden p-6"
-            >
-                {/* Illustration Image */}
-                <div className="relative z-10 w-full h-full flex items-center justify-center">
-                    <motion.div
-                        initial={{ scale: 1.1, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.2, duration: 0.8 }}
-                        className="relative w-[98%] h-[95%] bg-[#0E192D] rounded-3xl overflow-hidden flex items-center justify-center p-2"
-                    >
-                        <img
-                            src="/login.jpeg"
-                            alt="Login Visual"
-                            className="w-full h-full object-contain rounded-2xl opacity-90"
-                        />
-                    </motion.div>
-                </div>
-            </motion.div>
+  async function handleEmailSignIn(e: React.FormEvent) {
+    e.preventDefault()
+    setIsLoading(true)
+    try {
+      const result = await signIn("credentials", { email, password, redirect: false })
+      if (result?.error) {
+        toast({ title: "Invalid credentials provided.", variant: "destructive" })
+      } else {
+        await postSignInRedirect()
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-            {/* Right Side - Login Form */}
-            <motion.div
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" as const }}
-                className="w-full lg:w-1/2 flex items-center justify-center px-6 sm:px-12 lg:px-20 relative bg-[#0E192D]"
-            >
-                <div className="w-full max-w-[380px] space-y-5">
-                    {/* Header */}
-                    <div className="text-center lg:text-left space-y-1.5">
-                        <h2 className="text-3xl font-bold text-white tracking-tight">
-                            {activeTab === "standard" ? (loginMethod === "phone" ? "Welcome" : isLogin ? "Welcome Back" : "Create Account") : "Partner Portal"}
-                        </h2>
-                        <p className="text-gray-400 text-sm">
-                            {activeTab === "standard"
-                                ? (loginMethod === "phone" ? "Sign in or create an account with your phone number." : isLogin ? "Please enter your details to sign in." : "Join us to get the best value for your scrap.")
-                                : "Access for registered corporate partners."}
-                        </p>
-                    </div>
+  async function handlePartnerSignIn(e: React.FormEvent) {
+    e.preventDefault()
+    setIsLoading(true)
+    try {
+      const result = await signIn("b2b-credentials", { userId: b2bUserId, password: b2bPassword, redirect: false })
+      if (result?.error) {
+        toast({ title: "Invalid partner credentials.", variant: "destructive" })
+      } else {
+        window.location.href = "/b2b/marketplace"
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-                    {/* Custom Tabs */}
-                    <div className="flex p-1 bg-slate-900 border border-slate-800 rounded-xl">
-                        <button
-                            onClick={() => setActiveTab("standard")}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === "standard"
-                                ? "bg-slate-800 text-white shadow-sm ring-1 ring-white/10"
-                                : "text-gray-400 hover:text-white hover:bg-white/5"
-                                }`}
-                        >
-                            <User className="w-4 h-4" />
-                            User
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("b2b")}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === "b2b"
-                                ? "bg-slate-800 text-emerald-400 shadow-sm ring-1 ring-white/10"
-                                : "text-gray-400 hover:text-white hover:bg-white/5"
-                                }`}
-                        >
-                            <Building2 className="w-4 h-4" />
-                            B2B Partner
-                        </button>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                        {activeTab === "standard" ? (
-                            <motion.div
-                                key={isLogin ? "login" : "register"}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="space-y-4"
-                            >
-                                {/* Login Method Toggle (Phone vs Email) */}
-                                <div className="flex gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl mb-4">
-                                    <button
-                                        onClick={() => { setLoginMethod("phone"); setOtpSent(false); setOtp(""); }}
-                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${loginMethod === "phone" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
-                                    >
-                                        Phone OTP
-                                    </button>
-                                    <button
-                                        onClick={() => setLoginMethod("email")}
-                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${loginMethod === "email" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
-                                    >
-                                        Email / Password
-                                    </button>
-                                </div>
-
-                                {loginMethod === "phone" ? (
-                                    <form onSubmit={handlePhoneAuth} className="space-y-4">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-300 ml-1">Phone Number</label>
-                                            <div className="relative group transition-all flex gap-2">
-                                                <div className="flex items-center gap-2 px-3 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 text-sm font-bold shrink-0">
-                                                    🇮🇳 +91
-                                                </div>
-                                                <input
-                                                    type="tel"
-                                                    required
-                                                    value={phone}
-                                                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                                                    placeholder="10-digit number"
-                                                    disabled={otpSent}
-                                                    className="block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200 disabled:opacity-50"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <AnimatePresence>
-                                            {otpSent && (
-                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-1">
-                                                    <label className="text-xs font-semibold text-gray-300 ml-1">Enter OTP (Demo: 1234)</label>
-                                                    <div className="relative group transition-all">
-                                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                            <ShieldCheck className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
-                                                        </div>
-                                                        <input
-                                                            type="text"
-                                                            required
-                                                            value={otp}
-                                                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                                                            placeholder="••••"
-                                                            className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200 tracking-[0.5em] font-bold"
-                                                        />
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-
-                                        <button
-                                            type="submit"
-                                            disabled={isLoading || (otpSent && otp.length !== 4) || (!otpSent && phone.length !== 10)}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-xl shadow-emerald-900/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
-                                        >
-                                            {isLoading ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                            ) : otpSent ? (
-                                                "Verify & Login"
-                                            ) : (
-                                                "Send OTP"
-                                            )}
-                                        </button>
-                                        
-                                        {otpSent && (
-                                            <button 
-                                                type="button" 
-                                                onClick={() => { setOtpSent(false); setOtp("") }}
-                                                className="w-full text-center text-xs text-emerald-500 hover:text-emerald-400 mt-2 font-semibold"
-                                            >
-                                                Change Phone Number
-                                            </button>
-                                        )}
-                                    </form>
-                                ) : (
-                                    <form onSubmit={handleAuth} className="space-y-4">
-                                        {!isLogin && (
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-gray-300 ml-1">Full Name</label>
-                                                <div className="relative group transition-all">
-                                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                        <User className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
-                                                    </div>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        value={name}
-                                                        onChange={(e) => setName(e.target.value)}
-                                                        placeholder="John Doe"
-                                                        className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-300 ml-1">Email Address or Identity</label>
-                                            <div className="relative group transition-all">
-                                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                    <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    value={email}
-                                                    onChange={(e) => setEmail(e.target.value)}
-                                                    placeholder="Email or Login ID"
-                                                    className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between items-center ml-1">
-                                                <label className="text-xs font-semibold text-gray-300">Password</label>
-                                            </div>
-                                            <div className="relative group transition-all">
-                                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                    <Lock className="h-4 w-4 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
-                                                </div>
-                                                <input
-                                                    type={showPassword ? "text" : "password"}
-                                                    required
-                                                    value={password}
-                                                    onChange={(e) => setPassword(e.target.value)}
-                                                    placeholder="••••••••"
-                                                    className="block w-full pl-10 pr-10 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-emerald-500 transition-colors"
-                                                >
-                                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            type="submit"
-                                            disabled={isLoading}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-xl shadow-emerald-900/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
-                                        >
-                                            {isLoading ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    {isLogin ? "Sign In" : "Create Account"}
-                                                    <ArrowRight className="w-4 h-4" />
-                                                </>
-                                            )}
-                                        </button>
-                                    </form>
-                                )}
-
-                                {isLogin && (
-                                    <>
-                                        <div className="relative py-1">
-                                            <div className="absolute inset-0 flex items-center">
-                                                <div className="w-full border-t border-slate-800"></div>
-                                            </div>
-                                            <div className="relative flex justify-center text-xs">
-                                                <span className="px-4 bg-[#0E192D] text-gray-500 font-medium">Or</span>
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={() => handleGoogleLogin(searchParams.get("callbackUrl") || "/")}
-                                            className="w-full bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 group mt-1"
-                                        >
-                                            <img
-                                                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                                                alt="Google"
-                                                className="w-4 h-4 group-hover:scale-110 transition-transform"
-                                            />
-                                            <span className="text-sm">Continue with Google</span>
-                                        </button>
-                                    </>
-                                )}
-
-
-                                {loginMethod === "email" && (
-                                    <p className="text-center text-xs text-gray-500 mt-4">
-                                        {isLogin ? "New to ScrapCenter?" : "Already have an account?"}
-                                        <button
-                                            onClick={() => setIsLogin(!isLogin)}
-                                            className="font-bold text-white hover:text-emerald-400 ml-1 transition-colors"
-                                        >
-                                            {isLogin ? "Create an account" : "Sign in"}
-                                        </button>
-                                    </p>
-                                )}
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="b2b"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="space-y-5"
-                            >
-                                <form onSubmit={handleB2BLogin} className="space-y-4">
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-300 ml-1">User ID</label>
-                                        <div className="relative group transition-all">
-                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                <User className="h-5 w-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                                            </div>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={b2bUserId}
-                                                onChange={(e) => setB2BUserId(e.target.value)}
-                                                placeholder="Enter Partner ID"
-                                                className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all duration-200"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-300 ml-1">Password</label>
-                                        <div className="relative group transition-all">
-                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                <Lock className="h-4 w-4 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                                            </div>
-                                            <input
-                                                type={showB2BPassword ? "text" : "password"}
-                                                required
-                                                value={b2bPassword}
-                                                onChange={(e) => setB2BPassword(e.target.value)}
-                                                placeholder="••••••••"
-                                                className="block w-full pl-10 pr-10 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all duration-200"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowB2BPassword(!showB2BPassword)}
-                                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-blue-500 transition-colors"
-                                            >
-                                                {showB2BPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-xl shadow-blue-600/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
-                                    >
-                                        {isLoading ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            <>
-                                                Partner Sign In
-                                                <ArrowRight className="w-4 h-4" />
-                                            </>
-                                        )}
-                                    </button>
-                                </form>
-
-                                <div className="relative py-1 border-t-0">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-slate-800"></div>
-                                    </div>
-                                    <div className="relative flex justify-center text-xs">
-                                        <span className="px-4 bg-[#0E192D] text-gray-500 font-medium">New Partner?</span>
-                                    </div>
-                                </div>
-
-                                <Link href="/partner-register" className="block mt-1">
-                                    <button
-                                        type="button"
-                                        className="w-full bg-slate-900 border-2 border-blue-600 text-blue-500 font-bold py-3 rounded-xl hover:bg-blue-900/20 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
-                                    >
-                                        <Building2 className="w-4 h-4" />
-                                        Be Our Partner
-                                    </button>
-                                </Link>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </motion.div>
+  return (
+    <div className="min-h-screen bg-[var(--brand-bg)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-md border border-[var(--brand-gray-300)] p-8">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <Link href="/">
+            <Image src="/brand/logo.png" alt="ScrapCentre.com" width={160} height={50} className="h-10 w-auto object-contain" />
+          </Link>
         </div>
-    )
+
+        <h1 className="text-xl font-bold text-center text-[var(--brand-black)] mb-1">
+          Sign in to ScrapCentre.com
+        </h1>
+        <p className="text-sm text-center text-[var(--brand-gray-500)] mb-6">
+          New customer?{" "}
+          <Link href="/calculator" className="text-[var(--brand-red)] hover:underline">
+            Start by getting your vehicle&apos;s value →
+          </Link>
+        </p>
+
+        {/* Tab bar */}
+        <div className="flex rounded-xl border border-[var(--brand-gray-300)] overflow-hidden mb-6">
+          {(["customer", "partner"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
+                tab === t
+                  ? "bg-[var(--brand-red)] text-white"
+                  : "bg-white text-[var(--brand-gray-700)] hover:bg-[var(--brand-gray-100)]"
+              }`}
+            >
+              {t === "customer" ? "Customer" : "RVSF Partner"}
+            </button>
+          ))}
+        </div>
+
+        {/* Customer tab */}
+        {tab === "customer" && (
+          <div className="space-y-4">
+            {/* Method toggle */}
+            <div className="flex gap-2 text-sm">
+              <button onClick={() => setLoginMethod("phone")} className={`flex-1 py-2 rounded-lg border font-medium transition-colors ${loginMethod === "phone" ? "border-[var(--brand-red)] text-[var(--brand-red)] bg-[var(--brand-red-xlight)]" : "border-[var(--brand-gray-300)] text-[var(--brand-gray-500)] hover:bg-[var(--brand-gray-100)]"}`}>
+                Mobile OTP
+              </button>
+              <button onClick={() => setLoginMethod("email")} className={`flex-1 py-2 rounded-lg border font-medium transition-colors ${loginMethod === "email" ? "border-[var(--brand-red)] text-[var(--brand-red)] bg-[var(--brand-red-xlight)]" : "border-[var(--brand-gray-300)] text-[var(--brand-gray-500)] hover:bg-[var(--brand-gray-100)]"}`}>
+                Email
+              </button>
+            </div>
+
+            {loginMethod === "phone" && !otpSent && (
+              <div>
+                <label className="block text-sm font-medium text-[var(--brand-gray-700)] mb-1">Your mobile number</label>
+                <div className="flex mb-3">
+                  <span className="inline-flex items-center px-3 bg-[var(--brand-gray-100)] border border-r-0 border-[var(--brand-gray-300)] rounded-l-xl text-sm text-[var(--brand-gray-500)]">+91</span>
+                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" placeholder="98765 43210" className="flex-1 h-11 px-3 border border-[var(--brand-gray-300)] rounded-r-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-red)] bg-white" />
+                </div>
+                <button onClick={handleSendOtp} disabled={isSendingOtp || phone.length !== 10} className="w-full h-11 bg-[var(--brand-red)] hover:bg-[var(--brand-red-dark)] disabled:opacity-50 text-white font-semibold rounded-xl flex items-center justify-center gap-2 text-sm transition-colors">
+                  {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Send OTP →
+                </button>
+              </div>
+            )}
+
+            {loginMethod === "phone" && otpSent && (
+              <div>
+                <p className="text-sm text-[var(--brand-gray-700)] mb-3">Enter the 6-digit code we sent to +91 {phone.slice(0, 5)} XXXXX</p>
+                <OTPInput value={otp} onChange={setOtp} onComplete={handlePhoneVerify} onResend={handleSendOtp} phoneDisplay={`+91 ${phone}`} isVerifying={isLoading} />
+                <button onClick={handlePhoneVerify} disabled={isLoading || otp.length !== 6} className="mt-3 w-full h-11 bg-[var(--status-success)] hover:brightness-105 disabled:opacity-50 text-white font-semibold rounded-xl flex items-center justify-center gap-2 text-sm transition-colors">
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Verify →
+                </button>
+              </div>
+            )}
+
+            {loginMethod === "email" && (
+              <form onSubmit={handleEmailSignIn} className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--brand-gray-700)] mb-1">Email</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="w-full h-11 px-3 border border-[var(--brand-gray-300)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-red)] bg-white" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--brand-gray-700)] mb-1">Password</label>
+                  <div className="relative">
+                    <input type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full h-11 px-3 pr-10 border border-[var(--brand-gray-300)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-red)] bg-white" />
+                    <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--brand-gray-500)]">{showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                  </div>
+                </div>
+                <button type="submit" disabled={isLoading} className="w-full h-11 bg-[var(--brand-red)] hover:bg-[var(--brand-red-dark)] disabled:opacity-50 text-white font-semibold rounded-xl flex items-center justify-center gap-2 text-sm transition-colors">
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Sign In
+                </button>
+              </form>
+            )}
+
+            <div className="relative my-4">
+              <div className="border-t border-[var(--brand-gray-300)]" />
+              <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center"><span className="bg-white px-2 text-xs text-[var(--brand-gray-500)]">or</span></span>
+            </div>
+
+            <button onClick={() => signIn("google", { callbackUrl: "/" })} className="w-full h-11 border border-[var(--brand-gray-300)] rounded-xl text-sm font-medium text-[var(--brand-gray-700)] hover:bg-[var(--brand-gray-100)] flex items-center justify-center gap-2 transition-colors">
+              <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Continue with Google
+            </button>
+          </div>
+        )}
+
+        {/* Partner tab */}
+        {tab === "partner" && (
+          <form onSubmit={handlePartnerSignIn} className="space-y-4">
+            <p className="text-sm text-[var(--brand-gray-500)]">RVSF Partner Login</p>
+            <div>
+              <label className="block text-sm font-medium text-[var(--brand-gray-700)] mb-1">Your partner ID (e.g., B2X001)</label>
+              <input type="text" value={b2bUserId} onChange={(e) => setB2bUserId(e.target.value)} placeholder="B2X001" className="w-full h-11 px-3 border border-[var(--brand-gray-300)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-red)] bg-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--brand-gray-700)] mb-1">Password</label>
+              <div className="relative">
+                <input type={showB2bPw ? "text" : "password"} value={b2bPassword} onChange={(e) => setB2bPassword(e.target.value)} placeholder="••••••••" className="w-full h-11 px-3 pr-10 border border-[var(--brand-gray-300)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-red)] bg-white" />
+                <button type="button" onClick={() => setShowB2bPw(!showB2bPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--brand-gray-500)]">{showB2bPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+              </div>
+            </div>
+            <button type="submit" disabled={isLoading} className="w-full h-11 bg-[var(--brand-red)] hover:bg-[var(--brand-red-dark)] disabled:opacity-50 text-white font-semibold rounded-xl flex items-center justify-center gap-2 text-sm transition-colors">
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Sign In as Partner
+            </button>
+            <p className="text-xs text-center text-[var(--brand-gray-500)]">
+              Not a partner yet?{" "}
+              <Link href="/partner-register" className="text-[var(--brand-red)] hover:underline">Register here</Link>
+            </p>
+          </form>
+        )}
+      </div>
+    </div>
+  )
 }
 
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-[var(--brand-red)]" /></div>}>
+      <LoginContent />
+    </Suspense>
+  )
+}
