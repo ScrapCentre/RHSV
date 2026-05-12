@@ -1,187 +1,182 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Car, Truck, Bike, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, ArrowUp } from "lucide-react"
+/**
+ * Footer — ScrapCentre.com
+ * Rewritten per design-system §4.12 and §6.
+ * Changes: removed raining-icons animation (bandwidth cost),
+ *          3-office grid from brand-guide §5,
+ *          all phone numbers as tappable tel: links,
+ *          brand-red accents, correct domain references.
+ */
+
 import Link from "next/link"
-import Image from "next/image"
-import { useEffect, useState } from "react"
+import { Phone, Mail, MapPin, ArrowUp } from "lucide-react"
+
+const OFFICES = [
+  {
+    label: "Head Office",
+    address: "26-A & B, Block-E, Panki, Kalpi Road, Kanpur — 208020",
+  },
+  {
+    label: "RVSF Facility",
+    address: "A-4, UPSIDC Industrial Area, Plasticity, Dibiyapur, Auraiya (UP)",
+  },
+  {
+    label: "Branch Office (Kanpur)",
+    address: "Ratanzone, 118/54, 55, 2nd Floor, Kaushalpuri, Kanpur",
+  },
+]
+
+const PHONES = [
+  { number: "9839447733", display: "+91-9839447733" },
+  { number: "9839336644", display: "+91-9839336644" },
+  { number: "8795886699", display: "+91-8795886699" },
+]
+
+const EMAILS = [
+  { address: "info@restorehealthmedicare.com", label: "Corporate" },
+  { address: "scrapcentre.com@gmail.com", label: "Customer support" },
+]
+
+const LINKS = [
+  { label: "About Us", href: "/about" },
+  { label: "How It Works", href: "/about#how-it-works" },
+  { label: "Sell My Vehicle", href: "/calculator?type=A" },
+  { label: "Buy a CD", href: "/calculator?type=C" },
+  { label: "For RVSF Partners", href: "/contact" }, // TODO[frontend-dev]: update to /rvsf once partner landing is built
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Contact Us", href: "/contact" },
+]
 
 export default function Footer() {
-  // Generate random positions and delays for the raining icons
-  // Reduced quantity (20 -> 12), Increased size (20-40 -> 60-100)
-  const [rainIcons, setRainIcons] = useState<{ id: number; Icon: any; left: string; delay: number; duration: number; size: number }[]>([]);
-
-  useEffect(() => {
-    setRainIcons(Array.from({ length: 12 }).map((_, i) => ({
-      id: i,
-      Icon: i % 3 === 0 ? Car : i % 3 === 1 ? Truck : Bike,
-      left: `${Math.random() * 100}%`,
-      delay: Math.random() * 15,
-      duration: 10 + Math.random() * 10,
-      size: 60 + Math.random() * 40,
-    })));
-  }, []);
-
   return (
-    <footer className="relative bg-white text-gray-800 overflow-hidden border-t border-emerald-100">
-      {/* Move to Top Strip */}
+    <footer className="bg-white border-t border-[var(--brand-gray-300)]">
+      {/* Back-to-top strip */}
       <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="w-full bg-[#0E192D] hover:bg-slate-800 text-white py-4 font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-all duration-300 relative z-30 border-b border-slate-800"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className="w-full bg-[var(--brand-gray-900)] hover:bg-[var(--brand-black)] text-white py-3 text-sm font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors duration-200"
+        aria-label="Back to top"
       >
-        Move to Top <ArrowUp className="w-4 h-4 animate-bounce" />
+        Back to top <ArrowUp className="w-4 h-4" aria-hidden="true" />
       </button>
 
-      {/* Raining Icons Background */}
-      <div className="absolute inset-0 pointer-events-none opacity-10 overflow-hidden mt-12">
-        {rainIcons.map((item) => (
-          <motion.div
-            key={item.id}
-            initial={{ y: -120, x: item.left, opacity: 0 }}
-            animate={{
-              y: ["-10%", "60%"], // Stop around middle (60%)
-              opacity: [0, 1, 0] // Fade in then out
-            }}
-            transition={{
-              duration: item.duration,
-              repeat: Number.POSITIVE_INFINITY,
-              delay: item.delay,
-              ease: "linear" as const,
-            }}
-            className="absolute text-emerald-800"
-            style={{ left: item.left }}
-          >
-            <item.Icon size={item.size} strokeWidth={1.5} />
-          </motion.div>
-        ))}
-      </div>
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
 
-      <div className="container mx-auto px-6 relative z-10 pt-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-          {/* Brand Column */}
-          <div className="space-y-6">
-            <div className="mb-6 -ml-6">
-              <Image src="/logo.png" alt="ScrapCenter Logo" width={200} height={80} className="h-20 w-auto" />
-            </div>
-            <p className="text-gray-600 leading-relaxed font-medium">
-              Your trusted partner for responsible vehicle recycling. We turn your old vehicles into cash while protecting the environment.
+          {/* ── Brand column ── */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Inline logo at 52px (design-system §3.3 footer spec) */}
+            <Link href="/" className="flex items-center gap-3 select-none" aria-label="ScrapCentre.com — home">
+              {/* Real ScrapCentre logo PNG at public/brand/logo.png (1536x545 source) */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/logo.png"
+                alt="ScrapCentre"
+                width={147}
+                height={52}
+                className="h-13 w-auto"
+              />
+              <span className="text-2xl font-bold leading-none" style={{ color: "var(--brand-red)" }}>
+                ScrapCentre<span className="text-lg font-semibold">.com</span>
+              </span>
+            </Link>
+
+            <p className="text-sm text-[var(--brand-gray-500)] leading-relaxed">
+              A Unit of RestoreHealth Medicare Pvt. Ltd.
             </p>
-            <div className="flex gap-4">
-              <Link href="#" className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <Facebook className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <Twitter className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <Instagram className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <Linkedin className="w-5 h-5" />
-              </Link>
-            </div>
+            <p className="text-sm text-[var(--brand-gray-500)] leading-relaxed">
+              Government-authorised Registered Vehicle Scrapping Facility (RVSF).
+            </p>
+
+            {/* Social handles placeholder (design-system §4.12) */}
+            <p className="text-xs text-[var(--brand-gray-500)] italic">
+              {/* TODO[frontend-dev]: add social icons once founder confirms handles */}
+              Social links coming soon
+            </p>
           </div>
 
-          {/* Quick Links */}
+          {/* ── Offices ── */}
           <div>
-            <h3 className="text-xl font-bold mb-8 text-gray-900 relative inline-block">
-              Services
-              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-emerald-600 rounded-full"></span>
+            <h3 className="text-sm font-semibold text-[var(--brand-gray-900)] uppercase tracking-wider mb-4">
+              Offices
             </h3>
             <ul className="space-y-4">
-              {[
-                { label: "Sell Your Car", href: "/services/sell-vehicle" },
-                { label: "Buy Used Parts", href: "/services/buy-vehicle" },
-                // { label: "Exchange Vehicle", href: "/services/exchange-vehicle" },
-                { label: "Instant Valuation", href: "/quote" }
-              ].map((link, idx) => (
-                <li key={idx}>
-                  <Link href={link.href} className="text-gray-600 font-medium hover:text-emerald-600 transition-all flex items-center gap-2 group w-fit">
-                    <span className="w-2 h-2 rounded-full bg-emerald-200 group-hover:bg-emerald-600 group-hover:scale-125 transition-all duration-300" />
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">{link.label}</span>
-                  </Link>
+              {OFFICES.map((office) => (
+                <li key={office.label} className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-[var(--brand-red)] mt-0.5 shrink-0" aria-hidden="true" />
+                  <div>
+                    <p className="text-xs font-semibold text-[var(--brand-gray-700)]">{office.label}</p>
+                    <p className="text-xs text-[var(--brand-gray-500)] leading-relaxed">{office.address}</p>
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Company Links */}
+          {/* ── Contact ── */}
           <div>
-            <h3 className="text-xl font-bold mb-8 text-gray-900 relative inline-block">
-              Company
-              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-emerald-600 rounded-full"></span>
+            <h3 className="text-sm font-semibold text-[var(--brand-gray-900)] uppercase tracking-wider mb-4">
+              Contact
             </h3>
-            <ul className="space-y-4">
-              {[
-                { label: "About Us", href: "/about" },
-                { label: "Contact Support", href: "/contact" },
-                { label: "Privacy Policy", href: "/privacy" },
-                { label: "Terms & Conditions", href: "/terms" }
-              ].map((link, idx) => (
-                <li key={idx}>
-                  <Link href={link.href} className="text-gray-600 font-medium hover:text-emerald-600 transition-all flex items-center gap-2 group w-fit">
-                    <span className="w-2 h-2 rounded-full bg-emerald-200 group-hover:bg-emerald-600 group-hover:scale-125 transition-all duration-300" />
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">{link.label}</span>
-                  </Link>
+            {/* Phone numbers — tappable, large, prominent for P2 (design-system §4.12) */}
+            <ul className="space-y-2 mb-5">
+              {PHONES.map((p) => (
+                <li key={p.number}>
+                  <a
+                    href={`tel:${p.number}`}
+                    className="flex items-center gap-2 text-sm font-semibold text-[var(--brand-gray-700)] hover:text-[var(--brand-red)] transition-colors"
+                    aria-label={`Call ${p.display}`}
+                  >
+                    <Phone className="w-3.5 h-3.5 text-[var(--brand-red)] shrink-0" aria-hidden="true" />
+                    {p.display}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <ul className="space-y-2">
+              {EMAILS.map((e) => (
+                <li key={e.address}>
+                  <a
+                    href={`mailto:${e.address}`}
+                    className="flex items-start gap-2 text-xs text-[var(--brand-gray-500)] hover:text-[var(--brand-red)] transition-colors break-all"
+                    aria-label={`Email: ${e.address} (${e.label})`}
+                  >
+                    <Mail className="w-3.5 h-3.5 text-[var(--brand-red)] shrink-0 mt-0.5" aria-hidden="true" />
+                    <span>{e.address}<br /><span className="text-[var(--brand-gray-300)]">{e.label}</span></span>
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* ── Quick links ── */}
           <div>
-            <h3 className="text-xl font-bold mb-8 text-gray-900 relative inline-block">
-              Contact Us
-              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-emerald-600 rounded-full"></span>
+            <h3 className="text-sm font-semibold text-[var(--brand-gray-900)] uppercase tracking-wider mb-4">
+              Quick Links
             </h3>
-            <ul className="space-y-6">
-              <li className="flex items-start gap-4 group cursor-default">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 transition-colors duration-300">
-                  <MapPin className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">Visit Us</p>
-                  <p className="text-gray-600 text-sm">21-E, Block Panki, Kanpur, 208020</p>
-                </div>
-              </li>
-              <li className="flex items-center gap-4 group cursor-default">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 transition-colors duration-300">
-                  <Phone className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
-                </div>
-                <a href="tel:+919839447733" className="flex-1 hover:text-emerald-600 transition-colors">
-                  <p className="text-sm font-semibold text-gray-900">Call Us</p>
-                  <p className="text-gray-600 text-sm font-medium">
-                    +91-9839447733
-                  </p>
-                </a>
-              </li>
-              <li className="flex items-center gap-4 group cursor-default">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 transition-colors duration-300">
-                  <Mail className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
-                </div>
-                <a href="mailto:contact@scrapcentre.com" className="flex-1 hover:text-emerald-600 transition-colors">
-                  <p className="text-sm font-semibold text-gray-900">Email Us</p>
-                  <p className="text-gray-600 text-sm break-all">contact@scrapcentre.com</p>
-                </a>
-              </li>
+            <ul className="space-y-2">
+              {LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-[var(--brand-gray-500)] hover:text-[var(--brand-red)] transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-
       </div>
 
-      {/* Bottom Bar */}
-      <div className="w-full bg-slate-950 relative z-10">
-        <div className="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white text-sm font-medium">
-            © {new Date().getFullYear()} ScrapCenter. All rights reserved.
-          </p>
-          <p className="text-white text-sm font-medium flex items-center gap-1">
-            Made by Novalytix Technology Services
-          </p>
+      {/* ── Bottom bar ── */}
+      <div className="border-t border-[var(--brand-gray-300)] bg-[var(--brand-gray-900)]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-[var(--brand-gray-300)]">
+          <p>© {new Date().getFullYear()} ScrapCentre.com · Government-authorised RVSF</p>
+          <p>Registered: RestoreHealth Medicare Pvt. Ltd.</p>
         </div>
       </div>
     </footer>
   )
 }
-

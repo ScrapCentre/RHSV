@@ -25,3 +25,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ScrapCentre.com — dev cruft patterns (never commit these)
+# Build & dev logs
+*_log.txt
+*_log_utf8.txt
+build_log*.txt
+dev_log*.txt
+
+# ESLint debug output
+eslint_*.json
+eslint_*.txt
+eslint-errors*.txt
+eslint-errors-utf8*.txt
+
+# Lint output
+lint_*.txt
+lint_errors*.txt
+
+# TypeScript error dumps
+tsc_*.txt
+typescript-errors*.txt
+typescript-errors-utf8*.txt
+
+# Temporary scratch files
+tmp_*.html
+tmp_*.tsx
+tmp_*.ts
+scratch/

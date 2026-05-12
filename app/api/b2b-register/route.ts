@@ -1,15 +1,18 @@
+// engineering-design.md §11 / 07-tech-debt HIGH — admin gate on GET/PATCH/DELETE; POST remains public
 import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import B2BRegistration from "@/models/B2BRegistration"
 
 export async function POST(req: Request) {
+    // POST is intentionally public — this is the RVSF signup form
     try {
         await connectToDatabase()
         const body = await req.json()
 
         const { name, address, pincode, city, state, contactNumber, email, userId } = body
 
-        // Basic validation
         if (!name || !address || !pincode || !city || !state || !contactNumber || !email) {
             return NextResponse.json(
                 { message: "All fields are required" },
@@ -17,7 +20,6 @@ export async function POST(req: Request) {
             )
         }
 
-        // Check for existing pending registration
         if (userId) {
             const existingPending = await B2BRegistration.findOne({ userId, status: 'pending' })
             if (existingPending) {
@@ -28,7 +30,6 @@ export async function POST(req: Request) {
             }
         }
 
-        // Create new registration
         const newRegistration = await B2BRegistration.create({
             name,
             address,
@@ -45,15 +46,21 @@ export async function POST(req: Request) {
             { status: 201 }
         )
     } catch (error: any) {
-        console.error("B2B Registration Error:", error)
+        console.error("B2B Registration Error:", error?.message)
         return NextResponse.json(
-            { message: error.message || "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         )
     }
 }
 
 export async function GET(req: Request) {
+    // Admin-only: engineering-design.md §11 / 07-tech-debt HIGH
+    const session = await getServerSession(authOptions)
+    if (!session || (session.user as any).role !== "admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     try {
         await connectToDatabase()
         const { searchParams } = new URL(req.url)
@@ -61,31 +68,22 @@ export async function GET(req: Request) {
         const email = searchParams.get("email")
 
         if (userId) {
-            // First check if they are already a partner (Approved)
-            // Check by originalUserId OR email (for backward compatibility)
             const B2BPartner = (await import("@/models/B2BPartner")).default
+            // Exclude password from partner lookup
             const partner = await B2BPartner.findOne({
-                $or: [
-                    { originalUserId: userId },
-                    { email: email }
-                ]
-            })
+                $or: [{ originalUserId: userId }, { email: email }]
+            }).select("-password")
 
             if (partner) {
                 return NextResponse.json(
                     {
                         message: "Partner fetched successfully",
-                        data: {
-                            ...partner.toObject(),
-                            status: "approved", // Explicitly set status for UI
-                            name: partner.businessName
-                        }
+                        data: { ...partner.toObject(), status: "approved", name: partner.businessName }
                     },
                     { status: 200 }
                 )
             }
 
-            // If not partner, check for pending registration
             const registration = await B2BRegistration.findOne({ userId }).sort({ createdAt: -1 })
             return NextResponse.json(
                 { message: "Registration fetched successfully", data: registration },
@@ -95,26 +93,29 @@ export async function GET(req: Request) {
 
         const registrations = await B2BRegistration.find().sort({ createdAt: -1 })
 
-        // Cache-control headers to prevent caching issues in admin panel
         return NextResponse.json(
             { message: "Registrations fetched successfully", data: registrations },
             {
                 status: 200,
-                headers: {
-                    "Cache-Control": "no-store, max-age=0"
-                }
+                headers: { "Cache-Control": "no-store, max-age=0" }
             }
         )
     } catch (error: any) {
-        console.error("B2B Fetch Error:", error)
+        console.error("B2B Fetch Error:", error?.message)
         return NextResponse.json(
-            { message: error.message || "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         )
     }
 }
 
 export async function DELETE(req: Request) {
+    // Admin-only: engineering-design.md §11
+    const session = await getServerSession(authOptions)
+    if (!session || (session.user as any).role !== "admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     try {
         await connectToDatabase()
         const { searchParams } = new URL(req.url)
@@ -141,15 +142,21 @@ export async function DELETE(req: Request) {
             { status: 200 }
         )
     } catch (error: any) {
-        console.error("B2B Deletion Error:", error)
+        console.error("B2B Deletion Error:", error?.message)
         return NextResponse.json(
-            { message: error.message || "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         )
     }
 }
 
 export async function PATCH(req: Request) {
+    // Admin-only: engineering-design.md §11
+    const session = await getServerSession(authOptions)
+    if (!session || (session.user as any).role !== "admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     try {
         await connectToDatabase()
         const { searchParams } = new URL(req.url)
@@ -181,9 +188,9 @@ export async function PATCH(req: Request) {
             { status: 200 }
         )
     } catch (error: any) {
-        console.error("B2B Status Update Error:", error)
+        console.error("B2B Status Update Error:", error?.message)
         return NextResponse.json(
-            { message: error.message || "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         )
     }

@@ -21,11 +21,15 @@ const BuyVehicleSchema = new Schema(
         pincode: { type: String },
         status: {
             type: String,
-            enum: ['pending', 'contacted', 'completed', 'rejected', 'approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'],
+            enum: ['pending', 'contacted', 'completed', 'rejected', 'approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped', 'triage_pending', 'rejected_by_triage'],
             default: 'pending'
         },
         b2bPickupId: { type: String },
         b2bPartnerId: { type: String },
+        // Triage integration fields (engineering-design.md §3.1 / §12)
+        leadStateId: { type: String },
+        qualityScore: { type: String, enum: ['bronze', 'silver', 'gold'] },
+        triageDecisionId: { type: String },
     },
     {
         timestamps: true,

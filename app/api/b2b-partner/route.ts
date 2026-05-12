@@ -1,16 +1,24 @@
+// engineering-design.md §11 / 07-tech-debt CRITICAL — admin gate added; password hashed
 import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import bcrypt from "bcryptjs"
 import connectToDatabase from "@/lib/db"
 import B2BPartner from "@/models/B2BPartner"
 import B2BRegistration from "@/models/B2BRegistration"
 
 export async function POST(req: Request) {
+    const session = await getServerSession(authOptions)
+    if (!session || (session.user as any).role !== "admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     try {
         await connectToDatabase()
         const body = await req.json()
 
         const { userId, password, businessName, contactNumber, email, address, city, state, pincode, registrationId, originalUserId } = body
 
-        // Basic validation
         if (!userId || !password || !businessName) {
             return NextResponse.json(
                 { message: "User ID, Password and Business Name are required" },
@@ -18,7 +26,6 @@ export async function POST(req: Request) {
             )
         }
 
-        // Check if userId already exists
         const existingUser = await B2BPartner.findOne({ userId })
         if (existingUser) {
             return NextResponse.json(
@@ -27,10 +34,12 @@ export async function POST(req: Request) {
             )
         }
 
-        // Create new partner
+        // Hash password before storing — engineering-design.md §11
+        const hashedPassword = await bcrypt.hash(password, 12)
+
         const newPartner = await B2BPartner.create({
             userId,
-            password, // NOTE: In a real app, hash this password with bcrypt!
+            password: hashedPassword,
             businessName,
             contactNumber,
             email,
@@ -42,45 +51,48 @@ export async function POST(req: Request) {
             originalUserId
         })
 
-        // If created successfully, and we have a registrationId, delete the original request
         if (registrationId) {
             await B2BRegistration.findByIdAndDelete(registrationId)
         }
 
+        // Never return password field
+        const { password: _pw, ...partnerData } = (newPartner as any).toObject()
         return NextResponse.json(
-            { message: "Partner created successfully", data: newPartner },
+            { message: "Partner created successfully", data: partnerData },
             { status: 201 }
         )
     } catch (error: any) {
-        console.error("B2B Partner Creation Error:", error)
+        console.error("B2B Partner Creation Error:", error?.message)
         return NextResponse.json(
-            { message: error.message || "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         )
     }
 }
 
 export async function GET() {
+    const session = await getServerSession(authOptions)
+    if (!session || (session.user as any).role !== "admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     try {
         await connectToDatabase()
-        const partners = await B2BPartner.find().sort({ createdAt: -1 })
+        // Explicitly exclude password field from response
+        const partners = await B2BPartner.find().select("-password").sort({ createdAt: -1 })
 
-        // Cache-control to prevent stale data
         return NextResponse.json(
             { message: "Partners fetched successfully", data: partners },
             {
                 status: 200,
-                headers: {
-                    "Cache-Control": "no-store, max-age=0"
-                }
+                headers: { "Cache-Control": "no-store, max-age=0" }
             }
         )
     } catch (error: any) {
-        console.error("B2B Partner Fetch Error:", error)
+        console.error("B2B Partner Fetch Error:", error?.message)
         return NextResponse.json(
-            { message: error.message || "Internal Server Error" },
+            { message: "Internal Server Error" },
             { status: 500 }
         )
     }
 }
-

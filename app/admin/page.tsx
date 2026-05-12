@@ -305,26 +305,43 @@ export default async function AdminPage() {
     }
 
     return (
-        <DashboardOverview
-            totalRequests={totalRequests}
-            formattedTotalTons={formattedTotalTons}
-            b2bTotal={b2bTotal}
-            totalApproved={totalApproved}
-            marketFeed={marketFeed}
-            valuationCounts={{
-                quote: quoteCount,
-                sell: sellCount,
-                exchange: exchangeCount,
-                buy: buyCount
-            }}
-            b2bStats={{
-                total: b2bTotal,
-                pending: b2bPending,
-                approved: b2bApproved
-            }}
-            monthlyGrowthData={formattedMonthlyGrowth}
-            activityData={formattedWeeklyActivity}
-        />
+        <div>
+            {/* Wave 2 quick-links for new triage pages — per engineering-design §10, §13 */}
+            <div className="px-6 pt-4 pb-0 flex flex-wrap gap-3">
+                <a
+                    href="/admin/triage"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#D92027] text-white rounded-lg text-sm font-semibold hover:bg-[#A8161C] transition-colors shadow-sm"
+                >
+                    Triage Queue →
+                </a>
+                <a
+                    href="/admin/mock-config"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                >
+                    Mock Config
+                </a>
+            </div>
+            <DashboardOverview
+                totalRequests={totalRequests}
+                formattedTotalTons={formattedTotalTons}
+                b2bTotal={b2bTotal}
+                totalApproved={totalApproved}
+                marketFeed={marketFeed}
+                valuationCounts={{
+                    quote: quoteCount,
+                    sell: sellCount,
+                    exchange: exchangeCount,
+                    buy: buyCount
+                }}
+                b2bStats={{
+                    total: b2bTotal,
+                    pending: b2bPending,
+                    approved: b2bApproved
+                }}
+                monthlyGrowthData={formattedMonthlyGrowth}
+                activityData={formattedWeeklyActivity}
+            />
+        </div>
     )
 }
 
