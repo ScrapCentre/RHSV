@@ -6,9 +6,9 @@
 
 ## 🔗 Live URL
 
-**https://scrapcentre.online** *(intermittent right now — see "Deploy it yourselves" below)*
+**https://scrapcentre.online** *(stable, served from a Proxmox VM via Cloudflare tunnel)*
 
-> ⚠️ The hosted URL runs from a Proxmox LXC through a Cloudflare tunnel, and the upstream ISP is being unreliable for sustained connections — so you'll often see HTTP 530 ("Cloudflare Tunnel error 1033"). **For a stable test environment, please clone the fork and run it on your own infra (Vercel / Docker / Node host) — instructions below.** All commits on the branch are build-clean as of `04cb946`.
+The dummy is hosted on the founder's own infrastructure for review. If you'd prefer to run it on your own hardware (Vercel / Docker / Node host), see "Deploy it yourselves" below — the fork is build-clean as of commit `04cb946`.
 
 ---
 
