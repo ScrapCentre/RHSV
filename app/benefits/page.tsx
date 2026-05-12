@@ -2,7 +2,10 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import BenefitsForm from "@/components/BenefitsForm"
+// QA-fix (Wave 4): BenefitsForm component was removed during the Wave 1 design-system cleanup
+// (per design-system §6 — legacy form retired). The page used to render a form modal here;
+// it now shows a "coming soon" placeholder until the new entry-questionnaire-driven flow
+// (`/start` → `/calculator`) replaces this CTA entirely.
 import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
 import { CheckCircle, DollarSign, Clock, Shield } from "lucide-react"
@@ -56,7 +59,10 @@ export default function BenefitsPage() {
     return (
       <div className="bg-black min-h-screen text-white">
         <Navbar />
-        <BenefitsForm onBack={() => setShowForm(false)} />
+        <div className="max-w-2xl mx-auto p-12 text-center text-slate-400 italic">
+          {/* QA-fix (Wave 4): placeholder until new questionnaire flow replaces this CTA */}
+          Benefits enquiry form is being rebuilt as part of the new /start questionnaire flow.
+        </div>
         <Footer />
       </div>
     )
