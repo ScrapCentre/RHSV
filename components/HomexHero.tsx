@@ -16,14 +16,6 @@ const slides = [
         color: "from-emerald-500 to-teal-400"
     },
     {
-        id: 2,
-        isStepsSlide: true,
-        title: "3 steps to get your vehicle valuation",
-        subtitle: "A simple and transparent process for you.",
-        image: "/slide2.webp",
-        color: "from-blue-500 to-indigo-400"
-    },
-    {
         id: 3,
         title: "Our Certification And Authorization",
         titleHighlight: "Certification And Authorization",
@@ -64,7 +56,7 @@ export default function HomexHero() {
 
     // Auto-advance: pauses on hover and when the browser tab is hidden
     useEffect(() => {
-        const durations = [10000, 15000, 10000]
+        const durations = [10000, 10000]
 
         const start = () => {
             if (timerRef.current) clearTimeout(timerRef.current)

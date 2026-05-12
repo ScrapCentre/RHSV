@@ -359,12 +359,12 @@ function LoginContent() {
                                     >
                                         Phone OTP
                                     </button>
-                                    <button
+{/* <button
                                         onClick={() => setLoginMethod("email")}
                                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${loginMethod === "email" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
                                     >
                                         Email / Password
-                                    </button>
+                                    </button> */}
                                 </div>
 
                                 {loginMethod === "phone" ? (
@@ -513,7 +513,7 @@ function LoginContent() {
                                     </form>
                                 )}
 
-                                {isLogin && (
+{/* {isLogin && (
                                     <>
                                         <div className="relative py-1">
                                             <div className="absolute inset-0 flex items-center">
@@ -536,7 +536,7 @@ function LoginContent() {
                                             <span className="text-sm">Continue with Google</span>
                                         </button>
                                     </>
-                                )}
+                                )} */}
 
 
                                 {loginMethod === "email" && (
