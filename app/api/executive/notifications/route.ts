@@ -26,7 +26,7 @@ export async function GET(req: Request) {
             BuyVehicle.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(10).lean(),
         ]);
 
-        let notifications = [
+        const notifications = [
             ...quotes.map((item: any) => ({
                 id: item._id,
                 type: 'quote',

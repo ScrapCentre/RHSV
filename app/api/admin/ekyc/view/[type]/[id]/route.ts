@@ -8,7 +8,7 @@ import ExchangeVehicle from "@/models/ExchangeVehicle";
 
 export async function GET(
     request: Request,
-    { params }: { params: { type: string, id: string } }
+    { params }: any
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -36,6 +36,8 @@ export async function GET(
             case "exchange":
                 Model = ExchangeVehicle;
                 break;
+            default:
+                return NextResponse.json({ error: "Invalid document type" }, { status: 400 });
         }
 
         const document = await Model.findById(id);

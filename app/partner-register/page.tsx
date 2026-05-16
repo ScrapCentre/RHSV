@@ -226,7 +226,7 @@ export default function PartnerRegistrationPage() {
                             Become a <span className="text-orange-600">Partner</span>
                         </h2>
                         <p className="mt-3 text-center text-lg text-gray-400 max-w-sm mx-auto">
-                            Join India's fastest-growing network of certified scrap dealers.
+                            Join India&apos;s fastest-growing network of certified scrap dealers.
                         </p>
                     </>
                 )}

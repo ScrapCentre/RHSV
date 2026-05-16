@@ -81,19 +81,19 @@ export default function DashboardOverview({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
                         <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-blue-700 dark:text-blue-400">Free Quote</span>
+                        <span className="text-xs font-bold text-blue-700 dark:text-blue-400">Scrap Vehicle</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
+                        <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-200 dark:shadow-none"></div>
+                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400">Scrap &amp; Buy New</span>
                     </div>
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30">
                         <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-green-700 dark:text-green-400">Sell Vehicle</span>
+                        <span className="text-xs font-bold text-green-700 dark:text-green-400">Sell Old Vehicle</span>
                     </div>
-                    {/* <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
-                        <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400">Exchange</span>
-                    </div> */}
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/30">
                         <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-orange-700 dark:text-orange-400">Buy Vehicle</span>
+                        <span className="text-xs font-bold text-orange-700 dark:text-orange-400">Buy New Vehicle</span>
                     </div>
                 </div>
             </motion.div>
@@ -178,22 +178,22 @@ export default function DashboardOverview({
                                     <td className="px-6 py-4">
                                         {item.type === 'quote' && (
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50">
-                                                Quote
+                                                Scrap Vehicle
+                                            </span>
+                                        )}
+                                        {item.type === 'scrap-buy' && (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
+                                                Scrap &amp; Buy
                                             </span>
                                         )}
                                         {item.type === 'sell' && (
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/50">
-                                                Sell
-                                            </span>
-                                        )}
-                                        {item.type === 'exchange' && (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
-                                                Exchange
+                                                Sell Old
                                             </span>
                                         )}
                                         {item.type === 'buy' && (
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50">
-                                                Buy
+                                                Buy New
                                             </span>
                                         )}
                                     </td>
@@ -243,22 +243,22 @@ export default function DashboardOverview({
                                         <div className="flex justify-between items-start">
                                             {item.type === 'quote' && (
                                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50">
-                                                    Quote
+                                                    Scrap Vehicle
+                                                </span>
+                                            )}
+                                            {item.type === 'scrap-buy' && (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
+                                                    Scrap &amp; Buy
                                                 </span>
                                             )}
                                             {item.type === 'sell' && (
                                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/50">
-                                                    Sell
-                                                </span>
-                                            )}
-                                            {item.type === 'exchange' && (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
-                                                    Exchange
+                                                    Sell Old
                                                 </span>
                                             )}
                                             {item.type === 'buy' && (
                                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50">
-                                                    Buy
+                                                    Buy New
                                                 </span>
                                             )}
                                             <p className="text-[11px] text-gray-400 dark:text-slate-500 font-medium">

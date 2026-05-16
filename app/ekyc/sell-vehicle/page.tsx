@@ -39,12 +39,12 @@ export default function SellVehicleEKYCPage() {
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">No Vehicle Data Found</h2>
-                    <p className="text-gray-600 mb-6">Please start the process from the Sell Vehicle page.</p>
+                    <p className="text-gray-600 mb-6">Please start the process from the valuation page.</p>
                     <button
-                        onClick={() => router.push("/services/sell-vehicle")}
+                        onClick={() => router.push("/#services")}
                         className="px-6 py-2 bg-[#0E192D] text-white rounded-lg hover:bg-[#112240] transition-colors"
                     >
-                        Go to Sell Vehicle
+                        Go to Valuation
                     </button>
                 </div>
             </div>

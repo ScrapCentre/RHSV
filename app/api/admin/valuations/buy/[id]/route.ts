@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 
 export async function GET(
     req: NextRequest,
@@ -18,7 +19,27 @@ export async function GET(
 
         await connectToDatabase()
         const resolvedParams = await params
-        const request = await BuyVehicle.findById(resolvedParams.id)
+        let request = await BuyVehicle.findById(resolvedParams.id).lean()
+
+        if (!request) {
+            const wizardLead = await WizardLead.findById(resolvedParams.id).lean()
+            if (wizardLead) {
+                request = {
+                    _id: wizardLead._id,
+                    status: wizardLead.status || "pending",
+                    vehicleBrand: wizardLead.desiredCompany || "N/A",
+                    vehicleModel: wizardLead.desiredModel || "N/A",
+                    fuelType: "N/A",
+                    budgetRange: "N/A",
+                    customerName: wizardLead.name,
+                    customerPhone: wizardLead.phone,
+                    customerEmail: "N/A",
+                    pincode: wizardLead.pincode,
+                    createdAt: wizardLead.createdAt,
+                    updatedAt: wizardLead.updatedAt
+                } as any
+            }
+        }
 
         if (!request) {
             return NextResponse.json({ error: "Request not found" }, { status: 404 })

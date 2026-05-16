@@ -48,7 +48,7 @@ export default function TermsPage() {
                                 Introduction
                             </h2>
                             <p className="text-slate-600 leading-relaxed">
-                                Welcome to AutoScrap. references to "we", "us", or "our" are references to AutoScrap. By accessing or using our vehicle scrapping services, valuation tools, or website, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.
+                                Welcome to AutoScrap. references to &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo; are references to AutoScrap. By accessing or using our vehicle scrapping services, valuation tools, or website, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.
                             </p>
                         </section>
 
@@ -65,7 +65,7 @@ export default function TermsPage() {
                                 <ul className="list-disc pl-5 space-y-2 marker:text-emerald-500">
                                     <li>You must be the legal owner of the vehicle or authorized by the owner.</li>
                                     <li>The vehicle must be free from any major encumbrances or police cases unless disclosed.</li>
-                                    <li>You agree to provide accurate information regarding the vehicle's condition.</li>
+                                    <li>You agree to provide accurate information regarding the vehicle&apos;s condition.</li>
                                 </ul>
                             </div>
                         </section>

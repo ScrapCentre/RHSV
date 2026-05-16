@@ -21,7 +21,9 @@ import {
     Fuel,
     DollarSign,
     Box,
-    IndianRupee
+    IndianRupee,
+    Recycle,
+    Sparkles
 } from "lucide-react"
 
 interface BaseRequest {
@@ -107,19 +109,27 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
     const getTypeDisplayName = (type: string) => {
         switch (type) {
             case 'valuation': return "Get Free Quote"
-            case 'sell': return "Sell Old Vehicle"
+            case 'scrap': return "Scrap Vehicle"
+            case 'scrap-buy': return "Scrap & Buy New"
+            case 'sell': 
+            case 'wizard-sell': return "Sell Old Vehicle"
             case 'exchange': return "Exchange Vehicle"
-            case 'buy': return "Buy New Vehicle"
+            case 'buy': 
+            case 'wizard-buy': return "Buy New Vehicle"
             default: return "Vehicle Request"
         }
     }
 
     const getTypeColor = (type: string) => {
         switch (type) {
-            case 'valuation': return { bg: "bg-blue-900/20", text: "text-blue-400", border: "border-blue-900/30", hoverBg: "group-hover:bg-blue-900/30", hoverText: "group-hover:text-blue-300", solid: "bg-blue-600" }
-            case 'sell': return { bg: "bg-green-900/20", text: "text-green-400", border: "border-green-900/30", hoverBg: "group-hover:bg-green-900/30", hoverText: "group-hover:text-green-300", solid: "bg-green-600" }
-            case 'exchange': return { bg: "bg-purple-900/20", text: "text-purple-400", border: "border-purple-900/30", hoverBg: "group-hover:bg-purple-900/30", hoverText: "group-hover:text-purple-300", solid: "bg-purple-600" }
-            case 'buy': return { bg: "bg-orange-900/20", text: "text-orange-400", border: "border-orange-900/30", hoverBg: "group-hover:bg-orange-900/30", hoverText: "group-hover:text-orange-300", solid: "bg-orange-600" }
+            case 'valuation': 
+            case 'scrap': return { bg: "bg-blue-900/20", text: "text-blue-400", border: "border-blue-900/30", hoverBg: "group-hover:bg-blue-900/30", hoverText: "group-hover:text-blue-300", solid: "bg-blue-600" }
+            case 'sell': 
+            case 'wizard-sell': return { bg: "bg-green-900/20", text: "text-green-400", border: "border-green-900/30", hoverBg: "group-hover:bg-green-900/30", hoverText: "group-hover:text-green-300", solid: "bg-green-600" }
+            case 'exchange': 
+            case 'scrap-buy': return { bg: "bg-purple-900/20", text: "text-purple-400", border: "border-purple-900/30", hoverBg: "group-hover:bg-purple-900/30", hoverText: "group-hover:text-purple-300", solid: "bg-purple-600" }
+            case 'buy': 
+            case 'wizard-buy': return { bg: "bg-orange-900/20", text: "text-orange-400", border: "border-orange-900/30", hoverBg: "group-hover:bg-orange-900/30", hoverText: "group-hover:text-orange-300", solid: "bg-orange-600" }
             default: return { bg: "bg-slate-800", text: "text-slate-400", border: "border-slate-700", hoverBg: "group-hover:bg-slate-700", hoverText: "group-hover:text-slate-300", solid: "bg-slate-800" }
         }
     }
@@ -127,17 +137,23 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
     const getTypeIcon = (type: string) => {
         switch (type) {
             case 'valuation': return <Scale className="w-5 h-5" />
-            case 'sell': return <Tag className="w-5 h-5" />
+            case 'scrap': return <Recycle className="w-5 h-5" />
+            case 'sell': 
+            case 'wizard-sell': return <Tag className="w-5 h-5" />
             case 'exchange': return <RefreshCw className="w-5 h-5" />
-            case 'buy': return <ShoppingCart className="w-5 h-5" />
+            case 'scrap-buy': return <Sparkles className="w-5 h-5" />
+            case 'buy': 
+            case 'wizard-buy': return <ShoppingCart className="w-5 h-5" />
             default: return <FileText className="w-5 h-5" />
         }
     }
 
     const getRequestTitle = (req: any) => {
         if (req.type === 'buy') return `${req.vehicleBrand} ${req.vehicleModel}`
-        if (req.type === 'valuation') return `${req.brand} ${req.model}`
-        if (req.type === 'sell') return `${req.brand} ${req.model}`
+        if (req.type === 'wizard-buy') return `${req.desiredCompany} ${req.desiredModel}`
+        if (req.type === 'valuation' || req.type === 'scrap' || req.type === 'sell' || req.type === 'wizard-sell' || req.type === 'scrap-buy') {
+            return `${req.brand} ${req.model}`
+        }
         if (req.type === 'exchange') return `${req.oldVehicleBrand} ${req.oldVehicleModel}`
         return "Vehicle Request"
     }
@@ -147,6 +163,8 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
         if (req.type === 'sell') return req.registrationNumber
         if (req.type === 'exchange') return req.oldVehicleRegistration
         if (req.type === 'buy') return `${req.budgetRange} Budget`
+        if (req.type === 'scrap' || req.type === 'wizard-sell' || req.type === 'scrap-buy') return req.regNo
+        if (req.type === 'wizard-buy') return "New Vehicle Inquiry"
         return ""
     }
 
@@ -323,6 +341,43 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                             <DetailItem icon={<IndianRupee />} label="Budget" value={selectedRequest.budgetRange} />
                                             <DetailItem icon={<Fuel />} label="Fuel Preference" value={selectedRequest.fuelType} />
                                             <DetailItem icon={<MapPin />} label="Location" value={`${selectedRequest.city}, ${selectedRequest.state}`} />
+                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                        </>
+                                    )}
+
+                                    {/* New WizardLead Types */}
+                                    {selectedRequest.type === 'scrap' && (
+                                        <>
+                                            <DetailItem icon={<Hash />} label="Reg. Number" value={selectedRequest.regNo} />
+                                            <DetailItem icon={<Calendar />} label="Model Year" value={selectedRequest.year} />
+                                            <DetailItem icon={<Scale />} label="Approx Weight" value={`${selectedRequest.weight} kg`} />
+                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                        </>
+                                    )}
+
+                                    {selectedRequest.type === 'scrap-buy' && (
+                                        <>
+                                            <DetailItem icon={<Hash />} label="Scrap Reg. No" value={selectedRequest.regNo} />
+                                            <DetailItem icon={<Calendar />} label="Scrap Year" value={selectedRequest.year} />
+                                            <DetailItem icon={<ShoppingCart />} label="Desired Brand" value={selectedRequest.desiredCompany} />
+                                            <DetailItem icon={<Box />} label="Desired Model" value={selectedRequest.desiredModel} />
+                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                        </>
+                                    )}
+
+                                    {selectedRequest.type === 'wizard-sell' && (
+                                        <>
+                                            <DetailItem icon={<Hash />} label="Reg. Number" value={selectedRequest.regNo} />
+                                            <DetailItem icon={<Calendar />} label="Model Year" value={selectedRequest.year} />
+                                            <DetailItem icon={<Clock />} label="Kms Driven" value={selectedRequest.kms} />
+                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                        </>
+                                    )}
+
+                                    {selectedRequest.type === 'wizard-buy' && (
+                                        <>
+                                            <DetailItem icon={<ShoppingCart />} label="Desired Brand" value={selectedRequest.desiredCompany} />
+                                            <DetailItem icon={<Box />} label="Desired Model" value={selectedRequest.desiredModel} />
                                             <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
                                         </>
                                     )}

@@ -4,125 +4,122 @@ import { useSession } from "next-auth/react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowRight, Lock } from "lucide-react"
+import { ArrowRight, Handshake, TrendingUp } from "lucide-react"
 
-type GrowWithUsProps = {
-    variant?: "red" | "green"
-}
-
-export default function GrowWithUs({ variant = "green" }: GrowWithUsProps) {
+export default function GrowWithUs() {
     const { data: session } = useSession()
 
-    const styles = {
-        red: {
-            // ... (keeping red for backward compatibility if needed, but we focus on green)
-            border: "border-red-50",
-            hoverBg: "hover:bg-red-600",
-            accentText: "text-red-600",
-            hoverAccent: "group-hover:text-red-100",
-            heading: "text-gray-900",
-            headingHover: "group-hover:text-white",
-            spanText: "text-red-600",
-            desc: "text-gray-600",
-            descHover: "group-hover:text-red-50",
-            btnBg: "bg-red-600",
-            btnShadow: "shadow-red-600/30",
-            btnHover: "hover:bg-red-700",
-            btnHoverShadow: "hover:shadow-red-600/40",
-            btnGroupHoverBg: "group-hover:bg-white",
-            btnGroupHoverText: "group-hover:text-red-600",
-            btnGroupHoverShadow: "group-hover:shadow-white/20",
-            lockedText: "text-red-500",
-            lockedHover: "group-hover:text-red-200"
-        },
-        green: {
-            border: "border-slate-800",
-            hoverBg: "hover:bg-slate-800",
-            accentText: "text-emerald-400",
-            hoverAccent: "group-hover:text-emerald-300",
-            heading: "text-white",
-            headingHover: "group-hover:text-white",
-            spanText: "text-emerald-400",
-            desc: "text-slate-400",
-            descHover: "group-hover:text-slate-300",
-            btnBg: "bg-emerald-600",
-            btnShadow: "shadow-emerald-900/40",
-            btnHover: "hover:bg-emerald-500",
-            btnHoverShadow: "hover:shadow-emerald-900/50",
-            btnGroupHoverBg: "group-hover:bg-white",
-            btnGroupHoverText: "group-hover:text-emerald-700",
-            btnGroupHoverShadow: "group-hover:shadow-white/20",
-            lockedText: "text-slate-500",
-            lockedHover: "group-hover:text-slate-400"
-        }
-    }
-
-    const s = styles[variant]
-
     return (
-        <section className="py-6 bg-white">
-            <div className="container mx-auto px-4 md:px-6">
-                <div className={`bg-[#0E192D] rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-900/20 flex flex-col lg:flex-row min-h-[200px] border ${s.border}`}>
-
-                    {/* Left Side: Image (30%) */}
-                    <div className="relative w-full lg:w-[30%] h-[160px] lg:h-auto min-h-[160px]">
-                        <Image
-                            src="/frontpage/b2b2.png"
-                            alt="Grow With Us"
-                            fill
-                            className="object-cover"
+        <section className="py-12 bg-white overflow-hidden">
+            <div className="container mx-auto px-4">
+                {/* 
+                  To show the "puri img" (full image), we use a relative container 
+                  and let the image dictate the aspect ratio, or use object-contain.
+                  Here we use a container with a flexible height that matches the banner style.
+                */}
+                <div className="relative w-full max-w-7xl mx-auto rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.08)] bg-white group">
+                    
+                    {/* The Background Image - Using object-contain or responsive h-auto to see everything */}
+                    <div className="relative w-full">
+                        <img 
+                            src="/partner.png" 
+                            alt="Partner with ScrapCenter" 
+                            className="w-full h-auto block min-h-[300px] object-cover md:object-contain lg:object-contain bg-white"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0E192D]/90 lg:to-[#0E192D]/20" />
-                    </div>
+                        
+                        {/* Overlay Content - Positioned absolute over the image */}
+                        <div className="absolute inset-0 z-10 flex flex-col items-center lg:items-start lg:pl-[38%] justify-center px-6 md:px-12 text-center lg:text-left">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.6 }}
+                                className="max-w-xl bg-white/10 md:bg-transparent backdrop-blur-[2px] md:backdrop-blur-none p-4 rounded-2xl"
+                            >
+                                {/* Badge */}
+                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 rounded-full mb-4 md:mb-6 border border-red-100">
+                                    <div className="p-1 bg-red-600 rounded-full">
+                                        <Handshake className="w-3 h-3 text-white" />
+                                    </div>
+                                    <span className="text-[10px] md:text-xs font-black text-red-600 uppercase tracking-widest">
+                                        Be Our Partner
+                                    </span>
+                                </div>
 
-                    {/* Right Side: Content (70%) */}
-                    <div className={`w-full lg:w-[70%] p-6 md:p-8 flex flex-col justify-center bg-[#0E192D] relative group transition-colors duration-500 ease-in-out`}>
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <span className={`${s.accentText} font-bold uppercase tracking-wider text-sm mb-3 block ${s.hoverAccent} transition-colors`}>
-                                Be Our Partner
-                            </span>
-                            <h2 className={`text-3xl md:text-5xl font-black ${s.heading} mb-6 leading-tight ${s.headingHover} transition-colors`}>
-                                Grow <span className={`${s.spanText} ${s.headingHover} transition-colors`}>With Us</span>
-                            </h2>
-                            <p className={`${s.desc} font-medium mb-8 text-lg ${s.descHover} transition-colors max-w-xl`}>
-                                Join our network of verified partners and expand your business with ScrapCenter India.
-                            </p>
+                                {/* Heading with Animated Underline */}
+                                <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-6 leading-tight">
+                                    <span className="relative inline-block">
+                                        Grow
+                                        <motion.div 
+                                            className="absolute -bottom-1 left-0 h-1 md:h-1.5 bg-red-600 rounded-full"
+                                            animate={{ 
+                                                width: ["0%", "100%", "0%"] 
+                                            }}
+                                            transition={{ 
+                                                duration: 3, 
+                                                repeat: Infinity,
+                                                ease: "easeInOut"
+                                            }}
+                                        />
+                                    </span> <span className="text-red-600">With</span> Us
+                                </h2>
 
-                            <div className="w-full sm:w-auto">
-                                {session ? (
-                                    <Link
-                                        href="/partner-register"
-                                        className={`inline-flex items-center gap-3 px-8 py-4 ${s.btnBg} text-white rounded-full font-bold text-lg shadow-lg ${s.btnShadow} ${s.btnHover} ${s.btnHoverShadow} ${s.btnGroupHoverBg} ${s.btnGroupHoverText} ${s.btnGroupHoverShadow} transition-all duration-300`}
-                                    >
-                                        <span>{(session.user as any)?.role === 'partner' ? "View Credentials" : "Apply For Partner"}</span>
-                                        <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                                    </Link>
-                                ) : (
-                                    <Link
-                                        href="/login"
-                                        className="inline-flex items-center gap-3 px-8 py-4 bg-slate-800 text-slate-500 rounded-full font-bold shadow-inner cursor-not-allowed hover:bg-slate-700 transition-all duration-300"
-                                    >
-                                        <Lock className="w-5 h-5" />
-                                        <span>Login to Apply</span>
-                                    </Link>
-                                )}
-                            </div>
-
-                            {!session && (
-                                <p className={`text-xs ${s.lockedText} mt-4 font-medium ${s.lockedHover} transition-colors pl-2`}>
-                                    * Please login to access partner registration
+                                {/* Description */}
+                                <p className="text-slate-600 font-bold mb-6 md:mb-10 text-base md:text-lg lg:text-xl leading-snug">
+                                    Join our network of verified partners and expand your business with <span className="text-red-600">ScrapCenter India.</span>
                                 </p>
-                            )}
-                        </motion.div>
+
+                                {/* Button */}
+                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <Link
+                                        href={session ? "/partner-register" : "/login"}
+                                        className="c-button--gooey group/btn relative inline-flex items-center gap-3 px-8 md:px-10 py-3 md:py-4 bg-red-600 text-white rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-lg shadow-red-500/30 transition-all duration-300"
+                                    >
+                                        <span className="relative z-10 flex items-center gap-3">
+                                            {session ? ((session.user as any)?.role === 'partner' ? "View Credentials" : "Apply For Partner") : "Apply For Partner"}
+                                            <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover/btn:translate-x-1 transition-transform" />
+                                        </span>
+                                        <div className="c-button__blobs">
+                                            <div />
+                                            <div />
+                                            <div />
+                                        </div>
+                                    </Link>
+                                </div>
+
+                                {!session && (
+                                    <p className="text-[10px] text-slate-400 mt-4 font-bold uppercase tracking-tighter italic">
+                                        * Login required for partner registration
+                                    </p>
+                                )}
+                            </motion.div>
+                        </div>
+
+                        {/* Floating extra icon (Chart circle) - Positioned relative to the banner */}
+                        <div className="absolute top-[20%] right-[12%] hidden lg:block z-20">
+                            <motion.div
+                                animate={{ y: [0, -10, 0] }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                className="bg-white p-4 rounded-full shadow-2xl border border-slate-50"
+                            >
+                                <TrendingUp className="w-8 h-8 text-red-600" />
+                            </motion.div>
+                        </div>
                     </div>
 
                 </div>
             </div>
+
+            {/* SVG Filter for Gooey Effect */}
+            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={{ display: 'none' }}>
+                <defs>
+                    <filter id="goo">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                        <feBlend in="SourceGraphic" in2="goo" />
+                    </filter>
+                </defs>
+            </svg>
         </section>
     )
 }

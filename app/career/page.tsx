@@ -435,7 +435,7 @@ export default function CareerPage() {
             viewport={{ once: true }}
           >
             <p className="text-gray-400 text-lg mb-6">
-              Don't see a position that fits? We're always looking for talented individuals.
+              Don&apos;t see a position that fits? We&apos;re always looking for talented individuals.
             </p>
             <Link href="/career/apply?job=General Application">
               <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-purple-500/25 relative overflow-hidden group">

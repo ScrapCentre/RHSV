@@ -6,7 +6,7 @@ import ExchangeVehicle from "@/models/ExchangeVehicle";
 
 export async function GET(
     request: Request,
-    { params }: { params: { type: string } }
+    { params }: any
 ) {
     try {
         await connectToDatabase();
@@ -29,6 +29,8 @@ export async function GET(
             case "exchange":
                 Model = ExchangeVehicle;
                 break;
+            default:
+                return NextResponse.json({ error: "Invalid document type" }, { status: 400 });
         }
 
         // Fetch documents that have eKYC data submitted

@@ -65,6 +65,9 @@ const config: Config = {
           750: "rgb(55 65 81 / 0.8)",
         },
       },
+      fontFamily: {
+        bebas: ["var(--font-bebas)", "sans-serif"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

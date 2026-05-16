@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/db";
 import BulkOutsourcing from "@/models/BulkOutsourcing";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: any) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -45,7 +45,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: any) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -95,7 +95,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: any) {
     try {
         const session = await getServerSession(authOptions);
 

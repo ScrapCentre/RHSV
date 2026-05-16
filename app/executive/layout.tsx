@@ -211,10 +211,10 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
                                     className="overflow-hidden space-y-1"
                                 >
                                     {[
-                                        { href: "/executive/valuations/quote", label: "Free Quotes" },
-                                        { href: "/executive/valuations/sell", label: "Sell Inquiries" },
-                                        // { href: "/executive/valuations/exchange", label: "Exchange Leads" },
-                                        { href: "/executive/valuations/buy", label: "Purchase Leads" }
+                                        { href: "/executive/valuations/quote", label: "Scrap" },
+                                        { href: "/executive/valuations/scrap-buy", label: "Scrap & Buy New" },
+                                        { href: "/executive/valuations/sell", label: "Sell Old Vehicle" },
+                                        { href: "/executive/valuations/buy", label: "Buy New Vehicle" }
                                     ].map((item) => (
                                         <Link
                                             key={item.href}

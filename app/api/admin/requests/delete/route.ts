@@ -6,6 +6,7 @@ import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 
 export async function DELETE(req: NextRequest) {
     try {
@@ -39,6 +40,9 @@ export async function DELETE(req: NextRequest) {
                 break
             case "buy":
                 model = BuyVehicle
+                break
+            case "scrap-buy":
+                model = WizardLead
                 break
             default:
                 return NextResponse.json({ error: "Invalid type" }, { status: 400 })

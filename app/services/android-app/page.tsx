@@ -485,7 +485,7 @@ export default function AndroidAppDevelopmentPage() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            FAQ's
+            FAQ&apos;s
           </motion.h2>
 
           <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">

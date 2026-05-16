@@ -141,7 +141,7 @@ export default function B2BPickupsPage() {
                             My Pickups
                         </h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Leads you've accepted from the market feed.
+                            Leads you&apos;ve accepted from the market feed.
                         </p>
                     </div>
                     <button

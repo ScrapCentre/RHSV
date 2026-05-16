@@ -8,6 +8,7 @@ import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 import DashboardOverview from "@/components/admin/DashboardOverview"
 import AdminLoginForm from "@/components/admin/AdminLoginForm"
 
@@ -49,14 +50,16 @@ export default async function AdminPage() {
             quoteRes,
             sellRes,
             exchangeRes,
-            buyRes
+            buyRes,
+            wizardRes
         ] = await Promise.all([
             B2BRegistration.countDocuments({ status: 'pending' }),
             B2BPartner.countDocuments(),
             Valuation.countDocuments(),
             SellVehicle.countDocuments(),
             ExchangeVehicle.countDocuments(),
-            BuyVehicle.countDocuments()
+            BuyVehicle.countDocuments(),
+            WizardLead.countDocuments()
         ])
 
         b2bPending = b2bPendingCount
@@ -67,19 +70,21 @@ export default async function AdminPage() {
         quoteCount = quoteRes
         sellCount = sellRes
         exchangeCount = exchangeRes
-        buyCount = buyRes
+        buyCount = buyRes + wizardRes
 
         // Market Feed Fetching
         const [
             latestQuotes,
             latestSells,
             latestExchanges,
-            latestBuys
+            latestBuys,
+            latestWizardLeads
         ] = await Promise.all([
             Valuation.find().sort({ createdAt: -1 }).limit(5).lean(),
             SellVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
             ExchangeVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
             BuyVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
+            WizardLead.find().sort({ createdAt: -1 }).limit(10).lean(),
         ])
 
         marketFeed = [
@@ -122,8 +127,35 @@ export default async function AdminPage() {
                     customerPhone: item.customerPhone || "N/A",
                     vehicleInfo: `Looking for: ${item.customBrand || item.vehicleBrand} ${item.customModel || item.vehicleModel}`
                 };
+            }),
+            ...latestWizardLeads.map((item: any) => {
+                const plainItem = JSON.parse(JSON.stringify(item));
+                let vehicleInfoStr = "";
+                if (item.serviceType === "buy") {
+                    vehicleInfoStr = `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}`;
+                } else if (item.serviceType === "scrap" && item.category === "scrap_and_buy") {
+                    vehicleInfoStr = `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}`;
+                } else {
+                    vehicleInfoStr = `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
+                }
+                
+                let resolvedType: string;
+                if (item.serviceType === 'scrap' && item.category === 'scrap_and_buy') {
+                    resolvedType = 'scrap-buy';
+                } else if (item.serviceType === 'scrap') {
+                    resolvedType = 'quote';
+                } else {
+                    resolvedType = item.serviceType; // 'sell' or 'buy'
+                }
+                return {
+                    ...plainItem,
+                    type: resolvedType,
+                    customerName: item.name || "N/A",
+                    customerPhone: item.phone || "N/A",
+                    vehicleInfo: vehicleInfoStr
+                };
             })
-        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 15);
 
         // Calculate Total Metrics
         totalRequests = quoteCount + sellCount + exchangeCount + buyCount
@@ -133,14 +165,16 @@ export default async function AdminPage() {
             approvedQuotes,
             approvedSells,
             approvedExchanges,
-            approvedBuys
+            approvedBuys,
+            approvedWizard
         ] = await Promise.all([
             Valuation.countDocuments({ status: 'approved' }),
             SellVehicle.countDocuments({ status: 'approved' }),
             ExchangeVehicle.countDocuments({ status: 'approved' }),
-            BuyVehicle.countDocuments({ status: 'approved' })
+            BuyVehicle.countDocuments({ status: 'approved' }),
+            WizardLead.countDocuments({ status: 'approved' })
         ])
-        totalApproved = approvedQuotes + approvedSells + approvedExchanges + approvedBuys
+        totalApproved = approvedQuotes + approvedSells + approvedExchanges + approvedBuys + approvedWizard
 
         // Calculate Total Tons (from Valuation collection)
         // Note: fetch only vehicleWeight field to minimize data transfer

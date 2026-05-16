@@ -79,7 +79,7 @@ export default function Error({
                             transition={{ delay: 0.4 }}
                             className="text-gray-400 text-lg md:text-xl font-medium mb-10 max-w-lg leading-relaxed"
                         >
-                            Our digital engine hit a snag. But don't worry, we're ready to jumpstart it back into action.
+                            Our digital engine hit a snag. But don&apos;t worry, we&apos;re ready to jumpstart it back into action.
                         </motion.p>
 
                         <motion.div

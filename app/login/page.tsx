@@ -1,12 +1,14 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { signIn, getSession, signOut } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Mail, Lock, ArrowRight, Loader2, Sparkles, Building2, User, Eye, EyeOff, Phone, ShieldCheck } from "lucide-react"
+import { Mail, Lock, ArrowRight, Loader2, Building2, User, Eye, EyeOff, Phone, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
+import { auth } from "@/lib/firebase"
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth"
 
 export default function LoginPage() {
     return (
@@ -58,6 +60,62 @@ function LoginContent() {
             }, 100)
         }
     }, [searchParams, toast])
+
+    // Firebase Phone Auth Integration
+    const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
+    const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null)
+
+    useEffect(() => {
+        if (!recaptchaVerifier) {
+            const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                size: 'invisible',
+                callback: () => {
+                    console.log("Recaptcha verified");
+                },
+                'expired-callback': () => {
+                    toast({
+                        title: "Recaptcha Expired",
+                        description: "Please try again.",
+                        variant: "destructive"
+                    });
+                }
+            });
+            setRecaptchaVerifier(verifier);
+        }
+
+        return () => {
+            if (recaptchaVerifier) {
+                recaptchaVerifier.clear();
+            }
+        };
+    }, [recaptchaVerifier]);
+
+    const handleFirebaseLoginSuccess = async (idToken: string) => {
+        setIsLoading(true);
+        try {
+            const result = await signIn("firebase-otp", {
+                idToken,
+                redirect: false,
+            });
+
+            if (result?.error) {
+                toast({
+                    title: "Login Failed",
+                    description: result.error || "Could not complete authentication",
+                    variant: "destructive"
+                });
+            } else {
+                toast({ title: "Welcome!", description: "Successfully logged in." });
+                const callbackUrl = searchParams.get("callbackUrl") || "/";
+                window.location.href = callbackUrl;
+            }
+        } catch (error) {
+            console.error("Auth Error:", error);
+            toast({ title: "Error", description: "Internal server error during authentication", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Standard (User/Admin) State
     const [name, setName] = useState("")
@@ -176,48 +234,42 @@ function LoginContent() {
                 return
             }
             setIsLoading(true)
-            // Simulate sending OTP
-            setTimeout(() => {
-                setIsLoading(false)
-                setOtpSent(true)
-                toast({ title: "OTP Sent", description: "Use demo OTP 1234 to login." })
-            }, 800)
+            
+            try {
+                if (!recaptchaVerifier) throw new Error("Recaptcha not initialized");
+                
+                const formattedPhone = `+91${phone}`;
+                const confirmation = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
+                setConfirmationResult(confirmation);
+                setOtpSent(true);
+                toast({ title: "OTP Sent", description: "Please check your phone for the verification code." });
+            } catch (error: any) {
+                console.error("Firebase SMS Error:", error);
+                toast({
+                    title: "Failed to send OTP",
+                    description: error.message || "Check console for details.",
+                    variant: "destructive"
+                });
+            } finally {
+                setIsLoading(false);
+            }
             return
         }
 
         setIsLoading(true)
         try {
-            const result = await signIn("phone-otp", {
-                phone,
-                otp,
-                redirect: false,
-            })
-
-            if (result?.error) {
-                setIsLoading(false)
-                toast({
-                    title: "Authentication Error",
-                    description: "Invalid OTP. Please use 1234.",
-                    variant: "destructive"
-                })
-            } else {
-                toast({
-                    title: "Authentication Successful",
-                    description: "Welcome!",
-                })
-                const callbackUrl = searchParams.get("callbackUrl")
-                if (callbackUrl) {
-                    window.location.href = callbackUrl
-                } else {
-                    window.location.href = "/"
-                }
-            }
-        } catch (error) {
-            console.error(error)
+            if (!confirmationResult) throw new Error("No confirmation result found");
+            
+            const userCredential = await confirmationResult.confirm(otp);
+            const idToken = await userCredential.user.getIdToken();
+            
+            await handleFirebaseLoginSuccess(idToken);
+        } catch (error: any) {
+            console.error("OTP Verification Error:", error);
             setIsLoading(false)
             toast({
-                title: "Error",
-                description: "An unexpected error occurred. Please try again.",
+                title: "Verification Failed",
+                description: error.message || "Invalid OTP entered.",
                 variant: "destructive"
             })
         }
@@ -272,226 +324,323 @@ function LoginContent() {
     }
 
     return (
-        <div className="h-screen flex items-stretch bg-[#0E192D] overflow-hidden font-sans pt-24 lg:pt-28">
-            {/* Left Side - Image Background & Branding */}
+        <div className="relative h-screen overflow-hidden flex items-center justify-center font-sans">
+            {/* Full Background Image - fixed so it covers the whole viewport incl. behind navbar */}
+            <div className="fixed inset-0 z-0">
+                <img 
+                    src="/login.png" 
+                    alt="Background" 
+                    className="w-full h-full object-fill"
+                />
+            </div>
+
+            {/* Login Card - aligned right, clear background */}
             <motion.div
-                initial={{ x: -100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" as const }}
-                className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden p-6"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="relative z-10 w-full max-w-sm mx-4 lg:ml-auto lg:mr-64" style={{ marginTop: '72px' }}
             >
-                {/* Illustration Image */}
-                <div className="relative z-10 w-full h-full flex items-center justify-center">
-                    <motion.div
-                        initial={{ scale: 1.1, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.2, duration: 0.8 }}
-                        className="relative w-[98%] h-[95%] bg-[#0E192D] rounded-3xl overflow-hidden flex items-center justify-center p-2"
-                    >
-                        <img
-                            src="/login.jpeg"
-                            alt="Login Visual"
-                            className="w-full h-full object-contain rounded-2xl opacity-90"
-                        />
-                    </motion.div>
-                </div>
-            </motion.div>
+                <div className="bg-white/95 backdrop-blur-xl border border-gray-200 p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden relative group">
+                    {/* Glass Glow Effects */}
+                    <div className="absolute -top-16 -left-16 w-32 h-32 bg-[#E31E24]/20 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-700" />
+                    <div className="absolute -bottom-16 -right-16 w-32 h-32 bg-[#E31E24]/20 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-700" />
 
-            {/* Right Side - Login Form */}
-            <motion.div
-                initial={{ x: 100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" as const }}
-                className="w-full lg:w-1/2 flex items-center justify-center px-6 sm:px-12 lg:px-20 relative bg-[#0E192D]"
-            >
-                <div className="w-full max-w-[380px] space-y-5">
-                    {/* Header */}
-                    <div className="text-center lg:text-left space-y-1.5">
-                        <h2 className="text-3xl font-bold text-white tracking-tight">
-                            {activeTab === "standard" ? (loginMethod === "phone" ? "Welcome" : isLogin ? "Welcome Back" : "Create Account") : "Partner Portal"}
-                        </h2>
-                        <p className="text-gray-400 text-sm">
-                            {activeTab === "standard"
-                                ? (loginMethod === "phone" ? "Sign in or create an account with your phone number." : isLogin ? "Please enter your details to sign in." : "Join us to get the best value for your scrap.")
-                                : "Access for registered corporate partners."}
-                        </p>
-                    </div>
+                    <div className="relative z-10 space-y-3">
+                        {/* Header */}
+                        <div className="text-center space-y-0.5">
+                            <h2 className="text-3xl font-sans font-semibold text-slate-900 tracking-tight">
+                                {activeTab === "standard" ? (loginMethod === "phone" ? "Welcome" : isLogin ? "Welcome Back" : "Create Account") : "Partner Portal"}
+                            </h2>
+                            <p className="text-gray-600 text-sm font-medium">
+                                {activeTab === "standard"
+                                    ? (loginMethod === "phone" ? "Sign in with your phone number" : isLogin ? "Please enter your details to sign in" : "Join us to get the best value for your scrap")
+                                    : "Access for registered corporate partners"}
+                            </p>
+                        </div>
 
-                    {/* Custom Tabs */}
-                    <div className="flex p-1 bg-slate-900 border border-slate-800 rounded-xl">
-                        <button
-                            onClick={() => setActiveTab("standard")}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === "standard"
-                                ? "bg-slate-800 text-white shadow-sm ring-1 ring-white/10"
-                                : "text-gray-400 hover:text-white hover:bg-white/5"
-                                }`}
-                        >
-                            <User className="w-4 h-4" />
-                            User
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("b2b")}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${activeTab === "b2b"
-                                ? "bg-slate-800 text-emerald-400 shadow-sm ring-1 ring-white/10"
-                                : "text-gray-400 hover:text-white hover:bg-white/5"
-                                }`}
-                        >
-                            <Building2 className="w-4 h-4" />
-                            B2B Partner
-                        </button>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                        {activeTab === "standard" ? (
-                            <motion.div
-                                key={isLogin ? "login" : "register"}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="space-y-4"
+                        {/* Custom Tabs */}
+                        <div className="flex p-1 bg-gray-100 border border-gray-200 rounded-xl">
+                            <button
+                                onClick={() => setActiveTab("standard")}
+                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300 ${activeTab === "standard"
+                                    ? "bg-white text-[#E31E24] shadow-md"
+                                    : "text-gray-500 hover:text-gray-900 hover:bg-white/50"
+                                    }`}
                             >
-                                {/* Login Method Toggle (Phone vs Email) */}
-                                <div className="flex gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl mb-4">
-                                    <button
-                                        onClick={() => { setLoginMethod("phone"); setOtpSent(false); setOtp(""); }}
-                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${loginMethod === "phone" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
-                                    >
-                                        Phone OTP
-                                    </button>
-{/* <button
-                                        onClick={() => setLoginMethod("email")}
-                                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${loginMethod === "email" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
-                                    >
-                                        Email / Password
-                                    </button> */}
-                                </div>
+                                <User className="w-3.5 h-3.5" />
+                                User
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("b2b")}
+                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300 ${activeTab === "b2b"
+                                    ? "bg-white text-[#E31E24] shadow-md"
+                                    : "text-gray-500 hover:text-gray-900 hover:bg-white/50"
+                                    }`}
+                            >
+                                <Building2 className="w-3.5 h-3.5" />
+                                B2B Partner
+                            </button>
+                        </div>
 
-                                {loginMethod === "phone" ? (
-                                    <form onSubmit={handlePhoneAuth} className="space-y-4">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-300 ml-1">Phone Number</label>
-                                            <div className="relative group transition-all flex gap-2">
-                                                <div className="flex items-center gap-2 px-3 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 text-sm font-bold shrink-0">
-                                                    🇮🇳 +91
+                        <AnimatePresence mode="wait">
+                            {activeTab === "standard" ? (
+                                <motion.div
+                                    key={isLogin ? "login" : "register"}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-3"
+                                >
+                                    {/* Login Method Toggle */}
+                                    <div className="flex gap-1.5 p-1 bg-gray-100 border border-gray-200 rounded-lg">
+                                        <button
+                                            onClick={() => { setLoginMethod("phone"); setOtpSent(false); setOtp(""); }}
+                                            className={`flex-1 py-1.5 text-[9px] font-bold rounded-md transition-all uppercase tracking-wider ${loginMethod === "phone" ? "bg-[#E31E24] text-white" : "text-gray-500 hover:text-gray-900 hover:bg-white/50"}`}
+                                        >
+                                            Phone OTP
+                                        </button>
+                                        <button
+                                            onClick={() => setLoginMethod("email")}
+                                            className={`flex-1 py-1.5 text-[9px] font-bold rounded-md transition-all uppercase tracking-wider ${loginMethod === "email" ? "bg-[#E31E24] text-white" : "text-gray-500 hover:text-gray-900 hover:bg-white/50"}`}
+                                        >
+                                            Email / Pass
+                                        </button>
+                                    </div>
+
+                                    {loginMethod === "phone" ? (
+                                        <div className="space-y-2">
+                                            <div id="recaptcha-container"></div>
+                                            <form onSubmit={handlePhoneAuth} className="space-y-2">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Phone Number</label>
+                                                    <div className="relative group">
+                                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                            <Phone className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
+                                                        </div>
+                                                        <input
+                                                            type="tel"
+                                                            required
+                                                            disabled={otpSent}
+                                                            value={phone}
+                                                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                                            placeholder="Enter 10-digit number"
+                                                            className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 disabled:opacity-50 font-bold"
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <input
-                                                    type="tel"
-                                                    required
-                                                    value={phone}
-                                                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                                                    placeholder="10-digit number"
-                                                    disabled={otpSent}
-                                                    className="block w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200 disabled:opacity-50"
-                                                />
-                                            </div>
-                                        </div>
 
-                                        <AnimatePresence>
-                                            {otpSent && (
-                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-1">
-                                                    <label className="text-xs font-semibold text-gray-300 ml-1">Enter OTP (Demo: 1234)</label>
-                                                    <div className="relative group transition-all">
-                                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                            <ShieldCheck className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                                {otpSent && (
+                                                    <motion.div 
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        className="space-y-1.5"
+                                                    >
+                                                        <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Verification Code</label>
+                                                        <div className="relative group">
+                                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                                <ShieldCheck className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                required
+                                                                value={otp}
+                                                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                                placeholder="Enter 6-digit OTP"
+                                                                className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-[#E31E24]/30 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold tracking-[0.3em]"
+                                                            />
+                                                        </div>
+                                                        <div className="flex justify-between items-center px-1 pt-1">
+                                                            <p className="text-[10px] text-emerald-600 font-bold italic">Code sent to +91 {phone}</p>
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => { setOtpSent(false); setOtp(""); }}
+                                                                className="text-[10px] text-gray-600 hover:text-gray-900 underline font-bold uppercase tracking-wider"
+                                                            >
+                                                                Change Number
+                                                            </button>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+
+                                                <button
+                                                    type="submit"
+                                                    disabled={isLoading}
+                                                className="w-full bg-[#E31E24] hover:bg-[#c1191e] text-white font-black py-2.5 rounded-xl shadow-lg shadow-red-950/40 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-widest mt-1"
+                                                >
+                                                    {isLoading ? (
+                                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            {otpSent ? "Verify & Sign In" : "Get OTP"}
+                                                            <ArrowRight className="w-4 h-4" />
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={handleAuth} className="space-y-2">
+                                            {!isLogin && (
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Full Name</label>
+                                                    <div className="relative group">
+                                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                            <User className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
                                                         </div>
                                                         <input
                                                             type="text"
                                                             required
-                                                            value={otp}
-                                                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                                                            placeholder="••••"
-                                                            className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200 tracking-[0.5em] font-bold"
+                                                            value={name}
+                                                            onChange={(e) => setName(e.target.value)}
+                                                            placeholder="John Doe"
+                                                            className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
                                                         />
                                                     </div>
-                                                </motion.div>
+                                                </div>
                                             )}
-                                        </AnimatePresence>
 
-                                        <button
-                                            type="submit"
-                                            disabled={isLoading || (otpSent && otp.length !== 4) || (!otpSent && phone.length !== 10)}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-xl shadow-emerald-900/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
-                                        >
-                                            {isLoading ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                            ) : otpSent ? (
-                                                "Verify & Login"
-                                            ) : (
-                                                "Send OTP"
-                                            )}
-                                        </button>
-                                        
-                                        {otpSent && (
-                                            <button 
-                                                type="button" 
-                                                onClick={() => { setOtpSent(false); setOtp("") }}
-                                                className="w-full text-center text-xs text-emerald-500 hover:text-emerald-400 mt-2 font-semibold"
-                                            >
-                                                Change Phone Number
-                                            </button>
-                                        )}
-                                    </form>
-                                ) : (
-                                    <form onSubmit={handleAuth} className="space-y-4">
-                                        {!isLogin && (
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-semibold text-gray-300 ml-1">Full Name</label>
-                                                <div className="relative group transition-all">
-                                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                        <User className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Email or ID</label>
+                                                <div className="relative group">
+                                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <Mail className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
                                                     </div>
                                                     <input
                                                         type="text"
                                                         required
-                                                        value={name}
-                                                        onChange={(e) => setName(e.target.value)}
-                                                        placeholder="John Doe"
-                                                        className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
+                                                        value={email}
+                                                        onChange={(e) => setEmail(e.target.value)}
+                                                        placeholder="email@example.com"
+                                                        className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
                                                     />
                                                 </div>
                                             </div>
-                                        )}
 
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-gray-300 ml-1">Email Address or Identity</label>
-                                            <div className="relative group transition-all">
-                                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                    <Mail className="h-5 w-5 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Password</label>
+                                                <div className="relative group">
+                                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
+                                                    </div>
+                                                    <input
+                                                        type={showPassword ? "text" : "password"}
+                                                        required
+                                                        value={password}
+                                                        onChange={(e) => setPassword(e.target.value)}
+                                                        placeholder="••••••••"
+                                                        className="block w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-[#E31E24] transition-colors"
+                                                    >
+                                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={isLoading}
+                                                className="w-full bg-[#E31E24] hover:bg-[#c1191e] text-white font-black py-2.5 rounded-xl shadow-lg shadow-red-950/40 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-widest mt-1"
+                                            >
+                                                {isLoading ? (
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        {isLogin ? "Sign In" : "Create Account"}
+                                                        <ArrowRight className="w-4 h-4" />
+                                                    </>
+                                                )}
+                                            </button>
+                                        </form>
+                                    )}
+
+                                    {isLogin && (
+                                        <div className="space-y-2">
+                                            <div className="relative py-1">
+                                                <div className="absolute inset-0 flex items-center">
+                                                    <div className="w-full border-t border-gray-200"></div>
+                                                </div>
+                                                <div className="relative flex justify-center text-xs">
+                                                    <span className="px-3 bg-white text-gray-500 font-bold uppercase tracking-widest text-[9px]">Or</span>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() => handleGoogleLogin(searchParams.get("callbackUrl") || "/")}
+                                                className="w-full bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 font-bold uppercase tracking-wider py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 group"
+                                            >
+                                                <img
+                                                    src="https://www.svgrepo.com/show/475656/google-color.svg"
+                                                    alt="Google"
+                                                    className="w-4 h-4 group-hover:scale-110 transition-transform"
+                                                />
+                                                <span className="text-xs">Continue with Google</span>
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <p className="text-center text-[10px] text-gray-600 font-bold uppercase tracking-wider">
+                                        {isLogin ? "New to ScrapCenter?" : "Already have an account?"}
+                                        <button
+                                            onClick={() => setIsLogin(!isLogin)}
+                                            className="font-bold text-[#E31E24] hover:text-red-700 ml-1.5 underline transition-colors"
+                                        >
+                                            {isLogin ? "Create account" : "Sign in"}
+                                        </button>
+                                    </p>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="b2b"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-5"
+                                >
+                                    <form onSubmit={handleB2BLogin} className="space-y-2">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Partner ID</label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <Building2 className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
                                                 </div>
                                                 <input
                                                     type="text"
                                                     required
-                                                    value={email}
-                                                    onChange={(e) => setEmail(e.target.value)}
-                                                    placeholder="Email or Login ID"
-                                                    className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
+                                                    value={b2bUserId}
+                                                    onChange={(e) => setB2BUserId(e.target.value)}
+                                                    placeholder="Enter your ID"
+                                                    className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between items-center ml-1">
-                                                <label className="text-xs font-semibold text-gray-300">Password</label>
-                                            </div>
-                                            <div className="relative group transition-all">
-                                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                    <Lock className="h-4 w-4 text-gray-500 group-focus-within:text-emerald-500 transition-colors" />
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Password</label>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
                                                 </div>
                                                 <input
-                                                    type={showPassword ? "text" : "password"}
+                                                    type={showB2BPassword ? "text" : "password"}
                                                     required
-                                                    value={password}
-                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    value={b2bPassword}
+                                                    onChange={(e) => setB2BPassword(e.target.value)}
                                                     placeholder="••••••••"
-                                                    className="block w-full pl-10 pr-10 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all duration-200"
+                                                    className="block w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-emerald-500 transition-colors"
+                                                    onClick={() => setShowB2BPassword(!showB2BPassword)}
+                                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-[#E31E24] transition-colors"
                                                 >
-                                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    {showB2BPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
                                             </div>
                                         </div>
@@ -499,146 +648,40 @@ function LoginContent() {
                                         <button
                                             type="submit"
                                             disabled={isLoading}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-xl shadow-emerald-900/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
+                                            className="w-full bg-[#E31E24] hover:bg-[#c1191e] text-white font-black py-2.5 rounded-xl shadow-lg shadow-red-950/40 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-widest mt-1"
                                         >
                                             {isLoading ? (
                                                 <Loader2 className="w-5 h-5 animate-spin" />
                                             ) : (
                                                 <>
-                                                    {isLogin ? "Sign In" : "Create Account"}
+                                                    Partner Sign In
                                                     <ArrowRight className="w-4 h-4" />
                                                 </>
                                             )}
                                         </button>
                                     </form>
-                                )}
 
-{/* {isLogin && (
-                                    <>
-                                        <div className="relative py-1">
-                                            <div className="absolute inset-0 flex items-center">
-                                                <div className="w-full border-t border-slate-800"></div>
-                                            </div>
-                                            <div className="relative flex justify-center text-xs">
-                                                <span className="px-4 bg-[#0E192D] text-gray-500 font-medium">Or</span>
-                                            </div>
+                                    <div className="relative py-2">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <div className="w-full border-t border-gray-200"></div>
                                         </div>
+                                        <div className="relative flex justify-center text-xs">
+                                            <span className="px-4 bg-white text-gray-500 font-bold uppercase tracking-widest">New Partner?</span>
+                                        </div>
+                                    </div>
 
+                                    <Link href="/partner-register" className="block">
                                         <button
-                                            onClick={() => handleGoogleLogin(searchParams.get("callbackUrl") || "/")}
-                                            className="w-full bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 group mt-1"
+                                            type="button"
+                                            className="w-full bg-white border-2 border-[#E31E24] text-[#E31E24] font-black py-2.5 rounded-xl hover:bg-red-50 transition-all duration-300 flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
                                         >
-                                            <img
-                                                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                                                alt="Google"
-                                                className="w-4 h-4 group-hover:scale-110 transition-transform"
-                                            />
-                                            <span className="text-sm">Continue with Google</span>
+                                            Become a Partner
                                         </button>
-                                    </>
-                                )} */}
-
-
-                                {loginMethod === "email" && (
-                                    <p className="text-center text-xs text-gray-500 mt-4">
-                                        {isLogin ? "New to ScrapCenter?" : "Already have an account?"}
-                                        <button
-                                            onClick={() => setIsLogin(!isLogin)}
-                                            className="font-bold text-white hover:text-emerald-400 ml-1 transition-colors"
-                                        >
-                                            {isLogin ? "Create an account" : "Sign in"}
-                                        </button>
-                                    </p>
-                                )}
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="b2b"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="space-y-5"
-                            >
-                                <form onSubmit={handleB2BLogin} className="space-y-4">
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-300 ml-1">User ID</label>
-                                        <div className="relative group transition-all">
-                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                <User className="h-5 w-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                                            </div>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={b2bUserId}
-                                                onChange={(e) => setB2BUserId(e.target.value)}
-                                                placeholder="Enter Partner ID"
-                                                className="block w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all duration-200"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-300 ml-1">Password</label>
-                                        <div className="relative group transition-all">
-                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                                <Lock className="h-4 w-4 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
-                                            </div>
-                                            <input
-                                                type={showB2BPassword ? "text" : "password"}
-                                                required
-                                                value={b2bPassword}
-                                                onChange={(e) => setB2BPassword(e.target.value)}
-                                                placeholder="••••••••"
-                                                className="block w-full pl-10 pr-10 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white placeholder-gray-500 focus:bg-slate-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all duration-200"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowB2BPassword(!showB2BPassword)}
-                                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-blue-500 transition-colors"
-                                            >
-                                                {showB2BPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-xl shadow-blue-600/20 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mt-2"
-                                    >
-                                        {isLoading ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            <>
-                                                Partner Sign In
-                                                <ArrowRight className="w-4 h-4" />
-                                            </>
-                                        )}
-                                    </button>
-                                </form>
-
-                                <div className="relative py-1 border-t-0">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-slate-800"></div>
-                                    </div>
-                                    <div className="relative flex justify-center text-xs">
-                                        <span className="px-4 bg-[#0E192D] text-gray-500 font-medium">New Partner?</span>
-                                    </div>
-                                </div>
-
-                                <Link href="/partner-register" className="block mt-1">
-                                    <button
-                                        type="button"
-                                        className="w-full bg-slate-900 border-2 border-blue-600 text-blue-500 font-bold py-3 rounded-xl hover:bg-blue-900/20 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
-                                    >
-                                        <Building2 className="w-4 h-4" />
-                                        Be Our Partner
-                                    </button>
-                                </Link>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                    </Link>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </motion.div>
         </div>

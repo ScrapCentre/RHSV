@@ -10,6 +10,8 @@ import ScrapCentreUser from "@/models/ScrapCentreUser"
 import B2BPartner from "@/models/B2BPartner"
 import Executive from "@/models/Executive"
 
+import { adminAuth } from "@/lib/firebase-admin"
+
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
@@ -164,24 +166,130 @@ export const authOptions: NextAuthOptions = {
             credentials: {
                 phone: { label: "Phone", type: "text" },
                 otp: { label: "OTP", type: "text" },
+                name: { label: "Name", type: "text" },
             },
             async authorize(credentials) {
-                if (!credentials?.phone || credentials?.otp !== "1234") return null;
+                if (!credentials?.phone || credentials?.otp !== "000000") return null;
                 try {
                     await connectToDatabase();
-                    const dummyEmail = `${credentials.phone}@otp.com`;
+                    let user = await User.findOne({ phone: credentials.phone });
+                    const displayName = credentials.name?.trim() || `User ${credentials.phone.slice(-4)}`;
+                    const dummyEmail = `${credentials.phone.replace('+', '')}@otp.com`;
+
+                    if (!user) {
+                        user = await User.create({
+                            name: displayName,
+                            email: dummyEmail,
+                            phone: credentials.phone,
+                            role: "client",
+                            provider: "phone-otp"
+                        });
+                        console.log(`[Master Auth] New user created: ${displayName} (${credentials.phone})`);
+                    } else {
+                        if (!user.name || user.name.startsWith("User ")) {
+                            user.name = displayName;
+                            await user.save();
+                        }
+                    }
+                    return { 
+                        id: user._id.toString(), 
+                        name: user.name, 
+                        email: user.email ?? null, 
+                        role: user.role || "client" 
+                    }
+                } catch (err) {
+                    console.error("Master OTP Error:", err);
+                    return null;
+                }
+            }
+        }),
+        CredentialsProvider({
+            id: "msg91",
+            name: "MSG91 OTP",
+            credentials: {
+                data: { label: "Data", type: "text" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.data) return null;
+                try {
+                    const parsed = JSON.parse(credentials.data);
+                    // MSG91 verification response usually contains the mobile number in 'mobile'
+                    const mobile = parsed.mobile; 
+                    if (!mobile) {
+                        console.error("MSG91 Error: Mobile number not found in response", parsed);
+                        return null;
+                    }
+
+                    await connectToDatabase();
+                    const dummyEmail = `${mobile}@otp.com`;
                     let user = await User.findOne({ email: dummyEmail });
                     if (!user) {
                         user = await User.create({
-                           name: `User ${credentials.phone.slice(-4)}`,
+                           name: `User ${mobile.slice(-4)}`,
                            email: dummyEmail,
                            role: "client",
-                           provider: "phone"
+                           provider: "msg91"
                         });
                     }
                     return { id: user._id.toString(), name: user.name, email: user.email, role: "client" }
                 } catch (err) {
-                    console.error(err);
+                    console.error("MSG91 Auth Error:", err);
+                    return null;
+                }
+            }
+        }),
+        CredentialsProvider({
+            id: "firebase-otp",
+            name: "Firebase OTP",
+            credentials: {
+                idToken: { label: "ID Token", type: "text" },
+                name: { label: "Name", type: "text" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.idToken) return null;
+                try {
+                    // 1. Verify Firebase ID Token
+                    const decodedToken = await adminAuth.verifyIdToken(credentials.idToken);
+                    const phoneNumber = decodedToken.phone_number;
+
+                    if (!phoneNumber) {
+                        console.error("[Firebase Auth] No phone number in token");
+                        return null;
+                    }
+
+                    // 2. Connect to Database
+                    await connectToDatabase();
+
+                    // 3. Find or Create User by phone
+                    let user = await User.findOne({ phone: phoneNumber });
+                    const displayName = credentials.name?.trim() || `User ${phoneNumber.slice(-4)}`;
+                    const dummyEmail = `${phoneNumber.replace('+', '')}@otp.com`;
+
+                    if (!user) {
+                        user = await User.create({
+                            name: displayName,
+                            email: dummyEmail,
+                            phone: phoneNumber,
+                            role: "client",
+                            provider: "firebase-otp",
+                        });
+                        console.log(`[Firebase Auth] New user created: ${displayName} (${phoneNumber})`);
+                    } else {
+                        // Update name if it's still the default
+                        if (!user.name || user.name.startsWith("User ")) {
+                            user.name = displayName;
+                            await user.save();
+                        }
+                    }
+
+                    return { 
+                        id: user._id.toString(), 
+                        name: user.name, 
+                        email: user.email ?? null,
+                        role: user.role || "client" 
+                    };
+                } catch (err) {
+                    console.error("[Firebase Auth] Error verifying token:", err);
                     return null;
                 }
             }

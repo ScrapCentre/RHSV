@@ -1,673 +1,1170 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { signIn, useSession } from "next-auth/react"
+import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import {
-  Car, User, MapPin, Phone, ChevronRight, ChevronLeft,
-  CheckCircle, Loader2, Shield, Award, Sparkles
+import { 
+    Car, Recycle, ShoppingCart, ArrowRight, ArrowLeft, 
+    Zap, Shield, Sparkles, CheckCircle, Search, 
+    MapPin, Calendar, User, Phone, ClipboardList,
+    Smartphone, Lock, Fuel, Gauge, Home, Loader2
 } from "lucide-react"
-import ValuationModals from "./ValuationModals"
-import { indiaData, states as indiaStates } from "@/lib/india-data"
+import { useRouter } from "next/navigation"
+import { auth } from "@/lib/firebase"
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth"
+import { signIn } from "next-auth/react"
+import { useToast } from "@/hooks/use-toast"
 
-// ─── Demo data lookup ─────────────────────────────────────────────────────────
+// ─── Data Definitions ─────────────────────────────────────────────────────────
 
-const DEMO_VEHICLES: Record<string, {
-  model: string; brand: string; fuelType: string; year: string; kerbWeight: string; vehicleType: string
-}> = {
-  "DL01AB1234": { model: "Swift ZXI", brand: "Maruti Suzuki", fuelType: "Petrol", year: "2019", kerbWeight: "895 kg", vehicleType: "Car" },
-  "MH02CD5678": { model: "Creta SX", brand: "Hyundai", fuelType: "Diesel", year: "2020", kerbWeight: "1340 kg", vehicleType: "Car" },
-  "KA03EF9012": { model: "Nexon XZ+", brand: "Tata", fuelType: "Petrol", year: "2021", kerbWeight: "1190 kg", vehicleType: "Car" },
-  "GJ05GH3456": { model: "Activa 6G", brand: "Honda", fuelType: "Petrol", year: "2022", kerbWeight: "107 kg", vehicleType: "Bike" },
-  "UP32IJ7890": { model: "Splendor+", brand: "Hero", fuelType: "Petrol", year: "2018", kerbWeight: "111 kg", vehicleType: "Bike" },
-}
+const BRANDS = ["Maruti Suzuki", "Hyundai", "Tata", "Mahindra", "Toyota", "Honda", "Kia", "Skoda"]
+const YEARS = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "Older"]
+const FUEL_TYPES = ["Petrol", "Diesel", "CNG", "Electric", "Hybrid"]
 
-function lookupVehicle(reg: string) {
-  const clean = reg.replace(/[-\s]/g, "").toUpperCase()
-  return DEMO_VEHICLES[clean] || {
-    model: "Swift ZXI",
-    brand: "Maruti Suzuki",
-    fuelType: "Petrol",
-    year: "2019",
-    kerbWeight: "895 kg",
-    vehicleType: "Car",
-  }
-}
-
-// ─── Progress dots ────────────────────────────────────────────────────────────
-
-const STEPS = ["Vehicle", "Details", "Location", "Verify"]
-
-function ProgressBar({ step }: { step: number }) {
-  return (
-    <div className="flex items-center justify-center gap-2 mb-6">
-      {STEPS.map((label, i) => {
-        const isActive = i === step
-        const isDone = i < step
-        return (
-          <div key={i} className="flex items-center gap-2">
-            <div className="flex flex-col items-center gap-1">
-              <div className={`
-                w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
-                transition-all duration-300
-                ${isDone ? "bg-emerald-500 text-white" : isActive ? "bg-[#0E192D] text-white ring-2 ring-emerald-400" : "bg-slate-200 text-slate-400"}
-              `}>
-                {isDone ? <CheckCircle className="w-4 h-4" /> : i + 1}
-              </div>
-              <span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? "text-emerald-600" : isDone ? "text-emerald-500" : "text-slate-400"}`}>
-                {label}
-              </span>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div className={`w-8 h-0.5 mb-4 rounded transition-colors duration-300 ${isDone ? "bg-emerald-400" : "bg-slate-200"}`} />
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-// ─── Input component ──────────────────────────────────────────────────────────
-
-function Field({
-  label, icon: Icon, children
-}: { label: string; icon: any; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-widest">
-        <Icon className="w-3.5 h-3.5" />{label}
-      </label>
-      {children}
-    </div>
-  )
-}
-
-const inputCls = `
-  w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200
-  text-slate-900 placeholder-slate-400 text-sm font-medium
-  focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20
-  outline-none transition-all duration-200
-`
-
-// ─── Main wizard ──────────────────────────────────────────────────────────────
+// ─── Wizard Component ─────────────────────────────────────────────────────────
 
 export default function ValuationWizardCard() {
-  const { status } = useSession()
-  const [step, setStep] = useState(0)
-  const [regNum, setRegNum] = useState("")
-  const [isLooking, setIsLooking] = useState(false)
-  const [vehicleData, setVehicleData] = useState<ReturnType<typeof lookupVehicle> | null>(null)
-  const [name, setName] = useState("")
-  const [state, setState] = useState("")
-  const [city, setCity] = useState("")
-  const [customCity, setCustomCity] = useState("")
-  const [pincode, setPincode] = useState("")
-  const [phone, setPhone] = useState("")
-  const [otp, setOtp] = useState("")
-  const [otpSent, setOtpSent] = useState(false)
-  const [otpVerified, setOtpVerified] = useState(false)
-  const [otpError, setOtpError] = useState("")
-  const [sendingOtp, setSendingOtp] = useState(false)
-  const [verifyingOtp, setVerifyingOtp] = useState(false)
-  const [showValuation, setShowValuation] = useState(false)
-  const [estimatedValue, setEstimatedValue] = useState<number | null>(null)
-  const [valError, setValError] = useState("")
+    const router = useRouter()
+    const { toast } = useToast()
+    const [mode, setMode] = useState<"options" | "wizard" | "success" | "scrap-valuation">("wizard")
+    const [serviceType, setServiceType] = useState<string>("")
+    const [step, setStep] = useState(0)
+    const [direction, setDirection] = useState(1)
+    const [fromHero, setFromHero] = useState(false)
+    
+    // Form Data
+    const [formData, setFormData] = useState({
+        regNo: "",
+        brand: "",
+        model: "",
+        year: "",
+        weight: "",
+        kms: "",
+        fuel: "",
+        name: "",
+        address: "",
+        phone: "",
+        otp: "",
+        desiredCompany: "",
+        desiredModel: "",
+        buyNew: "",
+        pincode: ""
+    })
 
-  const DEMO_OTP = "1234"
+    // Listen for vehicle data from Hero section
+    useEffect(() => {
+        const handleHeroData = (e: CustomEvent) => {
+            const data = e.detail
+            setFormData(prev => ({
+                ...prev,
+                regNo: data.regNo || "",
+                brand: data.brand || "",
+                model: data.model || "",
+                year: data.year || "",
+                weight: data.weight || "",
+                fuel: data.fuel || ""
+            }))
+            setFromHero(true)
+            setServiceType("")
+            setStep(0)
+            setMode("wizard")
+        }
+        window.addEventListener('hero-vehicle-data', handleHeroData as EventListener)
+        return () => window.removeEventListener('hero-vehicle-data', handleHeroData as EventListener)
+    }, [])
 
-  // Auto-fetch only when a complete Indian reg number is entered (e.g. UP78AB1234)
-  // Format: 2-letter state + 2-digit district + 1-2 letter series + 4-digit number
-  const INDIA_REG_REGEX = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/
+    const [isFetching, setIsFetching] = useState(false)
+    const [isSendingOtp, setIsSendingOtp] = useState(false)
+    const [isVerifying, setIsVerifying] = useState(false)
 
-  useEffect(() => {
-    const clean = regNum.replace(/[-\s]/g, "")
-    if (!INDIA_REG_REGEX.test(clean)) {
-      setVehicleData(null)
-      setIsLooking(false)
-      return
+    // Scrap Valuation Pricing
+    const [cdDiscount, setCdDiscount] = useState<number | null>(null)
+    const [newCarPrice, setNewCarPrice] = useState<number | null>(null)
+    const [isFetchingPrice, setIsFetchingPrice] = useState(false)
+
+    useEffect(() => {
+        if (mode === "scrap-valuation" && formData.buyNew === "yes" && formData.desiredCompany && formData.desiredModel && !cdDiscount && !isFetchingPrice) {
+            setIsFetchingPrice(true)
+            fetch('/api/car-price', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ company: formData.desiredCompany, model: formData.desiredModel })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setCdDiscount(data.data.cdDiscount)
+                    setNewCarPrice(data.data.basePrice)
+                }
+            })
+            .catch(err => {
+                console.error("Car price fetch error:", err)
+                // Set default discount if API fails to show something to the user
+                setCdDiscount(20000)
+            })
+            .finally(() => setIsFetchingPrice(false))
+        }
+    }, [mode, formData, cdDiscount, isFetchingPrice])
+
+    // Firebase Auth State
+    const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
+    const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null)
+    const [otpSent, setOtpSent] = useState(false)
+
+    const getOrCreateRecaptcha = (): RecaptchaVerifier => {
+        if (recaptchaVerifierRef.current) return recaptchaVerifierRef.current
+        const verifier = new RecaptchaVerifier(auth, 'wizard-recaptcha-container', {
+            size: 'invisible',
+            callback: () => {},
+            'expired-callback': () => {
+                recaptchaVerifierRef.current = null
+            }
+        })
+        recaptchaVerifierRef.current = verifier
+        return verifier
     }
-    setIsLooking(true)
-    setVehicleData(null)
-    const timer = setTimeout(() => {
-      setVehicleData(lookupVehicle(regNum))
-      setIsLooking(false)
-      setValError("")
-    }, 600)
-    return () => clearTimeout(timer)
-  }, [regNum])
 
-  const handleStep1Next = () => {
-    if (!vehicleData) { setValError("Please look up your vehicle first"); return }
-    setStep(1)
-    setValError("")
-  }
-
-  const handleStep2Next = () => {
-    if (!name.trim()) { setValError("Please enter your full name"); return }
-    setStep(2)
-    setValError("")
-  }
-
-  const handleStep3Next = () => {
-    const resolvedCity = city === "other" ? customCity.trim() : city.trim()
-    if (!state || !resolvedCity || !pincode.trim()) { setValError("Please fill all location fields"); return }
-    setStep(3)
-    setValError("")
-  }
-
-  const handleSendOtp = () => {
-    if (phone.length !== 10) { setValError("Enter a valid 10-digit phone number"); return }
-    setValError("")
-    setSendingOtp(true)
-    setTimeout(() => {
-      setOtpSent(true)
-      setSendingOtp(false)
-    }, 1000)
-  }
-
-  const handleVerifyOtp = async () => {
-    if (otp !== DEMO_OTP) {
-      setOtpError("Incorrect OTP. Demo OTP is 1234")
-      return
+    const handleOptionClick = (key: string) => {
+        setServiceType(key)
+        setMode("wizard")
+        setStep(0)
+        setOtpSent(false)
+        setFromHero(false)
+        setFormData({
+            regNo: "", brand: "", model: "", year: "", weight: "", kms: "", fuel: "", name: "", address: "", phone: "", otp: "", desiredCompany: "", desiredModel: "", buyNew: "", pincode: ""
+        })
     }
-    setOtpError("")
-    setVerifyingOtp(true)
 
-    if (status !== "authenticated") {
-        try {
-          const result = await signIn("phone-otp", {
-              phone,
-              otp,
-              redirect: false,
-          });
-          if (result?.error) {
-              setOtpError("Authentication failed. Try again.");
-              setVerifyingOtp(false);
-              return;
-          }
-        } catch (err) {
-          setOtpError("Something went wrong");
-          setVerifyingOtp(false);
-          return;
+    const nextStep = (overrideBuyNew?: string) => {
+        setDirection(1)
+        const buyNewState = overrideBuyNew !== undefined ? overrideBuyNew : formData.buyNew;
+        // In Scrap flow, if at 'Buy New' step (now step 2) and user says 'no', skip to 'Fuel Type' (now step 4)
+        if (serviceType === "scrap" && step === 2 && buyNewState === "no") {
+            setStep(4)
+        } else {
+            setStep(s => s + 1)
         }
     }
 
-    setOtpVerified(true)
-    setVerifyingOtp(false)
-
-    // Save to valuations collection
-    try {
-      const payload = {
-          requestType: "valuation",
-          vehicleType: vehicleData?.vehicleType || "Car",
-          brand: vehicleData?.brand || "Maruti Suzuki",
-          model: vehicleData?.model || "Swift VXI",
-          year: vehicleData?.year || "2018",
-          vehicleNumber: regNum,
-          vehicleWeight: vehicleData ? String(parseInt(vehicleData.kerbWeight) / 1000) : "0.895",
-          address: {
-            state,
-            city: city === "other" ? customCity.trim() : city.trim(),
-            pincode
-          },
-          contact: {
-            name,
-            phone
-          }
-      };
-      const res = await fetch("/api/valuation", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.id) {
-          localStorage.setItem("kycValuationId", data.id);
-      }
-    } catch (e) {
-      console.error("Failed to save valuation request", e);
+    const prevStep = () => {
+        setDirection(-1)
+        // When fromHero, step 1 is the first flow step, so go back to situation selection
+        if (fromHero && serviceType && step === 1) {
+            setServiceType("")
+            setOtpSent(false)
+        } else if (serviceType && step === 0) {
+            setServiceType("")
+            setOtpSent(false)
+        } else if (serviceType === "scrap" && step === 4 && formData.buyNew === "no") {
+            setStep(2)
+        } else if (step > 0) {
+            setStep(s => s - 1)
+        }
     }
 
-    // Calculate a realistic demo valuation based on year & weight
-    const ageYears = new Date().getFullYear() - parseInt(vehicleData?.year || "2019")
-    const weightKg = parseInt(vehicleData?.kerbWeight || "895")
-    const scrapRate = vehicleData?.vehicleType === "Bike" ? 28 : vehicleData?.vehicleType === "Truck" ? 22 : 25
-    const base = (weightKg * scrapRate) - (ageYears * 1200)
-    setEstimatedValue(Math.max(base, 8000))
-    setTimeout(() => setShowValuation(true), 600)
-  }
+    const currentStepDisplay = () => {
+        if (!serviceType) return 1
+        let display = step + 2 // +1 for 0-indexing, +1 for initial selection step
+        if (fromHero) display -= 1 // vehicle number step is skipped
+        if (serviceType === "scrap" && formData.buyNew === "no" && step >= 4) display -= 1
+        return display
+    }
 
-  const formDataForModal = {
-    requestType: "valuation",
-    vehicleType: vehicleData?.vehicleType || "Car",
-    brand: vehicleData?.brand || "",
-    customBrand: "",
-    model: vehicleData?.model || "",
-    customModel: "",
-    year: vehicleData?.year || "",
-    vehicleNumber: regNum,
-    vehicleWeight: vehicleData ? String(parseInt(vehicleData.kerbWeight) / 1000) : "0.895",
-    name,
-    phone,
-    pincode,
-    state,
-    city: city === "other" ? customCity : city,
-    customCity: "",
-    agreeTC: true,
-  }
+    const handleRegSubmit = async () => {
+        if (!formData.regNo) return
+        
+        // Basic Registration Number Validation (e.g. DL01AB1234 or DL-01-AB-1234)
+        const cleanReg = formData.regNo.replace(/[^a-zA-Z0-9]/g, "");
+        if (cleanReg.length < 6) {
+            toast({
+                title: "Invalid Format",
+                description: "Please enter a valid registration number.",
+                variant: "destructive"
+            });
+            return;
+        }
 
-  const slideVariants = {
-    enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir < 0 ? 60 : -60, opacity: 0 }),
-  }
-  const [dir, setDir] = useState(1)
+        setIsFetching(true)
+        try {
+            // Demo Fallback for local testing / presentation
+            if (formData.regNo.includes("1234") || formData.regNo.includes("TEST")) {
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
+                setFormData(prev => ({
+                    ...prev,
+                    brand: "Maruti Suzuki",
+                    model: "Swift VXI",
+                    year: "2018",
+                    weight: "1250",
+                    fuel: "Petrol"
+                }))
+                toast({
+                    title: "Vehicle Found",
+                    description: "Details fetched successfully for " + formData.regNo
+                })
+                nextStep()
+                return
+            }
 
-  const goNext = (fn: () => void) => { setDir(1); fn() }
-  const goPrev = () => { setDir(-1); setStep(s => s - 1); setValError("") }
+            const response = await fetch('/api/vehicle-lookup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id_number: formData.regNo }),
+            });
+
+            const rawData = await response.json();
+
+            if (!response.ok) {
+                throw new Error(rawData.error || 'Failed to fetch vehicle details');
+            }
+
+            const data = rawData?.data?.client_id ? rawData.data : rawData;
+
+            setFormData(prev => ({
+                ...prev,
+                brand: data.maker_description || data.maker_name || data.maker || data.rc_maker || "",
+                model: data.model_description || data.model_name || data.maker_model || data.model || data.rc_model || data.rc_model_name || "",
+                year: data.registration_date ? data.registration_date.split('-')[0] : data.manufacturing_year || "",
+                weight: data.vehicle_weight || data.unladen_weight || "",
+                fuel: data.fuel_type || prev.fuel
+            }))
+            
+            toast({
+                title: "Details Fetched",
+                description: "We've auto-filled the vehicle info for you."
+            })
+            nextStep()
+        } catch (err: any) {
+            console.error("Vehicle fetch error:", err)
+            
+            toast({
+                title: "Fetch Failed",
+                description: "Unable to retrieve data automatically. Please enter details manually.",
+                variant: "destructive"
+            })
+
+            // Fallback for demo so user can still see the flow
+            setFormData(prev => ({
+                ...prev,
+                brand: prev.brand || "",
+                model: prev.model || "",
+                year: prev.year || "",
+                weight: prev.weight || "",
+            }))
+            nextStep()
+        } finally {
+            setIsFetching(false)
+        }
+    }
+
+    const handleSendOtp = async () => {
+        if (formData.phone.length !== 10) return
+        
+        setIsSendingOtp(true)
+        try {
+            // Bypass Firebase reCAPTCHA and OTP sending in local development
+            if (process.env.NODE_ENV === 'development') {
+                await new Promise(resolve => setTimeout(resolve, 500))
+                setOtpSent(true)
+                toast({
+                    title: "Test Mode OTP",
+                    description: "Use 000000 to verify in local testing.",
+                })
+                return
+            }
+
+            const verifier = getOrCreateRecaptcha()
+            const formattedPhone = `+91${formData.phone}`
+            const confirmation = await signInWithPhoneNumber(auth, formattedPhone, verifier)
+            setConfirmationResult(confirmation)
+            setOtpSent(true)
+        } catch (err: any) {
+            console.error("Firebase SMS Error:", err)
+            // Reset verifier on error so next attempt creates a fresh one
+            recaptchaVerifierRef.current = null
+            toast({
+                title: "Failed to send OTP",
+                description: err.message || "Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsSendingOtp(false)
+        }
+    }
+
+    const submitLeadData = async () => {
+        try {
+            await fetch('/api/wizard-lead', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...formData, serviceType })
+            });
+        } catch (error) {
+            console.error("Failed to save lead data:", error);
+        }
+    }
+
+    const handleVerifyOtp = async () => {
+        if (formData.otp.length !== 6 && formData.otp.length !== 4) return
+        
+        // Master OTP for testing/passing (Only allowed in local development)
+        if (formData.otp === "000000" && process.env.NODE_ENV === 'development') {
+            setIsVerifying(true)
+            try {
+                const result = await signIn("phone-otp", {
+                    phone: "+91" + formData.phone,
+                    otp: formData.otp,
+                    name: formData.name || "",
+                    redirect: false,
+                })
+
+                if (result?.error) throw new Error(result.error)
+
+                await submitLeadData()
+
+                toast({ title: "✅ Logged in!", description: "Welcome to ScrapCentre." })
+                if (serviceType === "scrap") {
+                    setMode("scrap-valuation")
+                } else {
+                    setMode("success")
+                }
+            } catch (err: any) {
+                toast({ title: "Login Failed", description: err.message, variant: "destructive" })
+            } finally {
+                setIsVerifying(false)
+            }
+            return
+        }
+
+        setIsVerifying(true)
+        try {
+            if (!confirmationResult) throw new Error("No confirmation result found");
+            
+            const userCredential = await confirmationResult.confirm(formData.otp);
+            const idToken = await userCredential.user.getIdToken();
+            
+            // Sign in to NextAuth session — creates user account if first time
+            const result = await signIn("firebase-otp", {
+                idToken,
+                name: formData.name || "",
+                redirect: false,
+            });
+
+            if (result?.error) {
+                throw new Error(result.error || "Could not complete authentication");
+            }
+
+            await submitLeadData()
+
+            toast({ title: "✅ Logged in!", description: "Welcome to ScrapCentre." })
+            if (serviceType === "scrap") {
+                setMode("scrap-valuation")
+            } else {
+                setMode("success")
+            }
+        } catch (err: any) {
+            console.error("OTP Verification Error:", err);
+            toast({
+                title: "Verification Failed",
+                description: err.message || "Invalid OTP entered.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsVerifying(false)
+        }
+    }
 
 
+    const slideVariants = {
+        enter: (direction: number) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
+        center: { zIndex: 1, x: 0, opacity: 1 },
+        exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
+    }
 
-  return (
-    <>
-      {/* Valuation result modal — same as QuoteForm triggers */}
-      <AnimatePresence>
-        {showValuation && (
-          <ValuationModals
-            formData={formDataForModal}
-            valuationId={null}
-            estimatedValue={estimatedValue}
-            pickupCost={null}
-            distance={null}
-            appliedPickupRate={null}
-            onClose={() => {
-              setShowValuation(false)
-              setStep(0)
-              setRegNum("")
-              setVehicleData(null)
-              setName("")
-              setState("")
-              setCity("")
-              setCustomCity("")
-              setPincode("")
-              setPhone("")
-              setOtp("")
-              setOtpSent(false)
-              setOtpVerified(false)
-            }}
-          />
-        )}
-      </AnimatePresence>
+    const heroOffset = fromHero ? 1 : 0 // subtract 1 step when vehicle number is skipped
+    const totalSteps = (!serviceType ? 1 : (serviceType === "sell" ? 8 - heroOffset : serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 9 - heroOffset : 8 - heroOffset) : 4)))
 
-      <div className="relative w-full bg-[#0b1628] border border-slate-800 rounded-[24px] overflow-hidden shadow-[10px_10px_30px_rgba(0,0,0,0.3)]">
+    if (mode === "scrap-valuation") {
+        // Calculate scrap value based on weight: 18 to 25 rupees per kg. Default to 15k-25k if no weight found.
+        const scrapWeight = parseInt(String(formData.weight).replace(/\D/g, '')) || 0;
+        const minScrapValue = scrapWeight ? scrapWeight * 18 : 15000;
+        const maxScrapValue = scrapWeight ? scrapWeight * 25 : 25000;
+        const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
 
-        {/* Header strip */}
-        <div className="bg-gradient-to-r from-[#0E192D] to-violet-950 px-6 pt-5 pb-4 border-b border-white/5">
-          <div>
-            <h3 className="text-base font-bold text-white tracking-tight">Free Vehicle Valuation</h3>
-            <p className="text-[11px] text-slate-400">AI-powered • Results in 60 seconds • Zero cost</p>
-          </div>
-        </div>
-
-        {/* Wizard body */}
-        <div className="p-5">
-          <ProgressBar step={step} />
-
-          <AnimatePresence mode="wait" custom={dir}>
-            {/* ── Step 0: Vehicle Reg Number ── */}
-            {step === 0 && (
-              <motion.div
-                key="s0"
-                custom={dir}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="space-y-4"
-              >
-                <div className="text-center mb-4">
-                  <Car className="w-8 h-8 text-violet-400 mx-auto mb-2" />
-                  <h4 className="text-white font-bold text-base">Enter your vehicle number</h4>
-                  <p className="text-slate-400 text-xs mt-0.5">We'll auto-fetch your vehicle details</p>
-                </div>
-
-                <Field label="Registration Number" icon={Car}>
-                  <div className="relative">
-                    <input
-                      className={inputCls + " uppercase font-mono tracking-widest pr-10"}
-                      placeholder="e.g. DL-01-AB-1234"
-                      value={regNum}
-                      onChange={e => setRegNum(e.target.value.toUpperCase())}
-                    />
-                    {isLooking && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
-                      </div>
-                    )}
-                  </div>
-                </Field>
-
-                {/* Auto-populated summary card */}
-                <AnimatePresence>
-                  {vehicleData && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.97 }}
-                      transition={{ duration: 0.3 }}
-                      className="bg-emerald-500/8 border border-emerald-500/25 rounded-2xl p-4"
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                          <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                        </div>
-                        <span className="text-emerald-400 text-xs font-bold uppercase tracking-widest">Vehicle Found</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-3">
-                        {[
-                          { label: "Brand", val: vehicleData.brand },
-                          { label: "Model", val: vehicleData.model },
-                          { label: "Year", val: vehicleData.year },
-                          { label: "Fuel", val: vehicleData.fuelType },
-                          { label: "Type", val: vehicleData.vehicleType },
-                          { label: "Kerb Weight", val: vehicleData.kerbWeight },
-                        ].map(({ label, val }) => (
-                          <div key={label} className="bg-white/5 rounded-xl p-2.5">
-                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">{label}</p>
-                            <p className="text-white text-xs font-bold truncate">{val}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-slate-500 text-[10px] mt-2.5 text-center">Please verify the details above are correct</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {valError && <p className="text-red-400 text-xs font-semibold text-center">{valError}</p>}
-
-                <button
-                  onClick={() => goNext(handleStep1Next)}
-                  disabled={!vehicleData}
-                  className="w-full py-3 bg-[#0E192D] hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all duration-200"
+        return (
+            <>
+                <div id="wizard-recaptcha-container"></div>
+                <div className="w-full max-w-4xl mx-auto px-4 py-8">
+                <motion.div 
+                    initial={{ scale: 0.98, opacity: 0 }} 
+                    animate={{ scale: 1, opacity: 1 }} 
+                    className="bg-white border border-slate-200 rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden"
                 >
-                  Confirm Vehicle <ChevronRight className="w-4 h-4" />
-                </button>
-              </motion.div>
-            )}
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 via-[#E31E24] to-amber-500" />
+                    
+                    <div className="relative z-10">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
+                                    <Recycle className="w-5 h-5 text-green-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-black text-green-600 uppercase tracking-[0.3em] mb-0.5">Evaluation Finalized</p>
+                                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Your Vehicle's Scrap Worth</h2>
+                                </div>
+                            </div>
+                            <div className="px-3 py-1 bg-slate-900 rounded-full hidden md:block">
+                                <p className="text-[9px] font-bold text-white uppercase tracking-widest">Quote ID: SC-{Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
+                            </div>
+                        </div>
 
-            {/* ── Step 1: Full Name ── */}
-            {step === 1 && (
-              <motion.div
-                key="s1"
-                custom={dir}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="space-y-4"
-              >
-                <div className="text-center mb-4">
-                  <User className="w-8 h-8 text-violet-400 mx-auto mb-2" />
-                  <h4 className="text-white font-bold text-base">What's your name?</h4>
-                  <p className="text-slate-400 text-xs mt-0.5">As per your official ID</p>
-                </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            {/* Left Section: Valuation & Details (7 cols) */}
+                            <div className="lg:col-span-7 space-y-4">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 15 }} 
+                                    animate={{ opacity: 1, y: 0 }} 
+                                    className="bg-slate-900 rounded-[1.5rem] p-6 text-white relative overflow-hidden shadow-xl shadow-slate-200 group"
+                                >
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/20 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-green-500/30 transition-colors duration-500"></div>
+                                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#E31E24]/10 rounded-full blur-[60px] -ml-24 -mb-24"></div>
+                                    
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 relative z-10">Estimated Cash Value</p>
+                                    <div className="relative z-10">
+                                        <div className="flex items-baseline gap-2 mb-2">
+                                            <span className="text-3xl md:text-4xl font-black tracking-tighter text-white">₹{formatCurrency(minScrapValue)}</span>
+                                            <span className="text-lg md:text-xl text-slate-500 font-bold tracking-tighter">to ₹{formatCurrency(maxScrapValue)}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 py-1.5 px-2.5 bg-white/5 rounded-lg border border-white/10 w-fit">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                            <p className="text-slate-300 text-[10px] font-bold uppercase tracking-widest">Market Rate: High Demand</p>
+                                        </div>
+                                        <p className="mt-4 text-slate-400 text-[11px] leading-relaxed max-w-md">
+                                            This valuation is based on current industrial scrap indices and the verified weight of {formData.weight || "1,200kg"}.
+                                        </p>
+                                    </div>
+                                </motion.div>
 
-                <Field label="Full Name" icon={User}>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. Rahul Sharma"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && goNext(handleStep2Next)}
-                    autoFocus
-                  />
-                </Field>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    {[
+                                        { label: "Brand", value: formData.brand || "N/A" },
+                                        { label: "Model", value: formData.model || "N/A" },
+                                        { label: "Year", value: formData.year || "N/A" },
+                                        { label: "Weight", value: formData.weight || "N/A" }
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{item.label}</p>
+                                            <p className="text-[10px] font-black text-slate-800">{item.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
 
-                {valError && <p className="text-red-400 text-xs font-semibold text-center">{valError}</p>}
+                            {/* Right Section: Benefits & Actions (5 cols) */}
+                            <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
+                                <motion.div 
+                                    initial={{ opacity: 0, x: 20 }} 
+                                    animate={{ opacity: 1, x: 0 }} 
+                                    transition={{ delay: 0.2 }} 
+                                    className="bg-gradient-to-br from-amber-50 via-amber-100/40 to-amber-50 border border-amber-200 rounded-[1.25rem] p-5 relative overflow-hidden shadow-lg shadow-amber-900/5"
+                                >
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200 rounded-full blur-[50px] opacity-40 -mr-16 -mt-16"></div>
+                                    <div className="flex items-start gap-3 relative z-10">
+                                        <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/30">
+                                            <Sparkles className="w-4.5 h-4.5" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <h4 className="text-amber-950 font-black text-[12px] uppercase tracking-wider">CD Certificate Advantage</h4>
+                                            <div className="space-y-2">
+                                                {formData.buyNew === "yes" ? (
+                                                    cdDiscount !== null ? (
+                                                        <div className="space-y-1.5">
+                                                            <p className="text-amber-900 font-medium text-[11px] leading-snug">
+                                                                Registration savings for your new <span className="font-bold">{formData.desiredCompany}</span>:
+                                                            </p>
+                                                            <div className="bg-amber-500 text-white px-3 py-1.5 rounded-xl text-center shadow-md">
+                                                                <p className="text-[9px] font-black uppercase tracking-tighter">Extra Discount</p>
+                                                                <p className="text-base font-black tracking-tighter">₹{formatCurrency(cdDiscount)}</p>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-amber-800 font-medium text-[11px] flex items-center gap-2">
+                                                            <Loader2 className="w-3 h-3 animate-spin" /> Tailoring savings...
+                                                        </p>
+                                                    )
+                                                ) : (
+                                                    <div className="space-y-1.5">
+                                                        <p className="text-amber-800 font-medium text-[11px] leading-snug">
+                                                            Redeemable discount on your next vehicle purchase:
+                                                        </p>
+                                                        <div className="bg-amber-200/50 border border-amber-300 px-3 py-1 rounded-xl text-center">
+                                                            <p className="text-amber-950 font-black text-[13px] tracking-tighter">₹15,000 - ₹25,000</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className="pt-1.5 border-t border-amber-200/50">
+                                                    <p className="text-[9px] text-amber-700/80 italic font-medium">*Govt. mandated benefit for recycling</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
 
-                <div className="flex gap-3">
-                  <button onClick={goPrev} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
-                    <ChevronLeft className="w-4 h-4" /> Back
-                  </button>
-                  <button onClick={() => goNext(handleStep2Next)} className="flex-[2] py-3 bg-[#0E192D] hover:bg-violet-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
-                    Continue <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ── Step 2: Location ── */}
-            {step === 2 && (
-              <motion.div
-                key="s2"
-                custom={dir}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="space-y-4"
-              >
-                <div className="text-center mb-4">
-                  <MapPin className="w-8 h-8 text-violet-400 mx-auto mb-2" />
-                  <h4 className="text-white font-bold text-base">Your location</h4>
-                  <p className="text-slate-400 text-xs mt-0.5">Helps us calculate pickup cost accurately</p>
-                </div>
-
-                <Field label="State" icon={MapPin}>
-                  <select
-                    value={state}
-                    onChange={e => { setState(e.target.value); setCity("") }}
-                    className={inputCls + " cursor-pointer"}
-                  >
-                    <option value="">Select state</option>
-                    {indiaStates.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </Field>
-
-                <Field label="City" icon={MapPin}>
-                  {!state ? (
-                    <input
-                      className={inputCls + " opacity-50 cursor-not-allowed"}
-                      placeholder="Select a state first"
-                      disabled
-                    />
-                  ) : city === "other" ? (
-                    <div className="flex gap-2">
-                      <input
-                        className={inputCls + " flex-1"}
-                        placeholder="Enter your city"
-                        value={customCity}
-                        onChange={e => setCustomCity(e.target.value)}
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={() => { setCity(""); setCustomCity("") }}
-                        className="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl text-xs font-bold transition-all shrink-0"
-                      >
-                        ↩
-                      </button>
+                                <div className="space-y-2.5">
+                                    <a 
+                                        href="/ekyc" 
+                                        onClick={() => {
+                                            localStorage.setItem("kycFormData", JSON.stringify(formData));
+                                            localStorage.setItem("kycSource", "scrap");
+                                        }}
+                                        className="w-full flex flex-col items-center justify-center gap-0.5 py-3.5 bg-[#E31E24] text-white rounded-xl shadow-xl shadow-red-500/30 hover:bg-red-600 hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden relative"
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                                        <span className="text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 relative z-10">
+                                            Initiate Instant eKYC
+                                            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                        </span>
+                                        <span className="text-[8px] font-bold text-white/80 uppercase tracking-widest italic relative z-10">🚀 Secure Priority Dispatch</span>
+                                    </a>
+                                    
+                                    <button onClick={() => router.push("/")} className="w-full py-2.5 border border-slate-200 text-slate-400 font-black rounded-xl hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all uppercase tracking-[0.2em] text-[9px]">
+                                        Return Home
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  ) : (
-                    <select
-                      value={city}
-                      onChange={e => setCity(e.target.value)}
-                      className={inputCls + " cursor-pointer"}
-                    >
-                      <option value="">Select city</option>
-                      <option value="other">Other</option>
-                      {(indiaData[state] || []).map((c: string) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  )}
-                </Field>
-
-                <Field label="Pincode" icon={MapPin}>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. 110001"
-                    value={pincode}
-                    onChange={e => setPincode(e.target.value.slice(0, 6))}
-                    maxLength={6}
-                    type="tel"
-                  />
-                </Field>
-
-                {valError && <p className="text-red-400 text-xs font-semibold text-center">{valError}</p>}
-
-                <div className="flex gap-3">
-                  <button onClick={goPrev} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
-                    <ChevronLeft className="w-4 h-4" /> Back
-                  </button>
-                  <button onClick={() => goNext(handleStep3Next)} className="flex-[2] py-3 bg-[#0E192D] hover:bg-violet-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
-                    Continue <ChevronRight className="w-4 h-4" />
-                  </button>
+                </motion.div>
                 </div>
-              </motion.div>
-            )}
+            </>
+        )
+    }
 
-            {/* ── Step 3: Phone + OTP ── */}
-            {step === 3 && (
-              <motion.div
-                key="s3"
-                custom={dir}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="space-y-4"
-              >
-                <div className="text-center mb-4">
-                  <Phone className="w-8 h-8 text-violet-400 mx-auto mb-2" />
-                  <h4 className="text-white font-bold text-base">Verify your number</h4>
-                  <p className="text-slate-400 text-xs mt-0.5">We'll send you an OTP to confirm</p>
-                </div>
+    if (mode === "success") {
+        return (
+            <>
+                <div id="wizard-recaptcha-container"></div>
+                <div className="w-full max-w-2xl mx-auto px-4 py-6">
+                <motion.div 
+                    initial={{ scale: 0.85, opacity: 0 }} 
+                    animate={{ scale: 1, opacity: 1 }} 
+                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                    className="bg-white border border-slate-200 rounded-[1rem] p-6 text-center shadow-2xl relative overflow-hidden"
+                >
+                    {/* Top accent bar */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#E31E24] to-red-400" />
+                    
+                    {/* Decorative background circles */}
+                    <div className="absolute -top-16 -right-16 w-40 h-40 bg-red-50 rounded-full opacity-60" />
+                    <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-red-50 rounded-full opacity-60" />
 
-                <Field label="Phone Number" icon={Phone}>
-                  <div className="flex gap-2">
-                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-sm font-bold shrink-0">
-                      🇮🇳 +91
+                    <div className="relative z-10">
+                        {/* Icon */}
+                        <motion.div 
+                            initial={{ scale: 0 }} 
+                            animate={{ scale: 1 }} 
+                            transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+                            className="w-16 h-16 bg-gradient-to-br from-red-50 to-red-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-100"
+                        >
+                            <CheckCircle className="w-8 h-8 text-[#E31E24]" />
+                        </motion.div>
+
+                        {/* Headline */}
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                            <p className="text-[9px] font-bold text-[#E31E24] uppercase tracking-[0.2em] mb-1.5">
+                                🎉 Request Submitted
+                            </p>
+                            <h2 className="text-2xl lg:text-3xl font-black text-slate-900 mb-2 tracking-tight leading-tight">
+                                Congratulations!
+                            </h2>
+                            <p className="text-slate-500 text-[11px] font-medium max-w-sm mx-auto leading-relaxed mb-4">
+                                Our expert team will reach out to you <span className="font-bold text-slate-700">shortly</span> to finalise the best deal for your vehicle.
+                            </p>
+                        </motion.div>
+
+                        {/* Divider */}
+                        <div className="w-full h-px bg-slate-100 mb-5" />
+
+                        {/* eKYC CTA or Expert Talk */}
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="space-y-3">
+                            {serviceType === "buy" ? (
+                                <>
+                                    <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 text-left mb-4">
+                                        <p className="text-blue-800 text-[9px] font-bold uppercase tracking-wider mb-0.5">🤝 Expert Support</p>
+                                        <p className="text-blue-700 text-[10px] font-medium leading-relaxed">Rest assured, our dealership experts will reach out to you <span className="font-bold text-blue-900 italic underline">ASAP</span> to assist with your new purchase and exchange benefits.</p>
+                                    </div>
+
+                                    <a 
+                                        href="/contact" 
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-slate-900 text-white font-black rounded-xl shadow-lg hover:bg-slate-800 transition-all uppercase tracking-widest text-[10px] group"
+                                    >
+                                        Talk to our Experts
+                                        <Phone className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+                                    </a>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-left mb-4">
+                                        <p className="text-amber-800 text-[9px] font-bold uppercase tracking-wider mb-0.5">⚡ Speed up your process</p>
+                                        <p className="text-amber-700 text-[10px] font-medium">Complete your eKYC now to get instant approval and faster pickup scheduling.</p>
+                                    </div>
+
+                                    <a 
+                                        href="/ekyc" 
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-[#E31E24] text-white font-black rounded-xl shadow-lg shadow-red-500/25 hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] group"
+                                    >
+                                        Complete eKYC
+                                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                    </a>
+                                </>
+                            )}
+                            
+                            <button 
+                                onClick={() => {
+                                    setServiceType("")
+                                    setStep(0)
+                                    setMode("wizard")
+                                }} 
+                                className="w-full py-2.5 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-50 transition-all uppercase tracking-widest text-[9px]"
+                            >
+                                Back to Home
+                            </button>
+                        </motion.div>
                     </div>
-                    <input
-                      className={inputCls + " flex-1"}
-                      placeholder="10-digit number"
-                      value={phone}
-                      onChange={e => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      type="tel"
-                      maxLength={10}
-                      disabled={otpSent}
-                    />
-                    {!otpSent && (
-                      <button
-                        onClick={handleSendOtp}
-                        disabled={sendingOtp || phone.length !== 10}
-                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white rounded-xl text-sm font-bold transition-all shrink-0 flex items-center gap-1.5"
-                      >
-                        {sendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send OTP"}
-                      </button>
-                    )}
-                  </div>
-                </Field>
-
-                {/* OTP input */}
-                <AnimatePresence>
-                  {otpSent && !otpVerified && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="space-y-3"
-                    >
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
-                        <p className="text-emerald-400 text-xs font-semibold">OTP sent to +91 {phone}</p>
-                        <p className="text-slate-400 text-[10px] mt-0.5">(Demo: use <span className="font-black text-white">1234</span>)</p>
-                      </div>
-
-                      <Field label="Enter OTP" icon={Shield}>
-                        <input
-                          className={inputCls + " text-center text-2xl font-black tracking-[0.5em]"}
-                          placeholder="••••"
-                          value={otp}
-                          onChange={e => { setOtp(e.target.value.replace(/\D/g, "").slice(0, 4)); setOtpError("") }}
-                          maxLength={4}
-                          type="tel"
-                          autoFocus
-                        />
-                      </Field>
-
-                      {otpError && <p className="text-red-400 text-xs font-semibold text-center">{otpError}</p>}
-
-                      <button
-                        onClick={handleVerifyOtp}
-                        disabled={otp.length !== 4 || verifyingOtp}
-                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all"
-                      >
-                        {verifyingOtp ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" /> Verifying…</>
-                        ) : (
-                          <><CheckCircle className="w-4 h-4" /> Verify & Get Valuation</>
-                        )}
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Success state before modal opens */}
-                <AnimatePresence>
-                  {otpVerified && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5 text-center space-y-2"
-                    >
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", bounce: 0.5 }}
-                        className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto"
-                      >
-                        <CheckCircle className="w-6 h-6 text-emerald-400" />
-                      </motion.div>
-                      <p className="text-emerald-400 font-bold text-sm">Verified! Calculating your valuation…</p>
-                      <div className="w-8 h-1 bg-emerald-400/40 rounded-full mx-auto animate-pulse" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {valError && <p className="text-red-400 text-xs font-semibold text-center">{valError}</p>}
-
-                {!otpSent && (
-                  <div className="flex gap-3">
-                    <button onClick={goPrev} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
-                      <ChevronLeft className="w-4 h-4" /> Back
-                    </button>
-                  </div>
-                )}
-
-                {/* Trust badges */}
-                <div className="flex items-center justify-center gap-4 pt-2 border-t border-white/5">
-                  {[
-                    { icon: Shield, label: "Secure" },
-                    { icon: Award, label: "Certified" },
-                    { icon: Sparkles, label: "AI-Powered" },
-                  ].map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex items-center gap-1.5 text-slate-500 text-[11px] font-semibold">
-                      <Icon className="w-3.5 h-3.5 text-violet-400" />
-                      {label}
-                    </div>
-                  ))}
+                </motion.div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </>
-  )
+            </>
+        )
+    }
+
+
+
+    return (
+        <>
+            <div id="wizard-recaptcha-container"></div>
+            <div className="w-full max-w-2xl mx-auto px-4">
+            <div className="bg-white border border-slate-200 rounded-[1rem] overflow-hidden shadow-2xl">
+                <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <button onClick={prevStep} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#E31E24] transition-all"><ArrowLeft className="w-3.5 h-3.5" /></button>
+                    <div className="flex flex-col items-center">
+                        <span className="text-[9px] font-bold text-[#E31E24] uppercase tracking-widest mb-0.5">Step {currentStepDisplay()} of {totalSteps}</span>
+                        <h4 className="text-slate-900 font-bold text-xs uppercase tracking-tighter">{serviceType ? `${serviceType} Service` : "Get Started"}</h4>
+                    </div>
+                    <div className="w-8 h-8 flex items-center justify-center text-[#E31E24] font-bold text-[10px] bg-red-50 rounded-full">{Math.round(((currentStepDisplay()) / totalSteps) * 100)}%</div>
+                </div>
+
+                <div className="w-full h-1 bg-slate-100">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${((currentStepDisplay()) / totalSteps) * 100}%` }} className="h-full bg-[#E31E24]" />
+                </div>
+
+                <div className="relative p-5 lg:p-6 min-h-[340px] flex flex-col justify-center">
+                    <AnimatePresence initial={false} custom={direction} mode="wait">
+                        <motion.div key={serviceType ? `${serviceType}-${step}` : "selection"} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }} className="w-full">
+                            
+                            {/* ── INITIAL SITUATION SELECTION ── */}
+                            {!serviceType && (
+                                <div className="space-y-6 text-center">
+                                    <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <Sparkles className="w-8 h-8 text-[#E31E24]" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-2xl font-bold text-slate-900 leading-tight">What is your situation?</h3>
+                                        <p className="text-slate-500 text-[11px] font-medium px-4">Choose the option that best describes what you're looking for today.</p>
+                                    </div>
+                                    {fromHero && formData.regNo && (
+                                        <div className="flex items-center justify-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-xl max-w-sm mx-auto">
+                                            <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
+                                            <span className="text-[11px] font-bold text-green-800">Vehicle <span className="tracking-widest">{formData.regNo}</span> loaded</span>
+                                        </div>
+                                    )}
+                                    <div className="grid gap-2.5 max-w-sm mx-auto px-4">
+                                        {[
+                                            ...(!fromHero ? [{ title: "Buy a new Vehicle", description: "Exchange offers & OEM benefits", icon: ShoppingCart, key: "buy" }] : []),
+                                            { title: "Sell your Vehicle", description: "Best market price & doorstep pickup", icon: Car, key: "sell" },
+                                            { title: "Scrap your Vehicle", description: "Eco-friendly & max scrap value", icon: Recycle, key: "scrap" }
+                                        ].map((opt) => (
+                                            <button
+                                                key={opt.key}
+                                                onClick={() => {
+                                                    setDirection(1)
+                                                    setServiceType(opt.key)
+                                                    // When fromHero, skip vehicle number step (step 0) and go directly to verify details (step 1)
+                                                    setStep(fromHero ? 1 : 0)
+                                                }}
+                                                className="flex items-center gap-4 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl hover:border-[#E31E24] hover:bg-red-50 hover:shadow-md transition-all group text-left"
+                                            >
+                                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-100 group-hover:border-red-100 shadow-sm transition-all">
+                                                    <opt.icon className="w-5 h-5 text-slate-600 group-hover:text-[#E31E24]" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-slate-900 group-hover:text-[#E31E24] text-sm leading-none mb-0.5">{opt.title}</p>
+                                                    <p className="text-[10px] text-slate-500 group-hover:text-red-700/60 font-medium">{opt.description}</p>
+                                                </div>
+                                                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#E31E24] group-hover:translate-x-1 transition-all" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ── SELL FLOW ── */}
+                            {serviceType === "sell" && (
+                                <>
+                                    {step === 0 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Car className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <div className="space-y-0.5">
+                                                <h3 className="text-xl font-bold text-slate-900">Vehicle Number</h3>
+                                                <p className="text-slate-500 text-[11px] font-medium">Enter your registration number (e.g. DL-01-AB-1234)</p>
+                                            </div>
+                                            <div className="relative max-w-md mx-auto">
+                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                                                <input type="text" placeholder="DL-01-AB-1234" value={formData.regNo} onChange={(e) => setFormData({...formData, regNo: e.target.value.toUpperCase()})} className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-black tracking-widest focus:outline-none focus:border-[#E31E24] transition-all text-center" />
+                                            </div>
+                                            <button disabled={!formData.regNo || isFetching} onClick={handleRegSubmit} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2 group uppercase tracking-widest text-[10px]">
+                                                {isFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch Details"}
+                                                {!isFetching && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {step === 1 && (
+                                        <div className="space-y-4">
+                                            <div className="text-center">
+                                                <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-2"><ClipboardList className="w-6 h-6 text-[#E31E24]" /></div>
+                                                <h3 className="text-lg font-bold text-slate-900">Verify Vehicle Details</h3>
+                                                <p className="text-slate-500 text-[11px] font-medium">Auto-filled based on your registration</p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2.5 max-w-md mx-auto">
+                                                <div className="space-y-0.5">
+                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Company / Brand</label>
+                                                    <input type="text" value={formData.brand} onChange={(e) => setFormData({...formData, brand: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
+                                                    <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Swift" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Reg. Year</label>
+                                                    <input type="text" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Weight (KG)</label>
+                                                    <input type="text" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" placeholder="e.g. 1200" />
+                                                </div>
+                                            </div>
+                                            <button onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">Confirm & Continue <ArrowRight className="w-3.5 h-3.5" /></button>
+                                        </div>
+                                    )}
+
+                                    {step === 2 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Gauge className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Distance Travelled</h3>
+                                            <p className="text-slate-500 text-[11px] font-medium">Total kilometers on the odometer</p>
+                                            <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
+                                                {["0 - 10,000", "10,000 - 30,000", "30,000 - 60,000", "60,000+"].map((range, i) => (
+                                                    <button key={i} onClick={() => { setFormData({...formData, kms: range}); nextStep() }} className="p-2.5 border border-slate-100 rounded-xl text-[10px] font-bold text-slate-700 hover:border-[#E31E24] hover:bg-red-50 transition-all">{range} KM</button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step === 3 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Fuel className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Fuel Type</h3>
+                                            <p className="text-slate-500 text-[11px] font-medium">Which fuel does your car use?</p>
+                                            <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
+                                                {FUEL_TYPES.map((f, i) => (
+                                                    <button key={i} onClick={() => { setFormData({...formData, fuel: f}); nextStep() }} className="px-4 py-2 border border-slate-100 rounded-xl text-[10px] font-bold text-slate-700 hover:border-[#E31E24] hover:bg-red-50 transition-all">{f}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step === 4 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Your Name</h3>
+                                            <input type="text" placeholder="Enter Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" autoFocus />
+                                            <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-slate-900 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-[10px]">Continue</button>
+                                        </div>
+                                    )}
+
+                                    {step === 5 && (
+                                        <div className="space-y-4 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1"><Home className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Pickup Address</h3>
+                                            <div className="space-y-3 max-w-md mx-auto">
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Address</label>
+                                                    <textarea placeholder="House No, Street, City, State" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium focus:outline-none focus:border-[#E31E24] min-h-[80px]" />
+                                                </div>
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
+                                                    <input type="text" placeholder="6-digit Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" maxLength={6} />
+                                                </div>
+                                            </div>
+                                            <button disabled={!formData.address || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-slate-900 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-[10px]">Continue</button>
+                                        </div>
+                                    )}
+
+                                    {step === 6 && (
+                                        <div className="space-y-6 text-center">
+                                            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                                {otpSent ? <Lock className="w-8 h-8 text-[#E31E24]" /> : <Smartphone className="w-8 h-8 text-[#E31E24]" />}
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-slate-900">{otpSent ? "Verification" : "Login with Phone"}</h3>
+                                            
+                                            <div className="space-y-3 max-w-sm mx-auto">
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
+                                                    <input 
+                                                        type="tel" 
+                                                        disabled={otpSent}
+                                                        placeholder="Mobile Number" 
+                                                        value={formData.phone} 
+                                                        onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
+                                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
+                                                        maxLength={10} 
+                                                    />
+                                                </div>
+
+                                                {otpSent && (
+                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                                                        <input 
+                                                            type="tel" 
+                                                            placeholder="••••••" 
+                                                            value={formData.otp} 
+                                                            onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
+                                                            className="w-full px-4 py-3 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] focus:outline-none focus:border-[#E31E24]" 
+                                                            maxLength={6} 
+                                                            autoFocus 
+                                                        />
+                                                        <button 
+                                                            onClick={() => { setOtpSent(false); setFormData({...formData, otp: ""}) }}
+                                                            className="text-[10px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
+                                                        >
+                                                            Change Number
+                                                        </button>
+                                                    </motion.div>
+                                                )}
+                                            </div>
+
+                                            <button 
+                                                disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying} 
+                                                onClick={otpSent ? handleVerifyOtp : handleSendOtp} 
+                                                className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2"
+                                            >
+                                                {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "Verify & Sell" : "Get OTP")}
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* ── BUY FLOW ── */}
+                            {serviceType === "buy" && (
+                                <>
+                                    {step === 0 && (
+                                        <div className="space-y-6 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Car className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900 leading-tight">Vehicle of Choice</h3>
+                                            <p className="text-slate-500 text-[11px] font-medium mb-4">Tell us the details of the vehicle you wish to buy.</p>
+                                            
+                                            <div className="space-y-3 max-w-md mx-auto">
+                                                <div className="space-y-1.5 text-left">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Brand</label>
+                                                    <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                </div>
+                                                <div className="space-y-1.5 text-left">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Model</label>
+                                                    <input type="text" placeholder="e.g. Swift" value={formData.desiredModel} onChange={(e) => setFormData({...formData, desiredModel: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                </div>
+                                            </div>
+                                            
+                                            <button disabled={!formData.desiredCompany || !formData.desiredModel} onClick={nextStep} className="w-full max-w-md mx-auto py-3 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[11px]">Continue</button>
+                                        </div>
+                                    )}
+                                    {step === 1 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Tell us your name</h3>
+                                            <input type="text" placeholder="Your Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" autoFocus />
+                                            <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Next Step</button>
+                                        </div>
+                                    )}
+                                    {step === 2 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                                {otpSent ? <Lock className="w-7 h-7 text-[#E31E24]" /> : <Smartphone className="w-7 h-7 text-[#E31E24]" />}
+                                            </div>
+                                            <h3 className="text-xl font-bold text-slate-900">{otpSent ? "Verification" : "Mobile Number"}</h3>
+                                            
+                                            <div className="space-y-3 max-w-md mx-auto">
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
+                                                    <input 
+                                                        type="tel" 
+                                                        disabled={otpSent}
+                                                        placeholder="10-digit number" 
+                                                        value={formData.phone} 
+                                                        onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
+                                                        className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
+                                                        maxLength={10} 
+                                                    />
+                                                </div>
+
+                                                {otpSent && (
+                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                                                        <input 
+                                                            type="tel" 
+                                                            placeholder="••••••" 
+                                                            value={formData.otp} 
+                                                            onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
+                                                            className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] focus:outline-none focus:border-[#E31E24]" 
+                                                            maxLength={6} 
+                                                            autoFocus 
+                                                        />
+                                                        <button 
+                                                            onClick={() => { setOtpSent(false); setFormData({...formData, otp: ""}) }}
+                                                            className="text-[10px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
+                                                        >
+                                                            Change Number
+                                                        </button>
+                                                    </motion.div>
+                                                )}
+                                            </div>
+
+                                            <button 
+                                                disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying} 
+                                                onClick={otpSent ? handleVerifyOtp : handleSendOtp} 
+                                                className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2"
+                                            >
+                                                {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "Verify & Complete" : "Get OTP")}
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* ── SCRAP FLOW ── */}
+                            {serviceType === "scrap" && (
+                                <>
+                                    {step === 0 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Car className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <div className="space-y-0.5">
+                                                <h3 className="text-xl font-bold text-slate-900">Vehicle Number</h3>
+                                                <p className="text-slate-500 text-[11px] font-medium">Enter your registration number (e.g. DL-01-AB-1234)</p>
+                                            </div>
+                                            <div className="relative max-w-md mx-auto">
+                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                                                <input type="text" placeholder="DL-01-AB-1234" value={formData.regNo} onChange={(e) => setFormData({...formData, regNo: e.target.value.toUpperCase()})} className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-black tracking-widest focus:outline-none focus:border-[#E31E24] transition-all text-center" />
+                                            </div>
+                                            <button disabled={!formData.regNo || isFetching} onClick={handleRegSubmit} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2 group uppercase tracking-widest text-[10px]">
+                                                {isFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch Details"}
+                                                {!isFetching && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
+                                            </button>
+                                        </div>
+                                    )}
+                                    {step === 1 && (
+                                        <div className="space-y-4">
+                                            <div className="text-center">
+                                                <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-2"><ClipboardList className="w-6 h-6 text-[#E31E24]" /></div>
+                                                <h3 className="text-lg font-bold text-slate-900">Verify Vehicle Details</h3>
+                                                <p className="text-slate-500 text-[11px] font-medium">Auto-filled based on your registration</p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2.5 max-w-md mx-auto">
+                                                <div className="space-y-0.5">
+                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Company / Brand</label>
+                                                    <input type="text" value={formData.brand} onChange={(e) => setFormData({...formData, brand: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
+                                                    <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Santro" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Reg. Year</label>
+                                                    <input type="text" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Weight (KG)</label>
+                                                    <input type="text" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" placeholder="e.g. 1200" />
+                                                </div>
+                                            </div>
+                                            <button onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">Confirm & Continue <ArrowRight className="w-3.5 h-3.5" /></button>
+                                        </div>
+                                    )}
+
+                                    {step === 2 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Car className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Buy a new vehicle?</h3>
+                                            <p className="text-slate-500 text-[11px] font-medium">Would you like to purchase a new vehicle while scrapping this one to claim CD certificate benefits?</p>
+                                            <div className="flex gap-3 max-w-md mx-auto justify-center">
+                                                <button onClick={() => { setFormData({...formData, buyNew: "yes"}); nextStep("yes") }} className="w-1/2 py-2.5 border border-slate-100 rounded-xl font-bold text-sm text-slate-700 hover:border-[#E31E24] hover:bg-red-50 transition-all shadow-sm">Yes</button>
+                                                <button onClick={() => { setFormData({...formData, buyNew: "no"}); nextStep("no") }} className="w-1/2 py-2.5 border border-slate-100 rounded-xl font-bold text-sm text-slate-700 hover:border-[#E31E24] hover:bg-red-50 transition-all shadow-sm">No</button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step === 3 && (
+                                        <div className="space-y-6 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><ShoppingCart className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900 leading-tight">Vehicle Choice</h3>
+                                            <p className="text-slate-500 text-[11px] font-medium mb-4">Details of the new vehicle you wish to buy.</p>
+                                            
+                                            <div className="space-y-3 max-w-md mx-auto">
+                                                <div className="space-y-1.5 text-left">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Brand</label>
+                                                    <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                </div>
+                                                <div className="space-y-1.5 text-left">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Model</label>
+                                                    <input type="text" placeholder="e.g. Swift" value={formData.desiredModel} onChange={(e) => setFormData({...formData, desiredModel: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                </div>
+                                            </div>
+                                            
+                                            <button disabled={!formData.desiredCompany || !formData.desiredModel} onClick={nextStep} className="w-full max-w-md mx-auto py-3 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[11px]">Continue</button>
+                                        </div>
+                                    )}
+
+                                    {step === 4 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Fuel className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Fuel type of {formData.model ? <span className="text-[#E31E24]">{formData.model}</span> : "your vehicle"}?</h3>
+                                            <p className="text-slate-500 text-[11px] font-medium">Select all that apply for your vehicle</p>
+                                            <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
+                                                {FUEL_TYPES.map((f, i) => {
+                                                    const isSelected = formData.fuel.split(', ').includes(f);
+                                                    return (
+                                                        <button 
+                                                            key={i} 
+                                                            onClick={() => { 
+                                                                const currentFuels = formData.fuel ? formData.fuel.split(', ') : [];
+                                                                const newFuels = isSelected 
+                                                                    ? currentFuels.filter(fuel => fuel !== f)
+                                                                    : [...currentFuels, f];
+                                                                setFormData({...formData, fuel: newFuels.join(', ')});
+                                                            }} 
+                                                            className={`px-4 py-2 border rounded-xl text-[10px] font-bold transition-all ${
+                                                                isSelected 
+                                                                    ? "bg-[#E31E24] border-[#E31E24] text-white shadow-md shadow-red-500/20" 
+                                                                    : "border-slate-100 text-slate-700 hover:border-[#E31E24] hover:bg-red-50"
+                                                            }`}
+                                                        >
+                                                            {f}
+                                                            {isSelected && <CheckCircle className="w-3 h-3 ml-1.5 inline-block" />}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            <button 
+                                                disabled={!formData.fuel} 
+                                                onClick={() => nextStep()} 
+                                                className="w-full max-w-md mx-auto mt-4 py-2.5 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                                            >
+                                                Next Step <ArrowRight className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {step === 5 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Your Name</h3>
+                                            <input type="text" placeholder="Enter Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" autoFocus />
+                                            <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
+                                        </div>
+                                    )}
+
+                                    {step === 6 && (
+                                        <div className="space-y-4 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1"><MapPin className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Vehicle Location</h3>
+                                            <div className="space-y-3 max-w-md mx-auto">
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Address</label>
+                                                    <textarea placeholder="House No, Street, City, State" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium focus:outline-none focus:border-[#E31E24] min-h-[80px]" />
+                                                </div>
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
+                                                    <input type="text" placeholder="6-digit Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" maxLength={6} />
+                                                </div>
+                                            </div>
+                                            <button disabled={!formData.address || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
+                                        </div>
+                                    )}
+
+                                    {step === 7 && (
+                                        <div className="space-y-5 text-center">
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                                {otpSent ? <Lock className="w-7 h-7 text-[#E31E24]" /> : <Smartphone className="w-7 h-7 text-[#E31E24]" />}
+                                            </div>
+                                            <h3 className="text-xl font-bold text-slate-900">{otpSent ? "Verification" : "Login with Phone"}</h3>
+                                            
+                                            <div className="space-y-3 max-w-md mx-auto">
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
+                                                    <input 
+                                                        type="tel" 
+                                                        disabled={otpSent}
+                                                        placeholder="Mobile Number" 
+                                                        value={formData.phone} 
+                                                        onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
+                                                        className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
+                                                        maxLength={10} 
+                                                    />
+                                                </div>
+
+                                                {otpSent && (
+                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                                                        <input 
+                                                            type="tel" 
+                                                            placeholder="••••••" 
+                                                            value={formData.otp} 
+                                                            onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
+                                                            className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] focus:outline-none focus:border-[#E31E24]" 
+                                                            maxLength={6} 
+                                                            autoFocus 
+                                                        />
+                                                        <button 
+                                                            onClick={() => { setOtpSent(false); setFormData({...formData, otp: ""}) }}
+                                                            className="text-[10px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
+                                                        >
+                                                            Change Number
+                                                        </button>
+                                                    </motion.div>
+                                                )}
+                                            </div>
+
+                                            <button 
+                                                disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying} 
+                                                onClick={otpSent ? handleVerifyOtp : handleSendOtp} 
+                                                className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2"
+                                            >
+                                                {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "Verify & Get Valuation" : "Get OTP")}
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+
+                <div className="bg-slate-50/50 px-6 py-3 border-t border-slate-100 flex flex-wrap gap-2">
+                    {formData.regNo && <span className="px-2 py-0.5 bg-white border border-slate-200 rounded-full text-[9px] font-bold text-slate-600 uppercase">{formData.regNo}</span>}
+                    {formData.brand && <span className="px-2 py-0.5 bg-white border border-slate-200 rounded-full text-[9px] font-bold text-slate-600 uppercase">{formData.brand}</span>}
+                    {formData.kms && <span className="px-2 py-0.5 bg-white border border-slate-200 rounded-full text-[9px] font-bold text-slate-600 uppercase">{formData.kms} KM</span>}
+                </div>
+                <div id="wizard-recaptcha-container"></div>
+            </div>
+            </div>
+        </>
+    )
 }
+

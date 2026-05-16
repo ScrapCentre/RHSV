@@ -50,6 +50,7 @@ const itemVariants = {
 const getTypeColor = (type: string) => {
     switch (type?.toLowerCase()) {
         case 'quote': return 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20'
+        case 'scrap-buy': return 'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20'
         case 'sell': return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
         case 'exchange': return 'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20'
         case 'buy': return 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border-orange-500/20'
@@ -138,16 +139,16 @@ export default function ExecutiveDashboardOverview({
                             <span className="text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">Legend:</span>
                             <div className="flex items-center gap-4">
                                 <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
-                                    <span className="w-2 h-2 rounded-full bg-blue-500"></span> Free Quote
+                                    <span className="w-2 h-2 rounded-full bg-blue-500"></span> Scrap Vehicle
                                 </span>
                                 <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Sell Vehicle
+                                    <span className="w-2 h-2 rounded-full bg-purple-500"></span> Scrap &amp; Buy New
                                 </span>
-                                {/* <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
-                                    <span className="w-2 h-2 rounded-full bg-purple-500"></span> Exchange
-                                </span> */}
                                 <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
-                                    <span className="w-2 h-2 rounded-full bg-orange-500"></span> Buy Vehicle
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Sell Old Vehicle
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
+                                    <span className="w-2 h-2 rounded-full bg-orange-500"></span> Buy New Vehicle
                                 </span>
                             </div>
                         </div>
@@ -170,7 +171,7 @@ export default function ExecutiveDashboardOverview({
                                         <tr key={item._id} onClick={() => window.location.href = `/executive/valuations/${item.type}/${item._id}`} className={`transition-all duration-300 group hover:scale-[1.01] hover:shadow-lg relative z-0 hover:z-10 cursor-pointer ${index % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50 dark:bg-white/[0.02]'} hover:bg-gray-100 dark:hover:bg-white/[0.06]`}>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${getTypeColor(item.type)}`}>
-                                                    {item.type}
+                                                    {item.type === 'quote' ? 'Scrap Vehicle' : item.type === 'scrap-buy' ? 'Scrap & Buy' : item.type === 'sell' ? 'Sell Old' : item.type === 'buy' ? 'Buy New' : item.type}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
@@ -224,7 +225,7 @@ export default function ExecutiveDashboardOverview({
                                             <div className="p-4 space-y-3">
                                                 <div className="flex justify-between items-start">
                                                     <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${getTypeColor(item.type)}`}>
-                                                        {item.type}
+                                                        {item.type === 'quote' ? 'Scrap Vehicle' : item.type === 'scrap-buy' ? 'Scrap & Buy' : item.type === 'sell' ? 'Sell Old' : item.type === 'buy' ? 'Buy New' : item.type}
                                                     </span>
                                                     <p className="text-[11px] text-gray-400 dark:text-white/40 font-medium">
                                                         {mounted ? format(new Date(item.createdAt), "MMM d, yyyy") : ""}

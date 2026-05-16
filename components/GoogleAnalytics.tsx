@@ -20,9 +20,9 @@ export default function GoogleAnalytics() {
             return
         }
 
-        // @ts-ignore
+        // @ts-expect-error - gtag is added globally by the Google Analytics script
         if (typeof window.gtag === "function") {
-            // @ts-ignore
+            // @ts-expect-error - gtag is added globally by the Google Analytics script
             window.gtag("config", GA_MEASUREMENT_ID, {
                 page_path: pathname,
             })

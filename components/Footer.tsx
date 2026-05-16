@@ -1,187 +1,185 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Car, Truck, Bike, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, ArrowUp } from "lucide-react"
+import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, ArrowUp, ChevronRight, ShieldCheck, Leaf, BadgeCheck, Headphones, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useEffect, useState } from "react"
 
 export default function Footer() {
-  // Generate random positions and delays for the raining icons
-  // Reduced quantity (20 -> 12), Increased size (20-40 -> 60-100)
-  const [rainIcons, setRainIcons] = useState<{ id: number; Icon: any; left: string; delay: number; duration: number; size: number }[]>([]);
-
-  useEffect(() => {
-    setRainIcons(Array.from({ length: 12 }).map((_, i) => ({
-      id: i,
-      Icon: i % 3 === 0 ? Car : i % 3 === 1 ? Truck : Bike,
-      left: `${Math.random() * 100}%`,
-      delay: Math.random() * 15,
-      duration: 10 + Math.random() * 10,
-      size: 60 + Math.random() * 40,
-    })));
-  }, []);
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
-    <footer className="relative bg-white text-gray-800 overflow-hidden border-t border-emerald-100">
-      {/* Move to Top Strip */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="w-full bg-[#0E192D] hover:bg-slate-800 text-white py-4 font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-all duration-300 relative z-30 border-b border-slate-800"
-      >
-        Move to Top <ArrowUp className="w-4 h-4 animate-bounce" />
-      </button>
-
-      {/* Raining Icons Background */}
-      <div className="absolute inset-0 pointer-events-none opacity-10 overflow-hidden mt-12">
-        {rainIcons.map((item) => (
-          <motion.div
-            key={item.id}
-            initial={{ y: -120, x: item.left, opacity: 0 }}
-            animate={{
-              y: ["-10%", "60%"], // Stop around middle (60%)
-              opacity: [0, 1, 0] // Fade in then out
-            }}
-            transition={{
-              duration: item.duration,
-              repeat: Number.POSITIVE_INFINITY,
-              delay: item.delay,
-              ease: "linear" as const,
-            }}
-            className="absolute text-emerald-800"
-            style={{ left: item.left }}
+    <footer className="bg-white pt-4 relative overflow-hidden">
+      {/* 1. Back to Top Strip */}
+      <div className="container mx-auto px-6 mb-12 relative">
+        <div className="absolute left-0 right-0 top-1/2 h-[1px] bg-[#E31E24] z-0"></div>
+        <div className="flex justify-center relative z-10">
+          <button
+            onClick={scrollToTop}
+            className="group flex items-center gap-4 bg-white px-8 py-2 transition-all active:scale-95"
           >
-            <item.Icon size={item.size} strokeWidth={1.5} />
-          </motion.div>
-        ))}
+            <motion.div 
+              whileHover={{ y: -3, scale: 1.1 }}
+              className="w-10 h-10 rounded-full border border-slate-100 bg-white shadow-md flex items-center justify-center text-[#E31E24] group-hover:border-[#E31E24]/30 group-hover:shadow-red-500/10 transition-all"
+            >
+              <ArrowUp size={18} strokeWidth={2.5} className="drop-shadow-[0_2px_2px_rgba(227,30,36,0.2)]" />
+            </motion.div>
+            <span className="text-slate-700 font-bold text-sm whitespace-nowrap">Back to top</span>
+          </button>
+        </div>
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 pt-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+      {/* 2. Main Footer Content */}
+      <div className="container mx-auto px-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
           {/* Brand Column */}
-          <div className="space-y-6">
-            <div className="mb-6 -ml-6">
-              <Image src="/logo.png" alt="ScrapCenter Logo" width={200} height={80} className="h-20 w-auto" />
+          <div className="lg:col-span-4 space-y-8">
+            <div className="flex items-center gap-4">
+              <Image src="/logo.png" alt="ScrapCentre Logo" width={60} height={60} className="h-14 w-auto object-contain" />
+              <h2 className="text-2xl font-semibold tracking-tight">
+                <span className="text-[#E31E24]">Scrap</span>
+                <span className="text-slate-900">Centre</span>
+              </h2>
             </div>
-            <p className="text-gray-600 leading-relaxed font-medium">
+            <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-xs">
               Your trusted partner for responsible vehicle recycling. We turn your old vehicles into cash while protecting the environment.
             </p>
-            <div className="flex gap-4">
-              <Link href="#" className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <Facebook className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <Twitter className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <Instagram className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <Linkedin className="w-5 h-5" />
-              </Link>
+            <div className="flex gap-3">
+              {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+                <Link key={i} href="#" className="w-11 h-11 rounded-xl bg-red-50/50 text-[#E31E24] flex items-center justify-center hover:bg-[#E31E24] hover:text-white transition-all hover:-translate-y-1">
+                  <Icon size={20} />
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-xl font-bold mb-8 text-gray-900 relative inline-block">
+          {/* Links Columns */}
+          <div className="lg:col-span-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-6 relative">
               Services
-              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-emerald-600 rounded-full"></span>
+              <span className="block w-8 h-[2px] bg-[#E31E24] mt-2"></span>
             </h3>
             <ul className="space-y-4">
-              {[
-                { label: "Sell Your Car", href: "/services/sell-vehicle" },
-                { label: "Buy Used Parts", href: "/services/buy-vehicle" },
-                // { label: "Exchange Vehicle", href: "/services/exchange-vehicle" },
-                { label: "Instant Valuation", href: "/quote" }
-              ].map((link, idx) => (
-                <li key={idx}>
-                  <Link href={link.href} className="text-gray-600 font-medium hover:text-emerald-600 transition-all flex items-center gap-2 group w-fit">
-                    <span className="w-2 h-2 rounded-full bg-emerald-200 group-hover:bg-emerald-600 group-hover:scale-125 transition-all duration-300" />
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">{link.label}</span>
+              {['Sell Your Car', 'Buy Used Parts', 'Instant Valuation'].map((item, i) => (
+                <li key={i}>
+                  <Link href="#" className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
+                    <ChevronRight size={12} className="text-[#E31E24] transition-transform group-hover:translate-x-1" />
+                    {item}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Company Links */}
-          <div>
-            <h3 className="text-xl font-bold mb-8 text-gray-900 relative inline-block">
+          <div className="lg:col-span-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-6 relative">
               Company
-              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-emerald-600 rounded-full"></span>
+              <span className="block w-8 h-[2px] bg-[#E31E24] mt-2"></span>
             </h3>
             <ul className="space-y-4">
-              {[
-                { label: "About Us", href: "/about" },
-                { label: "Contact Support", href: "/contact" },
-                { label: "Privacy Policy", href: "/privacy" },
-                { label: "Terms & Conditions", href: "/terms" }
-              ].map((link, idx) => (
-                <li key={idx}>
-                  <Link href={link.href} className="text-gray-600 font-medium hover:text-emerald-600 transition-all flex items-center gap-2 group w-fit">
-                    <span className="w-2 h-2 rounded-full bg-emerald-200 group-hover:bg-emerald-600 group-hover:scale-125 transition-all duration-300" />
-                    <span className="group-hover:translate-x-1 transition-transform duration-300">{link.label}</span>
+              {['About Us', 'Contact Support', 'Privacy Policy', 'Terms & Conditions'].map((item, i) => (
+                <li key={i}>
+                  <Link href="#" className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
+                    <ChevronRight size={12} className="text-[#E31E24] transition-transform group-hover:translate-x-1" />
+                    {item}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact Info */}
-          <div>
-            <h3 className="text-xl font-bold mb-8 text-gray-900 relative inline-block">
-              Contact Us
-              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-emerald-600 rounded-full"></span>
+          <div className="lg:col-span-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-6 relative">
+              Quick Links
+              <span className="block w-8 h-[2px] bg-[#E31E24] mt-2"></span>
             </h3>
-            <ul className="space-y-6">
-              <li className="flex items-start gap-4 group cursor-default">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 transition-colors duration-300">
-                  <MapPin className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">Visit Us</p>
-                  <p className="text-gray-600 text-sm">21-E, Block Panki, Kanpur, 208020</p>
-                </div>
-              </li>
-              <li className="flex items-center gap-4 group cursor-default">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 transition-colors duration-300">
-                  <Phone className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
-                </div>
-                <a href="tel:+919839447733" className="flex-1 hover:text-emerald-600 transition-colors">
-                  <p className="text-sm font-semibold text-gray-900">Call Us</p>
-                  <p className="text-gray-600 text-sm font-medium">
-                    +91-9839447733
-                  </p>
-                </a>
-              </li>
-              <li className="flex items-center gap-4 group cursor-default">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 transition-colors duration-300">
-                  <Mail className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
-                </div>
-                <a href="mailto:contact@scrapcentre.com" className="flex-1 hover:text-emerald-600 transition-colors">
-                  <p className="text-sm font-semibold text-gray-900">Email Us</p>
-                  <p className="text-gray-600 text-sm break-all">contact@scrapcentre.com</p>
-                </a>
-              </li>
+            <ul className="space-y-4">
+              {['How It Works', 'FAQs', 'Blog', 'Sitemap'].map((item, i) => (
+                <li key={i}>
+                  <Link href="#" className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
+                    <ChevronRight size={12} className="text-[#E31E24] transition-transform group-hover:translate-x-1" />
+                    {item}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
-        </div>
 
+          {/* Contact Column */}
+          <div className="lg:col-span-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-6 relative">
+              Contact Us
+              <span className="block w-8 h-[2px] bg-[#E31E24] mt-2"></span>
+            </h3>
+            <div className="space-y-5">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#E31E24] shrink-0">
+                  <MapPin size={18} />
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-slate-900 uppercase tracking-wider mb-0.5">Visit Us</div>
+                  <div className="text-slate-500 text-xs font-bold">21-E, Block Panki, Kanpur, 208020</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#E31E24] shrink-0">
+                  <Phone size={18} />
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-slate-900 uppercase tracking-wider mb-0.5">Call Us</div>
+                  <div className="text-slate-500 text-xs font-bold">+91-9839447733</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#E31E24] shrink-0">
+                  <Mail size={18} />
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold text-slate-900 uppercase tracking-wider mb-0.5">Email Us</div>
+                  <div className="text-slate-500 text-xs font-bold">contact@scrapcentre.com</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="w-full bg-slate-950 relative z-10">
-        <div className="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white text-sm font-medium">
-            © {new Date().getFullYear()} ScrapCenter. All rights reserved.
-          </p>
-          <p className="text-white text-sm font-medium flex items-center gap-1">
-            Made by Novalytix Technology Services
-          </p>
+      {/* 3. Trust Banner Card */}
+      <div className="container mx-auto px-6 mb-10">
+        <div className="bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 rounded-[2rem] p-6 md:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: ShieldCheck, title: 'Trusted & Secure', desc: 'We ensure safe and secure transactions for everyone.' },
+              { icon: Leaf, title: 'Eco Friendly', desc: 'Committed to a cleaner and greener environment.' },
+              { icon: BadgeCheck, title: 'Best Value', desc: 'Get the best price for your old vehicles.' },
+              { icon: Headphones, title: 'Customer Support', desc: "We're here to help you anytime, anywhere." },
+            ].map((feature, i) => (
+              <div key={i} className={`flex items-center gap-5 ${i !== 3 ? 'lg:border-r border-slate-100 lg:pr-8' : ''}`}>
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-[#E31E24] shrink-0">
+                  <feature.icon size={28} />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">{feature.title}</div>
+                  <div className="text-slate-400 text-[11px] font-medium leading-relaxed">{feature.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </footer>
+
+      {/* 4. Bottom Copyright Bar - Replaced with Image */}
+      <div className="w-full relative z-10 overflow-hidden bg-[#E31E24]">
+        <Image 
+          src="/footerbouttom.png" 
+          alt="Footer Bottom Bar" 
+          width={1920} 
+          height={150} 
+          className="w-full h-auto"
+        />
+      </div>
+    </footer >
   )
 }
-

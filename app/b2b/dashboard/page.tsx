@@ -81,7 +81,7 @@ export default function B2BDashboard() {
                     Partner Overview
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
-                    Welcome back, {session?.user?.name || 'Partner'}. Here's what's happening today.
+                    Welcome back, {session?.user?.name || 'Partner'}. Here&apos;s what&apos;s happening today.
                 </p>
             </div>
 

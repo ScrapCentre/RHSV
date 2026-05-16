@@ -9,7 +9,8 @@ const UserSchema = new Schema(
         email: {
             type: String,
             unique: true,
-            required: [true, "Email is required"],
+            sparse: true, // allows multiple docs with no email
+            required: false,
             match: [
                 /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
                 "Email is invalid",
@@ -31,6 +32,12 @@ const UserSchema = new Schema(
             type: String,
             enum: ["client", "admin", "b2b"],
             default: "client",
+        },
+        phone: {
+            type: String,
+            unique: true,
+            sparse: true, // allows multiple docs with no phone
+            required: false,
         },
     },
     {

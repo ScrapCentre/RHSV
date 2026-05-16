@@ -7,7 +7,7 @@ import { uploadToCloudinary } from "@/lib/cloudinary";
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: { type: string } }
+    { params }: any
 ) {
     try {
         await connectToDatabase();
@@ -61,6 +61,8 @@ export async function POST(
             case "exchange":
                 Model = ExchangeVehicle;
                 break;
+            default:
+                return NextResponse.json({ error: "Invalid eKYC form type" }, { status: 400 });
         }
 
         const updateData = {

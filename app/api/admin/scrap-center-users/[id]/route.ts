@@ -4,7 +4,7 @@ import ScrapCentreUser from "@/models/ScrapCentreUser"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: any) {
     try {
         const session = await getServerSession(authOptions)
         if (!session || (session.user as any).role !== "admin") {

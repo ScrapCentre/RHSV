@@ -90,7 +90,8 @@ const inputCls = `
   outline-none transition-all duration-200
 `
 
-// ─── Main wizard ──────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
+const INDIA_REG_REGEX = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/
 
 export default function SellOldWizardCard() {
   const { status } = useSession()
@@ -128,9 +129,6 @@ export default function SellOldWizardCard() {
   const [valError, setValError] = useState("")
 
   const DEMO_OTP = "1234"
-
-  // Auto-fetch only when a complete Indian reg number is entered (e.g. UP78AB1234)
-  const INDIA_REG_REGEX = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/
 
   useEffect(() => {
     const clean = regNum.replace(/[-\s]/g, "")
@@ -204,7 +202,7 @@ export default function SellOldWizardCard() {
               setVerifyingOtp(false);
               return;
           }
-        } catch (err) {
+        } catch (_err) {
           setOtpError("Something went wrong");
           setVerifyingOtp(false);
           return;
@@ -222,7 +220,7 @@ export default function SellOldWizardCard() {
           model: vehicleData?.model || "Swift VXI",
           registrationYear: vehicleData?.year || "2018",
           fuelType: vehicleData?.fuelType || "Petrol",
-          pendingLoan: hasLoan === "yes" ? "Yes" : "No",
+          pendingLoan: hasLoan === true ? "Yes" : "No",
           name, 
           phone, 
           state, 
@@ -341,7 +339,7 @@ export default function SellOldWizardCard() {
                 <div className="text-center mb-4">
                   <Car className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                   <h4 className="text-white font-bold text-base">Enter your vehicle number</h4>
-                  <p className="text-slate-400 text-xs mt-0.5">We'll auto-fetch your vehicle details</p>
+                  <p className="text-slate-400 text-xs mt-0.5">We&apos;ll auto-fetch your vehicle details</p>
                 </div>
 
                 <Field label="Registration Number" icon={Car}>
@@ -419,7 +417,7 @@ export default function SellOldWizardCard() {
               >
                 <div className="text-center mb-4">
                   <User className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                  <h4 className="text-white font-bold text-base">What's your name?</h4>
+                  <h4 className="text-white font-bold text-base">What&apos;s your name?</h4>
                   <p className="text-slate-400 text-xs mt-0.5">As per your official ID</p>
                 </div>
 
@@ -611,7 +609,7 @@ export default function SellOldWizardCard() {
                 <div className="text-center mb-4">
                   <Phone className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                   <h4 className="text-white font-bold text-base">Verify your number</h4>
-                  <p className="text-slate-400 text-xs mt-0.5">We'll send you an OTP to confirm</p>
+                  <p className="text-slate-400 text-xs mt-0.5">We&apos;ll send you an OTP to confirm</p>
                 </div>
 
                 <Field label="Phone Number" icon={Phone}>
@@ -699,7 +697,7 @@ export default function SellOldWizardCard() {
                       >
                         <CheckCircle className="w-6 h-6 text-emerald-400" />
                       </motion.div>
-                      <p className="text-emerald-400 font-bold text-sm">Verified! Calculating your vehicle's value…</p>
+                      <p className="text-emerald-400 font-bold text-sm">Verified! Calculating your vehicle&apos;s value…</p>
                       <div className="w-8 h-1 bg-emerald-400/40 rounded-full mx-auto animate-pulse" />
                     </motion.div>
                   )}

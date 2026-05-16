@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Bebas_Neue } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -9,6 +9,11 @@ import AdminAwareLayout from "@/components/AdminAwareLayout"
 import GoogleAnalytics from "@/components/GoogleAnalytics"
 
 const inter = Inter({ subsets: ["latin"] })
+const bebasNeue = Bebas_Neue({ 
+  weight: "400", 
+  subsets: ["latin"], 
+  variable: "--font-bebas" 
+})
 
 export const metadata: Metadata = {
   title: "ScrapCenter India - Vehicle Scrapping Services",
@@ -91,7 +96,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <GoogleAnalytics />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <AuthProvider>
             <AdminAwareLayout>

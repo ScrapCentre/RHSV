@@ -1,12 +1,12 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Phone, ChevronDown, Sparkles, User, LogOut, LayoutDashboard, Car, RefreshCw, ShoppingCart, BookOpen, FileText, Home, ArrowRight } from "lucide-react"
+import { Menu, X, Phone, ChevronDown, User, LogOut, LayoutDashboard, Car, RefreshCw, ShoppingCart, BookOpen, Construction } from "lucide-react"
+import Image from "next/image"
 import { motion, AnimatePresence, type Variants } from "framer-motion"
 import Link from "next/link" // Import Link for navigation
-import Image from "next/image"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter, usePathname } from "next/navigation"
 gsap.registerPlugin(ScrollTrigger)
@@ -36,6 +36,8 @@ export default function Navbar() {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false)
   const [isServicesOpen, setIsServicesOpen] = useState(false)
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const lastScrollY = useRef(0)
   const { data: session } = useSession()
   const router = useRouter()
   const pathname = usePathname()
@@ -48,22 +50,14 @@ export default function Navbar() {
   }, [pathname])
 
   const navItems = [
-    { name: "Home", href: "/", hasDropdown: false },
-    { name: "About Us", href: "/about", hasDropdown: false },
-    { name: "Services", href: "#", hasDropdown: true },
+    { name: "Free Valuation", href: "#services" },
     { name: "Resources", href: "#", hasDropdown: true },
-    { name: "Contact Us", href: "/contact", hasDropdown: false },
-  ]
-
-  const servicesDropdown = [
-    { name: "Sell Old Vehicle", href: "/services/sell-vehicle", icon: Car, description: "Get the best price for your old vehicle" },
-    // { name: "Exchange Vehicle", href: "/services/exchange-vehicle", icon: RefreshCw, description: "Exchange your old vehicle for a new one" },
-    { name: "Buy New Vehicle", href: "/services/buy-vehicle", icon: ShoppingCart, description: "Explore our range of quality vehicles" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ]
 
   const resourcesDropdown = [
     { name: "Blogs", href: "/blogs", icon: BookOpen, description: "Latest industry news and updates" },
-    { name: "Guides", href: "/guide", icon: FileText, description: "Step-by-step guides for vehicle scrapping" },
   ]
 
   useEffect(() => {
@@ -93,57 +87,8 @@ export default function Navbar() {
       },
     )
 
-    // Faster CTA button animation
-    gsap.fromTo(
-      ".cta-button",
-      { scale: 0, rotation: 360 },
-      { scale: 1, rotation: 0, duration: 0.5, delay: 0.6, ease: "elastic.out(1, 0.5)" },
-    )
 
-    // Scroll-based navbar background and visibility
-    ScrollTrigger.create({
-      start: "top -10",
-      end: 99999,
-      onUpdate: (self) => {
-        const currentScrollY = self.scroll()
-
-        // Handle navbar background
-        if (currentScrollY > 10) {
-          setIsScrolled(true)
-        } else {
-          setIsScrolled(false)
-        }
-
-        // Handle sticky behavior: Hide Bottom Row on scroll down, Show on scroll up
-        const direction = self.direction // 1 = down, -1 = up
-
-        if (direction === 1 && currentScrollY > 100) {
-          // Scroll down past threshold -> Hide Bottom Row
-          gsap.to(".bottom-row", {
-            height: 0,
-            opacity: 0,
-            paddingTop: 0,
-            paddingBottom: 0,
-            duration: 0.3,
-            ease: "power2.out",
-            overflow: "hidden",
-          })
-        } else if (direction === -1 || currentScrollY <= 10) {
-          // Scroll up or at top -> Show Bottom Row
-          gsap.to(".bottom-row", {
-            height: "auto",
-            opacity: 1,
-            paddingTop: "0.5rem", // py-2
-            paddingBottom: "0.5rem", // py-2
-            duration: 0.3,
-            ease: "power2.out",
-            overflow: "visible",
-          })
-        }
-      },
-    })
-
-    // Faster floating animation for logo
+    // Floating animation for logo
     gsap.to(".logo-icon", {
       y: -3,
       duration: 1.5,
@@ -156,6 +101,39 @@ export default function Navbar() {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill())
     }
   }, [])
+
+  // Handle scroll visibility (hide on scroll down, show on scroll up)
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      
+      // Don't hide if any menu is open
+      if (isOpen || isMegaMenuOpen) {
+        setIsVisible(true)
+        lastScrollY.current = currentScrollY
+        return
+      }
+
+      // Hide when scrolling down past 50px, show when scrolling up
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        setIsVisible(false)
+      } else {
+        setIsVisible(true)
+      }
+      
+      // Update isScrolled for background changes
+      if (currentScrollY > 10) {
+        setIsScrolled(true)
+      } else {
+        setIsScrolled(false)
+      }
+
+      lastScrollY.current = currentScrollY
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [isOpen, isMegaMenuOpen])
 
   const handleNavClick = (href: string) => {
     setIsOpen(false)
@@ -193,179 +171,130 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`navbar fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isTransparent
-        ? "bg-transparent shadow-none"
-        : isScrolled
-          ? "bg-[#cccccc] shadow-lg shadow-emerald-600/5"
-          : "bg-[#cccccc] shadow-sm"
-        }`}
+      className={`navbar fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out hover:bg-white hover:shadow-md ${
+        isTransparent ? "bg-transparent" : "bg-white shadow-md"
+      } ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
     >
       <div className="container mx-auto px-6">
-        {/* Desktop Layout - 2 Rows */}
-        <div className="hidden lg:flex flex-col w-full">
+        {/* Desktop Layout - Single Row */}
+        <div className="hidden lg:flex items-center py-2">
+          
+          {/* Logo Section */}
+          <div className="flex items-center gap-3 cursor-pointer mr-48" onClick={() => handleNavClick("/")}>
+            <Image 
+              src="/logo.png" 
+              alt="ScrapCentre Logo" 
+              width={240} 
+              height={60} 
+              className="h-16 w-auto"
+              priority
+            />
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-semibold tracking-tight flex items-baseline">
+                <span className="text-[#E31E24]">Scrap</span>
+                <span className="text-slate-900">Centre</span>
+                <span className="text-slate-900 text-lg font-semibold">.com</span>
+              </h1>
+            </div>
+          </div>
 
-          {/* Top Row: Quote - Logo - User */}
-          <div className="top-row flex items-center justify-between py-2 px-6">
-
-            {/* Left: Get Free Quote Button */}
-            <div className="w-1/3 flex justify-start">
-              <motion.div
-                className="cta-button"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+          {/* Navigation Links - Shifted Left */}
+          <div 
+            className="flex items-center gap-8 xl:gap-10 h-full flex-1"
+            onMouseLeave={() => setIsMegaMenuOpen(false)}
+          >
+            {navItems.map((item) => (
+              <button
+                key={item.name}
+                onMouseEnter={() => {
+                  if (item.hasDropdown) {
+                    setIsMegaMenuOpen(true)
+                  }
+                }}
+                onClick={() => {
+                  if (item.hasDropdown) {
+                    setIsMegaMenuOpen(!isMegaMenuOpen)
+                  } else {
+                    handleNavClick(item.href)
+                  }
+                }}
+                className={`text-sm font-medium uppercase tracking-wide transition-all duration-200 flex items-center gap-1.5 h-full py-6
+                  ${(item.hasDropdown && isMegaMenuOpen) || pathname === item.href 
+                    ? "text-[#E31E24]" 
+                    : "text-black hover:text-[#E31E24]"
+                  }`}
               >
-                <Link href="/quote" passHref>
-                  <Button className="relative overflow-hidden bg-[#0E192D] hover:bg-emerald-600 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-emerald-900/20 transition-all duration-300 group text-xs whitespace-nowrap font-['Helvetica_Neue'] tracking-wide">
-                    <span className="relative z-10 flex items-center gap-2">
-                      Get Free Quote
-                      <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
-                  </Button>
-                </Link>
-              </motion.div>
-            </div>
+                {item.name}
+                {item.hasDropdown && (
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isMegaMenuOpen ? 'rotate-180' : ''}`} />
+                )}
+              </button>
+            ))}
+          </div>
 
-            {/* Center: Logo */}
-            <div className="w-1/3 flex justify-center">
-              <div className="logo flex items-center cursor-pointer" onClick={() => handleNavClick("/")}>
-                <motion.div
-                  className="logo-icon"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
-                >
-                  <Image
-                    src="/logo.png"
-                    alt="ScrapCenter India Logo"
-                    width={150}
-                    height={60}
-                    className="h-10 w-auto sm:h-12 object-contain"
-                  />
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Right: User / Login */}
-            <div className="w-1/3 flex justify-end">
-              {session ? (
-                <div className="relative group">
-                  <button className={`flex items-center gap-2 font-medium transition-colors ${isTransparent ? "text-white hover:text-emerald-300" : "text-gray-600 hover:text-emerald-700"}`}>
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200">
-                      <span className="text-emerald-700 font-bold text-sm">{(displayName || "U")[0]}</span>
-                    </div>
-                    <div className="text-left hidden xl:block">
-                      <p className={`text-xs font-bold leading-tight ${isTransparent ? "text-white" : "text-slate-900"}`}>{displayName}</p>
-                      <p className={`text-[10px] ${isTransparent ? "text-emerald-100" : "text-slate-500"}`}>View Profile</p>
-                    </div>
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  </button>
-                  {/* User Dropdown */}
-                  <div className="absolute top-full right-0 mt-2 bg-[#cccccc] border border-gray-100 rounded-lg shadow-xl py-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-50">
-                    <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50">
-                      <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
-                      <p className="text-xs text-gray-500 truncate">{session.user?.email}</p>
-                    </div>
-                    {(session.user as any).role === "admin" && (
-                      <Link
-                        href="/admin"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700"
-                      >
-                        Admin Dashboard
-                      </Link>
-                    )}
-                    {(session.user as any).role !== "admin" && (
-                      <>
-                        {(session.user as any).role !== "partner" && (
-                          <Link href="/partner-register" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            Partner Login
-                          </Link>
-                        )}
-                        <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          {(session.user as any).role === "partner" ? "Partner Dashboard" : "Profile"}
-                        </Link>
-                      </>
-                    )}
-                    <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Sign out
-                    </button>
+          {/* Right Side: Login */}
+          <div className="flex items-center gap-6 xl:gap-8 ml-auto mr-24">
+            {session ? (
+              <div className="relative group">
+                <button className="flex items-center gap-2.5 px-3 py-1.5 rounded-full hover:bg-slate-50 transition-all duration-300 group/btn border border-transparent hover:border-slate-100">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center border border-red-200 shadow-sm group-hover/btn:scale-110 transition-transform duration-300">
+                    <span className="text-red-700 font-bold text-xs">{(displayName || "U")[0]}</span>
                   </div>
+                  <span className="text-sm font-bold text-slate-700 group-hover/btn:text-[#E31E24] transition-colors hidden xl:block">
+                    {displayName}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-[#E31E24] group-hover/btn:rotate-180 transition-all duration-300" />
+                </button>
+                {/* User Dropdown */}
+                <div className="absolute top-full right-0 mt-2 bg-white border border-slate-100 rounded-lg shadow-xl py-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-50">
+                  <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/50">
+                    <p className="text-sm font-semibold text-slate-900 truncate">{displayName}</p>
+                    <p className="text-xs text-slate-500 truncate">{session.user?.email}</p>
+                  </div>
+                  {(session.user as any).role === "admin" && (
+                    <Link href="/admin" className="block px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-700">Admin Dashboard</Link>
+                  )}
+                  <Link href="/profile" className="block px-4 py-2 text-sm text-slate-700 hover:bg-red-50">Profile</Link>
+                  <button onClick={() => signOut({ callbackUrl: "/" })} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign out</button>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Link href="/login">
-                    <Button variant="ghost" className={`font-bold text-sm px-4 transition-colors ${isTransparent ? "text-white hover:text-emerald-300 hover:bg-white/10" : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50"}`}>
-                      Login
-                    </Button>
-                  </Link>
-                  <Link href="/partner-register">
-                    <Button variant="ghost" className={`font-bold text-sm px-4 transition-colors ${isTransparent ? "text-white hover:text-emerald-300 hover:bg-white/10" : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50"}`}>
-                      Partner Login
-                    </Button>
-                  </Link>
+              </div>
+            ) : (
+              <button
+                onClick={() => handleNavClick("/login")}
+                className="c-button--gooey px-8 py-2.5 bg-[#E31E24] text-white border-2 border-[#E31E24] rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-lg shadow-red-500/20 relative overflow-hidden"
+              >
+                <span className="relative z-10">Login / Sign up</span>
+                <div className="c-button__blobs">
+                  <div />
+                  <div />
+                  <div />
                 </div>
-              )}
-            </div>
+              </button>
+            )}
           </div>
-
-          {/* Bottom Row: Navigation Links Only */}
-          <div className="bottom-row flex items-center justify-center py-2 px-6">
-            <div className="flex justify-center gap-16 xl:gap-24">
-              {navItems.map((item) => (
-                <div
-                  key={item.name}
-                  className="relative group flex items-center"
-                >
-                  <button
-                    className={`nav-item relative transition-colors duration-200 font-medium flex items-center gap-1 py-3 font-['Helvetica_Neue'] whitespace-nowrap tracking-wide text-sm ${isTransparent ? "text-white hover:text-emerald-300" : "text-gray-600 hover:text-emerald-700"}`}
-                    onClick={() => {
-                      if (item.hasDropdown) {
-                        setIsMegaMenuOpen(!isMegaMenuOpen)
-                      } else {
-                        handleNavClick(item.href)
-                      }
-                    }}
-                  >
-                    <span className="relative font-bold uppercase text-sm">
-                      {item.name}
-                      <span className={`absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full ${isTransparent ? "bg-white" : "bg-[#0E192D]"}`}></span>
-                    </span>
-                    {item.hasDropdown && (
-                      <ChevronDown
-                        className={`w-3 h-3 transition-transform duration-300 ${isMegaMenuOpen && (item.name === "Services" || item.name === "Resources") ? "rotate-180 text-emerald-600" : ""}`}
-                      />
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
 
-        {/* Mobile Navigation Header (simplified) */}
-        <div className={`lg:hidden flex items-center justify-between w-full h-16 px-4 py-2 border-b transition-colors duration-300 ${isTransparent ? "bg-transparent border-white/20" : "bg-[#cccccc] border-gray-100"}`}>
-          <div className="logo flex items-center cursor-pointer space-x-2" onClick={() => handleNavClick("/")}>
-            <motion.div
-              className="logo-icon"
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
-            >
-              <Image
-                src="/logo.png"
-                alt="ScrapCenter India Logo"
-                width={120}
-                height={48}
-                className="h-9 w-auto sm:h-10 object-contain"
-              />
-            </motion.div>
+        {/* Mobile Navigation Header */}
+        <div className={`lg:hidden flex items-center justify-between w-full h-20 px-4 transition-colors duration-300 ${isTransparent ? "bg-transparent" : "bg-white border-b"}`}>
+          <div className="logo flex items-center cursor-pointer gap-2" onClick={() => handleNavClick("/")}>
+            <Image 
+              src="/logo.png" 
+              alt="ScrapCentre Logo" 
+              width={180} 
+              height={45} 
+              className="h-14 w-auto"
+            />
+            <h1 className="text-lg font-semibold flex items-baseline">
+              <span className="text-[#E31E24]">Scrap</span>
+              <span className="text-slate-900">Centre</span>
+            </h1>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className={`transition-colors z-50 p-2 ${isTransparent ? "text-white hover:text-emerald-300" : "text-gray-700 hover:text-emerald-600"}`}
+            className="transition-colors z-50 p-2 text-gray-700 hover:text-[#E31E24]"
             onClick={() => setIsOpen(!isOpen)}
           >
             <motion.div animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.3 }}>
@@ -384,13 +313,13 @@ export default function Navbar() {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" as const }}
-              className="lg:hidden overflow-hidden absolute top-full left-0 right-0 h-screen bg-[#cccccc] z-50"
+              className="lg:hidden overflow-hidden absolute top-full left-0 right-0 h-screen bg-white/98 backdrop-blur-md z-50"
             >
               <div className="py-4 px-4 h-full overflow-y-auto pb-20">
                 {navItems.map((item) => (
                   <div key={item.name} className="border-b border-gray-50 last:border-0">
                     <button
-                      className="block w-full text-left px-4 py-4 text-gray-800 hover:text-emerald-700 hover:bg-emerald-50 transition-all duration-200 rounded-lg flex items-center justify-between font-bold text-lg"
+                      className="block w-full text-left px-4 py-4 text-gray-800 hover:text-[#E31E24] hover:bg-red-50 transition-all duration-200 rounded-lg flex items-center justify-between font-semibold text-lg"
                       onClick={() => {
                         if (item.hasDropdown) {
                           if (item.name === "Services") {
@@ -418,38 +347,7 @@ export default function Navbar() {
                       )}
                     </button>
 
-                    {/* Mobile Services Dropdown */}
-                    <AnimatePresence>
-                      {item.name === "Services" && item.hasDropdown && isServicesOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" as const }}
-                          className="bg-[#cccccc] overflow-hidden"
-                        >
-                          <motion.div variants={containerVariants} initial="hidden" animate="visible" exit="exit">
-                            {servicesDropdown.map((dropdownItem) => (
-                              <motion.div key={dropdownItem.name} variants={itemVariants}>
-                                <Link
-                                  href={dropdownItem.href}
-                                  onClick={() => {
-                                    setIsOpen(false)
-                                    setIsServicesOpen(false)
-                                  }}
-                                  className="flex items-center gap-4 w-full text-left px-6 py-4 text-gray-600 font-medium hover:text-emerald-700 transition-all duration-200 text-sm border-b border-gray-100 last:border-0 pl-8"
-                                >
-                                  <div className="bg-white p-2 rounded-md shadow-sm">
-                                    <dropdownItem.icon className="w-4 h-4 text-emerald-600" />
-                                  </div>
-                                  {dropdownItem.name}
-                                </Link>
-                              </motion.div>
-                            ))}
-                          </motion.div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+
 
                     {/* Mobile Resources Dropdown */}
                     <AnimatePresence>
@@ -459,7 +357,7 @@ export default function Navbar() {
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3, ease: "easeInOut" as const }}
-                          className="bg-[#cccccc] overflow-hidden"
+                          className="bg-slate-50/50 overflow-hidden"
                         >
                           <motion.div variants={containerVariants} initial="hidden" animate="visible" exit="exit">
                             {resourcesDropdown.map((dropdownItem) => (
@@ -470,10 +368,10 @@ export default function Navbar() {
                                     setIsOpen(false)
                                     setIsResourcesOpen(false)
                                   }}
-                                  className="flex items-center gap-4 w-full text-left px-6 py-4 text-gray-600 font-medium hover:text-emerald-700 transition-all duration-200 text-sm border-b border-gray-100 last:border-0 pl-8"
+                                  className="flex items-center gap-4 w-full text-left px-6 py-4 text-gray-600 font-medium hover:text-[#E31E24] transition-all duration-200 text-sm border-b border-gray-100 last:border-0 pl-8"
                                 >
                                   <div className="bg-white p-2 rounded-md shadow-sm">
-                                    <dropdownItem.icon className="w-4 h-4 text-emerald-600" />
+                                    <dropdownItem.icon className="w-4 h-4 text-[#E31E24]" />
                                   </div>
                                   {dropdownItem.name}
                                 </Link>
@@ -487,26 +385,15 @@ export default function Navbar() {
                 ))}
 
                 <div className="mt-8 px-2 space-y-4">
-                  <Link href="/quote" passHref className="block">
-                    <Button
-                      className="w-full bg-[#0E192D] hover:bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-900/25 transition-all duration-300 group text-lg"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        Get Free Quote
-                        <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-                      </span>
-                    </Button>
-                  </Link>
 
                   {session ? (
                     <div className="pt-4 border-t border-gray-100">
                       <div className="flex items-center gap-3 px-2 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold border border-emerald-200">
+                        <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-700 font-semibold border border-red-100">
                           {(displayName || "U")[0]}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900">{displayName}</p>
+                          <p className="font-semibold text-gray-900">{displayName}</p>
                           <p className="text-xs text-gray-500">{session.user?.email}</p>
                         </div>
                       </div>
@@ -515,7 +402,7 @@ export default function Navbar() {
                         <Link href="/admin">
                           <Button
                             variant="ghost"
-                            className="w-full justify-start text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 mb-2 h-12 text-base font-medium"
+                            className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 h-12 text-base font-medium"
                             onClick={() => setIsOpen(false)}
                           >
                             <LayoutDashboard className="w-5 h-5 mr-3" /> Admin Dashboard
@@ -529,7 +416,7 @@ export default function Navbar() {
                             <Link href="/partner-register">
                               <Button
                                 variant="ghost"
-                                className="w-full justify-start text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 mb-2 h-12 text-base font-medium"
+                                className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 h-12 text-base font-medium"
                                 onClick={() => setIsOpen(false)}
                               >
                                 <User className="w-5 h-5 mr-3" /> Partner Login
@@ -539,7 +426,7 @@ export default function Navbar() {
                           <Link href="/profile">
                             <Button
                               variant="ghost"
-                              className="w-full justify-start text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 mb-2 h-12 text-base font-medium"
+                              className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 h-12 text-base font-medium"
                               onClick={() => setIsOpen(false)}
                             >
                               <User className="w-5 h-5 mr-3" /> {(session.user as any).role === "partner" ? "Partner Dashboard" : "Profile"}
@@ -559,18 +446,24 @@ export default function Navbar() {
                   ) : (
                     <div className="grid grid-cols-2 gap-3">
                       <Link href="/login" className="block">
-                        <Button
-                          variant="outline"
-                          className="w-full justify-center text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 border-gray-200 h-12 text-sm font-bold px-2"
+                        <button
+                          className="c-button--gooey w-full flex items-center justify-center bg-[#E31E24] text-white rounded-xl h-11 text-sm font-bold uppercase tracking-wider shadow-lg shadow-red-500/20 transition-all relative overflow-hidden"
                           onClick={() => setIsOpen(false)}
                         >
-                          <User className="w-4 h-4 mr-1 sm:mr-2" /> Login
-                        </Button>
+                          <span className="relative z-10 flex items-center">
+                            <User className="w-4 h-4 mr-2" /> Login
+                          </span>
+                          <div className="c-button__blobs">
+                            <div />
+                            <div />
+                            <div />
+                          </div>
+                        </button>
                       </Link>
                       <Link href="/partner-register" className="block">
                         <Button
                           variant="outline"
-                          className="w-full justify-center text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 border-gray-200 h-12 text-sm font-bold px-2"
+                          className="w-full justify-center text-gray-700 hover:text-[#E31E24] hover:bg-red-50 border-gray-200 h-12 text-sm font-medium px-2"
                           onClick={() => setIsOpen(false)}
                         >
                           <User className="w-4 h-4 mr-1 sm:mr-2" /> Partner Login
@@ -593,50 +486,20 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4, ease: "easeInOut" as const }}
-            className="absolute top-full left-0 w-full h-screen bg-[#cccccc] shadow-2xl z-40"
+            onMouseEnter={() => setIsMegaMenuOpen(true)}
+            onMouseLeave={() => setIsMegaMenuOpen(false)}
+            className="absolute top-full left-0 w-full h-screen bg-white/98 backdrop-blur-xl shadow-2xl z-40"
           >
             <div className="container mx-auto px-6 py-12">
-              <div className="grid grid-cols-2 gap-12 max-w-4xl mx-auto">
-                {/* Services Column */}
-                <div className="col-span-1 pr-12">
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="p-2 rounded-lg bg-emerald-100/50 text-emerald-700">
-                      <Car className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">Our Services</h3>
-                  </div>
-                  <motion.div className="space-y-4" variants={containerVariants} initial="hidden" animate="visible" exit="exit">
-                    {servicesDropdown.map((dropdownItem) => (
-                      <motion.div key={dropdownItem.name} variants={itemVariants}>
-                        <Link
-                          href={dropdownItem.href}
-                          onClick={() => setIsMegaMenuOpen(false)}
-                          className="flex items-center gap-4 w-full text-left px-4 py-4 rounded-xl hover:bg-gray-50 transition-all duration-200 group/link"
-                        >
-                          <div className="p-2 rounded-lg bg-gray-100 text-gray-500 group-hover/link:bg-emerald-600 group-hover/link:text-white transition-colors">
-                            <dropdownItem.icon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-base font-semibold text-gray-700 group-hover/link:text-emerald-700 transition-colors">
-                              {dropdownItem.name}
-                            </p>
-                            <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">
-                              {dropdownItem.description}
-                            </p>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
+              <div className="grid grid-cols-1 gap-12 max-w-md mx-auto">
 
                 {/* Resources Column */}
                 <div className="col-span-1 pl-4">
                   <div className="flex items-center gap-3 mb-8">
-                    <div className="p-2 rounded-lg bg-emerald-100/50 text-emerald-700">
+                    <div className="p-2 rounded-lg bg-red-50 text-[#E31E24]">
                       <BookOpen className="w-6 h-6" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">Resources</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">Resources</h3>
                   </div>
                   <motion.div className="space-y-4" variants={containerVariants} initial="hidden" animate="visible" exit="exit">
                     {resourcesDropdown.map((dropdownItem) => (
@@ -644,13 +507,13 @@ export default function Navbar() {
                         <Link
                           href={dropdownItem.href}
                           onClick={() => setIsMegaMenuOpen(false)}
-                          className="flex items-center gap-4 w-full text-left px-4 py-4 rounded-xl hover:bg-gray-50 transition-all duration-200 group/link"
+                          className="flex items-center gap-4 w-full text-left px-4 py-4 rounded-xl hover:bg-red-50/30 transition-all duration-200 group/link"
                         >
-                          <div className="p-2 rounded-lg bg-gray-100 text-gray-500 group-hover/link:bg-emerald-600 group-hover/link:text-white transition-colors">
+                          <div className="p-2 rounded-lg bg-gray-100 text-gray-500 group-hover/link:bg-[#E31E24] group-hover/link:text-white transition-colors">
                             <dropdownItem.icon className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-base font-semibold text-gray-700 group-hover/link:text-emerald-700 transition-colors">
+                            <p className="text-base font-medium text-gray-700 group-hover/link:text-[#E31E24] transition-colors">
                               {dropdownItem.name}
                             </p>
                             <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">
@@ -668,7 +531,7 @@ export default function Navbar() {
               <div className="flex justify-center mt-12 pb-12">
                 <button
                   onClick={() => setIsMegaMenuOpen(false)}
-                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-600 hover:text-emerald-700 transition-all duration-200 font-medium group"
+                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#E31E24] transition-all duration-200 font-medium group"
                 >
                   <X className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
                   <span>Close Menu</span>

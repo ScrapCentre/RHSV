@@ -9,7 +9,9 @@ import BuyVehicle from "@/models/BuyVehicle"
 import B2BRegistration from "@/models/B2BRegistration"
 import B2BPartner from "@/models/B2BPartner"
 import Setting from "@/models/Setting"
-import { User, Package, Clock, Calendar, CheckCircle, Car, Building2, AlertCircle, RefreshCw, ShoppingCart, Tag } from "lucide-react"
+import WizardLead from "@/models/WizardLead"
+import User from "@/models/User"
+import { User as UserIcon, Package, Clock, Calendar, CheckCircle, Car, Building2, AlertCircle, RefreshCw, ShoppingCart, Tag } from "lucide-react"
 import Link from "next/link"
 import UserRequestList from "@/components/UserRequestList"
 import mongoose from "mongoose"
@@ -38,7 +40,12 @@ export default async function ProfilePage() {
     let error: boolean = false
 
     try {
-        // Fetch all types of requests for this user
+        // 1. Fetch user to get phone for fallback matching (handles leads submitted before login)
+        const userDoc = await User.findById(userId).lean();
+        const userPhone = (userDoc as any)?.phone;
+        const rawPhone = userPhone?.replace(/^\+91/, '');
+
+        // 2. Fetch all types of requests for this user
         // Using $or to match userId as either String or ObjectId for maximum compatibility
         const query = {
             $or: [
@@ -47,11 +54,18 @@ export default async function ProfilePage() {
             ].filter(q => q.userId !== null)
         }
 
-        const [valuations, sellRequests, exchangeRequests, buyRequests, latestRegistration, existingPartner, scrapSetting] = await Promise.all([
+        const [valuations, sellRequests, exchangeRequests, buyRequests, wizardLeads, latestRegistration, existingPartner, scrapSetting] = await Promise.all([
             Valuation.find(query).sort({ createdAt: -1 }),
             SellVehicle.find(query).sort({ createdAt: -1 }),
             ExchangeVehicle.find(query).sort({ createdAt: -1 }),
             BuyVehicle.find(query).sort({ createdAt: -1 }),
+            WizardLead.find({
+                $or: [
+                    { userId: userId },
+                    ...(userPhone ? [{ phone: userPhone }] : []),
+                    ...(rawPhone ? [{ phone: rawPhone }] : [])
+                ]
+            }).sort({ createdAt: -1 }),
             B2BRegistration.findOne({ userId }).sort({ createdAt: -1 }),
             B2BPartner.findOne({ originalUserId: userId }),
             Setting.findOne({ key: "scrapPricePerKg" })
@@ -59,7 +73,7 @@ export default async function ProfilePage() {
 
         const scrapPricePerKg = scrapSetting ? scrapSetting.value : 25
 
-        // Merge and add types for identification
+        // 3. Merge and add types for identification
         allRequests = [
             ...valuations.map(v => {
                 const obj = v.toObject()
@@ -73,6 +87,15 @@ export default async function ProfilePage() {
             ...sellRequests.map(s => ({ ...s.toObject(), type: 'sell' })),
             ...exchangeRequests.map(e => ({ ...e.toObject(), type: 'exchange' })),
             ...buyRequests.map(b => ({ ...b.toObject(), type: 'buy' })),
+            ...wizardLeads.map((w: any) => {
+                const obj = w.toObject ? w.toObject() : w
+                // Map WizardLead category to a display type
+                let type = 'scrap'
+                if (obj.category === 'scrap_and_buy') type = 'scrap-buy'
+                else if (obj.serviceType === 'sell') type = 'wizard-sell'
+                else if (obj.serviceType === 'buy') type = 'wizard-buy'
+                return { ...obj, type }
+            }),
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
         registration = latestRegistration
@@ -90,7 +113,7 @@ export default async function ProfilePage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                     <div>
                         <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight">
-                            <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                            <UserIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                             My Profile
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Manage your requests and account settings.</p>
@@ -103,7 +126,7 @@ export default async function ProfilePage() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-white">Oops! Something went wrong</h1>
-                            <p className="text-gray-400 mt-2">We couldn't load your profile information. Please try refreshing the page.</p>
+                            <p className="text-gray-400 mt-2">We couldn&apos;t load your profile information. Please try refreshing the page.</p>
                         </div>
                         <Link
                             href="/profile"
@@ -118,7 +141,7 @@ export default async function ProfilePage() {
                         {/* User Card - Refined to match Admin Cards */}
                         <div className="bg-white dark:bg-[#0E192D] rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-6 transition-all">
                             <div className="w-20 h-20 bg-orange-50 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center text-orange-600 dark:text-orange-500">
-                                <User className="w-10 h-10" />
+                                <UserIcon className="w-10 h-10" />
                             </div>
                             <div>
                                 <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{session.user?.name === "Novalytix Admin" ? "Admin" : session.user?.name}</h1>
@@ -169,7 +192,7 @@ export default async function ProfilePage() {
                                             <p className={`font-bold capitalize ${registration.status === 'pending' ? 'text-yellow-900 dark:text-yellow-400' : 'text-red-900 dark:text-red-400'
                                                 }`}>Registration {registration.status}</p>
                                             {registration.status === 'pending' && (
-                                                <p className="text-sm text-yellow-700 dark:text-yellow-300">We'll notify you once our team reviews your application.</p>
+                                                <p className="text-sm text-yellow-700 dark:text-yellow-300">We&apos;ll notify you once our team reviews your application.</p>
                                             )}
                                         </div>
                                     </div>
@@ -198,7 +221,7 @@ export default async function ProfilePage() {
                             {allRequests.length === 0 ? (
                                 <div className="bg-[#0E192D] rounded-xl p-8 text-center border border-dashed border-slate-700">
                                     <Package className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                                    <p className="text-gray-400">You haven't submitted any requests yet.</p>
+                                    <p className="text-gray-400">You haven&apos;t submitted any requests yet.</p>
                                     <Link href="/" className="inline-block mt-4 text-orange-500 font-semibold hover:text-orange-400 hover:underline">
                                         Get Started
                                     </Link>
@@ -213,4 +236,3 @@ export default async function ProfilePage() {
         </div>
     )
 }
-

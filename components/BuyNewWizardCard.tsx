@@ -25,16 +25,16 @@ function ProgressBar({ step }: { step: number }) {
               <div className={`
                 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
                 transition-all duration-300
-                ${isDone ? "bg-blue-500 text-white" : isActive ? "bg-[#0E192D] text-white ring-2 ring-blue-400" : "bg-slate-200 text-slate-400"}
+                ${isDone ? "bg-emerald-500 text-white" : isActive ? "bg-[#0E192D] text-white ring-2 ring-emerald-400" : "bg-slate-200 text-slate-400"}
               `}>
                 {isDone ? <CheckCircle className="w-4 h-4" /> : i + 1}
               </div>
-              <span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? "text-blue-600" : isDone ? "text-blue-500" : "text-slate-400"}`}>
+              <span className={`text-[9px] font-bold uppercase tracking-widest ${isActive ? "text-emerald-600" : isDone ? "text-emerald-500" : "text-slate-400"}`}>
                 {label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`w-8 h-0.5 mb-4 rounded transition-colors duration-300 ${isDone ? "bg-blue-400" : "bg-slate-200"}`} />
+              <div className={`w-8 h-0.5 mb-4 rounded transition-colors duration-300 ${isDone ? "bg-emerald-400" : "bg-slate-200"}`} />
             )}
           </div>
         )
@@ -61,7 +61,7 @@ function Field({
 const inputCls = `
   w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200
   text-slate-900 placeholder-slate-400 text-sm font-medium
-  focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+  focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20
   outline-none transition-all duration-200
 `
 
@@ -217,13 +217,13 @@ export default function BuyNewWizardCard() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", bounce: 0.5 }}
-          className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4"
+          className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4"
         >
-          <CheckCircle className="w-8 h-8 text-blue-400" />
+          <CheckCircle className="w-8 h-8 text-emerald-400" />
         </motion.div>
         <h3 className="text-xl font-bold text-white mb-2">Preferences Saved!</h3>
         <p className="text-slate-400 text-sm mb-6">
-          Our experts are curating the best {brand} {modelType} options under {budget} for you. We'll contact you shortly at +91 {phone}.
+          Our experts are curating the best {brand} {modelType} options under {budget} for you. We&apos;ll contact you shortly at +91 {phone}.
         </p>
         <button
           onClick={() => {
@@ -242,7 +242,7 @@ export default function BuyNewWizardCard() {
     <div className="relative w-full bg-[#0b1628] border border-slate-800 rounded-[24px] overflow-hidden shadow-[10px_10px_30px_rgba(0,0,0,0.3)]">
 
       {/* Header strip */}
-      <div className="bg-gradient-to-r from-[#0E192D] to-blue-950 px-6 pt-5 pb-4 border-b border-white/5">
+      <div className="bg-gradient-to-r from-[#0E192D] to-emerald-950 px-6 pt-5 pb-4 border-b border-white/5">
         <div>
           <h3 className="text-base font-bold text-white tracking-tight">Buy New Vehicle</h3>
           <p className="text-[11px] text-slate-400">Personalized recommendations • Best offers</p>
@@ -267,9 +267,9 @@ export default function BuyNewWizardCard() {
               className="space-y-4"
             >
               <div className="text-center mb-4">
-                <Car className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                <Car className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                 <h4 className="text-white font-bold text-base">Vehicle Preferences</h4>
-                <p className="text-slate-400 text-xs mt-0.5">Tell us what you're looking for</p>
+                <p className="text-slate-400 text-xs mt-0.5">Tell us what you&apos;re looking for</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -306,7 +306,7 @@ export default function BuyNewWizardCard() {
 
               <button
                 onClick={() => goNext(handleStep0Next)}
-                className="w-full py-3 bg-[#0E192D] hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all duration-200 mt-2"
+                className="w-full py-3 bg-[#0E192D] hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all duration-200 mt-2"
               >
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
@@ -326,7 +326,7 @@ export default function BuyNewWizardCard() {
               className="space-y-4"
             >
               <div className="text-center mb-4">
-                <User className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                <User className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                 <h4 className="text-white font-bold text-base">Contact Details</h4>
                 <p className="text-slate-400 text-xs mt-0.5">Where should we send the offers?</p>
               </div>
@@ -373,7 +373,7 @@ export default function BuyNewWizardCard() {
                 <button onClick={goPrev} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
                   <ChevronLeft className="w-4 h-4" /> Back
                 </button>
-                <button onClick={() => goNext(handleStep1Next)} className="flex-[2] py-3 bg-[#0E192D] hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
+                <button onClick={() => goNext(handleStep1Next)} className="flex-[2] py-3 bg-[#0E192D] hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
                   Continue <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -393,7 +393,7 @@ export default function BuyNewWizardCard() {
               className="space-y-4"
             >
               <div className="text-center mb-4">
-                <MapPin className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                <MapPin className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                 <h4 className="text-white font-bold text-base">Your Location</h4>
                 <p className="text-slate-400 text-xs mt-0.5">To find dealerships near you</p>
               </div>
@@ -465,7 +465,7 @@ export default function BuyNewWizardCard() {
                 <button onClick={goPrev} className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
                   <ChevronLeft className="w-4 h-4" /> Back
                 </button>
-                <button onClick={() => goNext(handleStep2Next)} className="flex-[2] py-3 bg-[#0E192D] hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
+                <button onClick={() => goNext(handleStep2Next)} className="flex-[2] py-3 bg-[#0E192D] hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
                   Continue <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -485,9 +485,9 @@ export default function BuyNewWizardCard() {
               className="space-y-4"
             >
               <div className="text-center mb-4">
-                <Shield className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                <Shield className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                 <h4 className="text-white font-bold text-base">Verify your number</h4>
-                <p className="text-slate-400 text-xs mt-0.5">We'll send you an OTP to confirm</p>
+                <p className="text-slate-400 text-xs mt-0.5">We&apos;ll send you an OTP to confirm</p>
               </div>
 
               <Field label="Phone Number" icon={Phone}>
@@ -508,7 +508,7 @@ export default function BuyNewWizardCard() {
                     <button
                       onClick={handleSendOtp}
                       disabled={sendingOtp || phone.length !== 10}
-                      className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-xl text-sm font-bold transition-all shrink-0 flex items-center gap-1.5"
+                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white rounded-xl text-sm font-bold transition-all shrink-0 flex items-center gap-1.5"
                     >
                       {sendingOtp ? "Sending..." : "Send OTP"}
                     </button>
@@ -525,8 +525,8 @@ export default function BuyNewWizardCard() {
                     exit={{ opacity: 0 }}
                     className="space-y-3"
                   >
-                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-center">
-                      <p className="text-blue-400 text-xs font-semibold">OTP sent to +91 {phone}</p>
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
+                      <p className="text-emerald-400 text-xs font-semibold">OTP sent to +91 {phone}</p>
                       <p className="text-slate-400 text-[10px] mt-0.5">(Demo: use <span className="font-black text-white">1234</span>)</p>
                     </div>
 
@@ -547,7 +547,7 @@ export default function BuyNewWizardCard() {
                     <button
                       onClick={handleVerifyOtp}
                       disabled={otp.length !== 4 || verifyingOtp}
-                      className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all"
+                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-xl flex items-center justify-center gap-2 text-sm transition-all"
                     >
                       {verifyingOtp ? "Verifying..." : "Verify & Submit"}
                     </button>
@@ -561,18 +561,18 @@ export default function BuyNewWizardCard() {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-5 text-center space-y-2"
+                    className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5 text-center space-y-2"
                   >
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", bounce: 0.5 }}
-                      className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto"
+                      className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto"
                     >
-                      <CheckCircle className="w-6 h-6 text-blue-400" />
+                      <CheckCircle className="w-6 h-6 text-emerald-400" />
                     </motion.div>
-                    <p className="text-blue-400 font-bold text-sm">Verified! Submitting request...</p>
-                    <div className="w-8 h-1 bg-blue-400/40 rounded-full mx-auto animate-pulse" />
+                    <p className="text-emerald-400 font-bold text-sm">Verified! Submitting request...</p>
+                    <div className="w-8 h-1 bg-emerald-400/40 rounded-full mx-auto animate-pulse" />
                   </motion.div>
                 )}
               </AnimatePresence>
