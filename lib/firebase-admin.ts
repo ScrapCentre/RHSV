@@ -1,12 +1,23 @@
 import * as admin from "firebase-admin";
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || "{}") as admin.ServiceAccount;
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+let serviceAccount: any = {};
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+  }
+} catch (e) {
+  console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY");
 }
 
-export const adminAuth = admin.auth();
-export const adminDb = admin.firestore();
+if (!admin.apps.length && serviceAccount.project_id) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } catch (e) {
+    console.error("Firebase admin initialization failed", e);
+  }
+}
+
+export const adminAuth = admin.apps.length ? admin.auth() : {} as any;
+export const adminDb = admin.apps.length ? admin.firestore() : {} as any;
