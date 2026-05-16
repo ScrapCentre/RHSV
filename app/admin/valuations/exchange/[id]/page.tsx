@@ -171,12 +171,15 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
                     </a>
                     <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-gray-200 dark:border-slate-700">
                         <select 
-                            value={request.status} 
+                            value={request.status || "pending"} 
                             onChange={(e) => handleStatusUpdate(e.target.value)}
                             className="bg-transparent text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white border-none focus:ring-0 cursor-pointer outline-none px-2"
                         >
                             <option value="pending" className="bg-white dark:bg-slate-900">Pending</option>
                             <option value="reviewing" className="bg-white dark:bg-slate-900">Reviewing</option>
+                            <option value="approved" className="bg-white dark:bg-slate-900">Approved</option>
+                            <option value="completed" className="bg-white dark:bg-slate-900">Completed</option>
+                            <option value="rejected" className="bg-white dark:bg-slate-900">Rejected</option>
                         </select>
                     </div>
                     <button

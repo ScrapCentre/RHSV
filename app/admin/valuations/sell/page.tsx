@@ -8,6 +8,7 @@ import WizardLead from "@/models/WizardLead"
 import { ShoppingCart, Clock, Calendar, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import ExportCSVButton from "@/components/admin/ExportCSVButton"
+import DeleteLeadButton from "@/components/admin/DeleteLeadButton"
 
 export const dynamic = "force-dynamic"
 
@@ -136,7 +137,10 @@ export default async function SellValuationsPage() {
                                     </td>
                                     <td className="px-6 py-4">{getStatusBadge(r.status)}</td>
                                     <td className="px-6 py-4 text-right">
-                                        <Link href={r.viewHref} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 font-medium text-xs">View</Link>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Link href={r.viewHref} className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40 rounded-lg font-bold text-xs transition-all">View</Link>
+                                            <DeleteLeadButton id={r._id} type="sell" />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -159,7 +163,10 @@ export default async function SellValuationsPage() {
                                             <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
                                         </div>
                                     </div>
-                                    {getStatusBadge(r.status)}
+                                    <div className="flex items-center gap-2">
+                                        {getStatusBadge(r.status)}
+                                        <DeleteLeadButton id={r._id} type="sell" />
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 text-sm py-3 border-y border-gray-50 dark:border-slate-800/50">
                                     <div>

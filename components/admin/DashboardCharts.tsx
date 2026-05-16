@@ -36,10 +36,10 @@ interface DashboardChartsProps {
 export default function DashboardCharts({ valuationCounts, b2bStats, monthlyGrowthData, activityData }: DashboardChartsProps) {
     // Chart 1: Service Distribution
     const serviceData = [
-        { name: "Free Quote", value: valuationCounts.quote, color: "#3b82f6" }, // Blue
-        { name: "Sell Vehicle", value: valuationCounts.sell, color: "#22c55e" }, // Green
+        { name: "Buy New", value: valuationCounts.buy, color: "#f97316" }, // Orange
         { name: "Exchange", value: valuationCounts.exchange, color: "#a855f7" }, // Purple
-        { name: "Buy Vehicle", value: valuationCounts.buy, color: "#f97316" }, // Orange
+        { name: "Scrap", value: valuationCounts.quote, color: "#3b82f6" }, // Blue
+        { name: "Sell Old", value: valuationCounts.sell, color: "#22c55e" }, // Green
     ]
 
     return (
@@ -60,10 +60,11 @@ export default function DashboardCharts({ valuationCounts, b2bStats, monthlyGrow
                                 data={serviceData}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
+                                innerRadius={55}
+                                outerRadius={75}
                                 paddingAngle={5}
                                 dataKey="value"
+                                minAngle={15}
                                 style={{ outline: 'none' }}
                             >
                                 {serviceData.map((entry, index) => (
@@ -74,7 +75,16 @@ export default function DashboardCharts({ valuationCounts, b2bStats, monthlyGrow
                                 contentStyle={{ backgroundColor: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                                 itemStyle={{ color: "#1e293b", fontWeight: "600" }}
                             />
-                            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                            <Legend 
+                                verticalAlign="bottom" 
+                                height={36} 
+                                iconType="circle"
+                                formatter={(value, entry: any) => (
+                                    <span className="font-bold text-[11px] uppercase tracking-wider" style={{ color: entry.color }}>
+                                        {value} ({entry.payload.value})
+                                    </span>
+                                )}
+                            />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -111,7 +121,7 @@ export default function DashboardCharts({ valuationCounts, b2bStats, monthlyGrow
                 transition={{ duration: 0.6, delay: 0.2, ease: [0.215, 0.61, 0.355, 1] as any }}
                 className="bg-white dark:bg-[#0E192D] p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col transition-colors duration-300"
             >
-                <h3 className="text-sm font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-6">Weekly Activity Activity</h3>
+                <h3 className="text-sm font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-6">Weekly Activity</h3>
                 <div className="h-[250px] w-full [&_.recharts-wrapper]:!outline-none [&_.recharts-surface]:!outline-none">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={activityData}>

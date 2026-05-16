@@ -7,6 +7,7 @@ import ExchangeVehicle from "@/models/ExchangeVehicle"
 import { RefreshCcw } from "lucide-react"
 import Link from "next/link"
 import ExportCSVButton from "@/components/admin/ExportCSVButton"
+import DeleteLeadButton from "@/components/admin/DeleteLeadButton"
 
 export const dynamic = "force-dynamic"
 
@@ -115,9 +116,12 @@ export default async function ExchangeValuationsPage() {
                                             {getStatusBadge(req.status)}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <Link href={`/admin/valuations/exchange/${req._id}`} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-xs">
-                                                View
-                                            </Link>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Link href={`/admin/valuations/exchange/${req._id}`} className="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg font-bold text-xs transition-all">
+                                                    View
+                                                </Link>
+                                                <DeleteLeadButton id={req._id.toString()} type="exchange" />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -146,7 +150,10 @@ export default async function ExchangeValuationsPage() {
                                                 <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">{new Date(req.createdAt).toLocaleDateString()}</p>
                                             </div>
                                         </div>
-                                        {getStatusBadge(req.status)}
+                                        <div className="flex items-center gap-2">
+                                            {getStatusBadge(req.status)}
+                                            <DeleteLeadButton id={req._id.toString()} type="exchange" />
+                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4 text-sm py-3 border-y border-gray-50 dark:border-slate-800/50">

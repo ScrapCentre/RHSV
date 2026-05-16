@@ -8,6 +8,7 @@ import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
 import { FileText, Recycle, ShoppingCart, Sparkles, ArrowUpRight, CheckCircle, Clock } from "lucide-react"
 import Link from "next/link"
+import DeleteLeadButton from "@/components/admin/DeleteLeadButton"
 
 export const dynamic = "force-dynamic"
 
@@ -245,12 +246,15 @@ export default async function ExecutiveLeadsListing({ params }: { params: Promis
                                     )}
                                     <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
                                     <td className="px-6 py-4 text-right">
-                                        <Link
-                                            href={item.viewHref}
-                                            className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-80 transition-all"
-                                        >
-                                            Review Lead <ArrowUpRight className="w-3 h-3" />
-                                        </Link>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Link
+                                                href={item.viewHref}
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-80 transition-all"
+                                            >
+                                                Review <ArrowUpRight className="w-3 h-3" />
+                                            </Link>
+                                            <DeleteLeadButton id={item._id} type={type} />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -290,12 +294,15 @@ export default async function ExecutiveLeadsListing({ params }: { params: Promis
                                     </div>
                                 )}
                             </div>
-                            <Link
-                                href={item.viewHref}
-                                className="w-full flex items-center justify-center gap-2 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-80 transition-all"
-                            >
-                                Review Lead <ArrowUpRight className="w-3 h-3" />
-                            </Link>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    href={item.viewHref}
+                                    className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-80 transition-all"
+                                >
+                                    Review <ArrowUpRight className="w-3 h-3" />
+                                </Link>
+                                <DeleteLeadButton id={item._id} type={type} />
+                            </div>
                         </div>
                     ))}
                 </div>

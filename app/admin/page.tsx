@@ -51,7 +51,7 @@ export default async function AdminPage() {
             sellRes,
             exchangeRes,
             buyRes,
-            wizardRes
+            wizardLeadsAll
         ] = await Promise.all([
             B2BRegistration.countDocuments({ status: 'pending' }),
             B2BPartner.countDocuments(),
@@ -59,273 +59,174 @@ export default async function AdminPage() {
             SellVehicle.countDocuments(),
             ExchangeVehicle.countDocuments(),
             BuyVehicle.countDocuments(),
-            WizardLead.countDocuments()
+            WizardLead.find().lean() // Fetch all for better analysis if not too many, otherwise aggregate
         ])
 
         b2bPending = b2bPendingCount
         b2bApproved = b2bPartnerCount
-        b2bTotal = b2bPartnerCount + b2bPending // Active Partners + Pending Requests
-        b2bCount = b2bPending // For the "New" badge
+        b2bTotal = b2bPartnerCount + b2bPending 
+        b2bCount = b2bPending 
 
+        // Initial counts from dedicated collections
         quoteCount = quoteRes
         sellCount = sellRes
         exchangeCount = exchangeRes
-        buyCount = buyRes + wizardRes
+        buyCount = buyRes
 
-        // Market Feed Fetching
+        // Add WizardLeads to counts based on their serviceType/category
+        wizardLeadsAll.forEach((lead: any) => {
+            if (lead.serviceType === 'scrap') {
+                if (lead.category === 'scrap_and_buy') {
+                    // This is a special case, maybe count as both or separate? 
+                    // Let's count as Scrap (Free Quote) for now as it's the primary intent
+                    quoteCount++
+                } else {
+                    quoteCount++
+                }
+            } else if (lead.serviceType === 'sell') {
+                sellCount++
+            } else if (lead.serviceType === 'buy') {
+                buyCount++
+            }
+        })
+
+        // Market Feed Fetching (Keep existing logic but use the fetched wizardLeadsAll for the slice)
+        const latestWizardLeads = [...wizardLeadsAll]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 10);
+
         const [
             latestQuotes,
             latestSells,
             latestExchanges,
-            latestBuys,
-            latestWizardLeads
+            latestBuys
         ] = await Promise.all([
             Valuation.find().sort({ createdAt: -1 }).limit(5).lean(),
             SellVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
             ExchangeVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
             BuyVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
-            WizardLead.find().sort({ createdAt: -1 }).limit(10).lean(),
         ])
 
         marketFeed = [
-            ...latestQuotes.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                return {
-                    ...plainItem,
-                    type: 'quote',
-                    customerName: item.contact?.name || "N/A",
-                    customerPhone: item.contact?.phone || "N/A",
-                    vehicleInfo: `${item.year} ${item.brand} ${item.model} (${item.vehicleType})`
-                };
-            }),
-            ...latestSells.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                return {
-                    ...plainItem,
-                    type: 'sell',
-                    customerName: item.name || "N/A",
-                    customerPhone: item.phone || "N/A",
-                    vehicleInfo: `${item.registrationYear} ${item.customBrand || item.brand} ${item.customModel || item.model}`
-                };
-            }),
-            ...latestExchanges.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                return {
-                    ...plainItem,
-                    type: 'exchange',
-                    customerName: item.customerName || "N/A",
-                    customerPhone: item.customerPhone || "N/A",
-                    vehicleInfo: `Old: ${item.oldVehicleBrand} ${item.oldVehicleModel} -> New: ${item.newVehicleBrand}`
-                };
-            }),
-            ...latestBuys.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                return {
-                    ...plainItem,
-                    type: 'buy',
-                    customerName: item.customerName || "N/A",
-                    customerPhone: item.customerPhone || "N/A",
-                    vehicleInfo: `Looking for: ${item.customBrand || item.vehicleBrand} ${item.customModel || item.vehicleModel}`
-                };
-            }),
+            ...latestQuotes.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'quote', customerName: item.contact?.name || "N/A", customerPhone: item.contact?.phone || "N/A", vehicleInfo: `${item.year} ${item.brand} ${item.model} (${item.vehicleType})` })),
+            ...latestSells.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'sell', customerName: item.name || "N/A", customerPhone: item.phone || "N/A", vehicleInfo: `${item.registrationYear} ${item.customBrand || item.brand} ${item.customModel || item.model}` })),
+            ...latestExchanges.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'exchange', customerName: item.customerName || "N/A", customerPhone: item.customerPhone || "N/A", vehicleInfo: `Old: ${item.oldVehicleBrand} ${item.oldVehicleModel} -> New: ${item.newVehicleBrand}` })),
+            ...latestBuys.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'buy', customerName: item.customerName || "N/A", customerPhone: item.customerPhone || "N/A", vehicleInfo: `Looking for: ${item.customBrand || item.vehicleBrand} ${item.customModel || item.vehicleModel}` })),
             ...latestWizardLeads.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                let vehicleInfoStr = "";
-                if (item.serviceType === "buy") {
-                    vehicleInfoStr = `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}`;
-                } else if (item.serviceType === "scrap" && item.category === "scrap_and_buy") {
-                    vehicleInfoStr = `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}`;
-                } else {
-                    vehicleInfoStr = `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
-                }
+                let vehicleInfoStr = item.serviceType === "buy" ? `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}` : 
+                                   (item.serviceType === "scrap" && item.category === "scrap_and_buy") ? `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}` :
+                                   `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
                 
-                let resolvedType: string;
-                if (item.serviceType === 'scrap' && item.category === 'scrap_and_buy') {
-                    resolvedType = 'scrap-buy';
-                } else if (item.serviceType === 'scrap') {
-                    resolvedType = 'quote';
-                } else {
-                    resolvedType = item.serviceType; // 'sell' or 'buy'
-                }
-                return {
-                    ...plainItem,
-                    type: resolvedType,
-                    customerName: item.name || "N/A",
-                    customerPhone: item.phone || "N/A",
-                    vehicleInfo: vehicleInfoStr
-                };
+                let resolvedType = (item.serviceType === 'scrap' && item.category === 'scrap_and_buy') ? 'scrap-buy' : 
+                                  (item.serviceType === 'scrap') ? 'quote' : item.serviceType;
+
+                return { ...JSON.parse(JSON.stringify(item)), type: resolvedType, customerName: item.name || "N/A", customerPhone: item.phone || "N/A", vehicleInfo: vehicleInfoStr };
             })
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 15);
 
-        // Calculate Total Metrics
         totalRequests = quoteCount + sellCount + exchangeCount + buyCount
 
-        // Calculate Total Approved
-        const [
-            approvedQuotes,
-            approvedSells,
-            approvedExchanges,
-            approvedBuys,
-            approvedWizard
-        ] = await Promise.all([
+        // Total Approved logic (simplified for clarity)
+        const [appQ, appS, appE, appB, appW] = await Promise.all([
             Valuation.countDocuments({ status: 'approved' }),
             SellVehicle.countDocuments({ status: 'approved' }),
             ExchangeVehicle.countDocuments({ status: 'approved' }),
             BuyVehicle.countDocuments({ status: 'approved' }),
             WizardLead.countDocuments({ status: 'approved' })
         ])
-        totalApproved = approvedQuotes + approvedSells + approvedExchanges + approvedBuys + approvedWizard
+        totalApproved = appQ + appS + appE + appB + appW
 
-        // Calculate Total Tons (from Valuation collection)
-        // Note: fetch only vehicleWeight field to minimize data transfer
+        // Total Tons calculation
         const valuationsWithWeight = await Valuation.find({}, { vehicleWeight: 1 }).lean()
         let totalTons = 0
         valuationsWithWeight.forEach((v: any) => {
             if (v.vehicleWeight) {
-                // simple parsing for "1500 kg", "1.5 tons", etc.
                 const weightStr = v.vehicleWeight.toLowerCase().replace(/,/g, '')
                 const num = parseFloat(weightStr)
                 if (!isNaN(num)) {
-                    if (weightStr.includes('kg')) {
-                        totalTons += num / 1000
-                    } else if (weightStr.includes('ton')) {
-                        totalTons += num
-                    } else {
-                        // Default assuming kg if no unit, or just add raw number if it seems small? 
-                        // Safer to assume kg if > 10, tons if < 10? 
-                        // For now, let's assume raw numbers are KG if > 50, otherwise Tons.
-                        if (num > 50) totalTons += num / 1000
-                        else totalTons += num
-                    }
+                    if (weightStr.includes('kg')) totalTons += num / 1000
+                    else if (weightStr.includes('ton')) totalTons += num
+                    else if (num > 50) totalTons += num / 1000
+                    else totalTons += num
                 }
             }
         })
-
-        // Format to 1 decimal place
         formattedTotalTons = totalTons.toFixed(1)
 
-
-        // --- Real-time Chart Data Fetching ---
-
-        // 1. Monthly Growth (Last 6 Months)
+        // --- Improved Chart Data Aggregation ---
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-        sixMonthsAgo.setDate(1); // Start of the 6th month ago
+        sixMonthsAgo.setDate(1);
         sixMonthsAgo.setHours(0, 0, 0, 0);
 
         const monthlyAggregation = [
-            {
-                $match: {
-                    createdAt: { $gte: sixMonthsAgo }
-                }
-            },
-            {
-                $group: {
-                    _id: {
-                        year: { $year: "$createdAt" },
-                        month: { $month: "$createdAt" }
-                    },
-                    count: { $sum: 1 }
-                }
-            }
+            { $match: { createdAt: { $gte: sixMonthsAgo } } },
+            { $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } }, count: { $sum: 1 } } }
         ];
 
-        const [monthlyQuotes, monthlySells, monthlyExchanges, monthlyBuys] = await Promise.all([
+        const [mQ, mS, mE, mB, mW] = await Promise.all([
             Valuation.aggregate(monthlyAggregation),
             SellVehicle.aggregate(monthlyAggregation),
             ExchangeVehicle.aggregate(monthlyAggregation),
-            BuyVehicle.aggregate(monthlyAggregation)
+            BuyVehicle.aggregate(monthlyAggregation),
+            WizardLead.aggregate(monthlyAggregation)
         ]);
 
-        const combinedMonthlyData = [...monthlyQuotes, ...monthlySells, ...monthlyExchanges, ...monthlyBuys];
-
         const monthlyTotals: { [key: string]: number } = {};
-
-        // Initialize last 6 months with 0
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         for (let i = 5; i >= 0; i--) {
             const d = new Date();
             d.setMonth(d.getMonth() - i);
-            const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
-            monthlyTotals[key] = 0;
+            monthlyTotals[`${d.getFullYear()}-${d.getMonth() + 1}`] = 0;
         }
 
-        // Sum up all collections
-        combinedMonthlyData.forEach(item => {
+        [...mQ, ...mS, ...mE, ...mB, ...mW].forEach(item => {
             const key = `${item._id.year}-${item._id.month}`;
-            if (monthlyTotals[key] !== undefined) {
-                monthlyTotals[key] += item.count;
-            }
+            if (monthlyTotals[key] !== undefined) monthlyTotals[key] += item.count;
         });
 
-        formattedMonthlyGrowth = Object.entries(monthlyTotals).map(([key, value]) => {
-            const [year, month] = key.split('-');
-            return {
-                name: monthNames[parseInt(month) - 1],
-                value: value
-            };
-        });
+        formattedMonthlyGrowth = Object.entries(monthlyTotals).map(([key, value]) => ({
+            name: monthNames[parseInt(key.split('-')[1]) - 1],
+            value: value
+        }));
 
-
-        // 2. Weekly Activity (Last 7 Days)
+        // Weekly Activity (Last 7 Days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
         sevenDaysAgo.setHours(0, 0, 0, 0);
 
         const dailyAggregation = [
-            {
-                $match: {
-                    createdAt: { $gte: sevenDaysAgo }
-                }
-            },
-            {
-                $group: {
-                    _id: {
-                        year: { $year: "$createdAt" },
-                        month: { $month: "$createdAt" },
-                        day: { $dayOfMonth: "$createdAt" },
-                        dayOfWeek: { $dayOfWeek: "$createdAt" } // 1 (Sunday) - 7 (Saturday)
-                    },
-                    count: { $sum: 1 }
-                }
-            }
+            { $match: { createdAt: { $gte: sevenDaysAgo } } },
+            { $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" }, dayOfWeek: { $dayOfWeek: "$createdAt" } }, count: { $sum: 1 } } }
         ];
 
-        const [dailyQuotes, dailySells, dailyExchanges, dailyBuys, dailyPartners, dailyRegistrations] = await Promise.all([
+        const [dQ, dS, dE, dB, dP, dR, dW] = await Promise.all([
             Valuation.aggregate(dailyAggregation),
             SellVehicle.aggregate(dailyAggregation),
             ExchangeVehicle.aggregate(dailyAggregation),
             BuyVehicle.aggregate(dailyAggregation),
             B2BPartner.aggregate(dailyAggregation),
-            B2BRegistration.aggregate(dailyAggregation)
+            B2BRegistration.aggregate(dailyAggregation),
+            WizardLead.aggregate(dailyAggregation)
         ]);
-
-        const combinedDailyRequests = [...dailyQuotes, ...dailySells, ...dailyExchanges, ...dailyBuys];
-        const combinedDailyPartners = [...dailyPartners, ...dailyRegistrations];
 
         const dailyTotals: { [key: string]: { requests: number, partners: number, dayOfWeek: number } } = {};
         const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-        // Initialize last 7 days
         for (let i = 6; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-            dailyTotals[key] = { requests: 0, partners: 0, dayOfWeek: d.getDay() + 1 }; // JS getDay is 0-6 (Sun-Sat), Mongo dayOfWeek is 1-7
+            dailyTotals[`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`] = { requests: 0, partners: 0, dayOfWeek: d.getDay() + 1 };
         }
 
-        combinedDailyRequests.forEach(item => {
+        [...dQ, ...dS, ...dE, ...dB, ...dW].forEach(item => {
             const key = `${item._id.year}-${item._id.month}-${item._id.day}`;
-            if (dailyTotals[key] !== undefined) {
-                dailyTotals[key].requests += item.count;
-            }
+            if (dailyTotals[key] !== undefined) dailyTotals[key].requests += item.count;
         });
 
-        combinedDailyPartners.forEach(item => {
+        [...dP, ...dR].forEach(item => {
             const key = `${item._id.year}-${item._id.month}-${item._id.day}`;
-            if (dailyTotals[key] !== undefined) {
-                dailyTotals[key].partners += item.count;
-            }
+            if (dailyTotals[key] !== undefined) dailyTotals[key].partners += item.count;
         });
 
         formattedWeeklyActivity = Object.entries(dailyTotals).map(([key, data]) => ({

@@ -27,31 +27,33 @@ export async function DELETE(req: NextRequest) {
 
         await connectToDatabase()
 
-        let model
+        let deleted = null
+
         switch (type) {
             case "quote":
-                model = Valuation
+                deleted = await Valuation.findByIdAndDelete(id)
+                if (!deleted) deleted = await WizardLead.findByIdAndDelete(id)
                 break
             case "sell":
-                model = SellVehicle
+                deleted = await SellVehicle.findByIdAndDelete(id)
+                if (!deleted) deleted = await WizardLead.findByIdAndDelete(id)
                 break
             case "exchange":
-                model = ExchangeVehicle
+                deleted = await ExchangeVehicle.findByIdAndDelete(id)
                 break
             case "buy":
-                model = BuyVehicle
+                deleted = await BuyVehicle.findByIdAndDelete(id)
+                if (!deleted) deleted = await WizardLead.findByIdAndDelete(id)
                 break
             case "scrap-buy":
-                model = WizardLead
+                deleted = await WizardLead.findByIdAndDelete(id)
                 break
             default:
                 return NextResponse.json({ error: "Invalid type" }, { status: 400 })
         }
 
-        const deleted = await model.findByIdAndDelete(id)
-
         if (!deleted) {
-            return NextResponse.json({ error: "Request not found" }, { status: 404 })
+            return NextResponse.json({ error: "Request not found in any model" }, { status: 404 })
         }
 
         return NextResponse.json({ success: true })
@@ -60,4 +62,5 @@ export async function DELETE(req: NextRequest) {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
+
 

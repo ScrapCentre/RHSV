@@ -53,11 +53,16 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                         <Clock className="w-3.5 h-3.5" /> Pending
                     </span>
                 )
-            case "contacted":
-            case "reviewed":
             case "reviewing":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-900/20 text-blue-400 border border-blue-900/30">
+                        <Clock className="w-3.5 h-3.5 animate-pulse" /> Reviewing
+                    </span>
+                )
+            case "contacted":
+            case "reviewed":
+                return (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-900/20 text-indigo-400 border border-indigo-900/30">
                         <CheckCircle className="w-3.5 h-3.5" /> Reviewed
                     </span>
                 )

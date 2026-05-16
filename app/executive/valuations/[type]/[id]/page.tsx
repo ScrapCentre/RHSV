@@ -136,7 +136,9 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                             </span>
                             <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${
                                 request.status === 'approved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 
-                                (request.status === 'reviewing' || request.status === 'reviewed') ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' :
+                                request.status === 'completed' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
+                                request.status === 'rejected' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' :
+                                request.status === 'reviewing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' :
                                 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
                             }`}>
                                 {request.status}
@@ -173,12 +175,15 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
 
                     <div className="flex items-center gap-2 bg-black/20 dark:bg-black/40 p-1.5 rounded-xl border border-white/5">
                         <select 
-                            value={request.status === 'reviewed' ? 'reviewing' : request.status} 
+                            value={request.status || "pending"} 
                             onChange={(e) => handleStatusUpdate(e.target.value)}
                             className="bg-transparent text-[10px] font-black uppercase tracking-[0.2em] text-white border-none focus:ring-0 cursor-pointer outline-none px-4"
                         >
                             <option value="pending" className="bg-zinc-900">Pending</option>
                             <option value="reviewing" className="bg-zinc-900">Reviewing</option>
+                            <option value="approved" className="bg-zinc-900">Approved</option>
+                            <option value="completed" className="bg-zinc-900">Completed</option>
+                            <option value="rejected" className="bg-zinc-900">Rejected</option>
                         </select>
                     </div>
                     <button

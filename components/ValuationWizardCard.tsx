@@ -719,7 +719,7 @@ export default function ValuationWizardCard() {
                                             </div>
                                             <div className="relative max-w-md mx-auto">
                                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                                                <input type="text" placeholder="DL-01-AB-1234" value={formData.regNo} onChange={(e) => setFormData({...formData, regNo: e.target.value.toUpperCase()})} className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-black tracking-widest focus:outline-none focus:border-[#E31E24] transition-all text-center" />
+                                                <input type="text" placeholder="DL-01-AB-1234" value={formData.regNo} onChange={(e) => setFormData({...formData, regNo: e.target.value.toUpperCase()})} className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-black tracking-widest text-slate-900 focus:outline-none focus:border-[#E31E24] transition-all text-center" />
                                             </div>
                                             <button disabled={!formData.regNo || isFetching} onClick={handleRegSubmit} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2 group uppercase tracking-widest text-[10px]">
                                                 {isFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch Details"}
@@ -738,19 +738,19 @@ export default function ValuationWizardCard() {
                                             <div className="grid grid-cols-2 gap-2.5 max-w-md mx-auto">
                                                 <div className="space-y-0.5">
                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Company / Brand</label>
-                                                    <input type="text" value={formData.brand} onChange={(e) => setFormData({...formData, brand: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                    <input type="text" value={formData.brand} onChange={(e) => setFormData({...formData, brand: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                 </div>
                                                 <div className="space-y-0.5">
                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
-                                                    <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Swift" />
+                                                    <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Swift" />
                                                 </div>
                                                 <div className="space-y-0.5">
                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Reg. Year</label>
-                                                    <input type="text" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                    <input type="text" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                 </div>
                                                 <div className="space-y-0.5">
                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Weight (KG)</label>
-                                                    <input type="text" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" placeholder="e.g. 1200" />
+                                                    <input type="text" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. 1200" />
                                                 </div>
                                             </div>
                                             <button onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">Confirm & Continue <ArrowRight className="w-3.5 h-3.5" /></button>
@@ -787,7 +787,7 @@ export default function ValuationWizardCard() {
                                         <div className="space-y-5 text-center">
                                             <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
                                             <h3 className="text-xl font-bold text-slate-900">Your Name</h3>
-                                            <input type="text" placeholder="Enter Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" autoFocus />
+                                            <input type="text" placeholder="Enter Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" autoFocus />
                                             <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-slate-900 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-[10px]">Continue</button>
                                         </div>
                                     )}
@@ -799,11 +799,11 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Address</label>
-                                                    <textarea placeholder="House No, Street, City, State" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium focus:outline-none focus:border-[#E31E24] min-h-[80px]" />
+                                                    <textarea placeholder="House No, Street, City, State" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium text-slate-900 focus:outline-none focus:border-[#E31E24] min-h-[80px]" />
                                                 </div>
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
-                                                    <input type="text" placeholder="6-digit Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" maxLength={6} />
+                                                    <input type="text" placeholder="6-digit Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" maxLength={6} />
                                                 </div>
                                             </div>
                                             <button disabled={!formData.address || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-slate-900 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-[10px]">Continue</button>
@@ -826,7 +826,7 @@ export default function ValuationWizardCard() {
                                                         placeholder="Mobile Number" 
                                                         value={formData.phone} 
                                                         onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
-                                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
+                                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
                                                         maxLength={10} 
                                                     />
                                                 </div>
@@ -838,7 +838,7 @@ export default function ValuationWizardCard() {
                                                             placeholder="••••••" 
                                                             value={formData.otp} 
                                                             onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
-                                                            className="w-full px-4 py-3 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] focus:outline-none focus:border-[#E31E24]" 
+                                                            className="w-full px-4 py-3 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
                                                             maxLength={6} 
                                                             autoFocus 
                                                         />
@@ -876,11 +876,11 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1.5 text-left">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Brand</label>
-                                                    <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                    <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                 </div>
                                                 <div className="space-y-1.5 text-left">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Model</label>
-                                                    <input type="text" placeholder="e.g. Swift" value={formData.desiredModel} onChange={(e) => setFormData({...formData, desiredModel: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                    <input type="text" placeholder="e.g. Swift" value={formData.desiredModel} onChange={(e) => setFormData({...formData, desiredModel: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                 </div>
                                             </div>
                                             
@@ -891,7 +891,7 @@ export default function ValuationWizardCard() {
                                         <div className="space-y-5 text-center">
                                             <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
                                             <h3 className="text-xl font-bold text-slate-900">Tell us your name</h3>
-                                            <input type="text" placeholder="Your Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" autoFocus />
+                                            <input type="text" placeholder="Your Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" autoFocus />
                                             <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Next Step</button>
                                         </div>
                                     )}
@@ -911,7 +911,7 @@ export default function ValuationWizardCard() {
                                                         placeholder="10-digit number" 
                                                         value={formData.phone} 
                                                         onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
-                                                        className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
+                                                        className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
                                                         maxLength={10} 
                                                     />
                                                 </div>
@@ -923,7 +923,7 @@ export default function ValuationWizardCard() {
                                                             placeholder="••••••" 
                                                             value={formData.otp} 
                                                             onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
-                                                            className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] focus:outline-none focus:border-[#E31E24]" 
+                                                            className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
                                                             maxLength={6} 
                                                             autoFocus 
                                                         />
@@ -961,7 +961,7 @@ export default function ValuationWizardCard() {
                                             </div>
                                             <div className="relative max-w-md mx-auto">
                                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                                                <input type="text" placeholder="DL-01-AB-1234" value={formData.regNo} onChange={(e) => setFormData({...formData, regNo: e.target.value.toUpperCase()})} className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-black tracking-widest focus:outline-none focus:border-[#E31E24] transition-all text-center" />
+                                                <input type="text" placeholder="DL-01-AB-1234" value={formData.regNo} onChange={(e) => setFormData({...formData, regNo: e.target.value.toUpperCase()})} className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-black tracking-widest text-slate-900 focus:outline-none focus:border-[#E31E24] transition-all text-center" />
                                             </div>
                                             <button disabled={!formData.regNo || isFetching} onClick={handleRegSubmit} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2 group uppercase tracking-widest text-[10px]">
                                                 {isFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch Details"}
@@ -979,19 +979,19 @@ export default function ValuationWizardCard() {
                                             <div className="grid grid-cols-2 gap-2.5 max-w-md mx-auto">
                                                 <div className="space-y-0.5">
                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Company / Brand</label>
-                                                    <input type="text" value={formData.brand} onChange={(e) => setFormData({...formData, brand: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                    <input type="text" value={formData.brand} onChange={(e) => setFormData({...formData, brand: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                 </div>
                                                 <div className="space-y-0.5">
                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
-                                                    <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Santro" />
+                                                    <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Santro" />
                                                 </div>
                                                 <div className="space-y-0.5">
                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Reg. Year</label>
-                                                    <input type="text" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                    <input type="text" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                 </div>
                                                 <div className="space-y-0.5">
                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Weight (KG)</label>
-                                                    <input type="text" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#E31E24]" placeholder="e.g. 1200" />
+                                                    <input type="text" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. 1200" />
                                                 </div>
                                             </div>
                                             <button onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">Confirm & Continue <ArrowRight className="w-3.5 h-3.5" /></button>
@@ -1019,11 +1019,11 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1.5 text-left">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Brand</label>
-                                                    <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                    <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                 </div>
                                                 <div className="space-y-1.5 text-left">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Model</label>
-                                                    <input type="text" placeholder="e.g. Swift" value={formData.desiredModel} onChange={(e) => setFormData({...formData, desiredModel: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" />
+                                                    <input type="text" placeholder="e.g. Swift" value={formData.desiredModel} onChange={(e) => setFormData({...formData, desiredModel: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                 </div>
                                             </div>
                                             
@@ -1075,7 +1075,7 @@ export default function ValuationWizardCard() {
                                         <div className="space-y-5 text-center">
                                             <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
                                             <h3 className="text-xl font-bold text-slate-900">Your Name</h3>
-                                            <input type="text" placeholder="Enter Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" autoFocus />
+                                            <input type="text" placeholder="Enter Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" autoFocus />
                                             <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
                                         </div>
                                     )}
@@ -1087,11 +1087,11 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Address</label>
-                                                    <textarea placeholder="House No, Street, City, State" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium focus:outline-none focus:border-[#E31E24] min-h-[80px]" />
+                                                    <textarea placeholder="House No, Street, City, State" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium text-slate-900 focus:outline-none focus:border-[#E31E24] min-h-[80px]" />
                                                 </div>
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
-                                                    <input type="text" placeholder="6-digit Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]" maxLength={6} />
+                                                    <input type="text" placeholder="6-digit Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" maxLength={6} />
                                                 </div>
                                             </div>
                                             <button disabled={!formData.address || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
@@ -1114,7 +1114,7 @@ export default function ValuationWizardCard() {
                                                         placeholder="Mobile Number" 
                                                         value={formData.phone} 
                                                         onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
-                                                        className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
+                                                        className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
                                                         maxLength={10} 
                                                     />
                                                 </div>
@@ -1126,7 +1126,7 @@ export default function ValuationWizardCard() {
                                                             placeholder="••••••" 
                                                             value={formData.otp} 
                                                             onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
-                                                            className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] focus:outline-none focus:border-[#E31E24]" 
+                                                            className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
                                                             maxLength={6} 
                                                             autoFocus 
                                                         />

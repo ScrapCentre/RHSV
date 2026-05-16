@@ -89,7 +89,7 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                     title: "Success",
                     description: "Request deleted successfully"
                 })
-                router.push("/admin/valuations/quote")
+                router.push("/admin/valuations/scrap-buy")
             } else {
                 toast({
                     title: "Error",
@@ -115,6 +115,8 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                 return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500 border border-blue-200 dark:border-blue-900/50">Reviewing</span>
             case "completed":
                 return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-900/50">Completed</span>
+            case "rejected":
+                return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500 border border-red-200 dark:border-red-900/50">Rejected</span>
             case "approved":
                 return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-500 border border-emerald-200 dark:border-emerald-900/50"><CheckCircle className="w-3.5 h-3.5" />Approved</span>
             default:
@@ -176,6 +178,8 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                             <option value="pending" className="bg-white dark:bg-slate-900">Pending</option>
                             <option value="reviewing" className="bg-white dark:bg-slate-900">Reviewing</option>
                             <option value="approved" className="bg-white dark:bg-slate-900">Approved</option>
+                            <option value="completed" className="bg-white dark:bg-slate-900">Completed</option>
+                            <option value="rejected" className="bg-white dark:bg-slate-900">Rejected</option>
                         </select>
                     </div>
                     <button

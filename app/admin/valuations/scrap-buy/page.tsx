@@ -7,6 +7,7 @@ import WizardLead from "@/models/WizardLead"
 import { Sparkles, Clock, Calendar, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import ExportCSVButton from "@/components/admin/ExportCSVButton"
+import DeleteLeadButton from "@/components/admin/DeleteLeadButton"
 
 export const dynamic = "force-dynamic"
 
@@ -108,7 +109,10 @@ export default async function ScrapBuyListPage() {
                                     <td className="px-6 py-4 text-gray-600 dark:text-slate-400">{w.pincode || "N/A"}</td>
                                     <td className="px-6 py-4">{getStatusBadge(w.status || "pending")}</td>
                                     <td className="px-6 py-4 text-right">
-                                        <Link href={`/admin/valuations/scrap-buy/${w._id}`} className="text-purple-600 dark:text-purple-400 hover:text-purple-800 font-medium text-xs">View</Link>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Link href={`/admin/valuations/scrap-buy/${w._id}`} className="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg font-bold text-xs transition-all">View</Link>
+                                            <DeleteLeadButton id={w._id.toString()} type="scrap-buy" />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -131,7 +135,10 @@ export default async function ScrapBuyListPage() {
                                             <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">{new Date(w.createdAt).toLocaleDateString()}</p>
                                         </div>
                                     </div>
-                                    {getStatusBadge(w.status || "pending")}
+                                    <div className="flex items-center gap-2">
+                                        {getStatusBadge(w.status || "pending")}
+                                        <DeleteLeadButton id={w._id.toString()} type="scrap-buy" />
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 text-sm py-3 border-y border-gray-50 dark:border-slate-800/50">
                                     <div>
