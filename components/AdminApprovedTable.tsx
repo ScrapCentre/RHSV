@@ -11,32 +11,27 @@ export default function AdminApprovedTable({ data }: { data: any[] }) {
     function getCustomerInfo(req: any) {
         if (req.type === "quote") {
             return {
-                name: req.contact?.name || "N/A",
-                phone: req.contact?.phone || "N/A"
-            }
-        } else if (req.type === "sell") {
-            return {
-                name: req.name || "N/A",
-                phone: req.phone || "N/A"
-            }
-        } else if (req.type === "exchange" || req.type === "buy") {
-            return {
-                name: req.customerName || "N/A",
-                phone: req.customerPhone || "N/A"
+                name: req.contact?.name || req.name || req.customerName || "N/A",
+                phone: req.contact?.phone || req.phone || req.customerPhone || "N/A"
             }
         }
-        return { name: "N/A", phone: "N/A" }
+        return {
+            name: req.name || req.customerName || "N/A",
+            phone: req.phone || req.customerPhone || "N/A"
+        }
     }
 
     function getVehicleInfo(req: any) {
         if (req.type === "quote") {
-            return `${req.brand} ${req.model} (${req.year})`
+            return `${req.brand || 'Unknown'} ${req.model || ''} (${req.year || 'N/A'})`
         } else if (req.type === "sell") {
-            return `${req.brand} ${req.model} (${req.registrationYear})`
+            return `${req.brand || 'Unknown'} ${req.model || ''} (${req.registrationYear || req.year || 'N/A'})`
         } else if (req.type === "exchange") {
-            return `${req.oldVehicleBrand} ${req.oldVehicleModel} → ${req.newVehicleBrand}`
+            return `${req.oldVehicleBrand || 'Unknown'} ${req.oldVehicleModel || ''} → ${req.newVehicleBrand || ''}`
         } else if (req.type === "buy") {
-            return `${req.vehicleBrand} ${req.vehicleModel}`
+            return `${req.vehicleBrand || req.desiredCompany || 'Unknown'} ${req.vehicleModel || req.desiredModel || ''}`
+        } else if (req.type === "scrap" || req.type === "scrap-buy" || req.originalType === "scrap-buy") {
+            return `${req.brand || req.desiredCompany || 'Unknown'} ${req.model || req.desiredModel || ''} (${req.year || 'N/A'})`
         }
         return "N/A"
     }
@@ -67,6 +62,7 @@ export default function AdminApprovedTable({ data }: { data: any[] }) {
                                 <th className="px-6 py-4 whitespace-nowrap">Type</th>
                                 <th className="px-6 py-4 whitespace-nowrap">Customer</th>
                                 <th className="px-6 py-4 whitespace-nowrap">Details</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Status</th>
                                 <th className="px-6 py-4 whitespace-nowrap">Approved On</th>
                                 <th className="px-6 py-4 whitespace-nowrap text-right">Actions</th>
                             </tr>
@@ -107,6 +103,25 @@ export default function AdminApprovedTable({ data }: { data: any[] }) {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <p className="font-medium text-gray-900 dark:text-white">{vehicle}</p>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {req.status === 'pickup_scheduled' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                        Pickup Scheduled
+                                                    </span>
+                                                ) : req.status === 'reached_collection_centre' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                                                        Reached Centre
+                                                    </span>
+                                                ) : req.status === 'car_scrapped' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+                                                        Car Scrapped
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                                        Approved
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-gray-500 dark:text-slate-400 whitespace-nowrap">
                                                 {new Date(req.updatedAt).toLocaleDateString()}
@@ -168,11 +183,25 @@ export default function AdminApprovedTable({ data }: { data: any[] }) {
                                                 <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{customer.name}</p>
                                                 <p className="text-[10px] font-mono text-gray-500 dark:text-slate-400">{customer.phone}</p>
                                             </div>
-                                            <div className="space-y-1 text-right">
-                                                <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">Approved On</p>
-                                                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                                                    {new Date(req.updatedAt).toLocaleDateString()}
-                                                </p>
+                                            <div className="space-y-1 text-right flex flex-col items-end">
+                                                <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">Status</p>
+                                                {req.status === 'pickup_scheduled' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 mt-0.5">
+                                                        Pickup Scheduled
+                                                    </span>
+                                                ) : req.status === 'reached_collection_centre' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 mt-0.5">
+                                                        Reached Centre
+                                                    </span>
+                                                ) : req.status === 'car_scrapped' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 mt-0.5">
+                                                        Car Scrapped
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mt-0.5">
+                                                        Approved
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 

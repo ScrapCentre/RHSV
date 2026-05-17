@@ -6,6 +6,7 @@ import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 import { CheckCircle, ChevronLeft, ArrowUpRight, FileText } from "lucide-react"
 import Link from "next/link"
 import ExecutiveApprovedTable from "@/components/ExecutiveApprovedTable"
@@ -26,12 +27,14 @@ export default async function ExecutiveApprovedLeads() {
         approvedQuotes,
         approvedSells,
         approvedExchanges,
-        approvedBuys
+        approvedBuys,
+        approvedWizards
     ] = await Promise.all([
         Valuation.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
         SellVehicle.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
         ExchangeVehicle.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
         BuyVehicle.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
+        WizardLead.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
     ])
 
     const allApproved = [
@@ -39,26 +42,54 @@ export default async function ExecutiveApprovedLeads() {
             ...JSON.parse(JSON.stringify(item)),
             type: 'quote',
             customerName: item.contact?.name || "N/A",
-            vehicleInfo: `${item.year} ${item.brand} ${item.model}`
+            customerPhone: item.contact?.phone || "N/A",
+            vehicleInfo: `${item.year || 'N/A'} ${item.brand || 'Unknown'} ${item.model || ''}`
         })),
         ...approvedSells.map((item: any) => ({
             ...JSON.parse(JSON.stringify(item)),
             type: 'sell',
             customerName: item.name || "N/A",
-            vehicleInfo: `${item.registrationYear} ${item.brand} ${item.model}`
+            customerPhone: item.phone || "N/A",
+            vehicleInfo: `${item.registrationYear || 'N/A'} ${item.brand || 'Unknown'} ${item.model || ''}`
         })),
         ...approvedExchanges.map((item: any) => ({
             ...JSON.parse(JSON.stringify(item)),
             type: 'exchange',
             customerName: item.customerName || "N/A",
-            vehicleInfo: `Exchange: ${item.oldVehicleBrand} -> ${item.newVehicleBrand}`
+            customerPhone: item.customerPhone || "N/A",
+            vehicleInfo: `Exchange: ${item.oldVehicleBrand || ''} -> ${item.newVehicleBrand || ''}`
         })),
         ...approvedBuys.map((item: any) => ({
             ...JSON.parse(JSON.stringify(item)),
             type: 'buy',
             customerName: item.customerName || "N/A",
-            vehicleInfo: `Buying: ${item.vehicleBrand} ${item.vehicleModel}`
-        }))
+            customerPhone: item.customerPhone || "N/A",
+            vehicleInfo: `Buying: ${item.vehicleBrand || ''} ${item.vehicleModel || ''}`
+        })),
+        ...approvedWizards.map((item: any) => {
+            const plain = JSON.parse(JSON.stringify(item));
+            const serviceType = plain.serviceType || plain.type || "wizard";
+            let linkType = serviceType;
+            if (serviceType === "scrap") linkType = "quote";
+            if (serviceType === "wizard-sell") linkType = "sell";
+            if (serviceType === "wizard-buy") linkType = "buy";
+            
+            let vehicleInfo = "N/A";
+            if (serviceType === "buy" || serviceType === "wizard-buy") {
+                vehicleInfo = `Buying: ${plain.desiredCompany || plain.vehicleBrand || ''} ${plain.desiredModel || plain.vehicleModel || ''}`;
+            } else {
+                vehicleInfo = `${plain.year || plain.registrationYear || 'N/A'} ${plain.brand || plain.desiredCompany || 'Unknown'} ${plain.model || plain.desiredModel || ''}`;
+            }
+
+            return {
+                ...plain,
+                type: linkType,
+                originalType: serviceType,
+                customerName: plain.name || plain.customerName || "N/A",
+                customerPhone: plain.phone || plain.customerPhone || "N/A",
+                vehicleInfo: vehicleInfo.trim()
+            }
+        })
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     return (

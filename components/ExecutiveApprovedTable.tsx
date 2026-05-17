@@ -50,11 +50,11 @@ export default function ExecutiveApprovedTable({ data }: { data: any[] }) {
                                     <td className="px-6 py-4">
                                         {item.status === 'pickup_scheduled' ? (
                                             <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                                                Accepted
+                                                Pickup Scheduled
                                             </span>
                                         ) : item.status === 'reached_collection_centre' ? (
                                             <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                                                Reached Centre
+                                                Picked Up Successfully
                                             </span>
                                         ) : item.status === 'car_scrapped' ? (
                                             <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
@@ -62,7 +62,7 @@ export default function ExecutiveApprovedTable({ data }: { data: any[] }) {
                                             </span>
                                         ) : (
                                             <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                Published
+                                                Approved
                                             </span>
                                         )}
                                     </td>

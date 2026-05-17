@@ -266,37 +266,60 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                     </div>
                                 )}
 
-                                {/* Status Section */}
-                                <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">Status</span>
+                                {/* Status Timeline Section */}
+                                <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">Status Tracking</span>
                                         {getStatusBadge(selectedRequest.status)}
                                     </div>
-                                    {(selectedRequest.status === 'reviewing' || selectedRequest.status === 'reviewed' || selectedRequest.status === 'contacted') && (
-                                        <p className="text-xs text-blue-400/70 italic">
-                                            Our team has reviewed your request and will contact you shortly.
-                                        </p>
-                                    )}
-                                    {selectedRequest.status === 'approved' && (
-                                        <p className="text-xs text-emerald-400/70 italic">
-                                            Your request has been approved. Our team will reach out for next steps.
-                                        </p>
-                                    )}
-                                    {selectedRequest.status === 'pickup_scheduled' && (
-                                        <p className="text-xs text-blue-400/70 italic">
-                                            A partner has accepted your lead and a pickup is scheduled.
-                                        </p>
-                                    )}
-                                    {selectedRequest.status === 'reached_collection_centre' && (
-                                        <p className="text-xs text-purple-400/70 italic">
-                                            Your vehicle has been successfully picked up and reached the collection centre.
-                                        </p>
-                                    )}
-                                    {selectedRequest.status === 'car_scrapped' && (
-                                        <p className="text-xs text-red-400/70 italic">
-                                            Your vehicle has been successfully scrapped and processed.
-                                        </p>
-                                    )}
+                                    
+                                    <div className="relative border-l-2 border-slate-700 ml-3 space-y-6">
+                                        {(() => {
+                                            const steps = [
+                                                { id: 'pending', label: 'Request Submitted', description: 'Customer requested service.', icon: <Clock className="w-4 h-4" />, date: selectedRequest.createdAt },
+                                                { id: 'approved', label: 'Approved & Published', description: 'Verified by Admin/Executive and published to B2B marketplace.', icon: <CheckCircle className="w-4 h-4" />, date: selectedRequest.updatedAt },
+                                                { id: 'pickup_scheduled', label: 'Pickup Scheduled', description: 'A B2B Partner has accepted the lead.', icon: <Car className="w-4 h-4" />, date: null },
+                                                { id: 'reached_collection_centre', label: 'Reached Collection Centre', description: 'Vehicle successfully arrived at ScrapCentre.', icon: <CheckCircle className="w-4 h-4" />, date: null },
+                                                { id: 'car_scrapped', label: 'Car Scrapped Successfully', description: 'Final processing completed.', icon: <CheckCircle className="w-4 h-4" />, date: null }
+                                            ];
+
+                                            const currentStatus = selectedRequest.status || 'pending';
+                                            let currentIndex = 0;
+                                            if (currentStatus === 'approved') currentIndex = 1;
+                                            if (currentStatus === 'pickup_scheduled') currentIndex = 2;
+                                            if (currentStatus === 'reached_collection_centre') currentIndex = 3;
+                                            if (currentStatus === 'car_scrapped' || currentStatus === 'completed') currentIndex = 4;
+
+                                            return steps.map((step, index) => {
+                                                const isCompleted = index <= currentIndex;
+                                                return (
+                                                    <div key={step.id} className="relative pl-8">
+                                                        <div 
+                                                            className={`absolute -left-[17px] top-0 w-8 h-8 rounded-full border-4 border-[#0E192D] flex items-center justify-center transition-colors
+                                                                ${isCompleted ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]' : 'bg-slate-800 text-slate-500'}
+                                                            `}
+                                                        >
+                                                            {isCompleted ? <CheckCircle className="w-3.5 h-3.5" /> : step.icon}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className={`text-sm font-bold ${isCompleted ? 'text-white' : 'text-slate-500'}`}>
+                                                                {step.label}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                                                                {step.description}
+                                                            </p>
+                                                            {isCompleted && step.date && index < 2 && (
+                                                                <p className="text-[10px] font-bold text-blue-400 mt-2 uppercase tracking-widest flex items-center gap-1">
+                                                                    <Calendar className="w-3 h-3" />
+                                                                    {new Date(step.date).toLocaleDateString()}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            });
+                                        })()}
+                                    </div>
                                 </div>
 
                                 {/* Details Grid - Dynamic based on type */}

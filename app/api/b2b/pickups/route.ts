@@ -7,6 +7,7 @@ import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 
 // POST: Accept a lead from market feed → create a pickup
 export async function POST(req: Request) {
@@ -73,12 +74,22 @@ export async function POST(req: Request) {
                 break
         }
 
+        let updated = null;
         if (model) {
-            await model.findByIdAndUpdate(leadId, {
+            updated = await model.findByIdAndUpdate(leadId, {
                 status: "pickup_scheduled",
                 b2bPickupId: pickup._id,
                 b2bPartnerId: (session.user as any).id || session.user?.email
-            })
+            });
+        }
+        
+        // Fallback for modern WizardLead documents (including scrap-buy which won't have a legacy model)
+        if (!updated) {
+            await WizardLead.findByIdAndUpdate(leadId, {
+                status: "pickup_scheduled",
+                b2bPickupId: pickup._id,
+                b2bPartnerId: (session.user as any).id || session.user?.email
+            });
         }
 
         return NextResponse.json({ success: true, pickup }, { status: 201 })

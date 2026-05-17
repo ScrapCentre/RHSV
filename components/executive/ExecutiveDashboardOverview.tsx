@@ -187,12 +187,31 @@ export default function ExecutiveDashboardOverview({
                                                 {mounted ? format(new Date(item.createdAt), "MMM d, HH:mm") : ""}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium capitalize ${item.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
-                                                    item.status === 'approved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
-                                                        'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-                                                    }`}>
-                                                    {item.status}
-                                                </span>
+                                                {item.status === 'pickup_scheduled' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                                                        Pickup Scheduled
+                                                    </span>
+                                                ) : item.status === 'reached_collection_centre' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+                                                        Picked Up Successfully
+                                                    </span>
+                                                ) : item.status === 'car_scrapped' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                                                        Car Scrapped
+                                                    </span>
+                                                ) : item.status === 'approved' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                                                        Approved
+                                                    </span>
+                                                ) : item.status === 'reviewing' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                                        Reviewing
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+                                                        {item.status || 'Pending'}
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <Link href={`/executive/valuations/${item.type}/${item._id}`} className="p-2 inline-flex items-center justify-center rounded-lg hover:bg-black dark:hover:bg-white text-gray-400 hover:text-white dark:hover:text-black transition-all">
@@ -245,12 +264,31 @@ export default function ExecutiveDashboardOverview({
                                                         <p className="text-[10px] font-mono text-gray-500 dark:text-white/40">{item.customerPhone}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${item.status === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' :
-                                                            item.status === 'approved' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                                                                'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
-                                                            }`}>
-                                                            {item.status}
-                                                        </span>
+                                                        {item.status === 'pickup_scheduled' ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                                                Pickup Scheduled
+                                                            </span>
+                                                        ) : item.status === 'reached_collection_centre' ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                                                                Picked Up Successfully
+                                                            </span>
+                                                        ) : item.status === 'car_scrapped' ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                                                                Car Scrapped
+                                                            </span>
+                                                        ) : item.status === 'approved' ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+                                                                Approved
+                                                            </span>
+                                                        ) : item.status === 'reviewing' ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                                                Reviewing
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
+                                                                {item.status || 'Pending'}
+                                                            </span>
+                                                        )}
                                                         <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-black/20 flex items-center justify-center text-gray-400 border border-gray-100 dark:border-white/5">
                                                             <ChevronRight className="w-4 h-4" />
                                                         </div>

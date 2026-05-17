@@ -5,6 +5,7 @@ import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
@@ -42,28 +43,33 @@ export async function POST(
 
         // 2. If the status is 'picked_up', update the original lead to 'reached_collection_centre'
         if (status === 'picked_up') {
-            let model
+            let legacyModel
             switch (pickup.leadType) {
                 case "quote":
                 case "valuation":
-                    model = Valuation
+                    legacyModel = Valuation
                     break
                 case "sell":
-                    model = SellVehicle
+                    legacyModel = SellVehicle
                     break
                 case "exchange":
-                    model = ExchangeVehicle
+                    legacyModel = ExchangeVehicle
                     break
                 case "buy":
-                    model = BuyVehicle
+                    legacyModel = BuyVehicle
                     break
             }
 
-            if (model) {
-                await model.findByIdAndUpdate(pickup.leadId, {
-                    status: "reached_collection_centre"
-                })
+            // Update BOTH legacy model and WizardLead in parallel — whichever matches the leadId will succeed
+            const updatePromises = [
+                WizardLead.findByIdAndUpdate(pickup.leadId, { status: "reached_collection_centre" })
+            ]
+            if (legacyModel) {
+                updatePromises.push(legacyModel.findByIdAndUpdate(pickup.leadId, { status: "reached_collection_centre" }))
             }
+            await Promise.allSettled(updatePromises)
+
+            console.log(`[B2B Pickup] Lead ${pickup.leadId} marked as reached_collection_centre`)
         }
 
         return NextResponse.json({ success: true, pickup }, { status: 200 })

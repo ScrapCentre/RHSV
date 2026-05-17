@@ -7,6 +7,7 @@ import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 import { CheckCircle, FileText, ShoppingCart, RefreshCcw, Calendar, Eye } from "lucide-react"
 import Link from "next/link"
 import AdminApprovedTable from "@/components/AdminApprovedTable"
@@ -23,50 +24,63 @@ export default async function ApprovedRequestsPage() {
     await connectToDatabase()
 
     // Fetch all approved requests from all collections
-    const [quoteRequests, sellRequests, exchangeRequests, buyRequests] = await Promise.all([
-        Valuation.find({ status: "approved" }).sort({ createdAt: -1 }).lean(),
-        SellVehicle.find({ status: "approved" }).sort({ createdAt: -1 }).lean(),
-        ExchangeVehicle.find({ status: "approved" }).sort({ createdAt: -1 }).lean(),
-        BuyVehicle.find({ status: "approved" }).sort({ createdAt: -1 }).lean()
+    const statusFilter = { status: { $in: ["approved", "pickup_scheduled", "reached_collection_centre", "car_scrapped"] } };
+    const [quoteRequests, sellRequests, exchangeRequests, buyRequests, wizardRequests] = await Promise.all([
+        Valuation.find(statusFilter).sort({ createdAt: -1 }).lean(),
+        SellVehicle.find(statusFilter).sort({ createdAt: -1 }).lean(),
+        ExchangeVehicle.find(statusFilter).sort({ createdAt: -1 }).lean(),
+        BuyVehicle.find(statusFilter).sort({ createdAt: -1 }).lean(),
+        WizardLead.find(statusFilter).sort({ createdAt: -1 }).lean()
     ])
+
+    const formatWizardLead = (req: any) => {
+        const plainReq = JSON.parse(JSON.stringify(req));
+        let typeName = "Vehicle Request";
+        let color = "blue";
+        const serviceType = plainReq.serviceType || plainReq.type || "wizard";
+        
+        let linkType = serviceType;
+        if (serviceType === "scrap") { typeName = "Scrap Vehicle"; color = "blue"; linkType = "quote"; }
+        if (serviceType === "scrap-buy") { typeName = "Scrap & Buy New"; color = "purple"; }
+        if (serviceType === "sell" || serviceType === "wizard-sell") { typeName = "Sell Old Vehicle"; color = "green"; linkType = "sell"; }
+        if (serviceType === "buy" || serviceType === "wizard-buy") { typeName = "Buy New Vehicle"; color = "orange"; linkType = "buy"; }
+        
+        return { ...plainReq, type: linkType, originalType: serviceType, typeName, color };
+    }
 
     // Combine all requests with type information
     const allRequests = [
-        ...quoteRequests.map((req: any) => ({ ...req, type: "quote", typeName: "Get Free Quote", color: "blue" })),
-        ...sellRequests.map((req: any) => ({ ...req, type: "sell", typeName: "Sell Old Vehicle", color: "green" })),
-        ...exchangeRequests.map((req: any) => ({ ...req, type: "exchange", typeName: "Exchange Vehicle", color: "purple" })),
-        ...buyRequests.map((req: any) => ({ ...req, type: "buy", typeName: "Buy New Vehicle", color: "orange" }))
+        ...quoteRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "quote", typeName: "Get Free Quote", color: "blue" })),
+        ...sellRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "sell", typeName: "Sell Old Vehicle", color: "green" })),
+        ...exchangeRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "exchange", typeName: "Exchange Vehicle", color: "purple" })),
+        ...buyRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "buy", typeName: "Buy New Vehicle", color: "orange" })),
+        ...wizardRequests.map(formatWizardLead)
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     function getCustomerInfo(req: any) {
         if (req.type === "quote") {
             return {
-                name: req.contact?.name || "N/A",
-                phone: req.contact?.phone || "N/A"
-            }
-        } else if (req.type === "sell") {
-            return {
-                name: req.name || "N/A",
-                phone: req.phone || "N/A"
-            }
-        } else if (req.type === "exchange" || req.type === "buy") {
-            return {
-                name: req.customerName || "N/A",
-                phone: req.customerPhone || "N/A"
+                name: req.contact?.name || req.name || req.customerName || "N/A",
+                phone: req.contact?.phone || req.phone || req.customerPhone || "N/A"
             }
         }
-        return { name: "N/A", phone: "N/A" }
+        return {
+            name: req.name || req.customerName || "N/A",
+            phone: req.phone || req.customerPhone || "N/A"
+        }
     }
 
     function getVehicleInfo(req: any) {
         if (req.type === "quote") {
-            return `${req.brand} ${req.model} (${req.year})`
+            return `${req.brand || 'Unknown'} ${req.model || ''} (${req.year || 'N/A'})`
         } else if (req.type === "sell") {
-            return `${req.brand} ${req.model} (${req.registrationYear})`
+            return `${req.brand || 'Unknown'} ${req.model || ''} (${req.registrationYear || req.year || 'N/A'})`
         } else if (req.type === "exchange") {
-            return `${req.oldVehicleBrand} ${req.oldVehicleModel} → ${req.newVehicleBrand}`
+            return `${req.oldVehicleBrand || 'Unknown'} ${req.oldVehicleModel || ''} → ${req.newVehicleBrand || ''}`
         } else if (req.type === "buy") {
-            return `${req.vehicleBrand} ${req.vehicleModel}`
+            return `${req.vehicleBrand || req.desiredCompany || 'Unknown'} ${req.vehicleModel || req.desiredModel || ''}`
+        } else if (req.type === "scrap" || req.type === "scrap-buy" || req.originalType === "scrap-buy") {
+            return `${req.brand || req.desiredCompany || 'Unknown'} ${req.model || req.desiredModel || ''} (${req.year || 'N/A'})`
         }
         return "N/A"
     }

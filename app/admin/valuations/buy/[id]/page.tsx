@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ShoppingCart, Car, User, MapPin, Calendar, ChevronLeft, CheckCircle, Trash2, Phone, Mail, DollarSign, MessageCircle } from "lucide-react"
+import { ShoppingCart, Car, User, MapPin, Calendar, ChevronLeft, CheckCircle, Trash2, Phone, Mail, DollarSign, MessageCircle, Send } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
@@ -169,6 +169,20 @@ export default function BuyDetailPage({ params }: { params: Promise<{ id: string
                         <MessageCircle className="w-4 h-4" />
                         Chat
                     </a>
+                    {request.status !== 'approved' ? (
+                        <button
+                            onClick={() => handleStatusUpdate('approved')}
+                            className="flex-1 md:flex-none justify-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm md:mr-4"
+                        >
+                            <Send className="w-4 h-4" />
+                            Approve → B2B
+                        </button>
+                    ) : (
+                        <div className="flex-1 md:flex-none justify-center px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg font-medium text-sm flex items-center gap-2 md:mr-4">
+                            <CheckCircle className="w-4 h-4" />
+                            Approved
+                        </div>
+                    )}
                     <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-gray-200 dark:border-slate-700">
                         <select 
                             value={request.status || "pending"} 
