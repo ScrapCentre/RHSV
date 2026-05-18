@@ -24,6 +24,11 @@ export async function GET(
             return NextResponse.json({ error: "Request not found" }, { status: 404 })
         }
 
+        if (request.status === "pending") {
+            request.status = "reviewing"
+            await request.save()
+        }
+
         return NextResponse.json(request)
     } catch (error) {
         console.error("Error fetching exchange request:", error)

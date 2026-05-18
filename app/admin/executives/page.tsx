@@ -4,25 +4,22 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
     Shield, 
-    Plus, 
+    Key, 
     Trash2, 
     Mail, 
     User as UserIcon, 
-    Lock, 
     Loader2, 
     AlertCircle,
     CheckCircle2,
     RefreshCcw,
-    Users,
-    UserPlus
+    Users
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function AdminExecutivesPage() {
     const [executives, setExecutives] = useState<any[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoadingList, setIsLoadingList] = useState(true)
     const [isCreating, setIsCreating] = useState(false)
-    const [showForm, setShowForm] = useState(false)
     
     // Form state
     const [formData, setFormData] = useState({
@@ -35,10 +32,11 @@ export default function AdminExecutivesPage() {
 
     useEffect(() => {
         fetchExecutives()
+        generateCredentials()
     }, [])
 
     const fetchExecutives = async () => {
-        setIsLoading(true)
+        setIsLoadingList(true)
         try {
             const res = await fetch("/api/admin/executives")
             const data = await res.json()
@@ -54,12 +52,23 @@ export default function AdminExecutivesPage() {
         } catch (error) {
             console.error("Fetch Error:", error)
         } finally {
-            setIsLoading(false)
+            setIsLoadingList(false)
         }
+    }
+
+    const generateCredentials = () => {
+        const randomPass = Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 10)
+        setFormData(prev => ({ ...prev, password: randomPass }))
     }
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
+        
+        if (!formData.name || !formData.email || !formData.password) {
+            toast({ title: "Validation Error", description: "All fields are required.", variant: "destructive" })
+            return
+        }
+
         setIsCreating(true)
 
         try {
@@ -76,7 +85,7 @@ export default function AdminExecutivesPage() {
                     description: "Executive account created successfully",
                 })
                 setFormData({ name: "", email: "", password: "" })
-                setShowForm(false)
+                generateCredentials()
                 fetchExecutives()
             } else {
                 toast({
@@ -138,101 +147,89 @@ export default function AdminExecutivesPage() {
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Create and manage high-authority executive portal accounts.</p>
                 </div>
-
-                <button 
-                    onClick={() => setShowForm(!showForm)}
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
-                >
-                    {showForm ? <Trash2 className="w-5 h-5 rotate-45" /> : <UserPlus className="w-5 h-5" />}
-                    {showForm ? "Cancel" : "Add New Executive"}
-                </button>
             </div>
 
-            {/* Create Form Section */}
-            <AnimatePresence>
-                {showForm && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="bg-white dark:bg-[#0E192D] rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-slate-800 transition-all">
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                <Plus className="w-5 h-5 text-blue-500" />
-                                Provision New Account
-                            </h2>
-                            <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Full Name</label>
-                                    <div className="relative">
-                                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input 
-                                            required
-                                            type="text" 
-                                            placeholder="John Doe"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                            className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-11 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Email / Username</label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input 
-                                            required
-                                            type="email" 
-                                            placeholder="exec@scrapcenter.in"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                            className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-11 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Password</label>
-                                    <div className="relative flex gap-2">
-                                        <div className="relative flex-1">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                            <input 
-                                                required
-                                                type="text" 
-                                                placeholder="••••••••"
-                                                value={formData.password}
-                                                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                                className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-11 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                            />
-                                        </div>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setFormData({...formData, password: Math.random().toString(36).slice(-10) + '!'})}
-                                            className="px-3 bg-gray-100 dark:bg-slate-800 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-                                            title="Generate Password"
-                                        >
-                                            <RefreshCcw className="w-4 h-4 text-gray-500" />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="md:col-span-3 flex justify-end">
-                                    <button 
-                                        disabled={isCreating}
-                                        type="submit"
-                                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
-                                    >
-                                        {isCreating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                                        Provision Executive
-                                    </button>
-                                </div>
-                            </form>
+            {/* Generator Style Form Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Credentials Panel */}
+                <div className="bg-white dark:bg-[#0E192D] rounded-2xl p-8 border border-gray-100 dark:border-slate-800 shadow-sm space-y-6">
+                    <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-4">
+                        <h2 className="text-lg font-bold flex items-center gap-2">
+                            <Key className="w-5 h-5 text-blue-500" />
+                            Portal Credentials
+                        </h2>
+                        <button 
+                            type="button"
+                            onClick={generateCredentials}
+                            className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                        >
+                            <RefreshCcw className="w-3.5 h-3.5" />
+                            Regenerate
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Email / Username</label>
+                            <div className="relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                                <input
+                                    type="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                    placeholder="exec@scrapcenter.in"
+                                    className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-3 font-medium text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                />
+                            </div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Access Password</label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.password}
+                                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                                className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleCreate}
+                        disabled={isCreating}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                    >
+                        {isCreating ? <RefreshCcw className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
+                        {isCreating ? "Provisioning Access..." : "Generate & Approve Access"}
+                    </button>
+                </div>
+
+                {/* Info Panel */}
+                <div className="bg-gray-50 dark:bg-slate-900/50 rounded-2xl p-8 border border-gray-100 dark:border-slate-800 space-y-8">
+                    <h2 className="text-lg font-bold flex items-center gap-2">
+                        <UserIcon className="w-5 h-5 text-gray-500" />
+                        Executive Profile Details
+                    </h2>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Full Name</label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.name}
+                                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                                placeholder="John Doe"
+                                className="w-full bg-white dark:bg-[#0E192D] border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* List Section */}
-            <div className="bg-white dark:bg-[#0E192D] rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden transition-all">
+            <div className="bg-white dark:bg-[#0E192D] rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden transition-all mt-8">
                 <div className="p-6 md:p-8 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <Users className="w-5 h-5 text-gray-400" />
@@ -253,7 +250,7 @@ export default function AdminExecutivesPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 dark:divide-slate-800/50">
-                            {isLoading ? (
+                            {isLoadingList ? (
                                 [1, 2, 3].map((i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td colSpan={3} className="px-8 py-6">

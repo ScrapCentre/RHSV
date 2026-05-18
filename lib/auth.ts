@@ -1,3 +1,4 @@
+import mongoose from "mongoose"
 import { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
@@ -9,6 +10,7 @@ import User from "@/models/User"
 import ScrapCentreUser from "@/models/ScrapCentreUser"
 import B2BPartner from "@/models/B2BPartner"
 import Executive from "@/models/Executive"
+import RVSFUser from "@/models/RVSFUser"
 
 import { adminAuth } from "@/lib/firebase-admin"
 
@@ -72,6 +74,14 @@ export const authOptions: NextAuthOptions = {
                         const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
                         console.log(`[Auth] B2B Partner Match: ${identifier}, Match: ${isMatch}`);
                         if (isMatch) return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
+                    }
+
+                    // 6. RVSF Database
+                    const rvsf = await RVSFUser.findOne({ rvsfId: identifier }).select("+password").lean();
+                    if (rvsf) {
+                        const isMatch = await bcrypt.compare(password, (rvsf as any).password);
+                        console.log(`[Auth] RVSF Match: ${identifier}, Match: ${isMatch}`);
+                        if (isMatch) return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf" }
                     }
 
                 } catch (err: any) {
@@ -155,6 +165,27 @@ export const authOptions: NextAuthOptions = {
                     const isMatch = await bcrypt.compare(credentials.password, (user as any).password);
                     if (!isMatch) return null;
                     return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "executive" }
+                } catch (err) {
+                    return null;
+                }
+            }
+        }),
+        CredentialsProvider({
+            id: "rvsf-credentials",
+            name: "RVSF Portal",
+            credentials: {
+                rvsfId: { label: "RVSF ID", type: "text" },
+                password: { label: "Password", type: "password" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.rvsfId || !credentials?.password) return null;
+                try {
+                    await connectToDatabase();
+                    const rvsf = await RVSFUser.findOne({ rvsfId: credentials.rvsfId }).select("+password").lean();
+                    if (!rvsf) return null;
+                    const isMatch = await bcrypt.compare(credentials.password, (rvsf as any).password);
+                    if (!isMatch) return null;
+                    return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf" }
                 } catch (err) {
                     return null;
                 }

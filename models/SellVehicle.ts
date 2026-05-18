@@ -22,6 +22,7 @@ const SellVehicleSchema = new Schema(
         city: { type: String },
         customCity: { type: String },
         pincode: { type: String },
+        fullAddress: { type: String },
         insuranceName: { type: String },
         status: {
             type: String,

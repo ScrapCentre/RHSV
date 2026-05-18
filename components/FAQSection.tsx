@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowRight, Recycle, ShoppingCart, Banknote, Repeat } from "lucide-react"
+import { ArrowRight, Recycle, ShoppingCart, Banknote, Repeat, Sparkles } from "lucide-react"
 import Link from "next/link"
 import {
     Accordion,
@@ -24,6 +24,7 @@ export default function FAQSection({ variant = "red" }: { variant?: "red" | "gre
     const shadowHover = isRed ? "hover:shadow-red-600/40" : "hover:shadow-emerald-600/40";
     const bgBadge = isRed ? "bg-green-100" : "bg-yellow-400/20";
     const textBadge = isRed ? "text-green-600" : "text-yellow-400";
+    const bgSecondary = isRed ? "bg-red-50" : "bg-emerald-950/30";
 
     // Background blobs colors
     const blob1 = isRed ? "bg-red-100/40" : "bg-emerald-500/10";
@@ -83,7 +84,7 @@ export default function FAQSection({ variant = "red" }: { variant?: "red" | "gre
                                 <Sparkles size={14} className={textPrimary} />
                                 <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${textPrimary}`}>Got Questions?</span>
                             </motion.div>
-                            <h2 className={`text-4xl md:text-5xl font-black ${textTitle} mb-6 uppercase tracking-tight`}>
+                            <h2 className={`text-4xl md:text-5xl font-black ${headingText} mb-6 uppercase tracking-tight`}>
                                 Frequently Asked <span className={textPrimary}>Questions</span>
                             </h2>
                             <p className="text-gray-500 text-lg max-w-xl">

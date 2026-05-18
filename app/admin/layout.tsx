@@ -299,6 +299,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 </Link>
                             </motion.div>
                             <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/rvsf-generator" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/rvsf-generator') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/rvsf-generator') && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
+                                    )}
+                                    <Key className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/rvsf-generator') ? 'text-[#E31E24]' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">RVSF Generator</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
                                 <Link href="/admin/contact" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/contact') ? 'bg-blue-500/10 text-blue-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
                                     {isActive('/admin/contact') && (
                                         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500 rounded-r-full" />

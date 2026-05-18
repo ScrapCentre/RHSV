@@ -9,6 +9,7 @@ import BuyVehicle from "@/models/BuyVehicle"
 import Contact from "@/models/Contact"
 import B2BRegistration from "@/models/B2BRegistration"
 import BulkOutsourcing from "@/models/BulkOutsourcing"
+import WizardLead from "@/models/WizardLead"
 
 export const dynamic = "force-dynamic"
 
@@ -21,7 +22,7 @@ export async function GET() {
 
         await connectToDatabase()
 
-        // Fetch latest new/pending requests from relevant models
+        // Fetch latest new/pending requests from relevant models, including the stepper WizardLeads
         const [
             valuations,
             sellRequests,
@@ -29,7 +30,8 @@ export async function GET() {
             buyRequests,
             contactRequests,
             b2bRegistrations,
-            bulkOutsourcing
+            bulkOutsourcing,
+            wizardLeads
         ] = await Promise.all([
             Valuation.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             SellVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
@@ -37,7 +39,8 @@ export async function GET() {
             BuyVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             Contact.find({ status: "new" }).sort({ createdAt: -1 }).limit(10).lean(),
             B2BRegistration.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
-            BulkOutsourcing.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean()
+            BulkOutsourcing.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
+            WizardLead.find({ status: "pending" }).sort({ createdAt: -1 }).limit(10).lean()
         ])
 
         // Format and combine notifications
@@ -97,13 +100,58 @@ export async function GET() {
                 description: `From ${bulk.partnerName} (${bulk.entries?.length || 0} entries)`,
                 createdAt: bulk.createdAt,
                 href: `/admin/bulk-outsourcing/${bulk._id}?highlight=true`
-            }))
+            })),
+            ...wizardLeads.map((wl: any) => {
+                let type: string = "valuation"
+                let title: string = "New Stepper Lead"
+                let description: string = `${wl.brand || ""} ${wl.model || ""} (${wl.year || "N/A"})`
+                let href: string = `/admin/valuations/quote/${wl._id}?highlight=true`
+
+                if (wl.category === "scrap_and_buy") {
+                    type = "valuation"
+                    title = "New Scrap & Buy Request"
+                    href = `/admin/valuations/scrap-buy/${wl._id}?highlight=true`
+                } else if (wl.serviceType === "sell") {
+                    type = "sell"
+                    title = "New Sell Request"
+                    href = `/admin/valuations/sell/${wl._id}?highlight=true`
+                } else if (wl.serviceType === "buy") {
+                    type = "buy"
+                    title = "New Buy Inquiry"
+                    description = `${wl.desiredCompany || ""} ${wl.desiredModel || ""}`
+                    href = `/admin/valuations/buy/${wl._id}?highlight=true`
+                } else if (wl.serviceType === "scrap" && wl.category === "scrap_only") {
+                    type = "valuation"
+                    title = "New Quote Request"
+                    href = `/admin/valuations/quote/${wl._id}?highlight=true`
+                }
+
+                return {
+                    id: wl._id,
+                    type,
+                    title,
+                    description: description.trim() || `From ${wl.name}`,
+                    createdAt: wl.createdAt,
+                    href
+                }
+            })
         ]
 
-        // Sort by most recent
-        notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        // Deduplicate notifications by id to prevent any potential legacy vs modern duplicates
+        const uniqueNotifications: any[] = [];
+        const seenIds = new Set<string>();
+        for (const notif of notifications) {
+            const notifIdStr = notif.id.toString();
+            if (!seenIds.has(notifIdStr)) {
+                seenIds.add(notifIdStr);
+                uniqueNotifications.push(notif);
+            }
+        }
 
-        return NextResponse.json(notifications.slice(0, 20))
+        // Sort by most recent
+        uniqueNotifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+        return NextResponse.json(uniqueNotifications.slice(0, 20))
     } catch (error) {
         console.error("Error fetching notifications:", error)
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })

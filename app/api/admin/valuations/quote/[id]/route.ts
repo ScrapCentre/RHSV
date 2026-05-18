@@ -19,14 +19,35 @@ export async function GET(
 
         await connectToDatabase()
         const resolvedParams = await params
-        let valuation = await Valuation.findById(resolvedParams.id).lean()
+        const idParam = resolvedParams?.id || (params as any)?.id
+        const cleanId = idParam ? String(idParam).trim() : ""
 
-        if (!valuation) {
-            const wizardLead = await WizardLead.findById(resolvedParams.id).lean()
+        if (!cleanId || !/^[0-9a-fA-F]{24}$/.test(cleanId)) {
+            console.warn("[API/QUOTE] Invalid ID format:", cleanId)
+            return NextResponse.json({ 
+                error: "Request not found",
+                debug: { requestedId: cleanId, reason: "Invalid ObjectId format" }
+            }, { status: 404 })
+        }
+
+        console.log("[API/QUOTE] ID requested:", cleanId)
+        let valuation = await Valuation.findById(cleanId).lean()
+
+        if (valuation) {
+            if (valuation.status === "pending") {
+                await Valuation.findByIdAndUpdate(cleanId, { status: "reviewing" })
+                valuation.status = "reviewing"
+            }
+        } else {
+            const wizardLead = await WizardLead.findById(cleanId).lean()
             if (wizardLead) {
+                if (wizardLead.status === "pending") {
+                    await WizardLead.findByIdAndUpdate(cleanId, { status: "reviewing" })
+                    wizardLead.status = "reviewing"
+                }
                 valuation = {
                     _id: wizardLead._id,
-                    status: wizardLead.status || "pending",
+                    status: wizardLead.status || "reviewing",
                     vehicleType: "Car", // Default assumption for wizard leads right now
                     brand: wizardLead.brand,
                     model: wizardLead.model,
@@ -47,7 +68,15 @@ export async function GET(
         }
 
         if (!valuation) {
-            return NextResponse.json({ error: "Request not found" }, { status: 404 })
+            return NextResponse.json({ 
+                error: "Request not found",
+                debug: {
+                    requestedId: resolvedParams?.id || (params as any)?.id,
+                    paramsType: typeof params,
+                    hasIdInParams: !!(params as any)?.id,
+                    resolvedParams: resolvedParams
+                }
+            }, { status: 404 })
         }
 
         return NextResponse.json(valuation)

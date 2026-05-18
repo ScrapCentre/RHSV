@@ -15,6 +15,8 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
     const { id } = use(params)
     const [request, setRequest] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const [errorDetails, setErrorDetails] = useState<any>(null)
 
     useEffect(() => {
         fetchRequest()
@@ -49,14 +51,20 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
             if (res.ok) {
                 const data = await res.json()
                 setRequest(data)
+                setError(null)
+                setErrorDetails(null)
             } else {
+                const errData = await res.json().catch(() => ({}))
+                setError(errData.error || "Failed to load request details")
+                setErrorDetails(errData.debug || null)
                 toast({
                     title: "Error",
-                    description: "Failed to load request details",
+                    description: errData.error || "Failed to load request details",
                     variant: "destructive"
                 })
             }
-        } catch (error) {
+        } catch (err: any) {
+            setError(err.message || "Something went wrong")
             toast({
                 title: "Error",
                 description: "Something went wrong",
@@ -155,10 +163,23 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
         )
     }
 
-    if (!request) {
+    if (error || !request) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-gray-500">Request not found</div>
+            <div className="flex flex-col items-center justify-center min-h-[400px] p-6 text-center space-y-6 bg-gray-50 dark:bg-[#070e1a]">
+                <div className="text-red-500 text-lg font-bold">Error: {error || "Request not found"}</div>
+                {errorDetails && (
+                    <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg p-4 max-w-lg text-left text-xs font-mono text-red-800 dark:text-red-400 space-y-2">
+                        <div className="font-bold border-b border-red-200 dark:border-red-900/50 pb-1 mb-1">Diagnostic Details:</div>
+                        <div>Requested ID: <span className="font-semibold text-gray-900 dark:text-white">{errorDetails.requestedId || "N/A"}</span></div>
+                        <div>Reason: <span className="font-semibold text-gray-900 dark:text-white">{errorDetails.reason || "N/A"}</span></div>
+                        {errorDetails.resolvedParams && (
+                            <div>Params Object: <span className="font-semibold text-gray-900 dark:text-white">{JSON.stringify(errorDetails.resolvedParams)}</span></div>
+                        )}
+                    </div>
+                )}
+                <Link href="/admin/valuations/quote" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-all shadow-md">
+                    Back to Quote List
+                </Link>
             </div>
         )
     }
@@ -248,7 +269,6 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                     transition: { duration: 1.5, times: [0, 0.25, 0.5, 0.75, 1] }
                 } : {}}
             >
-                {/* Vehicle Information */}
                 {/* Vehicle Information */}
                 <div className="bg-white dark:bg-[#0E192D] rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 p-6">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">

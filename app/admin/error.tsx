@@ -37,9 +37,16 @@ export default function AdminError({
 
                     <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">System Encountered an Issue</h2>
 
-                    <p className="text-gray-500 mb-10 leading-relaxed font-medium">
+                    <p className="text-gray-500 mb-6 leading-relaxed font-medium">
                         The admin portal hit an unexpected roadblock. We&apos;ve logged the technical details for review.
                     </p>
+
+                    {error.message && (
+                        <div className="mb-8 p-4 bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl text-left">
+                            <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest block mb-1">Error Message</span>
+                            <code className="text-xs font-mono text-red-600 dark:text-red-400 break-all">{error.message}</code>
+                        </div>
+                    )}
 
                     <div className="space-y-4">
                         <button

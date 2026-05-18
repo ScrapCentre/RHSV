@@ -21,24 +21,28 @@ export default function NotificationBox() {
     const [loading, setLoading] = useState(true)
     const containerRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        const fetchNotifications = async () => {
-            try {
-                const res = await fetch("/api/admin/notifications")
-                const data = await res.json()
-                if (Array.isArray(data)) {
-                    setNotifications(data)
-                }
-            } catch (error) {
-                console.error("Error fetching notifications:", error)
-            } finally {
-                setLoading(false)
+    const fetchNotifications = async () => {
+        try {
+            const res = await fetch("/api/admin/notifications")
+            const data = await res.json()
+            if (Array.isArray(data)) {
+                setNotifications(data)
             }
+        } catch (error) {
+            console.error("Error fetching notifications:", error)
+        } finally {
+            setLoading(false)
         }
+    }
 
+    useEffect(() => {
         fetchNotifications()
-        const interval = setInterval(fetchNotifications, 60000) // Polling every minute
-        return () => clearInterval(interval)
+        const interval = setInterval(fetchNotifications, 30000) // Polling every 30 seconds
+        window.addEventListener("focus", fetchNotifications)
+        return () => {
+            clearInterval(interval)
+            window.removeEventListener("focus", fetchNotifications)
+        }
     }, [])
 
     useEffect(() => {
@@ -50,6 +54,14 @@ export default function NotificationBox() {
         document.addEventListener("mousedown", handleClickOutside)
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
+
+    const toggleOpen = () => {
+        const nextState = !isOpen
+        setIsOpen(nextState)
+        if (nextState) {
+            fetchNotifications()
+        }
+    }
 
     const getIcon = (type: Notification["type"]) => {
         switch (type) {
@@ -69,7 +81,7 @@ export default function NotificationBox() {
     return (
         <div className="relative" ref={containerRef}>
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={toggleOpen}
                 className="relative p-1.5 rounded-xl text-gray-400 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center"
                 aria-label="Notifications"
             >

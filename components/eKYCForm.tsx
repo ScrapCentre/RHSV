@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
     ArrowRight, ArrowLeft, CheckCircle, User, Calendar, 
     CreditCard, Smartphone, Camera, FileText, Upload,
-    Car, Image as ImageIcon, MessageCircle, Loader2, Shield
+    Car, Image as ImageIcon, MessageCircle, Loader2, Shield, MapPin
 } from "lucide-react"
 import Link from "next/link"
+import { indiaData, states } from "@/lib/india-data"
 
 interface VehicleFormData {
     registrationNumber?: string
@@ -39,6 +40,10 @@ interface eKYCFormData {
     photoRight: File | null
     whatsapp: string
     agreeTC: boolean
+    fullAddress: string
+    state: string
+    city: string
+    pincode: string
 }
 
 const STEPS = [
@@ -46,6 +51,7 @@ const STEPS = [
     { label: "Aadhaar", icon: CreditCard },
     { label: "RC Doc", icon: FileText },
     { label: "Photos", icon: Camera },
+    { label: "Address", icon: MapPin },
     { label: "WhatsApp", icon: MessageCircle },
     { label: "Submit", icon: Shield },
 ]
@@ -128,6 +134,10 @@ export default function EKYCForm({
         photoRight: null,
         whatsapp: formData.phone || "",
         agreeTC: false,
+        fullAddress: "",
+        state: formData.state || "",
+        city: formData.city || "",
+        pincode: formData.pincode || "",
     })
 
     const totalSteps = STEPS.length
@@ -153,6 +163,10 @@ export default function EKYCForm({
             fd.append("dob", data.dob)
             fd.append("aadharNumber", data.aadharNumber)
             fd.append("whatsapp", data.whatsapp)
+            fd.append("fullAddress", data.fullAddress)
+            fd.append("state", data.state)
+            fd.append("city", data.city)
+            fd.append("pincode", data.pincode)
             if (data.aadharFile) fd.append("aadharFile", data.aadharFile)
             if (data.rcFile) fd.append("rcFile", data.rcFile)
             if (data.photoFront) fd.append("photoFront", data.photoFront)
@@ -359,8 +373,89 @@ export default function EKYCForm({
                                     </div>
                                 )}
 
-                                {/* Step 4: WhatsApp Number */}
+                                {/* Step 4: Pickup Address */}
                                 {step === 4 && (
+                                    <div className="space-y-6">
+                                        <div className="text-center">
+                                            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                                <MapPin className="w-8 h-8 text-[#E31E24]" />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-slate-900">Pickup Address</h3>
+                                            <p className="text-slate-500 text-sm mt-1">Provide address details for vehicle pickup</p>
+                                        </div>
+                                        <div className="space-y-4 max-w-md mx-auto text-left">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Full Address / House No, Street</label>
+                                                <textarea
+                                                    value={data.fullAddress}
+                                                    onChange={(e) => setData({ ...data, fullAddress: e.target.value })}
+                                                    placeholder="House No, Street, Locality/Landmark"
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24] resize-none h-20"
+                                                    required
+                                                />
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">State</label>
+                                                    <select
+                                                        value={data.state}
+                                                        onChange={(e) => setData({ ...data, state: e.target.value, city: "" })}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24] text-slate-800"
+                                                        required
+                                                    >
+                                                        <option value="">Select State</option>
+                                                        {states.map((state) => (
+                                                            <option key={state} value={state}>{state}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">City</label>
+                                                    <select
+                                                        value={data.city}
+                                                        onChange={(e) => setData({ ...data, city: e.target.value })}
+                                                        disabled={!data.state}
+                                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24] text-slate-800 disabled:opacity-50"
+                                                        required
+                                                    >
+                                                        <option value="">Select City</option>
+                                                        {data.state && indiaData[data.state]?.map((city) => (
+                                                            <option key={city} value={city}>{city}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Pincode</label>
+                                                <input
+                                                    type="text"
+                                                    value={data.pincode}
+                                                    onChange={(e) => {
+                                                        const v = e.target.value.replace(/\D/g, "").slice(0, 6)
+                                                        setData({ ...data, pincode: v })
+                                                    }}
+                                                    placeholder="6-digit Pincode"
+                                                    maxLength={6}
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E31E24]"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <button
+                                            disabled={!data.fullAddress || !data.state || !data.city || data.pincode.length !== 6}
+                                            onClick={nextStep}
+                                            className="w-full max-w-md mx-auto py-4 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-2 disabled:opacity-40"
+                                        >
+                                            Continue <ArrowRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Step 5: WhatsApp Number */}
+                                {step === 5 && (
                                     <div className="space-y-8 text-center">
                                         <div>
                                             <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><MessageCircle className="w-8 h-8 text-[#E31E24]" /></div>
@@ -382,8 +477,8 @@ export default function EKYCForm({
                                     </div>
                                 )}
 
-                                {/* Step 5: Review & Submit */}
-                                {step === 5 && (
+                                {/* Step 6: Review & Submit */}
+                                {step === 6 && (
                                     <div className="space-y-6">
                                         <div className="text-center">
                                             <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><Shield className="w-8 h-8 text-[#E31E24]" /></div>
@@ -395,6 +490,7 @@ export default function EKYCForm({
                                                 { label: "Name", value: data.firstName },
                                                 { label: "Date of Birth", value: data.dob },
                                                 { label: "Aadhaar", value: data.aadharNumber },
+                                                { label: "Pickup Address", value: `${data.fullAddress}, ${data.city}, ${data.state} - ${data.pincode}` },
                                                 { label: "WhatsApp", value: `+91 ${data.whatsapp}` },
                                                 { label: "Aadhaar Photo", value: data.aadharFile?.name || "-" },
                                                 { label: "RC Photo", value: data.rcFile?.name || "-" },

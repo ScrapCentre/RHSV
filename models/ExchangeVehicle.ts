@@ -19,6 +19,7 @@ const ExchangeVehicleSchema = new Schema(
         city: { type: String },
         customCity: { type: String },
         pincode: { type: String },
+        fullAddress: { type: String },
         status: {
             type: String,
             enum: ['pending', 'contacted', 'completed', 'rejected', 'approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'],

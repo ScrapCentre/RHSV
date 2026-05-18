@@ -66,8 +66,24 @@ export default function B2BPartnersPage() {
                 const partnerData = await partnerRes.json()
 
                 if (regRes.ok) {
-                    // Only show pending requests
-                    const pendingRequests = regData.data.filter((r: any) => r.status === 'pending')
+                    // Update any pending registrations to reviewing so they clear from dropdown notifications
+                    const pendingToUpdate = regData.data.filter((r: any) => r.status === 'pending')
+                    for (const req of pendingToUpdate) {
+                        try {
+                            await fetch(`/api/b2b-register?id=${req._id}`, {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ status: 'reviewing' })
+                            })
+                        } catch (err) {
+                            console.error("Failed to update status to reviewing:", err)
+                        }
+                    }
+
+                    // Only show pending and reviewing requests in the Requests tab
+                    const pendingRequests = regData.data.map((r: any) => 
+                        r.status === 'pending' ? { ...r, status: 'reviewing' } : r
+                    ).filter((r: any) => r.status === 'pending' || r.status === 'reviewing')
                     setRegistrations(pendingRequests)
                 }
                 if (partnerRes.ok) setPartners(partnerData.data)
@@ -218,9 +234,9 @@ export default function B2BPartnersPage() {
                                                     <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(reg.createdAt).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
-                                                Pending
-                                            </span>
+                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${reg.status === 'reviewing' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'}`}>
+                                                 {reg.status ? reg.status.charAt(0).toUpperCase() + reg.status.slice(1) : "Pending"}
+                                             </span>
                                         </div>
 
                                         <div className="space-y-3">

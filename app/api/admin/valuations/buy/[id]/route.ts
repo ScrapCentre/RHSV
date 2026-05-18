@@ -19,14 +19,35 @@ export async function GET(
 
         await connectToDatabase()
         const resolvedParams = await params
-        let request = await BuyVehicle.findById(resolvedParams.id).lean()
+        const idParam = resolvedParams?.id || (params as any)?.id
+        const cleanId = idParam ? String(idParam).trim() : ""
 
-        if (!request) {
-            const wizardLead = await WizardLead.findById(resolvedParams.id).lean()
+        if (!cleanId || !/^[0-9a-fA-F]{24}$/.test(cleanId)) {
+            console.warn("[API/BUY] Invalid ID format:", cleanId)
+            return NextResponse.json({ 
+                error: "Request not found",
+                debug: { requestedId: cleanId, reason: "Invalid ObjectId format" }
+            }, { status: 404 })
+        }
+
+        console.log("[API/BUY] ID requested:", cleanId)
+        let request = await BuyVehicle.findById(cleanId).lean()
+
+        if (request) {
+            if (request.status === "pending") {
+                await BuyVehicle.findByIdAndUpdate(cleanId, { status: "reviewing" })
+                request.status = "reviewing"
+            }
+        } else {
+            const wizardLead = await WizardLead.findById(cleanId).lean()
             if (wizardLead) {
+                if (wizardLead.status === "pending") {
+                    await WizardLead.findByIdAndUpdate(cleanId, { status: "reviewing" })
+                    wizardLead.status = "reviewing"
+                }
                 request = {
                     _id: wizardLead._id,
-                    status: wizardLead.status || "pending",
+                    status: wizardLead.status || "reviewing",
                     vehicleBrand: wizardLead.desiredCompany || "N/A",
                     vehicleModel: wizardLead.desiredModel || "N/A",
                     fuelType: "N/A",
@@ -42,7 +63,15 @@ export async function GET(
         }
 
         if (!request) {
-            return NextResponse.json({ error: "Request not found" }, { status: 404 })
+            return NextResponse.json({ 
+                error: "Request not found",
+                debug: {
+                    requestedId: resolvedParams?.id || (params as any)?.id,
+                    paramsType: typeof params,
+                    hasIdInParams: !!(params as any)?.id,
+                    resolvedParams: resolvedParams
+                }
+            }, { status: 404 })
         }
 
         return NextResponse.json(request)

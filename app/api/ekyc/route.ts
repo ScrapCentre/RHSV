@@ -3,6 +3,7 @@ import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
+import WizardLead from "@/models/WizardLead"
 import { uploadToCloudinary } from "@/lib/cloudinary"
 
 export async function PATCH(req: NextRequest) {
@@ -15,6 +16,11 @@ export async function PATCH(req: NextRequest) {
         const dob = formData.get("dob") as string
         const aadharPhone = formData.get("aadharPhone") as string
         const aadharNumber = formData.get("aadharNumber") as string
+
+        const fullAddress = formData.get("fullAddress") as string
+        const state = formData.get("state") as string
+        const city = formData.get("city") as string
+        const pincode = formData.get("pincode") as string
 
         if (!valuationId) {
             return NextResponse.json(
@@ -61,14 +67,44 @@ export async function PATCH(req: NextRequest) {
 
         let Model;
         let updateStatus = "pending";
+        const customFieldsToSet: any = {};
 
         if (source === "sell-vehicle") {
             Model = SellVehicle
+            if (fullAddress) customFieldsToSet.fullAddress = fullAddress
+            if (state) customFieldsToSet.state = state
+            if (city) customFieldsToSet.city = city
+            if (pincode) customFieldsToSet.pincode = pincode
         } else if (source === "exchange-vehicle") {
             Model = ExchangeVehicle
+            if (fullAddress) customFieldsToSet.fullAddress = fullAddress
+            if (state) customFieldsToSet.state = state
+            if (city) customFieldsToSet.city = city
+            if (pincode) customFieldsToSet.pincode = pincode
+        } else if (source === "scrap") {
+            const isWizard = await WizardLead.findById(valuationId)
+            if (isWizard) {
+                Model = WizardLead
+                updateStatus = "reviewed"
+                if (fullAddress) customFieldsToSet.address = fullAddress
+                if (state) customFieldsToSet.state = state
+                if (city) customFieldsToSet.city = city
+                if (pincode) customFieldsToSet.pincode = pincode
+            } else {
+                Model = Valuation
+                updateStatus = "reviewed"
+                if (state) customFieldsToSet["address.state"] = state
+                if (city) customFieldsToSet["address.city"] = city
+                if (pincode) customFieldsToSet["address.pincode"] = pincode
+                if (fullAddress) customFieldsToSet["address.fullAddress"] = fullAddress
+            }
         } else {
             Model = Valuation
             updateStatus = "reviewed"
+            if (state) customFieldsToSet["address.state"] = state
+            if (city) customFieldsToSet["address.city"] = city
+            if (pincode) customFieldsToSet["address.pincode"] = pincode
+            if (fullAddress) customFieldsToSet["address.fullAddress"] = fullAddress
         }
 
         const updatedRecord = await Model.findByIdAndUpdate(
@@ -76,6 +112,7 @@ export async function PATCH(req: NextRequest) {
             {
                 $set: {
                     ...ekycData,
+                    ...customFieldsToSet,
                     status: updateStatus
                 }
             },

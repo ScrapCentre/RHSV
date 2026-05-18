@@ -10,7 +10,8 @@ export default function AdminAwareLayout({ children }: { children: React.ReactNo
     const isAdmin = pathname?.startsWith("/admin") || 
                     pathname?.startsWith("/b2b") || 
                     pathname?.startsWith("/executive") ||
-                    pathname?.startsWith("/scrapcentre")
+                    pathname?.startsWith("/scrapcentre") ||
+                    pathname?.startsWith("/rvsf")
 
     return (
         <div className="min-h-screen bg-background text-foreground">

@@ -122,7 +122,7 @@ export default async function AdminPage() {
 
                 return { ...JSON.parse(JSON.stringify(item)), type: resolvedType, customerName: item.name || "N/A", customerPhone: item.phone || "N/A", vehicleInfo: vehicleInfoStr };
             })
-        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 15);
+        ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 15);
 
         totalRequests = quoteCount + sellCount + exchangeCount + buyCount
 
@@ -236,7 +236,8 @@ export default async function AdminPage() {
         }));
 
     } catch (error) {
-        console.error("Error fetching admin dashboard data:", error)
+        console.error("Error fetching admin dashboard data:", error);
+        throw error;
     }
 
     return (

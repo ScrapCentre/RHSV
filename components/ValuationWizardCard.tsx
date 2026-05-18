@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast"
 const BRANDS = ["Maruti Suzuki", "Hyundai", "Tata", "Mahindra", "Toyota", "Honda", "Kia", "Skoda"]
 const YEARS = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "Older"]
 const FUEL_TYPES = ["Petrol", "Diesel", "CNG", "Electric", "Hybrid"]
+const STATES = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"]
+const CITIES = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Pimpri-Chinchwad", "Patna", "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", "Varanasi", "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai", "Allahabad", "Howrah", "Ranchi", "Gwalior", "Jabalpur", "Coimbatore", "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota", "Guwahati", "Chandigarh", "Solapur", "Hubli-Dharwad", "Other"]
 
 // ─── Wizard Component ─────────────────────────────────────────────────────────
 
@@ -47,7 +49,9 @@ export default function ValuationWizardCard() {
         desiredCompany: "",
         desiredModel: "",
         buyNew: "",
-        pincode: ""
+        pincode: "",
+        state: "",
+        city: ""
     })
 
     // Listen for vehicle data from Hero section
@@ -130,13 +134,13 @@ export default function ValuationWizardCard() {
         setOtpSent(false)
         setFromHero(false)
         setFormData({
-            regNo: "", brand: "", model: "", year: "", weight: "", kms: "", fuel: "", name: "", address: "", phone: "", otp: "", desiredCompany: "", desiredModel: "", buyNew: "", pincode: ""
+            regNo: "", brand: "", model: "", year: "", weight: "", kms: "", fuel: "", name: "", address: "", phone: "", otp: "", desiredCompany: "", desiredModel: "", buyNew: "", pincode: "", state: "", city: ""
         })
     }
 
-    const nextStep = (overrideBuyNew?: string) => {
+    const nextStep = (overrideBuyNew?: string | React.MouseEvent) => {
         setDirection(1)
-        const buyNewState = overrideBuyNew !== undefined ? overrideBuyNew : formData.buyNew;
+        const buyNewState = (overrideBuyNew && typeof overrideBuyNew === "string") ? overrideBuyNew : formData.buyNew;
         // In Scrap flow, if at 'Buy New' step (now step 2) and user says 'no', skip to 'Fuel Type' (now step 4)
         if (serviceType === "scrap" && step === 2 && buyNewState === "no") {
             setStep(4)
@@ -290,11 +294,15 @@ export default function ValuationWizardCard() {
 
     const submitLeadData = async () => {
         try {
-            await fetch('/api/wizard-lead', {
+            const res = await fetch('/api/wizard-lead', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, serviceType })
             });
+            const data = await res.json();
+            if (data.lead?._id) {
+                localStorage.setItem("kycValuationId", data.lead._id);
+            }
         } catch (error) {
             console.error("Failed to save lead data:", error);
         }
@@ -771,19 +779,35 @@ export default function ValuationWizardCard() {
 
                                     {step === 5 && (
                                         <div className="space-y-4 text-center">
-                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1"><Home className="w-7 h-7 text-[#E31E24]" /></div>
-                                            <h3 className="text-xl font-bold text-slate-900">Pickup Address</h3>
+                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1"><MapPin className="w-7 h-7 text-[#E31E24]" /></div>
+                                            <h3 className="text-xl font-bold text-slate-900">Your Location</h3>
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1 text-left">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Address</label>
-                                                    <textarea placeholder="House No, Street, City, State" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium text-slate-900 focus:outline-none focus:border-[#E31E24] min-h-[80px]" />
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">State</label>
+                                                    <select value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
+                                                        <option value="" disabled>Select State</option>
+                                                        {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">City</label>
+                                                    <select value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
+                                                        <option value="" disabled>Select City</option>
+                                                        {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                    </select>
                                                 </div>
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
-                                                    <input type="text" placeholder="6-digit Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" maxLength={6} />
-                                                </div>
+                                                    <input 
+                                                        type="tel" 
+                                                        placeholder="6-digit Pincode" 
+                                                        value={formData.pincode} 
+                                                        onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} 
+                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
+                                                    />
+                                                 </div>
                                             </div>
-                                            <button disabled={!formData.address || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-slate-900 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-[10px]">Continue</button>
+                                            <button disabled={!formData.state || !formData.city || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-slate-900 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-[10px]">Continue</button>
                                         </div>
                                     )}
 
@@ -1066,15 +1090,31 @@ export default function ValuationWizardCard() {
                                             <h3 className="text-xl font-bold text-slate-900">Vehicle Location</h3>
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1 text-left">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Address</label>
-                                                    <textarea placeholder="House No, Street, City, State" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[11px] font-medium text-slate-900 focus:outline-none focus:border-[#E31E24] min-h-[80px]" />
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">State</label>
+                                                    <select value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
+                                                        <option value="" disabled>Select State</option>
+                                                        {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">City</label>
+                                                    <select value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
+                                                        <option value="" disabled>Select City</option>
+                                                        {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                    </select>
                                                 </div>
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
-                                                    <input type="text" placeholder="6-digit Pincode" value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" maxLength={6} />
-                                                </div>
+                                                    <input 
+                                                        type="tel" 
+                                                        placeholder="6-digit Pincode" 
+                                                        value={formData.pincode} 
+                                                        onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} 
+                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
+                                                    />
+                                                 </div>
                                             </div>
-                                            <button disabled={!formData.address || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
+                                            <button disabled={!formData.state || !formData.city || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
                                         </div>
                                     )}
 

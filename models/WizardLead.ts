@@ -20,6 +20,8 @@ export interface IWizardLead {
   phone: string;
   address?: string;
   pincode?: string;
+  city?: string;
+  state?: string;
 
   // Buy New Details (if buying new)
   desiredCompany?: string;
@@ -59,6 +61,8 @@ const WizardLeadSchema: Schema = new Schema(
     phone: { type: String, required: true },
     address: { type: String },
     pincode: { type: String },
+    city: { type: String },
+    state: { type: String },
     desiredCompany: { type: String },
     desiredModel: { type: String },
     b2bPickupId: { type: String },
