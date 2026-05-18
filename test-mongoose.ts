@@ -1,8 +1,20 @@
 import mongoose from "mongoose";
-import { config } from "dotenv";
-config();
+import * as fs from "fs";
+import * as path from "path";
 
-const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/scrapcentre";
+let uri = "";
+try {
+  const envContent = fs.readFileSync(path.join(process.cwd(), ".env.local"), "utf8");
+  for (const line of envContent.split("\n")) {
+    if (line.startsWith("MONGODB_URI=")) {
+      uri = line.split("=")[1].trim().replace(/['"]/g, "");
+    }
+  }
+} catch (e) {}
+
+if (!uri) {
+  uri = process.env.MONGODB_URI || "mongodb://localhost:27017/scrapcentre";
+}
 
 async function run() {
   await mongoose.connect(uri);

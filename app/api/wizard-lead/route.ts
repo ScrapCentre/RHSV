@@ -46,6 +46,8 @@ export async function POST(req: NextRequest) {
       phone: body.phone,
       address: body.address,
       pincode: body.pincode,
+      city: body.city,
+      state: body.state,
       desiredCompany: body.desiredCompany,
       desiredModel: body.desiredModel,
     });

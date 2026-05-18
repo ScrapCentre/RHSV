@@ -1,4 +1,4 @@
-const http = require('http');
+import * as http from 'http';
 
 const url = 'http://localhost:3001/api/admin/valuations/quote/6a0ae20d78f06eb2a0d253b8';
 

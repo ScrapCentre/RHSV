@@ -14,13 +14,13 @@ import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "fi
 import { signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 
+import { indiaData, states as STATES } from "@/lib/india-data"
+
 // ─── Data Definitions ─────────────────────────────────────────────────────────
 
 const BRANDS = ["Maruti Suzuki", "Hyundai", "Tata", "Mahindra", "Toyota", "Honda", "Kia", "Skoda"]
 const YEARS = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "Older"]
 const FUEL_TYPES = ["Petrol", "Diesel", "CNG", "Electric", "Hybrid"]
-const STATES = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"]
-const CITIES = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Surat", "Pune", "Jaipur", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Pimpri-Chinchwad", "Patna", "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad", "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", "Varanasi", "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai", "Allahabad", "Howrah", "Ranchi", "Gwalior", "Jabalpur", "Coimbatore", "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota", "Guwahati", "Chandigarh", "Solapur", "Hubli-Dharwad", "Other"]
 
 // ─── Wizard Component ─────────────────────────────────────────────────────────
 
@@ -784,16 +784,16 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">State</label>
-                                                    <select value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
+                                                    <select value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value, city: ""})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
                                                         <option value="" disabled>Select State</option>
                                                         {STATES.map(s => <option key={s} value={s}>{s}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">City</label>
-                                                    <select value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
-                                                        <option value="" disabled>Select City</option>
-                                                        {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                    <select value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" disabled={!formData.state}>
+                                                        <option value="" disabled>{formData.state ? "Select City" : "Select State First"}</option>
+                                                        {formData.state && (indiaData[formData.state] || []).map((c: string) => <option key={c} value={c}>{c}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1 text-left">
@@ -1091,16 +1091,16 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">State</label>
-                                                    <select value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
+                                                    <select value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value, city: ""})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
                                                         <option value="" disabled>Select State</option>
                                                         {STATES.map(s => <option key={s} value={s}>{s}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">City</label>
-                                                    <select value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
-                                                        <option value="" disabled>Select City</option>
-                                                        {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                    <select value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" disabled={!formData.state}>
+                                                        <option value="" disabled>{formData.state ? "Select City" : "Select State First"}</option>
+                                                        {formData.state && (indiaData[formData.state] || []).map((c: string) => <option key={c} value={c}>{c}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1 text-left">
