@@ -47,6 +47,12 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; b
         bg: "bg-purple-500/10",
         border: "border-purple-500/20"
     },
+    car_scrapped: {
+        label: "Vehicle Scrapped",
+        color: "text-red-600 dark:text-red-400",
+        bg: "bg-red-500/10",
+        border: "border-red-500/20"
+    },
     cancelled: {
         label: "Cancelled",
         color: "text-red-600 dark:text-red-400",
@@ -154,8 +160,8 @@ export default function B2BPickupsPage() {
                 </div>
 
                 {/* Stats strip */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {(["accepted", "scheduled", "picked_up", "completed", "cancelled"] as const).map((s) => {
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                    {(["accepted", "scheduled", "picked_up", "car_scrapped", "completed", "cancelled"] as const).map((s) => {
                         const count = pickups.filter(p => p.status === s).length
                         const cfg = statusConfig[s]
                         return (
@@ -348,14 +354,14 @@ export default function B2BPickupsPage() {
                                                 {[
                                                     { id: 'scheduled', label: 'Pickup Scheduled', desc: 'A B2B Partner has accepted the lead.', icon: <Calendar className="w-3.5 h-3.5" /> },
                                                     { id: 'picked_up', label: 'Reached Collection Centre', desc: 'Vehicle successfully arrived at ScrapCentre.', icon: <Truck className="w-3.5 h-3.5" /> },
-                                                    { id: 'completed', label: 'Car Scrapped Successfully', desc: 'Final processing completed.', icon: <CheckCircle className="w-3.5 h-3.5" /> }
+                                                    { id: 'completed', label: 'Vehicle Scrapped Successfully', desc: 'Final processing completed.', icon: <CheckCircle className="w-3.5 h-3.5" /> }
                                                 ].map((step, idx) => {
                                                     // Determine completion based on B2B status
                                                     const s = selectedPickup.status
                                                     let isCompleted = false
-                                                    if (idx === 0) isCompleted = ['accepted', 'scheduled', 'picked_up', 'completed'].includes(s)
-                                                    if (idx === 1) isCompleted = ['picked_up', 'completed'].includes(s)
-                                                    if (idx === 2) isCompleted = ['completed'].includes(s)
+                                                    if (idx === 0) isCompleted = ['accepted', 'scheduled', 'picked_up', 'car_scrapped', 'completed'].includes(s)
+                                                    if (idx === 1) isCompleted = ['picked_up', 'car_scrapped', 'completed'].includes(s)
+                                                    if (idx === 2) isCompleted = ['car_scrapped', 'completed'].includes(s)
                                                     
                                                     return (
                                                         <div key={step.id} className="relative pl-6">
@@ -405,3 +411,4 @@ export default function B2BPickupsPage() {
         </div>
     )
 }
+

@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-export interface IWizardLead extends Document {
+export interface IWizardLead {
   serviceType: string; // 'sell', 'buy', 'scrap'
   category?: string; // 'scrap_only', 'scrap_and_buy', 'sell_only', 'buy_only'
   status?: string; // 'pending', 'reviewing', 'approved', 'completed'
@@ -25,6 +25,9 @@ export interface IWizardLead extends Document {
   desiredCompany?: string;
   desiredModel?: string;
 
+  b2bPickupId?: string;
+  b2bPartnerId?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,7 +44,7 @@ const WizardLeadSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'reviewing', 'reviewed', 'approved', 'completed'],
+      enum: ['pending', 'reviewing', 'reviewed', 'approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped', 'completed'],
       default: 'pending',
     },
     userId: { type: String },
@@ -58,6 +61,8 @@ const WizardLeadSchema: Schema = new Schema(
     pincode: { type: String },
     desiredCompany: { type: String },
     desiredModel: { type: String },
+    b2bPickupId: { type: String },
+    b2bPartnerId: { type: String },
   },
   {
     timestamps: true,

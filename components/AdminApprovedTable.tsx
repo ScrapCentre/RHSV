@@ -115,11 +115,19 @@ export default function AdminApprovedTable({ data }: { data: any[] }) {
                                                     </span>
                                                 ) : req.status === 'car_scrapped' ? (
                                                     <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                                                        Car Scrapped
+                                                        Vehicle Scrapped
+                                                    </span>
+                                                ) : req.status === 'approved_to_rvsf' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                                                        Approved to RVSF's
+                                                    </span>
+                                                ) : req.status === 'approved' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                                        Approved to CC
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                        Approved
+                                                        {req.status}
                                                     </span>
                                                 )}
                                             </td>
@@ -195,11 +203,19 @@ export default function AdminApprovedTable({ data }: { data: any[] }) {
                                                     </span>
                                                 ) : req.status === 'car_scrapped' ? (
                                                     <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 mt-0.5">
-                                                        Car Scrapped
+                                                        Vehicle Scrapped
+                                                    </span>
+                                                ) : req.status === 'approved_to_rvsf' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 mt-0.5">
+                                                        Approved to RVSF's
+                                                    </span>
+                                                ) : req.status === 'approved' ? (
+                                                    <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mt-0.5">
+                                                        Approved to CC
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mt-0.5">
-                                                        Approved
+                                                        {req.status}
                                                     </span>
                                                 )}
                                             </div>

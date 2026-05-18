@@ -69,8 +69,8 @@ export default function B2BDashboard() {
         )
     }
 
-    const activePickups = pickups.filter(p => !["scrapped", "cancelled"].includes(p.status?.toLowerCase() || ""))
-    const completedPickups = pickups.filter(p => p.status?.toLowerCase() === "scrapped" || p.status?.toLowerCase() === "completed")
+    const activePickups = pickups.filter(p => !["scrapped", "car_scrapped", "cancelled", "completed"].includes(p.status?.toLowerCase() || ""))
+    const completedPickups = pickups.filter(p => ["scrapped", "car_scrapped", "completed"].includes(p.status?.toLowerCase() || ""))
     const recentPickups = pickups.slice(0, 4)
 
     return (
@@ -189,7 +189,7 @@ export default function B2BDashboard() {
                                     <div key={pickup._id} className="p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                         <div className="flex items-start gap-4">
                                             <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${pickup.status === 'accepted' ? 'bg-blue-500' :
-                                                    pickup.status === 'scrapped' ? 'bg-emerald-500' :
+                                                    ['scrapped', 'car_scrapped', 'completed'].includes(pickup.status) ? 'bg-emerald-500' :
                                                         'bg-orange-500'
                                                 }`} />
                                             <div>
@@ -210,10 +210,10 @@ export default function B2BDashboard() {
                                         </div>
                                         <div>
                                             <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${pickup.status === 'accepted' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
-                                                    pickup.status === 'scrapped' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                    ['scrapped', 'car_scrapped', 'completed'].includes(pickup.status) ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
                                                         'bg-orange-500/10 text-orange-600 dark:text-orange-400'
                                                 }`}>
-                                                {pickup.status || 'Pending'}
+                                                {pickup.status === 'car_scrapped' ? 'Vehicle Scrapped' : (pickup.status || 'Pending')}
                                             </span>
                                         </div>
                                     </div>

@@ -232,7 +232,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500 rounded-r-full" />
                                     )}
                                     <Briefcase className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/subcontracting') ? 'text-amber-400' : 'text-slate-400 group-hover:text-white'}`} />
-                                    <span className="font-semibold">Subcontracting</span>
+                                    <span className="font-semibold">RVSF's</span>
                                 </Link>
                             </motion.div>
                             <motion.div variants={sidebarLinkVariants}>

@@ -109,7 +109,7 @@ export default function SubcontractingFeed({ initialData }: SubcontractingFeedPr
 
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `subcontracting_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute("download", `rvsf_export_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
 
         document.body.appendChild(link);
@@ -124,8 +124,8 @@ export default function SubcontractingFeed({ initialData }: SubcontractingFeedPr
         handleDownloadExcel();
 
         // Open Gmail explicitly in a new tab instead of generic mailto handler
-        const subject = encodeURIComponent("Subcontracting Requests Export");
-        const bodyText = `Please find the latest filtered subcontracting requests attached to this email.\n\nNote: The file "subcontracting_export_${new Date().toISOString().split('T')[0]}.csv" has been automatically downloaded to your computer. Please attach it manually to this email as browser security restricts automatic attachments.`;
+        const subject = encodeURIComponent("RVSF Requests Export");
+        const bodyText = `Please find the latest filtered RVSF requests attached to this email.\n\nNote: The file "rvsf_export_${new Date().toISOString().split('T')[0]}.csv" has been automatically downloaded to your computer. Please attach it manually to this email as browser security restricts automatic attachments.`;
         const body = encodeURIComponent(bodyText);
 
         // Gmail web compose URL pattern

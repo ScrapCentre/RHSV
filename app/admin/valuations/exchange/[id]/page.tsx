@@ -177,9 +177,6 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
                         >
                             <option value="pending" className="bg-white dark:bg-slate-900">Pending</option>
                             <option value="reviewing" className="bg-white dark:bg-slate-900">Reviewing</option>
-                            <option value="approved" className="bg-white dark:bg-slate-900">Approved</option>
-                            <option value="completed" className="bg-white dark:bg-slate-900">Completed</option>
-                            <option value="rejected" className="bg-white dark:bg-slate-900">Rejected</option>
                         </select>
                     </div>
                     <button

@@ -118,7 +118,9 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
             case "rejected":
                 return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500 border border-red-200 dark:border-red-900/50">Rejected</span>
             case "approved":
-                return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-500 border border-emerald-200 dark:border-emerald-900/50"><CheckCircle className="w-3.5 h-3.5" />Approved</span>
+                return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-500 border border-emerald-200 dark:border-emerald-900/50"><CheckCircle className="w-3.5 h-3.5" />Approved to CC</span>
+            case "approved_to_rvsf":
+                return <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-500 border border-purple-200 dark:border-purple-900/50"><CheckCircle className="w-3.5 h-3.5" />Approved to RVSF's</span>
             default:
                 return <span className="px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs">{status}</span>
         }
@@ -169,18 +171,32 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                         <MessageCircle className="w-4 h-4" />
                         Chat
                     </a>
-                    {request.status !== 'approved' ? (
-                        <button
-                            onClick={() => handleStatusUpdate('approved')}
-                            className="flex-1 md:flex-none justify-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm md:mr-4"
-                        >
-                            <Send className="w-4 h-4" />
-                            Approve → B2B
-                        </button>
-                    ) : (
+                    {request.status === 'approved' ? (
                         <div className="flex-1 md:flex-none justify-center px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg font-medium text-sm flex items-center gap-2 md:mr-4">
                             <CheckCircle className="w-4 h-4" />
-                            Approved
+                            Approved to CC
+                        </div>
+                    ) : request.status === 'approved_to_rvsf' ? (
+                        <div className="flex-1 md:flex-none justify-center px-4 py-2 bg-purple-50 text-purple-600 border border-purple-200 rounded-lg font-medium text-sm flex items-center gap-2 md:mr-4">
+                            <CheckCircle className="w-4 h-4" />
+                            Approved to RVSF's
+                        </div>
+                    ) : (
+                        <div className="flex flex-wrap items-center gap-2 md:mr-4">
+                            <button
+                                onClick={() => handleStatusUpdate('approved')}
+                                className="flex-1 md:flex-none justify-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm"
+                            >
+                                <Send className="w-4 h-4" />
+                                Approve to CC
+                            </button>
+                            <button
+                                onClick={() => handleStatusUpdate('approved_to_rvsf')}
+                                className="flex-1 md:flex-none justify-center px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm"
+                            >
+                                <Send className="w-4 h-4" />
+                                Approve to RVSF's
+                            </button>
                         </div>
                     )}
                     <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-gray-200 dark:border-slate-700">
@@ -191,9 +207,6 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                         >
                             <option value="pending" className="bg-white dark:bg-slate-900">Pending</option>
                             <option value="reviewing" className="bg-white dark:bg-slate-900">Reviewing</option>
-                            <option value="approved" className="bg-white dark:bg-slate-900">Approved</option>
-                            <option value="completed" className="bg-white dark:bg-slate-900">Completed</option>
-                            <option value="rejected" className="bg-white dark:bg-slate-900">Rejected</option>
                         </select>
                     </div>
                     <button

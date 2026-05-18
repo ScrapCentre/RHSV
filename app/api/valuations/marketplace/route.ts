@@ -24,11 +24,11 @@ export async function GET(req: Request) {
 
         // Fetch only approved requests from all categories
         const [valuations, sellRequests, exchangeRequests, buyRequests, wizardLeads] = await Promise.all([
-            Valuation.find({ status: "approved" }).sort({ createdAt: -1 }),
-            SellVehicle.find({ status: "approved" }).sort({ createdAt: -1 }),
-            ExchangeVehicle.find({ status: "approved" }).sort({ createdAt: -1 }),
-            BuyVehicle.find({ status: "approved" }).sort({ createdAt: -1 }),
-            WizardLead.find({ status: "approved" }).sort({ createdAt: -1 })
+            Valuation.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 }),
+            SellVehicle.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 }),
+            ExchangeVehicle.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 }),
+            BuyVehicle.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 }),
+            WizardLead.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 })
         ]);
 
         // Merge all approved requests with type identifier

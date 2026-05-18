@@ -197,7 +197,7 @@ export default function ExecutiveDashboardOverview({
                                                     </span>
                                                 ) : item.status === 'car_scrapped' ? (
                                                     <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-                                                        Car Scrapped
+                                                        Vehicle Scrapped
                                                     </span>
                                                 ) : item.status === 'approved' ? (
                                                     <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
@@ -274,7 +274,7 @@ export default function ExecutiveDashboardOverview({
                                                             </span>
                                                         ) : item.status === 'car_scrapped' ? (
                                                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
-                                                                Car Scrapped
+                                                                Vehicle Scrapped
                                                             </span>
                                                         ) : item.status === 'approved' ? (
                                                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">

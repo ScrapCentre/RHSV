@@ -6,6 +6,7 @@ import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 import SubcontractingFeed from "@/components/admin/SubcontractingFeed"
 
 export const dynamic = "force-dynamic"
@@ -23,21 +24,23 @@ export default async function SubcontractingPage() {
     try {
         await connectToDatabase()
 
-        // We want all requests EXCEPT where state is "Uttar Pradesh"
-        const excludeFilter = { state: { $ne: "Uttar Pradesh" }, status: { $ne: "approved" } }
-        const quoteExcludeFilter = { "address.state": { $ne: "Uttar Pradesh" }, status: { $ne: "approved" } }
+        // We want all requests that have been approved to RVSF
+        const excludeFilter = { status: "approved_to_rvsf" }
+        const quoteExcludeFilter = { status: "approved_to_rvsf" }
 
-        // Mongoose Queries combining normal filters and our UP exclusion
+        // Mongoose Queries for approved RVSF leads
         const [
             latestQuotes,
             latestSells,
             latestExchanges,
-            latestBuys
+            latestBuys,
+            latestWizards
         ] = await Promise.all([
             Valuation.find(quoteExcludeFilter).sort({ createdAt: -1 }).lean(),
             SellVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             ExchangeVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             BuyVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
+            WizardLead.find(excludeFilter).sort({ createdAt: -1 }).lean(),
         ])
 
         // Parse and combine the feed similarly to the main dashboard
@@ -85,6 +88,31 @@ export default async function SubcontractingPage() {
                     vehicleInfo: `Looking for: ${item.customBrand || item.vehicleBrand} ${item.customModel || item.vehicleModel}`,
                     location: `${item.city || 'N/A'}, ${item.state || 'N/A'}`
                 };
+            }),
+            ...latestWizards.map((item: any) => {
+                const plainItem = JSON.parse(JSON.stringify(item));
+                let typeName = "Vehicle Request";
+                const serviceType = plainItem.serviceType || plainItem.type || "wizard";
+                let linkType = serviceType;
+                if (serviceType === "scrap") { typeName = "Scrap Vehicle"; linkType = "quote"; }
+                if (serviceType === "scrap-buy") { typeName = "Scrap & Buy New"; }
+                if (serviceType === "sell" || serviceType === "wizard-sell") { typeName = "Sell Old Vehicle"; linkType = "sell"; }
+                if (serviceType === "buy" || serviceType === "wizard-buy") { typeName = "Buy New Vehicle"; linkType = "buy"; }
+                
+                let vehicleInfoStr = serviceType === "buy" ? `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}` : 
+                                   (serviceType === "scrap" && item.category === "scrap_and_buy") ? `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}` :
+                                   `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
+
+                return {
+                    ...plainItem,
+                    type: linkType,
+                    originalType: serviceType,
+                    typeName,
+                    customerName: item.name || "N/A",
+                    customerPhone: item.phone || "N/A",
+                    vehicleInfo: vehicleInfoStr,
+                    location: `${item.city || 'N/A'}, ${item.state || 'N/A'}`
+                };
             })
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -97,9 +125,9 @@ export default async function SubcontractingPage() {
             <div className="bg-white dark:bg-[#0E192D] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-slate-800">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">Subcontracting</h1>
+                        <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">RVSF's</h1>
                         <p className="text-[13px] sm:text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                            Live market feed for all requests outside of Uttar Pradesh.
+                            Live market feed for all leads successfully approved to RVSF's.
                         </p>
                     </div>
                 </div>

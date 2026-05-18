@@ -22,7 +22,7 @@ export default async function ExecutiveApprovedLeads() {
 
     await connectToDatabase()
     
-    // Fetch approved, pickup_scheduled, reached_collection_centre, and car_scrapped leads from all collections
+    // Fetch approved, approved_to_rvsf, pickup_scheduled, reached_collection_centre, and car_scrapped leads from all collections
     const [
         approvedQuotes,
         approvedSells,

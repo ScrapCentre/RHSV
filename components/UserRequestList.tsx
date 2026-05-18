@@ -87,7 +87,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
             case "car_scrapped":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-900/20 text-red-400 border border-red-900/30">
-                        <CheckCircle className="w-3.5 h-3.5" /> Car Scrapped Successfully
+                        <CheckCircle className="w-3.5 h-3.5" /> Vehicle Scrapped Successfully
                     </span>
                 )
             case "completed":
@@ -280,7 +280,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                                 { id: 'approved', label: 'Approved & Published', description: 'Verified by Admin/Executive and published to B2B marketplace.', icon: <CheckCircle className="w-4 h-4" />, date: selectedRequest.updatedAt },
                                                 { id: 'pickup_scheduled', label: 'Pickup Scheduled', description: 'A B2B Partner has accepted the lead.', icon: <Car className="w-4 h-4" />, date: null },
                                                 { id: 'reached_collection_centre', label: 'Reached Collection Centre', description: 'Vehicle successfully arrived at ScrapCentre.', icon: <CheckCircle className="w-4 h-4" />, date: null },
-                                                { id: 'car_scrapped', label: 'Car Scrapped Successfully', description: 'Final processing completed.', icon: <CheckCircle className="w-4 h-4" />, date: null }
+                                                { id: 'car_scrapped', label: 'Vehicle Scrapped Successfully', description: 'Final processing completed.', icon: <CheckCircle className="w-4 h-4" />, date: null }
                                             ];
 
                                             const currentStatus = selectedRequest.status || 'pending';

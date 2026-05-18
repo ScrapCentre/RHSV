@@ -51,7 +51,7 @@ export default function StatusSidebar({ isOpen, onClose, lead }: StatusSidebarPr
         },
         {
             id: 'car_scrapped',
-            label: 'Car Scrapped Successfully',
+            label: 'Vehicle Scrapped Successfully',
             description: 'Final processing completed.',
             icon: <Car className="w-4 h-4" />,
             date: null

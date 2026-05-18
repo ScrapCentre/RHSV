@@ -136,12 +136,13 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                             </span>
                             <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${
                                 request.status === 'approved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 
+                                request.status === 'approved_to_rvsf' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20' :
                                 request.status === 'completed' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
                                 request.status === 'rejected' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' :
                                 request.status === 'reviewing' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' :
                                 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
                             }`}>
-                                {request.status}
+                                {request.status === 'approved_to_rvsf' ? "Approved to RVSF's" : request.status === 'approved' ? 'Approved to CC' : request.status}
                             </span>
                         </div>
                     </div>
@@ -157,19 +158,33 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                         Chat
                     </a>
 
-                    {/* Approve & Push to B2B */}
-                    {request.status !== 'approved' ? (
-                        <button
-                            onClick={() => handleStatusUpdate('approved')}
-                            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
-                        >
-                            <Send className="w-4 h-4" />
-                            Approve → B2B
-                        </button>
-                    ) : (
+                    {/* Approve & Push to CC / RVSF */}
+                    {request.status === 'approved' ? (
                         <div className="px-6 py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2">
                             <CheckCircle className="w-4 h-4" />
-                            Approved · In B2B Feed
+                            Approved to CC
+                        </div>
+                    ) : request.status === 'approved_to_rvsf' ? (
+                        <div className="px-6 py-3 bg-purple-500/10 border border-purple-500/30 text-purple-500 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4" />
+                            Approved to RVSF's
+                        </div>
+                    ) : (
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                onClick={() => handleStatusUpdate('approved')}
+                                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+                            >
+                                <Send className="w-4 h-4" />
+                                Approve to CC
+                            </button>
+                            <button
+                                onClick={() => handleStatusUpdate('approved_to_rvsf')}
+                                className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-purple-600/20 active:scale-[0.98]"
+                            >
+                                <Send className="w-4 h-4" />
+                                Approve to RVSF's
+                            </button>
                         </div>
                     )}
 
@@ -181,9 +196,6 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                         >
                             <option value="pending" className="bg-zinc-900">Pending</option>
                             <option value="reviewing" className="bg-zinc-900">Reviewing</option>
-                            <option value="approved" className="bg-zinc-900">Approved</option>
-                            <option value="completed" className="bg-zinc-900">Completed</option>
-                            <option value="rejected" className="bg-zinc-900">Rejected</option>
                         </select>
                     </div>
                     <button

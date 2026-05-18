@@ -5,6 +5,7 @@ import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
@@ -42,28 +43,32 @@ export async function POST(
 
         // 2. If the status is 'car_scrapped', update the original lead to 'car_scrapped'
         if (status === 'car_scrapped') {
-            let model
+            let legacyModel
             switch (pickup.leadType) {
                 case "quote":
                 case "valuation":
-                    model = Valuation
+                    legacyModel = Valuation
                     break
                 case "sell":
-                    model = SellVehicle
+                    legacyModel = SellVehicle
                     break
                 case "exchange":
-                    model = ExchangeVehicle
+                    legacyModel = ExchangeVehicle
                     break
                 case "buy":
-                    model = BuyVehicle
+                    legacyModel = BuyVehicle
                     break
             }
 
-            if (model) {
-                await model.findByIdAndUpdate(pickup.leadId, {
-                    status: "car_scrapped"
-                })
+            const updatePromises = [
+                WizardLead.findByIdAndUpdate(pickup.leadId, { status: "car_scrapped" })
+            ]
+            if (legacyModel) {
+                updatePromises.push(legacyModel.findByIdAndUpdate(pickup.leadId, { status: "car_scrapped" }))
             }
+            await Promise.allSettled(updatePromises)
+
+            console.log(`[ScrapCentre Pickup] Lead ${pickup.leadId} marked as car_scrapped`)
         }
 
         return NextResponse.json({ success: true, pickup }, { status: 200 })
