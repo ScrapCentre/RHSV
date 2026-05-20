@@ -66,7 +66,7 @@ export default function GrowWithUs() {
 
                                 {/* Description */}
                                 <p className="text-slate-600 font-bold mb-6 md:mb-10 text-base md:text-lg lg:text-xl leading-snug">
-                                    Join our network of verified partners and expand your business with <span className="text-red-600">ScrapCenter India.</span>
+                                    Join our network of verified partners and expand your business with <span className="text-red-600">ScrapCentre.com.</span>
                                 </p>
 
                                 {/* Button */}
