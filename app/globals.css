@@ -4,132 +4,281 @@
 
 @layer base {
   :root {
+    /* ── shadcn/ui tokens (kept for component compatibility) ── */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
+
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
-    --primary: 24.6 95% 53.1%; /* Orange */
+
+    --primary: 353 71% 48%; /* maps to brand-red #D92027 */
     --primary-foreground: 210 40% 98%;
- 
-    --secondary: 199 89% 48%; /* Light Blue / Sky */
+
+    --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
- 
+
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
+
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
- 
-    --destructive: 0 84.2% 60.2%;
+
+    --destructive: 353 71% 48%; /* same as brand-red — deliberate per design-system §2.1 */
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 24.6 95% 53.1%;
- 
+    --ring: 353 71% 48%; /* brand-red focus ring per design-system §9 */
+
     --radius: 0.5rem;
+
+    /* ── ScrapCentre.com brand primaries (design-system §2.1) ── */
+    --brand-red:         #D92027;
+    --brand-red-dark:    #A8161C;
+    --brand-red-light:   #FCE5E6;
+    --brand-red-xlight:  #FFF5F5;
+
+    /* ── Neutrals ── */
+    --brand-black:       #0A0A0A;
+    --brand-gray-900:    #111827;
+    --brand-gray-700:    #374151;
+    --brand-gray-500:    #6B7280;
+    --brand-gray-300:    #D1D5DB;
+    --brand-gray-100:    #F3F4F6;
+    --brand-white:       #FFFFFF;
+    --brand-bg:          #FAFAFA;
+
+    /* ── Status / functional ── */
+    --status-success:    #10B981;
+    --status-warning:    #F59E0B;
+    --status-error:      #D92027; /* same as brand-red — deliberate */
+    --status-info:       #3B82F6;
+
+    /* ── Lead quality badges (design-system §2.1, brand-guide §2) ── */
+    --badge-bronze:      #CD7F32;
+    --badge-bronze-bg:   #FDF3E3;
+    --badge-silver:      #8B949E;
+    --badge-silver-bg:   #F0F3F6;
+    --badge-gold:        #D4A017;
+    --badge-gold-bg:     #FEF9E7;
+
+    /* ── Tier unlock states ── */
+    --tier-locked:       #9CA3AF;
+    --tier-locked-bg:    #F9FAFB;
+    --tier-unlocked:     #10B981;
+
+    /* ── Coming Soon tiles ── */
+    --coming-soon-bg:    #F3F4F6;
+    --coming-soon-text:  #6B7280;
+    --coming-soon-badge: #374151;
+
+    /* ── Countdown urgency ── */
+    --countdown-ok:      #10B981;
+    --countdown-warn:    #F59E0B; /* < 5 days remaining */
+    --countdown-urgent:  #D92027; /* < 2 days remaining */
   }
- 
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
- 
+
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
- 
+
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
- 
-    --primary: 24.6 95% 53.1%;
+
+    --primary: 353 71% 48%;
     --primary-foreground: 222.2 47.4% 11.2%;
- 
-    --secondary: 199 89% 48%;
+
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
- 
+
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
- 
+
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
- 
-    --destructive: 0 62.8% 30.6%;
+
+    --destructive: 353 71% 48%;
     --destructive-foreground: 210 40% 98%;
- 
+
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 24.6 95% 53.1%;
+    --ring: 353 71% 48%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+    background-color: var(--brand-bg);
+    font-family: var(--font-inter), 'Inter', sans-serif;
+  }
+
+  /* ── Typography base (design-system §2.2) ── */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--brand-black);
+    font-weight: 700;
+  }
+
+  /* ── Focus ring override to brand-red (design-system §9) ── */
+  :focus-visible {
+    outline: 2px solid var(--brand-red);
+    outline-offset: 2px;
+  }
+
+  /* ── Touch targets (design-system §8) ── */
+  button, [role="button"], a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Override for inline-style links that should not force height */
+  a:not(.btn) {
+    min-height: unset;
+    min-width: unset;
   }
 }
 
 @layer utilities {
+  /* ── Perspective utility (kept from original) ── */
   .perspective-1000 {
     perspective: 1000px;
   }
-}
 
-/* Gooey Button Effect */
-.c-button--gooey {
-  position: relative;
-  transition: all 700ms ease;
-  overflow: hidden;
-  z-index: 1;
-}
+  /* ── Devanagari font utility (design-system §2.2) ── */
+  .font-devanagari {
+    font-family: var(--font-noto-devanagari), 'Noto Sans Devanagari', 'Inter', sans-serif;
+  }
 
-.c-button--gooey .c-button__blobs {
-  height: 100%;
-  filter: url(#goo);
-  overflow: hidden;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: -3px;
-  right: -1px;
-  z-index: -1;
-}
+  /* ── Brand button utilities (design-system §2.4) ── */
+  .btn-brand {
+    background-color: var(--brand-red);
+    color: #ffffff;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background-color 0.15s ease;
+  }
+  .btn-brand:hover {
+    background-color: var(--brand-red-dark);
+  }
 
-.c-button--gooey .c-button__blobs div {
-  background-color: #fff;
-  width: 34%;
-  height: 100%;
-  border-radius: 100%;
-  position: absolute;
-  transform: scale(1.4) translateY(125%) translateZ(0);
-  transition: all 700ms ease;
-}
+  .btn-unlock {
+    background-color: var(--status-success);
+    color: #ffffff;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background-color 0.15s ease;
+  }
+  .btn-unlock:hover {
+    background-color: #059669;
+  }
 
-.c-button--gooey .c-button__blobs div:nth-child(1) {
-  left: -5%;
-}
+  /* ── Card utilities (design-system §2.4) ── */
+  .card-base {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    border: 1px solid var(--brand-gray-300);
+    padding: 1.5rem;
+  }
 
-.c-button--gooey .c-button__blobs div:nth-child(2) {
-  left: 30%;
-  transition-delay: 60ms;
-}
+  .card-feature {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    border: 1px solid var(--brand-gray-300);
+    padding: 1.5rem;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card-feature:hover {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    transform: translateY(-0.25rem);
+  }
 
-.c-button--gooey .c-button__blobs div:nth-child(3) {
-  left: 66%;
-  transition-delay: 25ms;
-}
+  .card-lead {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    border: 1px solid var(--brand-gray-300);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
 
-.c-button--gooey:hover {
-  color: #E31E24 !important;
-}
+  .card-locked {
+    background-color: var(--coming-soon-bg);
+    border-radius: 1rem;
+    border: 2px dashed var(--brand-gray-300);
+  }
 
-.c-button--gooey:hover .c-button__blobs div {
-  transform: scale(1.4) translateY(0) translateZ(0);
-}
+  /* ── Badge utilities (design-system §2.4) ── */
+  .badge-bronze {
+    background-color: var(--badge-bronze-bg);
+    color: var(--badge-bronze);
+    border: 1px solid var(--badge-bronze);
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
 
+  .badge-silver {
+    background-color: var(--badge-silver-bg);
+    color: var(--badge-silver);
+    border: 1px solid var(--badge-silver);
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-gold {
+    background-color: var(--badge-gold-bg);
+    color: var(--badge-gold);
+    border: 1px solid var(--badge-gold);
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-coming {
+    background-color: var(--coming-soon-badge);
+    color: #ffffff;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+  }
+
+  .badge-verified {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-ai-flag {
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* ── iOS safe area bottom padding ── */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
