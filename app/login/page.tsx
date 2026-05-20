@@ -48,6 +48,8 @@ function LoginContent() {
                 errorMessage = "Failed to communicate with Google authentication."
             } else if (error === "Configuration") {
                 errorMessage = "Server authentication configuration error."
+            } else if (error.includes("DATABASE_CONNECTION_ERROR")) {
+                errorMessage = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
             }
 
             // Using setTimeout to ensure toast fires correctly post-render mounting
@@ -312,9 +314,13 @@ function LoginContent() {
 
             if (result?.error) {
                 setIsLoading(false)
+                let errorMsg = "Invalid Partner ID or Password. Please check your credentials."
+                if (result.error.includes("DATABASE_CONNECTION_ERROR")) {
+                    errorMsg = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
+                }
                 toast({
                     title: "B2B Login Failed",
-                    description: "Invalid Partner ID or Password. Please check your credentials.",
+                    description: errorMsg,
                     variant: "destructive"
                 })
             } else {

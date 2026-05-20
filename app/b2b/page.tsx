@@ -38,7 +38,11 @@ export default function B2BLoginPage() {
 
             if (result?.error) {
                 setIsLoading(false)
-                setError("Invalid Partner ID or password. Please try again.")
+                let errorMsg = "Invalid Partner ID or password. Please try again."
+                if (result.error.includes("DATABASE_CONNECTION_ERROR")) {
+                    errorMsg = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
+                }
+                setError(errorMsg)
             } else {
                 router.push("/b2b/dashboard")
             }

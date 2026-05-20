@@ -27,7 +27,7 @@ export default function RVSFDashboard() {
 
     useEffect(() => {
         if (status === "unauthenticated") {
-            router.push("/rvsf/login")
+            router.push("/rvsf")
         } else if (status === "authenticated" && (session?.user as any)?.role !== "rvsf") {
             router.push("/")
         } else if (status === "authenticated") {
@@ -160,7 +160,7 @@ export default function RVSFDashboard() {
                         <div className="w-px h-8 bg-white/10 hidden sm:block"></div>
 
                         <button
-                            onClick={() => signOut({ callbackUrl: "/rvsf" })}
+                            onClick={() => signOut({ callbackUrl: "/rvsf_leads" })}
                             className="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-all font-semibold text-sm group"
                         >
                             <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

@@ -42,7 +42,11 @@ export default function ExecutiveLoginPage() {
             })
 
             if (res?.error) {
-                setError("Authentication failed. Invalid credentials.")
+                let errorMsg = "Authentication failed. Invalid credentials."
+                if (res.error.includes("DATABASE_CONNECTION_ERROR")) {
+                    errorMsg = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
+                }
+                setError(errorMsg)
             } else {
                 router.push("/executive/dashboard")
             }

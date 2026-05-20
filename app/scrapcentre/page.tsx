@@ -34,7 +34,13 @@ export default function ScrapCentreLoginPage() {
             })
 
             if (res?.error) {
-                setError("Access Denied. Check your credentials.")
+                let errorMsg = "Access Denied. Check your credentials."
+                if (res.error.includes("DATABASE_CONNECTION_ERROR")) {
+                    errorMsg = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
+                } else if (res.error !== "CredentialsSignin") {
+                    errorMsg = res.error
+                }
+                setError(errorMsg)
             } else {
                 // Successful login
                 window.location.href = "/scrapcentre/dashboard"
