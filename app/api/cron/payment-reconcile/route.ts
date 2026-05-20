@@ -3,17 +3,12 @@
 // may have dropped). In real impl: query Razorpay GET /orders for actual
 // state and flip Payment.status accordingly. For now: just count + log.
 import { NextResponse } from "next/server"
+import { checkCronSecret } from "@/lib/middleware/cronAuth"
 import connectToDatabase from "@/lib/db"
 import Payment from "@/models/Payment"
 
-function cronAuth(req: Request): boolean {
-  const e = process.env.CRON_SECRET
-  if (!e) return true
-  return req.headers.get("x-cron-secret") === e
-}
-
 export async function POST(req: Request) {
-  if (!cronAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const auth = checkCronSecret(req); if (!auth.ok) return auth.response!
   await connectToDatabase()
   const cutoff = new Date(Date.now() - 60 * 60 * 1000)
   const stuck = await Payment.countDocuments({

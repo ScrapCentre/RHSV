@@ -394,40 +394,56 @@ export const authOptions: NextAuthOptions = {
             return true
         },
         async jwt({ token, user, account }) {
-            if (user) {
-                if (account?.provider === "google") {
-                    await connectToDatabase()
-                    const dbUser = await User.findOne({ email: user.email }) as any
-                    if (dbUser) {
-                        token.role         = dbUser.role
-                        token.id           = dbUser._id.toString()
-                        token.linkedRvsfId = dbUser.linkedRvsfId?.toString()
-                        token.linkedCcId   = dbUser.linkedCcId?.toString()
-                    }
-                } else {
-                    token.role = (user as any).role || "client"
-                    token.id   = (user as any).id
-                    // For credential logins, look up linkedRvsfId/linkedCcId
-                    // from the User doc once at JWT creation (subsequent requests
-                    // reuse the JWT without DB hits).
-                    if (token.role === "rvsf_admin" || token.role === "rvsf_executive" || token.role === "cc_operator") {
+            try {
+                if (user) {
+                    if (account?.provider === "google") {
                         await connectToDatabase()
-                        const dbUser = await User.findById(token.id).lean() as any
+                        const dbUser = await User.findOne({ email: (user as any).email }).lean() as any
                         if (dbUser) {
-                            token.linkedRvsfId = dbUser.linkedRvsfId?.toString()
-                            token.linkedCcId   = dbUser.linkedCcId?.toString()
+                            token.role = typeof dbUser.role === "string" ? dbUser.role : "client"
+                            token.id   = dbUser._id ? String(dbUser._id) : undefined
+                            if (dbUser.linkedRvsfId) token.linkedRvsfId = String(dbUser.linkedRvsfId)
+                            if (dbUser.linkedCcId)   token.linkedCcId   = String(dbUser.linkedCcId)
+                        }
+                    } else {
+                        const u = user as any
+                        token.role = typeof u.role === "string" ? u.role : "client"
+                        token.id   = u.id != null ? String(u.id) : undefined
+                        if (token.role === "rvsf_admin" || token.role === "rvsf_executive" || token.role === "cc_operator") {
+                            try {
+                                // Only attempt the lookup with a real ObjectId-shaped id.
+                                // The env-admin path produces id === "env-admin" which
+                                // would CastError; same for any non-Mongo id source.
+                                if (typeof token.id === "string" && /^[a-f0-9]{24}$/i.test(token.id)) {
+                                    await connectToDatabase()
+                                    const dbUser = await User.findById(token.id).lean() as any
+                                    if (dbUser) {
+                                        if (dbUser.linkedRvsfId) token.linkedRvsfId = String(dbUser.linkedRvsfId)
+                                        if (dbUser.linkedCcId)   token.linkedCcId   = String(dbUser.linkedCcId)
+                                    }
+                                }
+                            } catch (lookupErr: any) {
+                                console.error("[Auth] linkedRvsfId/CcId lookup failed:", lookupErr?.message)
+                            }
                         }
                     }
                 }
+            } catch (err: any) {
+                console.error("[Auth] jwt callback error:", err?.message)
             }
             return token
         },
         async session({ session, token }) {
-            if (session.user) {
-                (session.user as any).role         = token.role
-                (session.user as any).id           = token.id
-                (session.user as any).linkedRvsfId = token.linkedRvsfId
-                (session.user as any).linkedCcId   = token.linkedCcId
+            try {
+                if (session && session.user && token) {
+                    const sUser = session.user as any
+                    sUser.role         = typeof token.role         === "string" ? token.role         : "client"
+                    sUser.id           = typeof token.id           === "string" ? token.id           : undefined
+                    sUser.linkedRvsfId = typeof token.linkedRvsfId === "string" ? token.linkedRvsfId : undefined
+                    sUser.linkedCcId   = typeof token.linkedCcId   === "string" ? token.linkedCcId   : undefined
+                }
+            } catch (err: any) {
+                console.error("[Auth] session callback error:", err?.message)
             }
             return session
         },

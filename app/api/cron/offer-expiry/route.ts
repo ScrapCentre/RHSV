@@ -2,18 +2,12 @@
 // Every 15 min: find open offers past their expiresAt; flip to "expired";
 // post system_event in the chat.
 import { NextResponse } from "next/server"
+import { checkCronSecret } from "@/lib/middleware/cronAuth"
 import connectToDatabase from "@/lib/db"
 import ChatMessage from "@/models/ChatMessage"
 
-function cronAuth(req: Request): boolean {
-  const provided = req.headers.get("x-cron-secret")
-  const expected = process.env.CRON_SECRET
-  if (!expected) return true  // dev / staging
-  return provided === expected
-}
-
 export async function POST(req: Request) {
-  if (!cronAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const auth = checkCronSecret(req); if (!auth.ok) return auth.response!
   await connectToDatabase()
   const now = new Date()
   const expired = await ChatMessage.find({

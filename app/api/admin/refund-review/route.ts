@@ -11,7 +11,10 @@ import Lead from "@/models/Lead"
 export const GET = withAuth(["admin"], async (_req, _ctx) => {
   await connectToDatabase()
   const events = await RejectionEvent
-    .find({ refundDecision: { $in: ["admin_pending", "auto_full_but_refund_failed"] } })
+    // Include auto_denied_number_revealed so RVSFs that had their refund
+    // auto-denied (because they used the Reveal-customer-number button)
+    // still have admin recourse — Architect coherence review finding.
+    .find({ refundDecision: { $in: ["admin_pending", "auto_full_but_refund_failed", "auto_denied_number_revealed"] } })
     .sort({ createdAt: -1 })
     .limit(100)
     .lean()

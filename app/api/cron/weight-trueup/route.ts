@@ -3,6 +3,7 @@
 // and the ±15% delta hasn't been settled yet. Fires Razorpay debit or
 // refund per lib/services/pricing/trueup.ts.
 import { NextResponse } from "next/server"
+import { checkCronSecret } from "@/lib/middleware/cronAuth"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import LeadUnlock from "@/models/LeadUnlock"
@@ -11,22 +12,19 @@ import ConfigSetting from "@/models/ConfigSetting"
 import { computeTrueUp } from "@/lib/services/pricing/trueup"
 import { refund as razorpayRefund, createOrder } from "@/lib/services/payments"
 
-function cronAuth(req: Request): boolean {
-  const e = process.env.CRON_SECRET
-  if (!e) return true
-  return req.headers.get("x-cron-secret") === e
-}
-
 export async function POST(req: Request) {
-  if (!cronAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const auth = checkCronSecret(req); if (!auth.ok) return auth.response!
   await connectToDatabase()
   const setting = await ConfigSetting.findOne({ key: "weight.trueUpTolerancePct" }).lean() as any
   const tolerancePct = setting?.value ?? 15
 
-  // Pseudo-criterion: state = cvs_issued AND vehicle.actualScrappedWeightKg set
-  // AND no LeadUnlock.trueUp.settledAt yet. We approximate via trueUp absence.
+  // Criterion: post-scrap leads with an actual weight recorded by the CC
+  // operator but the true-up settlement hasn't happened yet. We accept any
+  // state past "negotiating" so the closure happy path (assign_to_cc →
+  // negotiating → cd_issued → cvs_issued → weight_settled → closed) doesn't
+  // depend on the exact transition wording for the cron to pick up the lead.
   const candidates = await Lead.find({
-    state: "cvs_issued",
+    state: { $in: ["cd_issued", "cvs_issued", "weight_settled"] },
     "vehicle.actualScrappedWeightKg": { $exists: true, $ne: null },
   }).limit(50).lean()
 

@@ -3,17 +3,12 @@
 // signedUrlExpiresAt is approaching. Placeholder until M19 polish wires
 // the real signed-URL helper.
 import { NextResponse } from "next/server"
+import { checkCronSecret } from "@/lib/middleware/cronAuth"
 import connectToDatabase from "@/lib/db"
 import DocumentRecord from "@/models/DocumentRecord"
 
-function cronAuth(req: Request): boolean {
-  const e = process.env.CRON_SECRET
-  if (!e) return true
-  return req.headers.get("x-cron-secret") === e
-}
-
 export async function POST(req: Request) {
-  if (!cronAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const auth = checkCronSecret(req); if (!auth.ok) return auth.response!
   await connectToDatabase()
   const cutoff = new Date(Date.now() + 24 * 60 * 60 * 1000)
   const stale = await DocumentRecord.countDocuments({

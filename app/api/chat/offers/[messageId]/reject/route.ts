@@ -1,16 +1,37 @@
 // M12 — POST /api/chat/offers/[messageId]/reject
 // Marks the open offer as rejected. No money movement (always; offers are signal-only per L44).
+//
+// HOTFIX (Backend code-review §6): now includes party-check on the parent
+// thread. Previously vulnerable to IDOR — any authenticated session could
+// reject offers in unrelated chat threads by guessing messageIds.
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
 import connectToDatabase from "@/lib/db"
 import ChatMessage from "@/models/ChatMessage"
 import ChatThread from "@/models/ChatThread"
 
+function isParty(thread: any, user: any): boolean {
+  if (!thread) return false
+  if (user.role === "admin") return true
+  if (user.role === "client" && thread.customerUserId?.toString() === user.id) return true
+  if ((user.role === "rvsf_admin" || user.role === "rvsf_executive") && thread.rvsfId?.toString() === user.linkedRvsfId) return true
+  if (user.role === "cc_operator" && thread.assignedCcId?.toString() === user.linkedCcId) return true
+  return false
+}
+
 export const POST = withAuth(["client", "rvsf_admin", "rvsf_executive", "admin"], async (req, { user }) => {
   await connectToDatabase()
   const url = new URL(req.url)
   const segments = url.pathname.split("/")
   const messageId = segments[segments.length - 2]
+
+  // Party check BEFORE mutation
+  const msg = await ChatMessage.findById(messageId).lean() as any
+  if (!msg) return NextResponse.json({ error: "Offer not found" }, { status: 404 })
+  const thread = await ChatThread.findById(msg.threadId).lean() as any
+  if (!isParty(thread, user)) {
+    return NextResponse.json({ error: "Not a party to this thread" }, { status: 403 })
+  }
 
   const updated = await ChatMessage.findOneAndUpdate(
     { _id: messageId, "offer.status": "open" },
@@ -25,7 +46,6 @@ export const POST = withAuth(["client", "rvsf_admin", "rvsf_executive", "admin"]
   ) as any
   if (!updated) return NextResponse.json({ error: "Offer is no longer open" }, { status: 409 })
 
-  // Post a small system event noting the rejection (helps thread flow)
   await ChatMessage.create({
     threadId: updated.threadId,
     senderUserId: null,

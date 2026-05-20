@@ -149,7 +149,7 @@ export default function ChatThread({
         <div className="bg-brand-gray-100 px-4 py-3 border-b border-brand-gray-300 text-sm text-brand-gray-700">
           {isCustomer
             ? "This RVSF has returned your job to our marketplace. A new RVSF will reach out here when they unlock."
-            : "You rejected this lead — the thread is read-only."}
+            : "This lead was returned to the marketplace — the thread is read-only. Another RVSF can now unlock it."}
         </div>
       )}
 
@@ -296,7 +296,7 @@ function Bubble({
   if (msg.type === "offer") {
     const o = msg.offer!
     const isOpen = o.status === "open"
-    const canActOnIt = isOpen && !isMine && (currentUserRole === "client" || currentUserRole === "rvsf_admin" || currentUserRole === "rvsf_executive")
+    const canActOnIt = isOpen && !isMine && (currentUserRole === "customer" || currentUserRole === "rvsf_admin" || currentUserRole === "rvsf_executive")
     const statusClass = {
       open: "border-brand-red",
       accepted: "border-status-success bg-status-success/10",

@@ -3,20 +3,15 @@
 // enqueues a dsc_pending_nudge notification per record. Idempotent via
 // a nudge counter (rough — improves in M19).
 import { NextResponse } from "next/server"
+import { checkCronSecret } from "@/lib/middleware/cronAuth"
 import connectToDatabase from "@/lib/db"
 import DocumentRecord from "@/models/DocumentRecord"
 import Lead from "@/models/Lead"
 import ConfigSetting from "@/models/ConfigSetting"
 import { enqueueNotification } from "@/lib/services/notifications/dispatcher"
 
-function cronAuth(req: Request): boolean {
-  const e = process.env.CRON_SECRET
-  if (!e) return true
-  return req.headers.get("x-cron-secret") === e
-}
-
 export async function POST(req: Request) {
-  if (!cronAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const auth = checkCronSecret(req); if (!auth.ok) return auth.response!
   await connectToDatabase()
   const setting = await ConfigSetting.findOne({ key: "dsc.nudgeAfterHours" }).lean() as any
   const nudgeAfterHours = setting?.value ?? 24

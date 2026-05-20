@@ -1,12 +1,25 @@
 // M12 — POST /api/chat/offers/[messageId]/counter
 // Mark the existing offer as `countered` + post a new offer message with
 // `counterOfMessageId` linking back to the parent.
+//
+// HOTFIX (Backend code-review §6): party-check added before mutation
+// (was previously an IDOR — any session could counter offers in arbitrary
+// threads by guessing messageIds).
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
 import connectToDatabase from "@/lib/db"
 import ChatMessage from "@/models/ChatMessage"
 import ChatThread from "@/models/ChatThread"
 import ConfigSetting from "@/models/ConfigSetting"
+
+function isParty(thread: any, user: any): boolean {
+  if (!thread) return false
+  if (user.role === "admin") return true
+  if (user.role === "client" && thread.customerUserId?.toString() === user.id) return true
+  if ((user.role === "rvsf_admin" || user.role === "rvsf_executive") && thread.rvsfId?.toString() === user.linkedRvsfId) return true
+  if (user.role === "cc_operator" && thread.assignedCcId?.toString() === user.linkedCcId) return true
+  return false
+}
 
 export const POST = withAuth(["client", "rvsf_admin", "rvsf_executive", "admin"], async (req, { user }) => {
   await connectToDatabase()
@@ -18,6 +31,17 @@ export const POST = withAuth(["client", "rvsf_admin", "rvsf_executive", "admin"]
   const { counterAmountPaise } = body
   if (!counterAmountPaise || counterAmountPaise < 100) {
     return NextResponse.json({ error: "counterAmountPaise (≥100) required" }, { status: 400 })
+  }
+
+  // Party check BEFORE mutation
+  const parentMsg = await ChatMessage.findById(messageId).lean() as any
+  if (!parentMsg) return NextResponse.json({ error: "Offer not found" }, { status: 404 })
+  const threadGuard = await ChatThread.findById(parentMsg.threadId).lean() as any
+  if (!isParty(threadGuard, user)) {
+    return NextResponse.json({ error: "Not a party to this thread" }, { status: 403 })
+  }
+  if (!threadGuard || threadGuard.status !== "active") {
+    return NextResponse.json({ error: "Thread is archived" }, { status: 409 })
   }
 
   const parent = await ChatMessage.findOneAndUpdate(

@@ -2,19 +2,14 @@
 // Finds Lead{state: marketplace_visible, firstVisibleAt < now-48h, not yet alerted};
 // writes AntiHoardingAlert rows for in-catchment RVSFs.
 import { NextResponse } from "next/server"
+import { checkCronSecret } from "@/lib/middleware/cronAuth"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import AntiHoardingAlert from "@/models/AntiHoardingAlert"
 import ConfigSetting from "@/models/ConfigSetting"
 
-function cronAuth(req: Request): boolean {
-  const e = process.env.CRON_SECRET
-  if (!e) return true
-  return req.headers.get("x-cron-secret") === e
-}
-
 export async function POST(req: Request) {
-  if (!cronAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const auth = checkCronSecret(req); if (!auth.ok) return auth.response!
   await connectToDatabase()
   const setting = await ConfigSetting.findOne({ key: "leads.staleHours" }).lean() as any
   const staleHours = setting?.value ?? 48

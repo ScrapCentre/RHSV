@@ -1,14 +1,22 @@
 /**
- * Notification dispatcher — stub. Full implementation lands in M15.
+ * Notification dispatcher.
  *
  * Locked 2026-05-20 (L27, Option D): every notification trigger fans out
- * to EMAIL + IN-APP + WHATSAPP channels (recipient-dependent matrix in
- * v2-build-plan.md §16.1 + §25.20).
+ * to EMAIL + IN-APP + WHATSAPP channels per the matrix in
+ * v2-build-plan.md §16.1 + §25.20.
  *
- * This stub just persists a Notification row and logs intent. The cron
- * job /api/cron/notification-flush will actually dispatch in M15.
+ * v2 staging behavior (M15 + Architect-review hotfix):
+ *   - PERSISTS a Notification row to Mongo immediately (so the queue
+ *     exists when M18 adapters come online to drain it)
+ *   - Also logs to console for staging visibility
+ *
+ * Actual per-channel send happens in cron `notification-flush` once
+ * the real AiSensy + Postmark adapters land in M18.
  */
 import connectToDatabase from "@/lib/db"
+import Notification from "@/models/Notification"
+
+export type NotificationChannel = "email" | "inapp" | "whatsapp"
 
 export type NotificationKind =
   | "lead_unlocked_customer"
@@ -42,15 +50,47 @@ export type EnqueueArgs = {
   bodyMarkdown: string
   whatsappTemplateName?: string
   whatsappTemplateVars?: string[]
-  channels?: ("email" | "inapp" | "whatsapp")[]
+  channels?: NotificationChannel[]
+  deeplinkUrl?: string
   leadId?: string
   correlationId?: string
 }
 
+const DEFAULT_CHANNELS: NotificationChannel[] = ["email", "inapp", "whatsapp"]
+
 export async function enqueueNotification(args: EnqueueArgs): Promise<void> {
   await connectToDatabase()
-  // TODO M15: persist into Notification collection + dispatch via channel adapters.
-  // For staging until M15, we just log.
+
+  const channels = args.channels ?? DEFAULT_CHANNELS
+  const channelStatus: Record<string, "pending" | "skipped"> = {
+    email:    channels.includes("email")    ? "pending" : "skipped",
+    inapp:    channels.includes("inapp")    ? "pending" : "skipped",
+    whatsapp: channels.includes("whatsapp") ? "pending" : "skipped",
+  }
+
+  try {
+    await Notification.create({
+      kind: args.kind,
+      recipientUserId: args.recipientUserId,
+      recipientRvsfId: args.recipientRvsfId,
+      recipientCcId:   args.recipientCcId,
+      subject:         args.subject,
+      bodyMarkdown:    args.bodyMarkdown,
+      deeplinkUrl:     args.deeplinkUrl,
+      channels,
+      channelStatus,
+      whatsappTemplateName: args.whatsappTemplateName,
+      whatsappTemplateVars: args.whatsappTemplateVars,
+      leadId:          args.leadId,
+      correlationId:   args.correlationId,
+    })
+  } catch (err: any) {
+    // Don't crash the caller if the row write fails — log + continue.
+    // The notification is lost in this case but the underlying flow
+    // (e.g. lead reject) still completes.
+    console.error(`[notify] Notification.create failed for kind=${args.kind}: ${err?.message}`)
+  }
+
   // eslint-disable-next-line no-console
-  console.log(`[notify] kind=${args.kind} recipient=${args.recipientUserId ?? args.recipientRvsfId ?? args.recipientCcId} subject="${args.subject}"`)
+  console.log(`[notify] kind=${args.kind} recipient=${args.recipientUserId ?? args.recipientRvsfId ?? args.recipientCcId ?? "—"} subject="${args.subject}"`)
 }
