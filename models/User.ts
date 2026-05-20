@@ -12,7 +12,9 @@ const UserSchema = new Schema(
             sparse: true, // allows multiple docs with no email
             required: false,
             match: [
-                /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+                // Relaxed v2 regex — original rejected `.online` and other 4+ char TLDs
+                // (Novalytix's regex only allowed 2-3 char TLDs).
+                /^[\w.+-]+@[\w-]+(\.[\w-]+)+$/,
                 "Email is invalid",
             ],
         },
