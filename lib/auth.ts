@@ -24,21 +24,14 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
-                console.log("[Auth] Login Attempt for:", credentials?.email);
                 if (!credentials?.email || !credentials?.password) return null;
-                
-                // 1. DEBUG BYPASS
-                if (credentials.email === "debug@test.com" && credentials.password === "debug123") {
-                    console.log("[Auth] DEBUG LOGIN SUCCESS");
-                    return { id: "debug-id", name: "Debug User", email: "debug@test.com", role: "admin" }
-                }
 
                 try {
                     await connectToDatabase();
                     const identifier = credentials.email.toLowerCase();
                     const password = credentials.password;
 
-                    // 2. Env Fallback (Admin)
+                    // 1. Env Fallback (Admin)
                     const envAdminEmail = process.env.ADMIN_EMAIL;
                     const envAdminPassword = process.env.ADMIN_PASSWORD;
                     console.log(`[Auth] Env Admin Loaded: ${!!envAdminEmail}, Email starts with: ${envAdminEmail?.substring(0, 3)}`);
@@ -50,7 +43,7 @@ export const authOptions: NextAuthOptions = {
                         return { id: "env-admin", name: "System Admin", email: envAdminEmail, role: "admin" }
                     }
 
-                    // 3. Standard User Database
+                    // 2. Standard User Database
                     const dbUser = await User.findOne({ email: identifier }).select("+password").lean();
                     if (dbUser) {
                         const isMatch = await bcrypt.compare(password, (dbUser as any).password);
@@ -58,7 +51,7 @@ export const authOptions: NextAuthOptions = {
                         if (isMatch) return { id: (dbUser as any)._id.toString(), name: (dbUser as any).name, email: (dbUser as any).email, role: (dbUser as any).role || "client" }
                     }
 
-                    // 4. ScrapCentre Database
+                    // 3. ScrapCentre Database
                     const scrapUser = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password").lean();
                     if (scrapUser) {
                         const storedPw = (scrapUser as any).password;
@@ -73,7 +66,7 @@ export const authOptions: NextAuthOptions = {
                         if (isMatch) return { id: (scrapUser as any)._id.toString(), name: (scrapUser as any).name, email: (scrapUser as any).email, role: "scrapcentre" }
                     }
 
-                    // 5. B2B Database
+                    // 4. B2B Database
                     const partner = await B2BPartner.findOne({ userId: identifier }).select("+password").lean();
                     if (partner) {
                         const storedPw = (partner as any).password;
@@ -83,7 +76,7 @@ export const authOptions: NextAuthOptions = {
                         if (isMatch) return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
                     }
 
-                    // 6. RVSF Database
+                    // 5. RVSF Database
                     const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: identifier }] }).select("+password").lean();
                     if (rvsf) {
                         const isMatch = await bcrypt.compare(password, (rvsf as any).password);
