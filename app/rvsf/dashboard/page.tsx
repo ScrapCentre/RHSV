@@ -27,7 +27,7 @@ export default function RVSFDashboard() {
 
     useEffect(() => {
         if (status === "unauthenticated") {
-            router.push("/rvsf")
+            router.push("/rvsf/login")
         } else if (status === "authenticated" && (session?.user as any)?.role !== "rvsf") {
             router.push("/")
         } else if (status === "authenticated") {

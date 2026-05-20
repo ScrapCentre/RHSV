@@ -1,0 +1,72 @@
+﻿
+> my-v0-project@0.1.0 build
+> next build
+
+   Γû▓ Next.js 15.5.11
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+node.exe :  ΓÜá Mismatching 
+@next/swc version, detected: 
+15.5.7 while Next.js is on 
+15.5.11. Please ensure these match
+At C:\Program 
+Files\nodejs\npm.ps1:29 char:3
++   & $NODE_EXE $NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotS 
+   pecified: ( ΓÜá Mismatchin...u  
+  re these match:String) [], Rem   
+ oteException
+    + FullyQualifiedErrorId : Nati 
+   veCommandError
+ 
+Failed to compile.
+
+./components/ExchangeVehicleForm.ts
+x
+Module parse failed: Identifier 
+'inputClasses' has already been 
+declared (122:10)
+File was processed with these 
+loaders:
+ * ./node_modules/next/dist/build/w
+ebpack/loaders/next-flight-client-m
+odule-loader.js
+ * ./node_modules/next/dist/build/w
+ebpack/loaders/next-swc-loader.js
+You may need an additional loader 
+to handle the result of these 
+loaders.
+|         }
+|     };
+>     const inputClasses = "w-full 
+px-5 py-4 rounded-xl 
+bg-white/[0.03] border 
+border-white/10 text-white 
+placeholder-gray-500 
+focus:border-emerald-500/50 
+focus:ring-4 
+focus:ring-emerald-500/10 
+outline-none transition-all 
+duration-300";
+|     const labelClasses = 
+"text-xs font-bold 
+text-emerald-400/80 mb-2 block 
+uppercase tracking-widest pl-1";
+|     return /*#__PURE__*/ 
+_jsxs("div", {
+
+Import trace for requested module:
+./components/ExchangeVehicleForm.ts
+x
+./app/services/exchange-vehicle/pag
+e.tsx
+
+ ΓÜá Mismatching @next/swc 
+version, detected: 15.5.7 while 
+Next.js is on 15.5.11. Please 
+ensure these match
+
+> Build failed because of webpack 
+errors

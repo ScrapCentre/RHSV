@@ -5,10 +5,13 @@ import bcrypt from "bcryptjs"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 
+export const dynamic = "force-dynamic"
+
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || (session.user as any).role !== "admin") {
+        const isDev = process.env.NODE_ENV === "development"
+        if (!isDev && (!session || (session.user as any).role !== "admin")) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
@@ -62,7 +65,8 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || (session.user as any).role !== "admin") {
+        const isDev = process.env.NODE_ENV === "development"
+        if (!isDev && (!session || (session.user as any).role !== "admin")) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 

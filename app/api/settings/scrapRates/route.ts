@@ -4,7 +4,9 @@ import Setting from "@/models/Setting"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
-// GET /api/settings/scrapRates - Fetch the current scrap rate and pickup charge
+export const dynamic = "force-dynamic"
+
+// GET /api/settings/scrapRates - Fetch the current scrap rate, pickup charge, and RVSF lead price
 export async function GET() {
     try {
         await connectToDatabase()
@@ -17,7 +19,15 @@ export async function GET() {
         const pickupSetting = await Setting.findOne({ key: "pickupChargePerKm" })
         const pickupCharge = pickupSetting ? pickupSetting.value : 5
 
-        return NextResponse.json({ scrapPricePerKg: price, pickupChargePerKm: pickupCharge }, { status: 200 })
+        // Fetch RVSF lead price, default to 499 if not set
+        const rvsfLeadSetting = await Setting.findOne({ key: "rvsfLeadPrice" })
+        const rvsfLeadPrice = rvsfLeadSetting ? rvsfLeadSetting.value : 499
+
+        return NextResponse.json({ 
+            scrapPricePerKg: price, 
+            pickupChargePerKm: pickupCharge,
+            rvsfLeadPrice: rvsfLeadPrice
+        }, { status: 200 })
     } catch (error) {
         console.error("Error fetching settings:", error)
         return NextResponse.json({ message: "Internal server error" }, { status: 500 })
@@ -35,7 +45,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json()
-        const { scrapPricePerKg, pickupChargePerKm } = body
+        const { scrapPricePerKg, pickupChargePerKm, rvsfLeadPrice } = body
 
         await connectToDatabase()
 
@@ -63,8 +73,25 @@ export async function POST(req: Request) {
             )
         }
 
+        // Update RVSF Lead Price if valid
+        if (typeof rvsfLeadPrice === 'number' && rvsfLeadPrice > 0) {
+            await Setting.findOneAndUpdate(
+                { key: "rvsfLeadPrice" },
+                {
+                    value: rvsfLeadPrice,
+                    description: "Global price per lead for RVSF registration"
+                },
+                { upsert: true, new: true }
+            )
+        }
+
         return NextResponse.json(
-            { message: "Settings updated successfully", scrapPricePerKg, pickupChargePerKm },
+            { 
+                message: "Settings updated successfully", 
+                scrapPricePerKg, 
+                pickupChargePerKm,
+                rvsfLeadPrice
+            },
             { status: 200 }
         )
     } catch (error) {

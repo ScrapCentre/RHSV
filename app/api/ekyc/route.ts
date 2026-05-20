@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest) {
 
         const firstName = formData.get("firstName") as string
         const dob = formData.get("dob") as string
-        const aadharPhone = formData.get("aadharPhone") as string
+        const whatsapp = formData.get("whatsapp") as string
         const aadharNumber = formData.get("aadharNumber") as string
 
         const fullAddress = formData.get("fullAddress") as string
@@ -31,7 +31,10 @@ export async function PATCH(req: NextRequest) {
 
         const aadharFile = formData.get("aadharFile") as File
         const rcFile = formData.get("rcFile") as File
-        const carPhoto = formData.get("carPhoto") as File
+        const photoFront = formData.get("photoFront") as File
+        const photoBack = formData.get("photoBack") as File
+        const photoLeft = formData.get("photoLeft") as File
+        const photoRight = formData.get("photoRight") as File
 
         await connectToDatabase()
 
@@ -47,23 +50,29 @@ export async function PATCH(req: NextRequest) {
             return await uploadToCloudinary(buffer, `autoscrap/ekyc/${valuationId}`, publicId, "auto")
         }
 
-        const [aadharUrl, rcUrl, carPhotoUrl] = await Promise.all([
+        const [aadharUrl, rcUrl, photoFrontUrl, photoBackUrl, photoLeftUrl, photoRightUrl] = await Promise.all([
             uploadFile(aadharFile, "aadhar"),
             uploadFile(rcFile, "rc"),
-            uploadFile(carPhoto, "car")
+            uploadFile(photoFront, "car_front"),
+            uploadFile(photoBack, "car_back"),
+            uploadFile(photoLeft, "car_left"),
+            uploadFile(photoRight, "car_right"),
         ])
 
         const ekycData: any = {
             firstName,
             dob,
-            aadharPhone,
+            whatsapp,
             aadharNumber,
             ekycStatus: "verified"
         }
 
         if (aadharUrl) ekycData.aadharFile = aadharUrl
         if (rcUrl) ekycData.rcFile = rcUrl
-        if (carPhotoUrl) ekycData.carPhoto = carPhotoUrl
+        if (photoFrontUrl) ekycData.photoFront = photoFrontUrl
+        if (photoBackUrl) ekycData.photoBack = photoBackUrl
+        if (photoLeftUrl) ekycData.photoLeft = photoLeftUrl
+        if (photoRightUrl) ekycData.photoRight = photoRightUrl
 
         let Model;
         let updateStatus = "pending";
@@ -81,7 +90,7 @@ export async function PATCH(req: NextRequest) {
             if (state) customFieldsToSet.state = state
             if (city) customFieldsToSet.city = city
             if (pincode) customFieldsToSet.pincode = pincode
-        } else if (source === "scrap") {
+        } else if (["scrap", "sell", "buy"].includes(source)) {
             const isWizard = await WizardLead.findById(valuationId)
             if (isWizard) {
                 Model = WizardLead

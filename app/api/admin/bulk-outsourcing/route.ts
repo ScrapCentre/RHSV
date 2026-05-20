@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/db";
 import BulkOutsourcing from "@/models/BulkOutsourcing";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions);

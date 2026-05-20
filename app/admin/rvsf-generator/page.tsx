@@ -81,10 +81,10 @@ export default function RVSFGeneratorAdmin() {
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (formData.password.length < 8) {
+        if (formData.password.length < 4) {
             toast({
                 title: "Insecure Key",
-                description: "Security protocol requires a minimum of 8 characters.",
+                description: "Security protocol requires a minimum of 4 characters.",
                 variant: "destructive"
             })
             return

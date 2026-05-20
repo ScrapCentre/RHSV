@@ -77,7 +77,7 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // 6. RVSF Database
-                    const rvsf = await RVSFUser.findOne({ rvsfId: identifier }).select("+password").lean();
+                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: identifier }] }).select("+password").lean();
                     if (rvsf) {
                         const isMatch = await bcrypt.compare(password, (rvsf as any).password);
                         console.log(`[Auth] RVSF Match: ${identifier}, Match: ${isMatch}`);
@@ -181,7 +181,7 @@ export const authOptions: NextAuthOptions = {
                 if (!credentials?.rvsfId || !credentials?.password) return null;
                 try {
                     await connectToDatabase();
-                    const rvsf = await RVSFUser.findOne({ rvsfId: credentials.rvsfId }).select("+password").lean();
+                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: credentials.rvsfId }, { email: credentials.rvsfId.toLowerCase() }] }).select("+password").lean();
                     if (!rvsf) return null;
                     const isMatch = await bcrypt.compare(credentials.password, (rvsf as any).password);
                     if (!isMatch) return null;

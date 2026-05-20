@@ -30,6 +30,19 @@ export interface IWizardLead {
   b2bPickupId?: string;
   b2bPartnerId?: string;
 
+  // eKYC Details
+  firstName?: string;
+  dob?: string;
+  aadharNumber?: string;
+  whatsapp?: string;
+  ekycStatus?: string; // 'pending', 'verified', 'rejected'
+  aadharFile?: string;
+  rcFile?: string;
+  photoFront?: string;
+  photoBack?: string;
+  photoLeft?: string;
+  photoRight?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +80,19 @@ const WizardLeadSchema: Schema = new Schema(
     desiredModel: { type: String },
     b2bPickupId: { type: String },
     b2bPartnerId: { type: String },
+    
+    // eKYC Details
+    firstName: { type: String },
+    dob: { type: String },
+    aadharNumber: { type: String },
+    whatsapp: { type: String },
+    ekycStatus: { type: String, default: 'pending' },
+    aadharFile: { type: String },
+    rcFile: { type: String },
+    photoFront: { type: String },
+    photoBack: { type: String },
+    photoLeft: { type: String },
+    photoRight: { type: String },
   },
   {
     timestamps: true,

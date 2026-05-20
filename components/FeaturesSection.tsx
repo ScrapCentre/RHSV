@@ -247,12 +247,19 @@ export default function FeaturesSection() {
                 </svg>
               </div>
 
-              <button className="bg-[#E31E24] text-white px-7 py-3.5 rounded-xl flex items-center gap-3 font-bold uppercase tracking-wider text-sm shadow-xl shadow-red-500/30 hover:bg-red-700 transition-all active:scale-95 group-hover:shadow-red-500/40">
-                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#E31E24] relative">
-                  <Play size={14} fill="currentColor" />
-                  <div className="absolute inset-0 bg-white/40 rounded-full animate-ping"></div>
+              <button className="c-button--gooey bg-[#E31E24] text-white px-7 py-3.5 border-2 border-[#E31E24] rounded-xl flex items-center gap-3 font-bold uppercase tracking-wider text-sm shadow-xl shadow-red-500/30 transition-all active:scale-95 group-hover:shadow-red-500/40 relative overflow-hidden">
+                <div className="relative z-10 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#E31E24] relative">
+                    <Play size={14} fill="currentColor" />
+                    <div className="absolute inset-0 bg-white/40 rounded-full animate-ping"></div>
+                  </div>
+                  <span>Watch Our Process</span>
                 </div>
-                <span>Watch Our Process</span>
+                <div className="c-button__blobs">
+                  <div />
+                  <div />
+                  <div />
+                </div>
               </button>
             </div>
 

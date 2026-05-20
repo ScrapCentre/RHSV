@@ -11,6 +11,8 @@ export default function AdminSettingsPage() {
     const [scrapDiscount, setScrapDiscount] = useState<string>("")
     const [pickupCharge, setPickupCharge] = useState<string>("")
     const [pickupDiscount, setPickupDiscount] = useState<string>("")
+    const [rvsfLeadPrice, setRvsfLeadPrice] = useState<string>("")
+    const [rvsfLeadDiscount, setRvsfLeadDiscount] = useState<string>("")
     const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
 
@@ -34,6 +36,16 @@ export default function AdminSettingsPage() {
         }
     }
 
+    const applyRvsfLeadDiscount = () => {
+        const price = parseFloat(rvsfLeadPrice);
+        const discount = parseFloat(rvsfLeadDiscount);
+        if (!isNaN(price) && !isNaN(discount)) {
+            const newPrice = price - (price * (discount / 100));
+            setRvsfLeadPrice(newPrice.toFixed(0).toString());
+            setRvsfLeadDiscount("");
+        }
+    }
+
     useEffect(() => {
         fetchSettings()
     }, [])
@@ -46,6 +58,7 @@ export default function AdminSettingsPage() {
                 const data = await res.json()
                 setScrapPrice(data.scrapPricePerKg?.toString() || "")
                 setPickupCharge(data.pickupChargePerKm?.toString() || "")
+                setRvsfLeadPrice(data.rvsfLeadPrice?.toString() || "499")
             }
         } catch (error) {
             console.error("Failed to fetch settings", error)
@@ -64,10 +77,12 @@ export default function AdminSettingsPage() {
 
         const price = parseFloat(scrapPrice)
         const pickup = parseFloat(pickupCharge)
-        if (isNaN(price) || price <= 0 || isNaN(pickup) || pickup < 0) {
+        const rvsfPrice = parseFloat(rvsfLeadPrice)
+        
+        if (isNaN(price) || price <= 0 || isNaN(pickup) || pickup < 0 || isNaN(rvsfPrice) || rvsfPrice <= 0) {
             toast({
                 title: "Invalid Input",
-                description: "Please enter valid numbers for both fields.",
+                description: "Please enter valid positive numbers for all fields.",
                 variant: "destructive"
             })
             return
@@ -78,7 +93,11 @@ export default function AdminSettingsPage() {
             const res = await fetch("/api/settings/scrapRates", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ scrapPricePerKg: price, pickupChargePerKm: pickup })
+                body: JSON.stringify({ 
+                    scrapPricePerKg: price, 
+                    pickupChargePerKm: pickup,
+                    rvsfLeadPrice: rvsfPrice
+                })
             })
 
             if (res.ok) {
@@ -267,6 +286,57 @@ export default function AdminSettingsPage() {
                                             <div className="flex items-start gap-2 text-xs font-semibold text-gray-500 dark:text-slate-500 bg-gray-50 dark:bg-slate-950/50 p-3 rounded-lg border border-gray-200 dark:border-slate-800">
                                                 <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
                                                 <p>Applies automatically to all incoming requests evaluated by the Google Distance Matrix.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-gray-200 dark:bg-slate-800 w-full"></div>
+
+                                    {/* RVSF Lead Price Row */}
+                                    <div className="grid md:grid-cols-[1fr_2fr] gap-6 md:gap-12 items-start max-w-5xl">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 ml-1">RVSF Price Per Lead</h3>
+                                            <p className="text-sm text-gray-500 dark:text-slate-400 font-medium leading-relaxed">
+                                                Determines the flat charge applied <span className="text-red-400 font-bold">per lead</span> when an RVSF partner registers and purchases state-level leads.
+                                            </p>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex flex-col sm:flex-row gap-2">
+                                                <div className="relative group flex-1">
+                                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <span className="text-gray-400 dark:text-slate-500 font-bold group-focus-within:text-red-500 transition-colors">₹</span>
+                                                    </div>
+                                                    <input
+                                                        type="number"
+                                                        step="1"
+                                                        min="1"
+                                                        required
+                                                        value={rvsfLeadPrice}
+                                                        onChange={(e) => setRvsfLeadPrice(e.target.value)}
+                                                        className="w-full pl-10 pr-4 py-4 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 focus:border-red-500 rounded-xl outline-none text-gray-900 dark:text-white font-mono text-lg transition-all focus:ring-4 focus:ring-red-500/10 placeholder-gray-400 dark:placeholder-slate-700 hover:border-gray-400 dark:hover:border-slate-700"
+                                                        placeholder="0"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-2 sm:w-[35%] w-full">
+                                                    <input
+                                                        type="number"
+                                                        placeholder="% Off"
+                                                        value={rvsfLeadDiscount}
+                                                        onChange={(e) => setRvsfLeadDiscount(e.target.value)}
+                                                        className="w-full px-4 py-4 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 focus:border-red-500 rounded-xl outline-none text-gray-900 dark:text-white font-mono text-sm transition-all focus:ring-4 focus:ring-red-500/10 placeholder-gray-400 dark:placeholder-slate-700 hover:border-gray-400 dark:hover:border-slate-700"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={applyRvsfLeadDiscount}
+                                                        className="px-4 py-4 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl transition-all shadow-sm whitespace-nowrap"
+                                                    >
+                                                        Apply
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-2 text-xs font-semibold text-gray-500 dark:text-slate-500 bg-gray-50 dark:bg-slate-950/50 p-3 rounded-lg border border-gray-200 dark:border-slate-800">
+                                                <AlertCircle className="w-4 h-4 text-[#E31E24] shrink-0" />
+                                                <p>Example: If a state contains 10 leads, the unlock license will cost: 10 × ₹{rvsfLeadPrice || "0"}.</p>
                                             </div>
                                         </div>
                                     </div>

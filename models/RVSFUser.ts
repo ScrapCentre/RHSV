@@ -6,6 +6,8 @@ export interface IRVSFUser extends Document {
     email: string
     password: string
     role: string
+    purchasedStates?: string[]
+    purchasedLeads?: string[]
     createdAt: Date
     updatedAt: Date
 }
@@ -16,7 +18,9 @@ const RVSFUserSchema: Schema = new Schema(
         name: { type: String, required: true },
         email: { type: String, required: true, lowercase: true },
         password: { type: String, required: true },
-        role: { type: String, default: "rvsf" }
+        role: { type: String, default: "rvsf" },
+        purchasedStates: { type: [String], default: [] },
+        purchasedLeads: { type: [String], default: [] }
     },
     { timestamps: true }
 )

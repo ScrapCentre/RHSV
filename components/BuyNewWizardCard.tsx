@@ -98,7 +98,7 @@ export default function BuyNewWizardCard() {
   const [otpError, setOtpError] = useState("")
   const [sendingOtp, setSendingOtp] = useState(false)
   const [verifyingOtp, setVerifyingOtp] = useState(false)
-  const DEMO_OTP = "1234"
+  const DEMO_OTP = "000000"
 
   const handleStep0Next = () => {
     if (!brand || !modelType || !budget || !fuelType) {
@@ -140,7 +140,7 @@ export default function BuyNewWizardCard() {
 
   const handleVerifyOtp = async () => {
     if (otp !== DEMO_OTP) {
-      setOtpError("Incorrect OTP. Demo OTP is 1234")
+      setOtpError("Incorrect OTP. Use 000000")
       return
     }
     setOtpError("")
@@ -149,8 +149,8 @@ export default function BuyNewWizardCard() {
     if (status !== "authenticated") {
         try {
           const result = await signIn("phone-otp", {
-              phone,
-              otp,
+              phone: `+91${phone}`,
+              otp: "000000",
               redirect: false,
           });
           if (result?.error) {
@@ -527,7 +527,7 @@ export default function BuyNewWizardCard() {
                   >
                     <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
                       <p className="text-emerald-400 text-xs font-semibold">OTP sent to +91 {phone}</p>
-                      <p className="text-slate-400 text-[10px] mt-0.5">(Demo: use <span className="font-black text-white">1234</span>)</p>
+                      <p className="text-slate-400 text-[10px] mt-0.5">⚡ Sandbox — use code <span className="font-black text-white">000000</span></p>
                     </div>
 
                     <Field label="Enter OTP" icon={Shield}>

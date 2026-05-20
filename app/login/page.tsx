@@ -235,6 +235,7 @@ function LoginContent() {
                 return
             }
             setIsLoading(true)
+
             
             try {
                 if (!recaptchaVerifier) throw new Error("Recaptcha not initialized");

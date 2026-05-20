@@ -84,6 +84,19 @@ export default function ValuationWizardCard() {
     const [cdDiscount, setCdDiscount] = useState<number | null>(null)
     const [newCarPrice, setNewCarPrice] = useState<number | null>(null)
     const [isFetchingPrice, setIsFetchingPrice] = useState(false)
+    const [baseScrapRate, setBaseScrapRate] = useState<number>(25) // Default to 25
+
+    useEffect(() => {
+        // Fetch global scrap rates
+        fetch('/api/settings/scrapRates')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.scrapPricePerKg) {
+                    setBaseScrapRate(data.scrapPricePerKg);
+                }
+            })
+            .catch(err => console.error("Failed to fetch base scrap rate:", err));
+    }, []);
 
     useEffect(() => {
         if (mode === "scrap-valuation" && formData.buyNew === "yes" && formData.desiredCompany && formData.desiredModel && !cdDiscount && !isFetchingPrice) {
@@ -370,10 +383,10 @@ export default function ValuationWizardCard() {
     const totalSteps = (!serviceType ? 1 : (serviceType === "sell" ? 8 - heroOffset : serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 9 - heroOffset : 8 - heroOffset) : 4)))
 
     if (mode === "scrap-valuation") {
-        // Calculate scrap value based on weight: 18 to 25 rupees per kg. Default to 15k-25k if no weight found.
+        // Calculate scrap value based on weight and baseScrapRate. Default to 15k-25k if no weight found.
         const scrapWeight = parseInt(String(formData.weight).replace(/\D/g, '')) || 0;
-        const minScrapValue = scrapWeight ? scrapWeight * 18 : 15000;
-        const maxScrapValue = scrapWeight ? scrapWeight * 25 : 25000;
+        const minScrapValue = scrapWeight ? scrapWeight * (baseScrapRate - 1) : 15000;
+        const maxScrapValue = scrapWeight ? scrapWeight * (baseScrapRate + 1) : 25000;
         const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
 
         return (
@@ -596,6 +609,10 @@ export default function ValuationWizardCard() {
 
                                     <a 
                                         href="/ekyc" 
+                                        onClick={() => {
+                                            localStorage.setItem("kycFormData", JSON.stringify(formData));
+                                            localStorage.setItem("kycSource", serviceType);
+                                        }}
                                         className="w-full flex items-center justify-center gap-2 py-3 bg-[#E31E24] text-white font-black rounded-xl shadow-lg shadow-red-500/25 hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] group"
                                     >
                                         Complete eKYC
@@ -649,9 +666,6 @@ export default function ValuationWizardCard() {
                             {/* ── INITIAL SITUATION SELECTION ── */}
                             {!serviceType && (
                                 <div className="space-y-6 text-center">
-                                    <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                        <Sparkles className="w-8 h-8 text-[#E31E24]" />
-                                    </div>
                                     <div className="space-y-1">
                                         <h3 className="text-2xl font-bold text-slate-900 leading-tight">What is your situation?</h3>
                                         <p className="text-slate-500 text-[11px] font-medium px-4">Choose the option that best describes what you're looking for today.</p>
@@ -664,9 +678,9 @@ export default function ValuationWizardCard() {
                                     )}
                                     <div className="grid gap-2.5 max-w-sm mx-auto px-4">
                                         {[
-                                            ...(!fromHero ? [{ title: "Buy a new Vehicle", description: "Exchange offers & OEM benefits", icon: ShoppingCart, key: "buy" }] : []),
-                                            { title: "Sell your Vehicle", description: "Best market price & doorstep pickup", icon: Car, key: "sell" },
-                                            { title: "Scrap your Vehicle", description: "Eco-friendly & max scrap value", icon: Recycle, key: "scrap" }
+                                            ...(!fromHero ? [{ title: "Buy a new Vehicle", description: "Exchange offers & OEM benefits", key: "buy" }] : []),
+                                            { title: "Sell your Vehicle", description: "Best market price & doorstep pickup", key: "sell" },
+                                            { title: "Scrap your Vehicle", description: "Eco-friendly & max scrap value", key: "scrap" }
                                         ].map((opt) => (
                                             <button
                                                 key={opt.key}
@@ -676,11 +690,8 @@ export default function ValuationWizardCard() {
                                                     // When fromHero, skip vehicle number step (step 0) and go directly to verify details (step 1)
                                                     setStep(fromHero ? 1 : 0)
                                                 }}
-                                                className="flex items-center gap-4 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl hover:border-[#E31E24] hover:bg-red-50 hover:shadow-md transition-all group text-left"
+                                                className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:border-[#E31E24] hover:bg-red-50 hover:shadow-md transition-all group text-left"
                                             >
-                                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-100 group-hover:border-red-100 shadow-sm transition-all">
-                                                    <opt.icon className="w-5 h-5 text-slate-600 group-hover:text-[#E31E24]" />
-                                                </div>
                                                 <div className="flex-1">
                                                     <p className="font-bold text-slate-900 group-hover:text-[#E31E24] text-sm leading-none mb-0.5">{opt.title}</p>
                                                     <p className="text-[10px] text-slate-500 group-hover:text-red-700/60 font-medium">{opt.description}</p>

@@ -3,39 +3,19 @@ import { useEffect, useState, useRef } from "react"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Phone, ChevronDown, User, LogOut, LayoutDashboard, Car, RefreshCw, ShoppingCart, BookOpen, Construction } from "lucide-react"
+import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from "lucide-react"
 import Image from "next/image"
-import { motion, AnimatePresence, type Variants } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link" // Import Link for navigation
 import { useSession, signOut } from "next-auth/react"
 import { useRouter, usePathname } from "next/navigation"
 gsap.registerPlugin(ScrollTrigger)
 
-// Animation variants for staggered dropdown items
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1,
-    },
-  },
-  exit: { opacity: 0, transition: { staggerChildren: 0.04, staggerDirection: -1 } },
-}
 
-const itemVariants: Variants = {
-  hidden: { opacity: 0, x: -16 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: [0, 0, 0.2, 1] as any } },
-  exit: { opacity: 0, x: -10, transition: { duration: 0.15 } },
-}
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isResourcesOpen, setIsResourcesOpen] = useState(false)
-  const [isServicesOpen, setIsServicesOpen] = useState(false)
-  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollY = useRef(0)
   const { data: session } = useSession()
@@ -46,18 +26,13 @@ export default function Navbar() {
   // Close menus when route changes
   useEffect(() => {
     setIsOpen(false)
-    setIsMegaMenuOpen(false)
   }, [pathname])
 
   const navItems = [
     { name: "Free Valuation", href: "#services" },
-    { name: "Resources", href: "#", hasDropdown: true },
+    { name: "RVSF", href: "/rvsf" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
-  ]
-
-  const resourcesDropdown = [
-    { name: "Blogs", href: "/blogs", icon: BookOpen, description: "Latest industry news and updates" },
   ]
 
   useEffect(() => {
@@ -108,7 +83,7 @@ export default function Navbar() {
       const currentScrollY = window.scrollY
       
       // Don't hide if any menu is open
-      if (isOpen || isMegaMenuOpen) {
+      if (isOpen) {
         setIsVisible(true)
         lastScrollY.current = currentScrollY
         return
@@ -133,11 +108,10 @@ export default function Navbar() {
 
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [isOpen, isMegaMenuOpen])
+  }, [isOpen])
 
   const handleNavClick = (href: string) => {
     setIsOpen(false)
-    setIsMegaMenuOpen(false)
 
     if (href === "/") {
       router.push("/")
@@ -155,17 +129,7 @@ export default function Navbar() {
     }
   }
 
-  // Disable scroll when Mega Menu is open
-  useEffect(() => {
-    if (isMegaMenuOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = "unset"
-    }
-    return () => {
-      document.body.style.overflow = "unset"
-    }
-  }, [isMegaMenuOpen])
+
 
   const isTransparent = (pathname === "/homex" || pathname === "/") && !isScrolled
 
@@ -182,7 +146,7 @@ export default function Navbar() {
         <div className="hidden lg:flex items-center py-2">
           
           {/* Logo Section */}
-          <div className="flex items-center gap-3 cursor-pointer mr-48" onClick={() => handleNavClick("/")}>
+          <div className="flex items-center gap-3 cursor-pointer lg:mr-16 xl:mr-24 2xl:mr-48" onClick={() => handleNavClick("/")}>
             <Image 
               src="/logo.png" 
               alt="ScrapCentre Logo" 
@@ -200,42 +164,24 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Navigation Links - Shifted Left */}
-          <div 
-            className="flex items-center gap-8 xl:gap-10 h-full flex-1"
-            onMouseLeave={() => setIsMegaMenuOpen(false)}
-          >
+          <div className="flex items-center gap-4 lg:gap-5 xl:gap-8 2xl:gap-10 h-full flex-1">
             {navItems.map((item) => (
               <button
                 key={item.name}
-                onMouseEnter={() => {
-                  if (item.hasDropdown) {
-                    setIsMegaMenuOpen(true)
-                  }
-                }}
-                onClick={() => {
-                  if (item.hasDropdown) {
-                    setIsMegaMenuOpen(!isMegaMenuOpen)
-                  } else {
-                    handleNavClick(item.href)
-                  }
-                }}
-                className={`text-sm font-medium uppercase tracking-wide transition-all duration-200 flex items-center gap-1.5 h-full py-6
-                  ${(item.hasDropdown && isMegaMenuOpen) || pathname === item.href 
+                onClick={() => handleNavClick(item.href)}
+                className={`text-[12px] lg:text-[13px] xl:text-sm font-medium uppercase tracking-wide transition-all duration-200 flex items-center gap-1.5 h-full py-6
+                  ${pathname === item.href 
                     ? "text-[#E31E24]" 
                     : "text-black hover:text-[#E31E24]"
                   }`}
               >
                 {item.name}
-                {item.hasDropdown && (
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isMegaMenuOpen ? 'rotate-180' : ''}`} />
-                )}
               </button>
             ))}
           </div>
 
           {/* Right Side: Login */}
-          <div className="flex items-center gap-6 xl:gap-8 ml-auto mr-24">
+          <div className="flex items-center gap-4 lg:gap-5 xl:gap-8 ml-auto mr-12 lg:mr-16 xl:mr-20 2xl:mr-24">
             {session ? (
               <div className="relative group">
                 <button className="flex items-center gap-2.5 px-3 py-1.5 rounded-full hover:bg-slate-50 transition-all duration-300 group/btn border border-transparent hover:border-slate-100">
@@ -263,7 +209,7 @@ export default function Navbar() {
             ) : (
               <button
                 onClick={() => handleNavClick("/login")}
-                className="c-button--gooey px-8 py-2.5 bg-[#E31E24] text-white border-2 border-[#E31E24] rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-lg shadow-red-500/20 relative overflow-hidden"
+                className="c-button--gooey px-6 py-2 lg:px-5 lg:py-2 xl:px-8 xl:py-2.5 bg-[#E31E24] text-white border-2 border-[#E31E24] rounded-xl text-xs xl:text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-lg shadow-red-500/20 relative overflow-hidden"
               >
                 <span className="relative z-10">Login / Sign up</span>
                 <div className="c-button__blobs">
@@ -321,66 +267,12 @@ export default function Navbar() {
                     <button
                       className="block w-full text-left px-4 py-4 text-gray-800 hover:text-[#E31E24] hover:bg-red-50 transition-all duration-200 rounded-lg flex items-center justify-between font-semibold text-lg"
                       onClick={() => {
-                        if (item.hasDropdown) {
-                          if (item.name === "Services") {
-                            setIsServicesOpen(!isServicesOpen)
-                          } else {
-                            setIsResourcesOpen(!isResourcesOpen)
-                          }
-                        } else {
-                          handleNavClick(item.href)
-                          setIsOpen(false)
-                        }
+                        handleNavClick(item.href)
+                        setIsOpen(false)
                       }}
                     >
                       <span className="uppercase tracking-wider text-sm">{item.name}</span>
-                      {item.hasDropdown && (
-                        <motion.div
-                          animate={{
-                            rotate:
-                              item.name === "Services" ? (isServicesOpen ? 180 : 0) : isResourcesOpen ? 180 : 0,
-                          }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <ChevronDown className="w-5 h-5 text-gray-400" />
-                        </motion.div>
-                      )}
                     </button>
-
-
-
-                    {/* Mobile Resources Dropdown */}
-                    <AnimatePresence>
-                      {item.name === "Resources" && item.hasDropdown && isResourcesOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" as const }}
-                          className="bg-slate-50/50 overflow-hidden"
-                        >
-                          <motion.div variants={containerVariants} initial="hidden" animate="visible" exit="exit">
-                            {resourcesDropdown.map((dropdownItem) => (
-                              <motion.div key={dropdownItem.name} variants={itemVariants}>
-                                <Link
-                                  href={dropdownItem.href}
-                                  onClick={() => {
-                                    setIsOpen(false)
-                                    setIsResourcesOpen(false)
-                                  }}
-                                  className="flex items-center gap-4 w-full text-left px-6 py-4 text-gray-600 font-medium hover:text-[#E31E24] transition-all duration-200 text-sm border-b border-gray-100 last:border-0 pl-8"
-                                >
-                                  <div className="bg-white p-2 rounded-md shadow-sm">
-                                    <dropdownItem.icon className="w-4 h-4 text-[#E31E24]" />
-                                  </div>
-                                  {dropdownItem.name}
-                                </Link>
-                              </motion.div>
-                            ))}
-                          </motion.div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </div>
                 ))}
 
@@ -478,70 +370,7 @@ export default function Navbar() {
         }
       </AnimatePresence>
 
-      {/* Unified Mega Menu */}
-      <AnimatePresence>
-        {isMegaMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.4, ease: "easeInOut" as const }}
-            onMouseEnter={() => setIsMegaMenuOpen(true)}
-            onMouseLeave={() => setIsMegaMenuOpen(false)}
-            className="absolute top-full left-0 w-full h-screen bg-white/98 backdrop-blur-xl shadow-2xl z-40"
-          >
-            <div className="container mx-auto px-6 py-12">
-              <div className="grid grid-cols-1 gap-12 max-w-md mx-auto">
 
-                {/* Resources Column */}
-                <div className="col-span-1 pl-4">
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="p-2 rounded-lg bg-red-50 text-[#E31E24]">
-                      <BookOpen className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Resources</h3>
-                  </div>
-                  <motion.div className="space-y-4" variants={containerVariants} initial="hidden" animate="visible" exit="exit">
-                    {resourcesDropdown.map((dropdownItem) => (
-                      <motion.div key={dropdownItem.name} variants={itemVariants}>
-                        <Link
-                          href={dropdownItem.href}
-                          onClick={() => setIsMegaMenuOpen(false)}
-                          className="flex items-center gap-4 w-full text-left px-4 py-4 rounded-xl hover:bg-red-50/30 transition-all duration-200 group/link"
-                        >
-                          <div className="p-2 rounded-lg bg-gray-100 text-gray-500 group-hover/link:bg-[#E31E24] group-hover/link:text-white transition-colors">
-                            <dropdownItem.icon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-base font-medium text-gray-700 group-hover/link:text-[#E31E24] transition-colors">
-                              {dropdownItem.name}
-                            </p>
-                            <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">
-                              {dropdownItem.description}
-                            </p>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
-              </div>
-
-              {/* Close Menu Button */}
-              <div className="flex justify-center mt-12 pb-12">
-                <button
-                  onClick={() => setIsMegaMenuOpen(false)}
-                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#E31E24] transition-all duration-200 font-medium group"
-                >
-                  <X className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
-                  <span>Close Menu</span>
-                </button>
-              </div>
-            </div>
-            {/* Bottom Border Gradient Removed */}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
     </nav>
   )
