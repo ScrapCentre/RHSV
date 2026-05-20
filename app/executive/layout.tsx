@@ -120,7 +120,7 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
         if (pathname !== "/executive") {
             return null // Wait for redirect
         }
-        return <div className="bg-black min-h-screen w-full">{children}</div>
+        return <div className="min-h-screen w-full">{children}</div>
     }
 
     return (

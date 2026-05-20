@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Lock, ArrowRight, Loader2, Building2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
@@ -27,33 +27,28 @@ function RVSFLoginContent() {
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         // Handle NextAuth URL errors
-        const error = searchParams.get("error")
-        if (error) {
+        const errorParam = searchParams.get("error")
+        if (errorParam) {
             let errorMessage = "An unexpected error occurred during login."
-            if (error === "CredentialsSignin") {
+            if (errorParam === "CredentialsSignin") {
                 errorMessage = "Invalid credentials provided."
-            } else if (error === "AccessDenied") {
+            } else if (errorParam === "AccessDenied") {
                 errorMessage = "Access denied. You do not have permission to log in."
-            } else if (error.includes("DATABASE_CONNECTION_ERROR")) {
+            } else if (errorParam.includes("DATABASE_CONNECTION_ERROR")) {
                 errorMessage = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
             }
-
-            setTimeout(() => {
-                toast({
-                    title: "Authentication Error",
-                    description: errorMessage,
-                    variant: "destructive",
-                })
-            }, 100)
+            setError(errorMessage)
         }
-    }, [searchParams, toast])
+    }, [searchParams])
 
     const handleRVSFLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
+        setError(null)
 
         try {
             const result = await signIn("rvsf-credentials", {
@@ -68,11 +63,7 @@ function RVSFLoginContent() {
                 if (result.error.includes("DATABASE_CONNECTION_ERROR")) {
                     errorMsg = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas."
                 }
-                toast({
-                    title: "Login Failed",
-                    description: errorMsg,
-                    variant: "destructive"
-                })
+                setError(errorMsg)
             } else {
                 toast({
                     title: "Welcome RVSF Partner",
@@ -85,121 +76,99 @@ function RVSFLoginContent() {
                     window.location.href = "/rvsf_leads/dashboard"
                 }
             }
-        } catch (error) {
-            console.error(error)
+        } catch (err) {
+            console.error(err)
             setIsLoading(false)
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred. Please try again.",
-                variant: "destructive"
-            })
+            setError("An unexpected error occurred. Please try again.")
         }
     }
 
     return (
-        <div className="relative h-screen overflow-hidden flex items-center justify-center font-sans">
-            {/* Full Background Image */}
-            <div className="fixed inset-0 z-0">
-                <img 
-                    src="/login.png" 
-                    alt="Background" 
-                    className="w-full h-full object-fill"
-                />
-            </div>
-
-            {/* Login Card - aligned right, clear background */}
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-                className="relative z-10 w-full max-w-sm mx-4 lg:ml-auto lg:mr-64" style={{ marginTop: '72px' }}
+        <div 
+            className="min-h-screen flex items-end lg:items-end justify-center lg:justify-end pb-10 lg:pb-28 xl:pb-36 p-4 lg:pr-32 xl:pr-44 font-sans selection:bg-[#E31E24] selection:text-white transition-all duration-500"
+            style={{ 
+                backgroundImage: "url('/rvsflogin.png')", 
+                backgroundSize: '100% 100%', 
+                backgroundPosition: 'center', 
+                backgroundRepeat: 'no-repeat' 
+            }}
+        >
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="w-full max-w-[440px] relative"
             >
-                <div className="bg-white/95 backdrop-blur-xl border border-gray-200 p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden relative group">
-                    {/* Glass Glow Effects */}
-                    <div className="absolute -top-16 -left-16 w-32 h-32 bg-[#E31E24]/20 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-700" />
-                    <div className="absolute -bottom-16 -right-16 w-32 h-32 bg-[#E31E24]/20 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-700" />
+                {/* Login Card */}
+                <div className="relative group">
+                    {/* Card Border Glow */}
+                    <div className="absolute -inset-0.5 bg-gradient-to-b from-[#E31E24]/10 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-1000" />
+                    
+                    <div className="relative bg-white/95 backdrop-blur-md border border-slate-100 p-10 rounded-2xl shadow-2xl">
+                        <form onSubmit={handleRVSFLogin} className="space-y-6">
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="bg-red-50 border border-red-200 text-red-600 text-xs py-3 px-4 rounded-xl font-medium text-center"
+                                    >
+                                        {error}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                    <div className="relative z-10 space-y-6">
-                        {/* Header */}
-                        <div className="text-center space-y-1">
-                            <h2 className="text-3xl font-sans font-black text-slate-900 tracking-tight">
-                                RVSF Portal
-                            </h2>
-                            <p className="text-gray-600 text-sm font-medium">
-                                Secure access for Registered Vehicle Scrapping Facilities
-                            </p>
-                        </div>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="space-y-5 pt-2"
-                        >
-                            <form onSubmit={handleRVSFLogin} className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">RVSF ID / Email</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <Building2 className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={rvsfId}
-                                            onChange={(e) => setRvsfId(e.target.value)}
-                                            placeholder="Enter your RVSF ID"
-                                            className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
-                                        />
-                                    </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">RVSF Identity</label>
+                                <div className="relative">
+                                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input 
+                                        type="text" 
+                                        required
+                                        placeholder="RVSF ID or Email"
+                                        value={rvsfId}
+                                        onChange={(e) => setRvsfId(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#E31E24]/60 focus:bg-white rounded-xl px-11 py-4 text-slate-900 outline-none transition-all placeholder:text-slate-400"
+                                    />
                                 </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Password</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
-                                        </div>
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            required
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="••••••••"
-                                            className="block w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-[#E31E24] transition-colors"
-                                        >
-                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="w-full bg-[#E31E24] hover:bg-[#c1191e] text-white font-black py-2.5 rounded-xl shadow-lg shadow-red-950/40 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm uppercase tracking-widest mt-2"
-                                >
-                                    {isLoading ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                        <>
-                                            Sign In
-                                            <ArrowRight className="w-4 h-4" />
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-
-                            <div className="text-center mt-6">
-                                <p className="text-xs text-gray-500 font-medium">
-                                    Authorized RVSF Personnel Only.
-                                </p>
                             </div>
-                        </motion.div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Security Key</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input 
+                                        type={showPassword ? "text" : "password"} 
+                                        required
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#E31E24]/60 focus:bg-white rounded-xl px-11 py-4 text-slate-900 outline-none transition-all placeholder:text-slate-400"
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button 
+                                disabled={isLoading}
+                                type="submit"
+                                className="w-full py-4 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group/btn shadow-lg shadow-red-600/10"
+                            >
+                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                                    <>
+                                        Authorize Access
+                                        <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
                     </div>
                 </div>
             </motion.div>

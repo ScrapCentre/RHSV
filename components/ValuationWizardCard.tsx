@@ -22,6 +22,17 @@ const BRANDS = ["Maruti Suzuki", "Hyundai", "Tata", "Mahindra", "Toyota", "Honda
 const YEARS = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "Older"]
 const FUEL_TYPES = ["Petrol", "Diesel", "CNG", "Electric", "Hybrid"]
 
+const normalizeFuelType = (fuel?: string): string => {
+    if (!fuel) return "";
+    const cleanFuel = fuel.trim().toUpperCase();
+    if (cleanFuel.includes("PETROL") && !cleanFuel.includes("CNG")) return "Petrol";
+    if (cleanFuel.includes("DIESEL")) return "Diesel";
+    if (cleanFuel.includes("CNG") || cleanFuel.includes("LPG")) return "CNG";
+    if (cleanFuel.includes("ELECTRIC") || cleanFuel.includes("EV")) return "Electric";
+    if (cleanFuel.includes("HYBRID")) return "Hybrid";
+    return fuel.charAt(0).toUpperCase() + fuel.slice(1).toLowerCase();
+};
+
 // ─── Wizard Component ─────────────────────────────────────────────────────────
 
 export default function ValuationWizardCard() {
@@ -243,7 +254,7 @@ export default function ValuationWizardCard() {
                 model: data.model_description || data.model_name || data.maker_model || data.model || data.rc_model || data.rc_model_name || "",
                 year: data.registration_date ? data.registration_date.split('-')[0] : data.manufacturing_year || "",
                 weight: data.vehicle_weight || data.unladen_weight || "",
-                fuel: data.fuel_type || prev.fuel
+                fuel: normalizeFuelType(data.fuel_type) || prev.fuel
             }))
             
             toast({
@@ -770,12 +781,35 @@ export default function ValuationWizardCard() {
                                         <div className="space-y-5 text-center">
                                             <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Fuel className="w-7 h-7 text-[#E31E24]" /></div>
                                             <h3 className="text-xl font-bold text-slate-900">Fuel Type</h3>
-                                            <p className="text-slate-500 text-[11px] font-medium">Which fuel does your car use?</p>
+                                            <p className="text-slate-500 text-[11px] font-medium">
+                                                {formData.fuel ? <span className="text-emerald-600 font-bold">✓ Auto-filled from registration — confirm or change</span> : "Which fuel does your car use?"}
+                                            </p>
                                             <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
-                                                {FUEL_TYPES.map((f, i) => (
-                                                    <button key={i} onClick={() => { setFormData({...formData, fuel: f}); nextStep() }} className="px-4 py-2 border border-slate-100 rounded-xl text-[10px] font-bold text-slate-700 hover:border-[#E31E24] hover:bg-red-50 transition-all">{f}</button>
-                                                ))}
+                                                {FUEL_TYPES.map((f, i) => {
+                                                    const isSelected = formData.fuel === f
+                                                    return (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => setFormData({...formData, fuel: f})}
+                                                            className={`px-4 py-2 border rounded-xl text-[10px] font-bold transition-all ${
+                                                                isSelected
+                                                                    ? "bg-[#E31E24] border-[#E31E24] text-white shadow-md shadow-red-500/20"
+                                                                    : "border-slate-100 text-slate-700 hover:border-[#E31E24] hover:bg-red-50"
+                                                            }`}
+                                                        >
+                                                            {f}
+                                                            {isSelected && <CheckCircle className="w-3 h-3 ml-1.5 inline-block" />}
+                                                        </button>
+                                                    )
+                                                })}
                                             </div>
+                                            <button
+                                                disabled={!formData.fuel}
+                                                onClick={() => nextStep()}
+                                                className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Confirm & Continue <ArrowRight className="w-3.5 h-3.5" />
+                                            </button>
                                         </div>
                                     )}
 

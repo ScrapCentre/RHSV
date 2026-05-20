@@ -3,8 +3,8 @@
 import React, { useState } from "react"
 import { signIn } from "next-auth/react"
 import { motion } from "framer-motion"
-import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Lock, Mail, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck } from "lucide-react"
+import Image from "next/image"
 
 export default function AdminLoginForm() {
     const [email, setEmail] = useState("")
@@ -12,7 +12,6 @@ export default function AdminLoginForm() {
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -27,7 +26,6 @@ export default function AdminLoginForm() {
             })
 
             if (result?.error) {
-                console.log("[AdminLogin] Error:", result.error);
                 let errorMsg = "Invalid email or password."
                 if (result.error.includes("AUTH_ERROR:")) {
                     errorMsg = result.error.split("AUTH_ERROR:")[1]
@@ -36,14 +34,11 @@ export default function AdminLoginForm() {
                 } else if (result.error !== "CredentialsSignin") {
                     errorMsg = result.error
                 }
-                setError(errorMsg);
+                setError(errorMsg)
                 setIsLoading(false)
             } else {
-                // Check if there is a callbackUrl in the URL
                 const params = new URLSearchParams(window.location.search)
                 const callbackUrl = params.get("callbackUrl")
-                
-                // Use window.location.href for a hard reload
                 window.location.href = callbackUrl || "/admin"
             }
         } catch (err) {
@@ -53,85 +48,90 @@ export default function AdminLoginForm() {
     }
 
     return (
-        <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 font-sans selection:bg-emerald-500 selection:text-white transition-all duration-500">
-            {/* Ambient Background Glow */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
-            </div>
-
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+        <div
+            className="min-h-screen flex items-end lg:items-center justify-center lg:justify-end pb-10 lg:pb-0 p-4 lg:pr-40 xl:pr-56 font-sans selection:bg-[#E31E24] selection:text-white"
+            style={{
+                backgroundImage: "url('/adminlogin.png')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+            }}
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="w-full max-w-[440px] relative"
+                transition={{ duration: 0.7, ease: "easeOut" }}
+                className="w-full max-w-[420px]"
             >
-                {/* Branding */}
-                <div className="flex flex-col items-center mb-12 text-center">
-                    <h1 className="text-2xl font-light text-white tracking-[0.2em] uppercase">Admin Portal</h1>
-                    <div className="h-px w-12 bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent mt-4" />
-                </div>
+                {/* Card */}
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
 
-                {/* Login Card */}
-                <div className="relative group">
-                    {/* Card Border Glow */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-b from-emerald-500/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-1000" />
-                    
-                    <div className="relative bg-slate-950/40 backdrop-blur-2xl border border-white/5 p-10 rounded-2xl shadow-2xl">
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Form body */}
+                    <div className="px-8 py-7">
+                        <form onSubmit={handleSubmit} className="space-y-5">
+
                             {error && (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
-                                    className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs py-3 px-4 rounded-xl font-medium text-center"
+                                    className="bg-red-50 border border-red-200 text-red-600 text-xs py-2.5 px-4 rounded-lg font-medium text-center"
                                 >
                                     {error}
                                 </motion.div>
                             )}
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Administrator Identity</label>
+                            {/* Email */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+                                    Login ID or Email
+                                </label>
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                    <input 
-                                        type="text" 
+                                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input
+                                        type="text"
                                         required
-                                        placeholder="Email or Login ID"
+                                        placeholder="sc01@scrapcentre.in"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-white/[0.02] border border-white/5 focus:border-emerald-500/30 rounded-xl px-11 py-4 text-white outline-none transition-all placeholder:text-white/10"
+                                        className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-[#E31E24] focus:bg-white rounded-lg px-10 py-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400"
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Access Key</label>
+                            {/* Password */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+                                    Access Key
+                                </label>
                                 <div className="relative">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                    <input 
-                                        type={showPassword ? "text" : "password"} 
+                                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
                                         required
-                                        placeholder="••••••••"
+                                        placeholder="••••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-white/[0.02] border border-white/5 focus:border-emerald-500/30 rounded-xl px-11 py-4 text-white outline-none transition-all placeholder:text-white/10"
+                                        className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-[#E31E24] focus:bg-white rounded-lg px-10 py-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400"
                                     />
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/40 transition-colors"
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                     >
                                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
                                 </div>
                             </div>
 
-                            <button 
+                            {/* Submit */}
+                            <button
                                 disabled={isLoading}
                                 type="submit"
-                                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group/btn shadow-lg shadow-emerald-600/10"
+                                className="w-full mt-2 py-3.5 bg-[#E31E24] hover:bg-[#c9181d] active:scale-[0.98] text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group/btn shadow-md shadow-red-600/20"
                             >
-                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                                {isLoading ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
                                     <>
                                         Authorize Access
                                         <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
@@ -139,20 +139,9 @@ export default function AdminLoginForm() {
                                 )}
                             </button>
                         </form>
-                    </div>
-                </div>
 
-                {/* Footer Info */}
-                <div className="mt-12 text-center space-y-4">
-                    <p className="text-[10px] text-white/20 uppercase tracking-[0.3em] font-medium">
-                        Secure Environment &bull; Administrative Clearance Required
-                    </p>
-                    <button 
-                        onClick={() => window.location.href = "/"}
-                        className="text-[10px] text-emerald-500/40 hover:text-emerald-500/60 uppercase tracking-widest font-black transition-colors"
-                    >
-                        Return to Public Terminal
-                    </button>
+
+                    </div>
                 </div>
             </motion.div>
         </div>

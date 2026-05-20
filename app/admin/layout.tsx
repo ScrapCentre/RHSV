@@ -92,7 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (pathname !== "/admin") {
             return null // Wait for redirect
         }
-        return <div className="bg-[#020617] min-h-screen w-full">{children}</div>
+        return <div className="min-h-screen w-full">{children}</div>
     }
 
     return (

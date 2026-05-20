@@ -55,7 +55,7 @@ export default function PartnerClientLayout({ children }: { children: React.Reac
     const hideLayout = isLoginPage || status === "unauthenticated" || (session?.user as any)?.role !== "partner"
 
     if (hideLayout) {
-        return <div className="min-h-screen bg-gray-50 dark:bg-slate-950 font-sans">{children}</div>
+        return <div className="min-h-screen w-full font-sans">{children}</div>
     }
 
     return (

@@ -5,6 +5,17 @@ import { motion } from "framer-motion"
 import { ChevronRight, Star, ShieldCheck, Zap, Award, Smartphone, Car, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+const normalizeFuelType = (fuel?: string): string => {
+    if (!fuel) return "";
+    const cleanFuel = fuel.trim().toUpperCase();
+    if (cleanFuel.includes("PETROL")) return "Petrol";
+    if (cleanFuel.includes("DIESEL")) return "Diesel";
+    if (cleanFuel.includes("CNG") || cleanFuel.includes("LPG")) return "CNG";
+    if (cleanFuel.includes("ELECTRIC") || cleanFuel.includes("EV")) return "Electric";
+    if (cleanFuel.includes("HYBRID")) return "Hybrid";
+    return fuel.charAt(0).toUpperCase() + fuel.slice(1).toLowerCase();
+};
+
 export default function HomexHero() {
     const [vehicleNumber, setVehicleNumber] = useState("")
     const router = useRouter()
@@ -45,7 +56,7 @@ export default function HomexHero() {
                     model: data.model_description || data.model_name || data.maker_model || data.model || data.rc_model || data.rc_model_name || "",
                     year: data.registration_date ? data.registration_date.split('-')[0] : data.manufacturing_year || "",
                     weight: data.vehicle_weight || data.unladen_weight || "",
-                    fuel: data.fuel_type || ""
+                    fuel: normalizeFuelType(data.fuel_type)
                 };
             }
 
@@ -138,6 +149,15 @@ export default function HomexHero() {
                             />
                         </span>
                     </motion.h1>
+
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                        className="text-base sm:text-lg md:text-xl font-light text-slate-500 tracking-wide mb-4"
+                    >
+                        Restore Health Medicare Pvt Ltd
+                    </motion.div>
 
                     <motion.p 
                         initial={{ opacity: 0, y: 20 }}

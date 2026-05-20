@@ -159,7 +159,7 @@ export default function Navbar() {
               <h1 className="text-2xl font-semibold tracking-tight flex items-baseline">
                 <span className="text-[#E31E24]">Scrap</span>
                 <span className="text-slate-900">Centre</span>
-                <span className="text-slate-900 text-lg font-semibold">.com</span>
+                <sup className="text-base font-bold text-slate-600 align-super -ml-0.5">®</sup>
               </h1>
             </div>
           </div>
@@ -235,6 +235,7 @@ export default function Navbar() {
             <h1 className="text-lg font-semibold flex items-baseline">
               <span className="text-[#E31E24]">Scrap</span>
               <span className="text-slate-900">Centre</span>
+              <sup className="text-[15px] font-bold text-slate-600 align-super -ml-0.5">®</sup>
             </h1>
           </div>
 
