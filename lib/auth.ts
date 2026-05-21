@@ -117,6 +117,12 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // 5. Legacy RVSFUser fallback
+                    // Preserve the role stored on the RVSFUser doc — Novalytix's
+                    // /rvsf_leads buy-flow seeds `role: "rvsf"`, and the legacy
+                    // /rvsf_leads/dashboard + /api/rvsf/leads handlers still
+                    // guard strictly on `role === "rvsf"`. Hardcoding
+                    // "rvsf_executive" here breaks that flow end-to-end (founder
+                    // walkthrough 2026-05-21).
                     const rvsf = await RVSFUser.findOne({
                         $or: [{ rvsfId: identifier }, { email: identifier }],
                     }).select("+password").lean() as any
@@ -127,7 +133,7 @@ export const authOptions: NextAuthOptions = {
                                 id: rvsf._id.toString(),
                                 name: rvsf.name,
                                 email: rvsf.email,
-                                role: "rvsf_executive",
+                                role: rvsf.role || "rvsf_executive",
                             }
                         }
                     }
@@ -303,13 +309,24 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // Legacy RVSFUser
+                    // Preserve the role stored on the doc. Novalytix's
+                    // /rvsf_leads buy-flow seeds `role: "rvsf"`, and the
+                    // legacy /rvsf_leads/dashboard + /api/rvsf/leads handlers
+                    // strictly check `role === "rvsf"`; hardcoding "rvsf_executive"
+                    // here previously bounced legitimate buyers to "/" after a
+                    // successful login (founder walkthrough 2026-05-21).
                     const rvsf = await RVSFUser.findOne({
                         $or: [{ rvsfId: credentials.rvsfId }, { email: identifier }],
                     }).select("+password").lean() as any
                     if (!rvsf?.password) return null
                     const isMatch = await bcrypt.compare(credentials.password, rvsf.password)
                     if (!isMatch) return null
-                    return { id: rvsf._id.toString(), name: rvsf.name, email: rvsf.email, role: "rvsf_executive" }
+                    return {
+                        id: rvsf._id.toString(),
+                        name: rvsf.name,
+                        email: rvsf.email,
+                        role: rvsf.role || "rvsf_executive",
+                    }
                 } catch (err: any) {
                     console.error("[RVSF Auth] DB error:", err?.message)
                     throw new Error("AUTHENTICATION_FAILED")
@@ -393,7 +410,7 @@ export const authOptions: NextAuthOptions = {
             }
             return true
         },
-        async jwt({ token, user, account }) {
+        async jwt({ token, user, account, trigger }) {
             try {
                 if (user) {
                     if (account?.provider === "google") {
@@ -404,6 +421,7 @@ export const authOptions: NextAuthOptions = {
                             token.id   = dbUser._id ? String(dbUser._id) : undefined
                             if (dbUser.linkedRvsfId) token.linkedRvsfId = String(dbUser.linkedRvsfId)
                             if (dbUser.linkedCcId)   token.linkedCcId   = String(dbUser.linkedCcId)
+                            token.mustChangePassword = !!dbUser.mustChangePassword
                         }
                     } else {
                         const u = user as any
@@ -420,12 +438,33 @@ export const authOptions: NextAuthOptions = {
                                     if (dbUser) {
                                         if (dbUser.linkedRvsfId) token.linkedRvsfId = String(dbUser.linkedRvsfId)
                                         if (dbUser.linkedCcId)   token.linkedCcId   = String(dbUser.linkedCcId)
+                                        token.mustChangePassword = !!dbUser.mustChangePassword
                                     }
                                 }
                             } catch (lookupErr: any) {
                                 console.error("[Auth] linkedRvsfId/CcId lookup failed:", lookupErr?.message)
                             }
                         }
+                    }
+                }
+                // Re-read mustChangePassword on explicit session refresh — fired
+                // from the client after POST /api/cc/change-password so the next
+                // server-rendered page sees the flipped flag without a full
+                // sign-out/sign-in round-trip. Cheap (one indexed _id lookup)
+                // and only runs when the client explicitly calls update().
+                if (trigger === "update" && typeof token.id === "string" && /^[a-f0-9]{24}$/i.test(token.id)) {
+                    try {
+                        await connectToDatabase()
+                        const dbUser = await User.findById(token.id).lean() as any
+                        if (dbUser) {
+                            token.mustChangePassword = !!dbUser.mustChangePassword
+                            // Also refresh links — RVSF admin may have moved this
+                            // CC operator to a different centre in the interim.
+                            if (dbUser.linkedRvsfId) token.linkedRvsfId = String(dbUser.linkedRvsfId)
+                            if (dbUser.linkedCcId)   token.linkedCcId   = String(dbUser.linkedCcId)
+                        }
+                    } catch (refreshErr: any) {
+                        console.error("[Auth] session refresh lookup failed:", refreshErr?.message)
                     }
                 }
             } catch (err: any) {
@@ -441,6 +480,7 @@ export const authOptions: NextAuthOptions = {
                     sUser.id           = typeof token.id           === "string" ? token.id           : undefined
                     sUser.linkedRvsfId = typeof token.linkedRvsfId === "string" ? token.linkedRvsfId : undefined
                     sUser.linkedCcId   = typeof token.linkedCcId   === "string" ? token.linkedCcId   : undefined
+                    sUser.mustChangePassword = token.mustChangePassword === true
                 }
             } catch (err: any) {
                 console.error("[Auth] session callback error:", err?.message)

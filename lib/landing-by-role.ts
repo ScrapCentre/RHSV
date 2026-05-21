@@ -10,7 +10,15 @@ export const LANDING_BY_ROLE: Record<string, string> = {
     rvsf_admin:      "/rvsf/marketplace",
     rvsf_executive:  "/rvsf/marketplace",
     partner:         "/rvsf/marketplace",       // legacy alias for rvsf_*
-    rvsf:            "/rvsf/marketplace",       // legacy alias for rvsf_*
+    // The "rvsf" role is created exclusively by Novalytix's /rvsf_leads
+    // buy-flow (POST /api/rvsf/purchase). Those records live in the legacy
+    // RVSFUser collection without a linkedRvsfId, so they can't use the v2
+    // /rvsf/marketplace path (which requires a CC under their RVSF). Send
+    // them to the Novalytix-built dashboard instead — that's what they paid
+    // for. The dashboard strict-equals `role === "rvsf"` and queries the
+    // legacy `purchasedStates` array on RVSFUser, so the routing here and
+    // the page guard there agree.
+    rvsf:            "/rvsf_leads/dashboard",
     // v2 CC operator dashboard — the Novalytix `/scrapcentre/dashboard` page
     // strict-equals `role === "scrapcentre"` and queries legacy collections
     // (B2BPickup/Valuation/etc.), so cc_operator users would bounce. v2 ships
