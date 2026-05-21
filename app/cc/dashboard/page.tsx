@@ -16,6 +16,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import mongoose from "mongoose"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import CollectionCenter from "@/models/CollectionCenter"
@@ -52,6 +53,12 @@ export default async function CcDashboardPage() {
 
   await connectToDatabase()
 
+  // Mongoose `.find()` auto-casts strings → ObjectId but `.aggregate()` does
+  // NOT — the JWT carries linkedCcId as a string, so we have to cast it here
+  // or every $match below silently matches nothing (caused /cc/dashboard to
+  // show 0 leads for centre.test even though Demo Lead A was in catchment).
+  const ccObjectId = new mongoose.Types.ObjectId(user.linkedCcId)
+
   const [cc, rvsf, leadStats] = await Promise.all([
     CollectionCenter.findById(user.linkedCcId).lean() as any,
     user.linkedRvsfId ? (RVSF.findById(user.linkedRvsfId).lean() as any) : Promise.resolve(null),
@@ -63,9 +70,9 @@ export default async function CcDashboardPage() {
       {
         $match: {
           $or: [
-            { inCatchmentCcIds: user.linkedCcId },
-            { assignedCcId:    user.linkedCcId },
-            { ccAcceptedBy:    user.linkedCcId },
+            { inCatchmentCcIds: ccObjectId },
+            { assignedCcId:    ccObjectId },
+            { ccAcceptedBy:    ccObjectId },
           ],
         },
       },
@@ -74,27 +81,27 @@ export default async function CcDashboardPage() {
           visible: [
             {
               $match: {
-                inCatchmentCcIds: user.linkedCcId,
+                inCatchmentCcIds: ccObjectId,
                 state: { $in: ["approved_marketplace", "marketplace_visible", "stale_alerted", "rvsf_rejected"] },
               },
             },
             { $count: "n" },
           ],
           accepted: [
-            { $match: { ccAcceptedBy: user.linkedCcId } },
+            { $match: { ccAcceptedBy: ccObjectId } },
             { $count: "n" },
           ],
           assigned: [
             {
               $match: {
-                assignedCcId: user.linkedCcId,
+                assignedCcId: ccObjectId,
                 state: { $in: ["assigned_to_cc", "negotiating", "cd_issued", "cvs_issued", "weight_settled"] },
               },
             },
             { $count: "n" },
           ],
           completed: [
-            { $match: { assignedCcId: user.linkedCcId, state: "closed" } },
+            { $match: { assignedCcId: ccObjectId, state: "closed" } },
             { $count: "n" },
           ],
         },
