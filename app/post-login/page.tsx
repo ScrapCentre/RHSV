@@ -6,18 +6,7 @@
 import { useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-
-const LANDING_BY_ROLE: Record<string, string> = {
-  admin:           "/admin",
-  executive:       "/admin",          // exec uses same admin shell for now
-  client:          "/me",
-  rvsf_admin:      "/rvsf/marketplace",
-  rvsf_executive:  "/rvsf/marketplace",
-  partner:         "/rvsf/marketplace",  // legacy alias
-  rvsf:            "/rvsf/marketplace",  // legacy alias
-  cc_operator:     "/scrapcentre/dashboard",
-  scrapcentre:     "/scrapcentre/dashboard",  // legacy alias
-}
+import { landingForRole } from "@/lib/landing-by-role"
 
 export default function PostLogin() {
   const { data: session, status } = useSession()
@@ -30,8 +19,7 @@ export default function PostLogin() {
       return
     }
     const role = (session?.user as any)?.role
-    const target = LANDING_BY_ROLE[role] ?? "/"
-    router.replace(target)
+    router.replace(landingForRole(role))
   }, [status, session, router])
 
   return (

@@ -1,14 +1,15 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { signIn, getSession, useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Mail, Lock, ArrowRight, Loader2, Building2, User, Eye, EyeOff, Phone, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth"
+import { landingForRole } from "@/lib/landing-by-role"
 
 export default function LoginPage() {
     return (
@@ -26,7 +27,20 @@ function LoginContent() {
     const [activeTab, setActiveTab] = useState<"standard" | "b2b">("standard")
     const [isLogin, setIsLogin] = useState(true)
     const { toast } = useToast()
+    const router = useRouter()
     const searchParams = useSearchParams()
+    const { data: existingSession, status: sessionStatus } = useSession()
+
+    // If a user is already authenticated, skip the form and send them to
+    // their role-appropriate landing page. Honors ?callbackUrl=… if present.
+    // Anonymous users (status === "unauthenticated") fall through and see
+    // the normal login surface.
+    useEffect(() => {
+        if (sessionStatus !== "authenticated") return
+        const role = (existingSession?.user as any)?.role
+        const cb = searchParams.get("callbackUrl")
+        router.replace(cb || landingForRole(role))
+    }, [sessionStatus, existingSession, router, searchParams])
 
     // Auto-select B2B tab if redirected from partner-register
     useEffect(() => {
@@ -206,16 +220,12 @@ function LoginContent() {
                 } else if (!isLogin) {
                     // If they just registered, take them to their profile
                     window.location.href = "/profile"
-                } else if (role === "admin") {
-                    window.location.href = "/admin/dashboard"
-                } else if (role === "partner") {
-                    window.location.href = "/b2b/marketplace"
-                } else if (role === "executive") {
-                    window.location.href = "/executive/dashboard"
-                } else if (role === "scrapcentre") {
-                    window.location.href = "/scrapcentre/dashboard"
                 } else {
-                    window.location.href = "/"
+                    // Use the shared LANDING_BY_ROLE map (single source of
+                    // truth, also consumed by /post-login and /rvsf) so that
+                    // every login surface routes consistently. Unknown roles
+                    // fall back to "/" via landingForRole().
+                    window.location.href = landingForRole(role)
                 }
             }
         } catch (error) {
@@ -328,12 +338,11 @@ function LoginContent() {
                     title: "Welcome Partner",
                     description: "Redirecting to your marketplace...",
                 })
+                // b2b-credentials provider returns role=rvsf_admin in v2, so
+                // the right landing is the RVSF marketplace. Route through the
+                // shared dispatcher so any role drift is handled in one place.
                 const callbackUrl = searchParams.get("callbackUrl")
-                if (callbackUrl) {
-                    window.location.href = callbackUrl
-                } else {
-                    window.location.href = "/b2b/marketplace"
-                }
+                window.location.href = callbackUrl || "/post-login"
             }
         } catch (error) {
             console.error(error)
