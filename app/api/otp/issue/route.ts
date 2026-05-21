@@ -1,9 +1,8 @@
 // engineering-design.md §4.1 — OTP issuance via MSG91 stub adapter
 // Rate-limited: 3 per phone per 10 min
 import { NextResponse } from "next/server"
-import { issueOtp } from "@/lib/services/auth/firebase.mock"
+import { issueOtp, MockOtpError } from "@/lib/services/auth/firebase.mock"
 import { checkOtpRateLimit } from "@/lib/services/otp-store"
-import { MockServiceError } from "@/lib/services/vahan/vahan.mock"
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +34,9 @@ export async function POST(req: Request) {
       })
     })
   } catch (err: any) {
-    if (err instanceof MockServiceError && err.code === "OTP_SEND_FAILED") {
+    // firebase.mock throws MockOtpError (not MockServiceError — that's vahan's
+    // class). Cherry-pick from v1 had the wrong error type after import rewire.
+    if (err instanceof MockOtpError && err.code === "OTP_SEND_FAILED") {
       return NextResponse.json(
         { error: "OTP service temporarily unavailable. Please try again." },
         { status: 503 }
