@@ -50,9 +50,12 @@ export const POST = withAuth([...PARTY_ROLES], async (req, { user }) => {
     return NextResponse.json({ error: "Invalid message type" }, { status: 400 })
   }
 
+  // Coerce to ChatMessage.senderRole enum ["customer","rvsf_executive","system","admin"].
+  // RVSF-side users (rvsf_admin + rvsf_executive) all post AS rvsf_executive in
+  // chat — there's no rvsf_admin variant in the chat-message enum (Backend P1).
   const senderRole = user.role === "client" ? "customer" :
                      user.role === "admin"  ? "admin" :
-                     "rvsf_executive"
+                     "rvsf_executive"  // both rvsf_admin and rvsf_executive land here
 
   const doc: any = {
     threadId: r.thread._id,

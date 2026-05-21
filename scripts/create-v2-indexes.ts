@@ -55,6 +55,24 @@ async function main() {
     process.exit(1)
   }
   await connectToDatabase()
+
+  // ── Legacy-index cleanup (backend code-review P0-2) ──
+  // The old `payments.razorpayPaymentId_1` was declared unique. Refund Payment
+  // rows reuse the original lead-unlock's razorpayPaymentId, so the unique
+  // constraint throws E11000 on every refund. We drop the legacy unique index
+  // here so the new non-unique index (defined in models/Payment.ts) can apply.
+  try {
+    const mongoose = await import("mongoose")
+    const indexes = await mongoose.connection.db?.collection("payments").indexes() ?? []
+    const legacy = indexes.find((i: any) => i.name === "razorpayPaymentId_1" && i.unique === true)
+    if (legacy) {
+      await mongoose.connection.db?.collection("payments").dropIndex("razorpayPaymentId_1")
+      console.log("  ✓ payments: dropped legacy unique index razorpayPaymentId_1 (P0-2)")
+    }
+  } catch (err: any) {
+    console.warn(`  ! payments: legacy-index cleanup skipped (${err.message})`)
+  }
+
   for (const [name, Model] of COLLECTIONS) {
     try {
       await (Model as any).createIndexes()

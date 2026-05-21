@@ -316,6 +316,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     <span className="font-semibold">Contact Requests</span>
                                 </Link>
                             </motion.div>
+                            {/* Demo data hub — surfaces seeded "Demo *" leads so the founder
+                                can click-through the walkthrough without SSHing to VM 221. */}
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/demo-leads" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/demo-leads') ? 'bg-emerald-500/10 text-emerald-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/demo-leads') && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-full" />
+                                    )}
+                                    <Database className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/demo-leads') ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Demo Data</span>
+                                </Link>
+                            </motion.div>
                         </div>
                     </div>
                 </motion.nav>

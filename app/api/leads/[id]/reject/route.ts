@@ -14,7 +14,6 @@
 // RejectionEvent.refundDecision flips to auto_full_but_refund_failed
 // and admin gets a notification.
 import { NextResponse } from "next/server"
-import mongoose from "mongoose"
 import { withAuth } from "@/lib/middleware/requireRole"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
@@ -30,6 +29,7 @@ import { computeGracePhase } from "@/lib/services/refund/computeGracePhase"
 import { scanForLeakage, DEFAULT_PATTERNS } from "@/lib/services/chat/leakage-scanner"
 import { refund as razorpayRefund } from "@/lib/services/payments"
 import { enqueueNotification } from "@/lib/services/notifications/dispatcher"
+import { withLeadTxn } from "@/lib/transactions/withLeadTxn"
 
 const REJECTABLE_STATES = ["unlocked", "assigned_to_cc", "negotiating", "cd_issued"]
 
@@ -93,63 +93,82 @@ export const POST = withAuth(["rvsf_admin"], async (req, { user }) => {
   else if (phase.eligible)                refundDecision = "auto_full"
   else                                    refundDecision = "auto_denied_engaged_phase"
 
-  // ── DB state changes (would be a Mongo transaction in production; for
-  //    staging the partial-unique index gives us race-safety per Backend §4) ──
+  // ── DB state changes wrapped in a Mongoose transaction (Backend P0-1) ──
+  // All-or-nothing: a mid-write failure must NOT leave Lead.state="marketplace_visible"
+  // while LeadUnlock.status is still "paid", or vice-versa. The Razorpay refund HTTP
+  // call deliberately stays OUTSIDE this block — see comment in withLeadTxn.ts.
   const newCount = (lead.rejectionCount ?? 0) + 1
   const pingPongSetting = await ConfigSetting.findOne({ key: "pingPong.rejectionThreshold" }).lean() as any
   const pingPongThreshold = pingPongSetting?.value ?? 3
   const flagPingPong = newCount >= pingPongThreshold && !lead.adminAttentionFlag
 
-  await Lead.updateOne(
-    { _id: leadId, state: { $in: REJECTABLE_STATES } },
-    {
-      $set: {
-        state: "marketplace_visible",
-        marketplaceVisibleAt: new Date(),
-        assignedCcId: null,
-        unlock: null,
-        ...(flagPingPong ? { adminAttentionFlag: true } : {}),
-      },
-      $inc: { rejectionCount: 1 },
-    }
-  )
-  await LeadUnlock.updateOne({ _id: unlock._id }, { $set: { status: "paid_rejected" } })
-  if (thread) {
-    await ChatThread.updateOne(
-      { _id: thread._id },
-      { $set: { status: "archived", closedAt: new Date(), closedReason: "rvsf_rejected" } }
-    )
-  }
-
   const rvsf = await RVSF.findById(unlock.rvsfId).lean() as any
 
-  const rejectionEvent = await RejectionEvent.create({
-    leadId,
-    unlockId: unlock._id,
-    rejectedByRvsfId: user.linkedRvsfId,
-    rejectedByUserId: user.id,
-    reason,
-    reasonNote,
-    chatMessageCountAtReject: nonSystemMessageCount,
-    minutesElapsedSinceUnlock: Math.floor((Date.now() - new Date(lead.unlock.unlockedAt).getTime()) / 60_000),
-    gracePhaseEligible: phase.eligible,
-    customerNumberRevealed: !!lead.customerNumberRevealed,
-    rejectionCountAtReject: newCount,
-    archivedThreadId: thread?._id,
-    relistedLeadStateBefore: lead.state,
-    notifiedRvsfIds: [],
-    chatFlaggedPatterns: flagged,
-    refundDecision,
-  })
+  const { rejectionEvent } = await withLeadTxn(async (session) => {
+    await Lead.updateOne(
+      { _id: leadId, state: { $in: REJECTABLE_STATES } },
+      {
+        $set: {
+          state: "marketplace_visible",
+          marketplaceVisibleAt: new Date(),
+          assignedCcId: null,
+          unlock: null,
+          ...(flagPingPong ? { adminAttentionFlag: true } : {}),
+        },
+        $inc: { rejectionCount: 1 },
+      },
+      { session }
+    )
+    await LeadUnlock.updateOne(
+      { _id: unlock._id },
+      { $set: { status: "paid_rejected" } },
+      { session }
+    )
+    if (thread) {
+      await ChatThread.updateOne(
+        { _id: thread._id },
+        { $set: { status: "archived", closedAt: new Date(), closedReason: "rvsf_rejected" } },
+        { session }
+      )
+    }
 
-  await AuditLog.create({
-    actorUserId: user.id,
-    action: "lead.rejected.by_rvsf",
-    targetCollection: "leads",
-    targetId: lead._id,
-    before: { state: lead.state, rejectionCount: lead.rejectionCount ?? 0 },
-    after: { state: "marketplace_visible", rejectionCount: newCount, refundDecision },
-    reason,
+    // Mongoose `Model.create` requires array form when passing { session }.
+    const [createdRejectionEvent] = await RejectionEvent.create(
+      [{
+        leadId,
+        unlockId: unlock._id,
+        rejectedByRvsfId: user.linkedRvsfId,
+        rejectedByUserId: user.id,
+        reason,
+        reasonNote,
+        chatMessageCountAtReject: nonSystemMessageCount,
+        minutesElapsedSinceUnlock: Math.floor((Date.now() - new Date(lead.unlock.unlockedAt).getTime()) / 60_000),
+        gracePhaseEligible: phase.eligible,
+        customerNumberRevealed: !!lead.customerNumberRevealed,
+        rejectionCountAtReject: newCount,
+        archivedThreadId: thread?._id,
+        relistedLeadStateBefore: lead.state,
+        notifiedRvsfIds: [],
+        chatFlaggedPatterns: flagged,
+        refundDecision,
+      }],
+      { session }
+    )
+
+    await AuditLog.create(
+      [{
+        actorUserId: user.id,
+        action: "lead.rejected.by_rvsf",
+        targetCollection: "leads",
+        targetId: lead._id,
+        before: { state: lead.state, rejectionCount: lead.rejectionCount ?? 0 },
+        after: { state: "marketplace_visible", rejectionCount: newCount, refundDecision },
+        reason,
+      }],
+      { session }
+    )
+
+    return { rejectionEvent: createdRejectionEvent }
   })
 
   // ── Razorpay refund (OUTSIDE the "transaction") ──

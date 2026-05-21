@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight } from "lucide-react"
+import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight, Database } from "lucide-react"
 import Link from "next/link"
 import DashboardCharts from "./DashboardCharts"
 
@@ -73,6 +73,31 @@ export default function DashboardOverview({
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Overview of platform performance.</p>
                 </div>
+            </motion.div>
+
+            {/* Demo Data — quick-access tile for the v2 walkthrough.
+                Surfaces /admin/demo-leads so the founder can click into seeded
+                leads without SSHing to VM 221 to read the seed script's log. */}
+            <motion.div variants={itemVariants}>
+                <Link
+                    href="/admin/demo-leads"
+                    className="group block bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-900/20 dark:to-[#0E192D] px-5 py-4 rounded-xl border border-emerald-200 dark:border-emerald-800/40 hover:border-emerald-400 dark:hover:border-emerald-600 shadow-sm hover:shadow-md transition-all"
+                >
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg">
+                                <Database className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-gray-900 dark:text-white">Demo data</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                    Click-through links into seeded Customers A/B/C + re-seed button + test logins.
+                                </p>
+                            </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                </Link>
             </motion.div>
 
             {/* Color Legend */}
