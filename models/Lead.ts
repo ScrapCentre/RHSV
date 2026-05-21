@@ -150,6 +150,11 @@ const LeadSchema = new Schema(
     marketplaceVisibleAt:  { type: Date },
     unlock:                { type: UnlockSchema },
     assignedCcId:          { type: Schema.Types.ObjectId, ref: "CollectionCenter" },
+    // CC operator interest signal — CCs whose operator has clicked "Accept" on this lead.
+    // Per L19, CC cannot reject; this is a soft "we want this" ping to the parent RVSF
+    // (who then decides whether to unlock from /rvsf/marketplace). Multiple CCs in
+    // overlapping catchments may accept; the parent RVSF gets a Notification per accept.
+    ccAcceptedBy:          { type: [Schema.Types.ObjectId], ref: "CollectionCenter", default: [] },
     triage:                { type: TriageSchema },
 
     // DigiELV / vscrap manual workflow state
