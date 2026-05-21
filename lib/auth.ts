@@ -447,6 +447,26 @@ export const authOptions: NextAuthOptions = {
             }
             return session
         },
+        // Role-based post-login redirect.
+        // Honors an explicit ?callbackUrl=… if it's same-origin, otherwise routes
+        // to the role-appropriate landing page. Without this every role lands on /.
+        async redirect({ url, baseUrl }) {
+            // Same-origin redirects (e.g. callbackUrl=/some/page) → honor
+            try {
+                const parsed = new URL(url, baseUrl)
+                if (parsed.origin === baseUrl) {
+                    // If callbackUrl is literally "/" or "/login", treat as no callback set
+                    if (parsed.pathname !== "/" && parsed.pathname !== "/login") {
+                        return parsed.toString()
+                    }
+                }
+            } catch { /* fall through */ }
+            // Otherwise role-based default — but at this point in the NextAuth
+            // flow we don't have the session, so we can't branch on role. We
+            // route everyone to /post-login, a tiny dispatcher page that looks
+            // at the session and forwards to the right place.
+            return `${baseUrl}/post-login`
+        },
     },
     pages: { signIn: "/login" },
     session: { strategy: "jwt" },
