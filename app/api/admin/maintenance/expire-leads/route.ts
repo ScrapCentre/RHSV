@@ -1,12 +1,14 @@
 // engineering-design.md §4.1 / §8 — Sweep expired marketplace leads; safe to call repeatedly
-import { NextResponse } from "next/server"
-import { requireRole } from "@/lib/middleware/requireRole"
+import { NextRequest, NextResponse } from "next/server"
+import { requireRole, AuthError } from "@/lib/middleware/requireRole"
 import connectToDatabase from "@/lib/db"
 import MarketplaceLead from "@/models/MarketplaceLead"
 
-export async function GET() {
-  const authError = await requireRole("admin")
-  if (authError) return authError
+export async function GET(req: NextRequest) {
+  try { await requireRole(req, "admin") } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status })
+    throw e
+  }
 
   try {
     await connectToDatabase()

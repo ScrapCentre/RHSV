@@ -23,7 +23,14 @@ import {
     MessageSquare,
     Settings,
     Briefcase,
-    Database
+    Database,
+    Inbox,
+    AlertTriangle,
+    Building2,
+    FileSignature,
+    History,
+    Wrench,
+    Sliders,
 } from "lucide-react"
 
 import { useSession, signOut } from "next-auth/react"
@@ -325,6 +332,70 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     )}
                                     <Database className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/demo-leads') ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`} />
                                     <span className="font-semibold">Demo Data</span>
+                                </Link>
+                            </motion.div>
+                        </div>
+
+                        {/* ── v2 Admin Operations (Triage / Refunds / Settings / Audit) ─────
+                             Surfaces the v2 admin pages so the founder doesn't have to URL-direct.
+                             Per the v2 spec, /admin/{triage,refund-review,needs-attention,...}
+                             are the daily-driver pages for the admin role. */}
+                        <motion.p variants={sidebarLinkVariants} className="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 mt-4">v2 Admin</motion.p>
+                        <div className="space-y-1">
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/triage" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/triage') ? 'bg-rose-500/10 text-rose-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/triage') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 rounded-r-full" />}
+                                    <Inbox className={`w-5 h-5 mr-3.5 ${isActive('/admin/triage') ? 'text-rose-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Triage Queue</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/needs-attention" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/needs-attention') ? 'bg-amber-500/10 text-amber-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/needs-attention') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500 rounded-r-full" />}
+                                    <AlertTriangle className={`w-5 h-5 mr-3.5 ${isActive('/admin/needs-attention') ? 'text-amber-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Needs Attention</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/refund-review" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/refund-review') ? 'bg-orange-500/10 text-orange-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/refund-review') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500 rounded-r-full" />}
+                                    <RefreshCcw className={`w-5 h-5 mr-3.5 ${isActive('/admin/refund-review') ? 'text-orange-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Refund Review</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/dsc-pending" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/dsc-pending') ? 'bg-cyan-500/10 text-cyan-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/dsc-pending') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-cyan-500 rounded-r-full" />}
+                                    <FileSignature className={`w-5 h-5 mr-3.5 ${isActive('/admin/dsc-pending') ? 'text-cyan-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">DSC Pending</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/rvsfs" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/rvsfs') ? 'bg-indigo-500/10 text-indigo-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/rvsfs') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-r-full" />}
+                                    <Building2 className={`w-5 h-5 mr-3.5 ${isActive('/admin/rvsfs') ? 'text-indigo-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">RVSFs</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/settings" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/settings') ? 'bg-slate-500/10 text-slate-200 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/settings') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-slate-400 rounded-r-full" />}
+                                    <Sliders className={`w-5 h-5 mr-3.5 ${isActive('/admin/settings') ? 'text-slate-200' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Settings</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/mock-config" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/mock-config') ? 'bg-fuchsia-500/10 text-fuchsia-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/mock-config') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-fuchsia-500 rounded-r-full" />}
+                                    <Wrench className={`w-5 h-5 mr-3.5 ${isActive('/admin/mock-config') ? 'text-fuchsia-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Mock Config</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/audit-log" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/audit-log') ? 'bg-teal-500/10 text-teal-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/audit-log') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-teal-500 rounded-r-full" />}
+                                    <History className={`w-5 h-5 mr-3.5 ${isActive('/admin/audit-log') ? 'text-teal-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Audit Log</span>
                                 </Link>
                             </motion.div>
                         </div>

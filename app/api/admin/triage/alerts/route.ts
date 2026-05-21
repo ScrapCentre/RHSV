@@ -1,12 +1,14 @@
 // engineering-design.md §4.1 / §8 — List and create anti-hoarding alerts
-import { NextResponse } from "next/server"
-import { requireRole } from "@/lib/middleware/requireRole"
+import { NextRequest, NextResponse } from "next/server"
+import { requireRole, AuthError } from "@/lib/middleware/requireRole"
 import connectToDatabase from "@/lib/db"
 import AntiHoardingAlert from "@/models/AntiHoardingAlert"
 
-export async function GET() {
-  const authError = await requireRole("admin")
-  if (authError) return authError
+export async function GET(req: NextRequest) {
+  try { await requireRole(req, "admin") } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status })
+    throw e
+  }
 
   try {
     await connectToDatabase()
@@ -22,9 +24,11 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
-  const authError = await requireRole("admin")
-  if (authError) return authError
+export async function POST(req: NextRequest) {
+  try { await requireRole(req, "admin") } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status })
+    throw e
+  }
 
   try {
     const body = await req.json()

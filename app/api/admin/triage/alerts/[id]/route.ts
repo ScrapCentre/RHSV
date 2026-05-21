@@ -1,15 +1,17 @@
 // engineering-design.md §4.1 — Resolve anti-hoarding alert
-import { NextResponse } from "next/server"
-import { requireRole } from "@/lib/middleware/requireRole"
+import { NextRequest, NextResponse } from "next/server"
+import { requireRole, AuthError } from "@/lib/middleware/requireRole"
 import connectToDatabase from "@/lib/db"
 import AntiHoardingAlert from "@/models/AntiHoardingAlert"
 
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authError = await requireRole("admin")
-  if (authError) return authError
+  try { await requireRole(req, "admin") } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status })
+    throw e
+  }
 
   try {
     const { id } = await params
