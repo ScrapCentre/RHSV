@@ -46,9 +46,8 @@ function B2BGeneratorContent() {
 
         setIsLoading(true)
         try {
-            // NOTE: /api/b2b-partner currently has no auth (separate concern,
-            // tracked separately). apiFetch will inject the CSRF header anyway —
-            // harmless if the endpoint doesn't validate it.
+            // /api/b2b-partner is admin-gated (withAuth(["admin"]) — role gate
+            // + CSRF). apiFetch injects the required X-CSRF-Token header.
             const res = await apiFetch("/api/b2b-partner", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
