@@ -334,21 +334,22 @@ export default function ValuationWizardCard() {
 
     const handleVerifyOtp = async () => {
         if (formData.otp.length !== 6 && formData.otp.length !== 4) return
-        
+
         setIsVerifying(true)
         try {
             if (isSandboxMode) {
-                // Sandbox mode: use phone-otp provider (creates/finds user by phone)
+                // Sandbox mode: phone-otp provider was removed in v2 M06 (security
+                // audit §1.1, lib/auth.ts comments lines 5-8). The dead provider
+                // call previously silently failed and left the customer stranded.
+                // In sandbox we now validate the demo code client-side and treat
+                // the lead as anonymous — submitLeadData() below still persists
+                // it, and the lead is reconciled to a user account when the
+                // customer later signs in via the proper /calculator/verify
+                // flow (which uses firebase-otp end-to-end).
                 if (formData.otp !== "000000") {
                     throw new Error("Invalid code. Use 000000 in sandbox mode.")
                 }
-                const result = await signIn("phone-otp", {
-                    phone: "+91" + formData.phone,
-                    otp: "000000",
-                    name: formData.name || `User ${formData.phone.slice(-4)}`,
-                    redirect: false,
-                })
-                if (result?.error) throw new Error(result.error)
+                // No signIn — anonymous lead capture is fine for this wizard.
             } else {
                 // Production mode: verify with Firebase and sign in via firebase-otp
                 if (!confirmationResult) throw new Error("Session expired. Please request a new OTP.")
