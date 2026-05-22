@@ -11,6 +11,7 @@ import { withAuth } from "@/lib/middleware/requireRole"
 import connectToDatabase from "@/lib/db"
 import ConfigSetting from "@/models/ConfigSetting"
 import AuditLog from "@/models/AuditLog"
+import { invalidatePerKgRateCache } from "@/lib/services/pricing/perKgRate"
 
 export const dynamic = "force-dynamic"
 
@@ -86,6 +87,13 @@ export const PATCH = withAuth(["admin"], async (req, { user }) => {
     after:  { value: doc.value, version: doc.version },
     reason: `key=${key}`,
   })
+
+  // Invalidate in-process pricing cache so admin edits to pricing.perKgRate.*
+  // take effect on the very next request instead of waiting up to 60 s for
+  // the TTL to expire. Cheap; safe to call on every settings edit.
+  if (key.startsWith("pricing.perKgRate.")) {
+    invalidatePerKgRateCache()
+  }
 
   return NextResponse.json({
     ok: true,

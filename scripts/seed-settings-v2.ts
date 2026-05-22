@@ -11,7 +11,10 @@ import connectToDatabase from "@/lib/db"
 import ConfigSetting from "@/models/ConfigSetting"
 
 const SETTINGS = [
-  { key: "pricing.scrapPricePerKg",      value: 0.75,             description: "₹ per kg unlock fee — L16" },
+  { key: "pricing.scrapPricePerKg",      value: 0.75,             description: "₹ per kg unlock fee (legacy universal rate; superseded by pricing.perKgRate.* split) — L16" },
+  { key: "pricing.perKgRate.2W",         value: 0.75,             description: "₹/kg lead-unlock fee for 2-wheelers — admin-tunable (L16)" },
+  { key: "pricing.perKgRate.4W",         value: 1.0,              description: "₹/kg lead-unlock fee for 4-wheelers — admin-tunable (L16)" },
+  { key: "pricing.perKgRate.truck",      value: 1.0,              description: "₹/kg lead-unlock fee for trucks — admin-tunable (L16)" },
   { key: "marketplace.defaultRadiusKm",  value: 200,              description: "Default RVSF marketplace radius — L50" },
   { key: "marketplace.minRadiusKm",      value: 50,               description: "Min radius slider value" },
   { key: "marketplace.maxRadiusKm",      value: 1000,             description: "Max radius slider value" },

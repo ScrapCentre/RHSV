@@ -14,9 +14,9 @@ import { validateObjectId } from "@/lib/middleware/objectId"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import LeadUnlock from "@/models/LeadUnlock"
-import ConfigSetting from "@/models/ConfigSetting"
 import { createOrder } from "@/lib/services/payments"
 import { unlockAmountPaise, chargeBasisWeightKg } from "@/lib/services/pricing/unlock"
+import { getPerKgRate, type VehicleType } from "@/lib/services/pricing/perKgRate"
 
 const UNLOCKABLE_STATES = [
   "approved_marketplace",
@@ -57,8 +57,13 @@ export const POST = withAuth(["rvsf_admin", "rvsf_executive"], async (req, { use
     return NextResponse.json({ error: "Lead already unlocked by another RVSF" }, { status: 409 })
   }
 
-  const priceSetting = await ConfigSetting.findOne({ key: "pricing.scrapPricePerKg" }).lean() as any
-  const pricePerKg = priceSetting?.value ?? 0.75
+  // Per-vehicle-type rate split (2W: 0.75, 4W/truck: 1.0; admin-tunable via
+  // pricing.perKgRate.* ConfigSetting). Founder decision 2026-05-22.
+  const rawClass = (lead.vehicle?.class ?? "4W") as string
+  const vehicleType: VehicleType = rawClass.toLowerCase() === "truck"
+    ? "truck"
+    : (rawClass.toUpperCase() === "2W" ? "2W" : "4W")
+  const pricePerKg = await getPerKgRate(vehicleType)
 
   const weightKg = chargeBasisWeightKg({
     vahanWeightKg: lead.vehicle?.vahanWeightKg,

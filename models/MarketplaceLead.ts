@@ -19,7 +19,7 @@ export interface IMarketplaceLead extends Document {
   isRelisted: boolean
   relist_count: number
 
-  leadPriceInr: number      // = estimatedWeightKg * (vehicleType === "2W" ? 0.75 : 1.0)
+  leadPriceInr: number      // = estimatedWeightKg * pricing.perKgRate.{2W|4W|truck} (admin-tunable; 2W defaults 0.75, 4W/truck default 1.0)
 
   status: "active" | "sold" | "expired" | "rejected" | "in_revival"
   soldToPartnerId: string | null

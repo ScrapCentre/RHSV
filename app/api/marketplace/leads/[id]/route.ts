@@ -6,7 +6,7 @@ import { validateObjectId } from "@/lib/middleware/objectId"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import { unlockAmountPaise, formatRupees } from "@/lib/services/pricing/unlock"
-import ConfigSetting from "@/models/ConfigSetting"
+import { getPerKgRate, type VehicleType } from "@/lib/services/pricing/perKgRate"
 
 export const GET = withAuth(["rvsf_admin", "rvsf_executive"], async (_req, _ctx) => {
   await connectToDatabase()
@@ -27,8 +27,13 @@ async function _handler(req: Request) {
   const lead = await Lead.findById(id).lean() as any
   if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 })
 
-  const priceSetting = await ConfigSetting.findOne({ key: "pricing.scrapPricePerKg" }).lean() as any
-  const pricePerKg = priceSetting?.value ?? 0.75
+  // Per-vehicle-type rate split (2W: 0.75, 4W/truck: 1.0; admin-tunable via
+  // pricing.perKgRate.* ConfigSetting). Founder decision 2026-05-22.
+  const rawClass = (lead.vehicle?.class ?? "4W") as string
+  const vehicleType: VehicleType = rawClass.toLowerCase() === "truck"
+    ? "truck"
+    : (rawClass.toUpperCase() === "2W" ? "2W" : "4W")
+  const pricePerKg = await getPerKgRate(vehicleType)
 
   const chargeBasisWeightKg = lead.vehicle?.chargeBasisWeightKg
     ?? lead.vehicle?.vahanWeightKg

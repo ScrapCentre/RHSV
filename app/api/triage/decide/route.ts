@@ -8,13 +8,9 @@ import TriageDecision from "@/models/TriageDecision"
 import MarketplaceLead from "@/models/MarketplaceLead"
 import SellVehicle from "@/models/SellVehicle"
 import { transition } from "@/lib/state-machine/lead"
+import { computeLeadPrice } from "@/lib/services/pricing/perKgRate"
 
 const LEAD_EXPIRY_DAYS = 14
-
-function computeLeadPrice(vehicleType: "2W" | "4W" | "truck", weightKg: number): number {
-  const rate = vehicleType === "2W" ? 0.75 : 1.0
-  return Math.round(weightKg * rate)
-}
 
 // Blur transformation for Cloudinary URLs — engineering-design.md §8
 function applyBlur(url: string): string {
@@ -129,7 +125,7 @@ export async function POST(req: Request) {
         aadhaarVerified:   leadState.aadhaarConsent,
         isRelisted:        false,
         relist_count:      0,
-        leadPriceInr:      computeLeadPrice(vType, weightKg),
+        leadPriceInr:      await computeLeadPrice(vType, weightKg),
         status:            "active",
         expiresAt,
         watchedBy:         [],

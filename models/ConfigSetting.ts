@@ -20,7 +20,10 @@ const ConfigSetting =
 export default ConfigSetting
 
 // Canonical key set (seeded by scripts/seed-settings-v2.ts):
-// pricing.scrapPricePerKg               default 0.75       (L16)
+// pricing.scrapPricePerKg               default 0.75       (L16, legacy universal rate)
+// pricing.perKgRate.2W                  default 0.75       (L16, per-vehicle-type split)
+// pricing.perKgRate.4W                  default 1.0        (L16, per-vehicle-type split)
+// pricing.perKgRate.truck               default 1.0        (L16, per-vehicle-type split)
 // marketplace.defaultRadiusKm           default 200        (L50)
 // marketplace.minRadiusKm               default 50
 // marketplace.maxRadiusKm               default 1000
