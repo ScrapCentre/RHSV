@@ -17,6 +17,7 @@
 import { NextResponse } from "next/server"
 import mongoose from "mongoose"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { toUserObjectId, toActorLabel } from "@/lib/middleware/userIdCast"
 import connectToDatabase from "@/lib/db"
 import RVSF from "@/models/RVSF"
 import CollectionCenter from "@/models/CollectionCenter"
@@ -105,19 +106,22 @@ export const POST = withAuth(["admin"], async (req, ctx) => {
   }
 
   // ── 3. AuditLog ──────────────────────────────────────────────────────
-  if (adminId && mongoose.isValidObjectId(String(adminId))) {
-    try {
-      await AuditLog.create({
-        actorUserId: adminId,
-        action: "rvsf.kyc.approved",
-        targetCollection: "RVSF",
-        targetId: rvsf._id,
-        before: { status: beforeStatus },
-        after: { status: "active", primaryCcId: primaryCC?._id?.toString() },
-      })
-    } catch (auditErr: any) {
-      console.error(`[rvsf/approve] AuditLog write failed: ${auditErr?.message}`)
-    }
+  // The env-fallback admin (id === "env-admin") now writes a row with
+  // actorUserId=null + actorLabel=<email>, rather than being silently
+  // skipped — the audit trail must capture every privileged action,
+  // including ones taken via the operational break-glass.
+  try {
+    await AuditLog.create({
+      actorUserId: toUserObjectId(adminId),
+      actorLabel:  toActorLabel(ctx.user),
+      action: "rvsf.kyc.approved",
+      targetCollection: "RVSF",
+      targetId: rvsf._id,
+      before: { status: beforeStatus },
+      after: { status: "active", primaryCcId: primaryCC?._id?.toString() },
+    })
+  } catch (auditErr: any) {
+    console.error(`[rvsf/approve] AuditLog write failed: ${auditErr?.message}`)
   }
 
   // ── 4. Notify applicant (email + in-app + WhatsApp) ─────────────────

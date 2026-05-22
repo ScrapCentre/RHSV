@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server"
 import mongoose from "mongoose"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { toUserObjectId, toActorLabel } from "@/lib/middleware/userIdCast"
 import connectToDatabase from "@/lib/db"
 import RVSF from "@/models/RVSF"
 import AuditLog from "@/models/AuditLog"
@@ -57,20 +58,21 @@ export const POST = withAuth(["admin"], async (req, ctx) => {
   }
   await rvsf.save()
 
-  if (adminId && mongoose.isValidObjectId(String(adminId))) {
-    try {
-      await AuditLog.create({
-        actorUserId: adminId,
-        action: "rvsf.kyc.rejected",
-        targetCollection: "RVSF",
-        targetId: rvsf._id,
-        before: { status: beforeStatus },
-        after: { status: "rejected_with_notes" },
-        reason: notes,
-      })
-    } catch (auditErr: any) {
-      console.error(`[rvsf/reject] AuditLog write failed: ${auditErr?.message}`)
-    }
+  // Audit row — env-admin (non-ObjectId id) now lands a row with
+  // actorUserId=null + actorLabel=<email> instead of being silently skipped.
+  try {
+    await AuditLog.create({
+      actorUserId: toUserObjectId(adminId),
+      actorLabel:  toActorLabel(ctx.user),
+      action: "rvsf.kyc.rejected",
+      targetCollection: "RVSF",
+      targetId: rvsf._id,
+      before: { status: beforeStatus },
+      after: { status: "rejected_with_notes" },
+      reason: notes,
+    })
+  } catch (auditErr: any) {
+    console.error(`[rvsf/reject] AuditLog write failed: ${auditErr?.message}`)
   }
 
   try {

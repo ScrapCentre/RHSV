@@ -9,7 +9,13 @@ const ConfigSettingSchema = new Schema(
     key:         { type: String, required: true, unique: true },
     value:       { type: Schema.Types.Mixed, required: true },
     description: { type: String },
-    lastUpdatedByUserId: { type: Schema.Types.ObjectId, ref: "User" },
+    // `lastUpdatedByUserId` is nullable so the env-fallback admin
+    // (lib/auth.ts; id === "env-admin" — not an ObjectId) can write
+    // settings without triggering a CastError. The sibling
+    // `lastUpdatedByLabel` carries the human-readable actor (email or
+    // "env-admin") for the admin UI.  See lib/middleware/userIdCast.ts.
+    lastUpdatedByUserId:    { type: Schema.Types.ObjectId, ref: "User", default: null },
+    lastUpdatedByLabel:     { type: String, default: null },
     version:     { type: Number, default: 1, required: true },  // optimistic concurrency
   },
   { timestamps: true }

@@ -13,6 +13,7 @@
 //   5. Return the customer phone in the response (one-time reveal to RVSF)
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { toUserObjectId, toActorLabel } from "@/lib/middleware/userIdCast"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import ChatThread from "@/models/ChatThread"
@@ -63,7 +64,8 @@ export const POST = withAuth(["rvsf_admin", "rvsf_executive"], async (req, { use
     }
 
     await AuditLog.create({
-      actorUserId: user.id,
+      actorUserId: toUserObjectId(user.id),
+      actorLabel:  toActorLabel(user),
       action: "lead.customer_number.revealed",
       targetCollection: "leads",
       targetId: lead._id,

@@ -15,6 +15,7 @@
 // and admin gets a notification.
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { toUserObjectId, toActorLabel } from "@/lib/middleware/userIdCast"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import LeadUnlock from "@/models/LeadUnlock"
@@ -166,7 +167,8 @@ export const POST = withAuth(["rvsf_admin"], async (req, { user }) => {
 
     await AuditLog.create(
       [{
-        actorUserId: user.id,
+        actorUserId: toUserObjectId(user.id),
+        actorLabel:  toActorLabel(user),
         action: "lead.rejected.by_rvsf",
         targetCollection: "leads",
         targetId: lead._id,

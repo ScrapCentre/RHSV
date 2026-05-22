@@ -8,6 +8,7 @@ type Entry = {
   _id: string
   action: string
   actor: string
+  actorLabel: string | null
   targetCollection: string
   targetId: string
   reason: string
@@ -74,7 +75,18 @@ export default function AdminAuditLogPage() {
                       {e.action}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs">{e.actor}</td>
+                  <td className="px-4 py-3 text-xs">
+                    {e.actor}
+                    {/* Highlight rows authored by the env-fallback admin
+                        (no User row, actorLabel === "env-admin" or matching
+                        the ADMIN_EMAIL). The audit trail must remain
+                        readable even when the actor isn't a real DB user. */}
+                    {e.actorLabel && e.actor === e.actorLabel && (
+                      <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-brand-gray-300 text-brand-gray-700 align-middle">
+                        env-admin
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs">
                     {e.targetCollection}/{e.targetId.slice(-8)}
                   </td>

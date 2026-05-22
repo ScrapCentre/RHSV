@@ -8,6 +8,7 @@
 // before/after so an accidental clobber is recoverable.
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { toUserObjectId, toActorLabel } from "@/lib/middleware/userIdCast"
 import connectToDatabase from "@/lib/db"
 import ConfigSetting from "@/models/ConfigSetting"
 import AuditLog from "@/models/AuditLog"
@@ -68,10 +69,21 @@ export const PATCH = withAuth(["admin"], async (req, { user }) => {
   const beforeValue = before?.value
   const beforeVersion = before?.version ?? 0
 
+  // Project the session user.id onto our Mongo fields safely. The env-admin
+  // path (lib/auth.ts: id === "env-admin") must NOT trigger an ObjectId
+  // CastError here — the helper returns null for non-ObjectId-shaped ids
+  // and `actorLabel` preserves the trail.
+  const actorObjectId = toUserObjectId(user.id)
+  const actorLabel    = toActorLabel(user)
+
   const doc = await ConfigSetting.findOneAndUpdate(
     { key },
     {
-      $set: { value: coerced, lastUpdatedByUserId: user.id },
+      $set: {
+        value: coerced,
+        lastUpdatedByUserId: actorObjectId,
+        lastUpdatedByLabel:  actorLabel,
+      },
       $inc: { version: 1 },
       $setOnInsert: { description: "" },
     },
@@ -79,7 +91,8 @@ export const PATCH = withAuth(["admin"], async (req, { user }) => {
   ).lean() as any
 
   await AuditLog.create({
-    actorUserId: user.id,
+    actorUserId: actorObjectId,
+    actorLabel,
     action: "config.setting.update",
     targetCollection: "configsettings",
     targetId: doc._id,

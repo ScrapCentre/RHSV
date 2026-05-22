@@ -5,7 +5,13 @@ import mongoose, { Schema, model, models } from "mongoose"
 
 const AuditLogSchema = new Schema(
   {
-    actorUserId:     { type: Schema.Types.ObjectId, ref: "User", required: true },
+    // `actorUserId` is nullable so the env-fallback admin (lib/auth.ts;
+    // id === "env-admin" — not an ObjectId) can write audit rows without
+    // throwing a CastError. When null, the sibling `actorLabel` carries
+    // the human-readable actor (typically the env admin's email, or the
+    // literal "env-admin").  See lib/middleware/userIdCast.ts.
+    actorUserId:     { type: Schema.Types.ObjectId, ref: "User", default: null },
+    actorLabel:      { type: String, default: null },
     action:          { type: String, required: true },  // e.g. "lead.rejected.by_rvsf"
     targetCollection:{ type: String, required: true },
     targetId:        { type: Schema.Types.ObjectId, required: true },
