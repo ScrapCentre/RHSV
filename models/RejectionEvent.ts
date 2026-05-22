@@ -2,6 +2,12 @@
 // Drives the admin /refund-review queue and the ping-pong-flag cron.
 // Extended per §25.2: chatFlaggedPatterns has structured shape, customerNumberRevealed
 // added, refundDecision enum extended with auto_full_but_refund_failed + auto_denied_number_revealed.
+//
+// 2026-05-22 hotfix (P0-2 revenue defence): removed dead enum value
+// `auto_denied_engaged_phase` — per VISION.md §4, condition 3 of the three-condition
+// refund model goes to admin review, NOT auto-deny. Engaged-phase rejections now
+// write `refundDecision: "admin_pending"` + `refundEntryReason: "engaged_phase"`
+// so the audit trail still records how the row entered the queue.
 import mongoose, { Schema, model, models } from "mongoose"
 
 const FlaggedPatternSchema = new Schema(
@@ -40,12 +46,15 @@ const RejectionEventSchema = new Schema(
     chatFlaggedPatterns: { type: [FlaggedPatternSchema], default: [] },
 
     // ── Refund decision ──
+    // NOTE: `auto_denied_engaged_phase` was REMOVED 2026-05-22 (P0-2). Engaged-phase
+    // rejections must enter the admin-review queue per VISION.md §4 — they now write
+    // `admin_pending` with `refundEntryReason: "engaged_phase"` below. Re-adding the
+    // value here would silently break the platform's most important revenue defence.
     refundDecision: {
       type: String,
       enum: [
         "auto_full",
         "auto_full_but_refund_failed",     // Razorpay refund API errored
-        "auto_denied_engaged_phase",
         "auto_denied_number_revealed",     // §25.1 — three-condition model
         "admin_approved_full",
         "admin_approved_partial",
@@ -54,6 +63,15 @@ const RejectionEventSchema = new Schema(
       ],
       default: "admin_pending",
       required: true,
+    },
+    // Why this row entered the queue — informational/audit only, never user-facing.
+    // Mirrors GracePhaseDecision.reason from lib/services/refund/computeGracePhase.ts.
+    // NOT marked required: pre-hotfix RejectionEvent rows (and demo-fixture rows)
+    // won't have this field. The reject handler always populates it on new rows;
+    // the admin UI gracefully handles absence (entryReasonChip returns null).
+    refundEntryReason: {
+      type: String,
+      enum: ["grace_phase", "engaged_phase", "number_revealed"],
     },
     refundAmountPaise:        { type: Number },
     refundPaymentId:          { type: Schema.Types.ObjectId, ref: "Payment" },

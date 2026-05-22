@@ -1,6 +1,11 @@
 // M16 — GET /api/admin/refund-review
 // Lists pending refund requests (RejectionEvent.refundDecision === "admin_pending"
-// OR auto_full_but_refund_failed). Surfaces customerNumberRevealed flag prominently.
+// OR auto_full_but_refund_failed OR auto_denied_number_revealed).
+// Surfaces customerNumberRevealed flag and refundEntryReason prominently.
+//
+// 2026-05-22 hotfix (P0-2): engaged-phase rejections now correctly enter this queue
+// because the reject handler writes `admin_pending` instead of the
+// (removed) `auto_denied_engaged_phase` — see app/api/leads/[id]/reject/route.ts.
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
 import connectToDatabase from "@/lib/db"
@@ -38,6 +43,7 @@ export const GET = withAuth(["admin"], async (_req, _ctx) => {
       chatFlaggedPatterns: ev.chatFlaggedPatterns,
       customerNumberRevealed: ev.customerNumberRevealed,
       refundDecision: ev.refundDecision,
+      refundEntryReason: ev.refundEntryReason,  // P0-2 hotfix: surface why row entered queue
       refundFailureReason: ev.refundFailureReason,
       createdAt: ev.createdAt,
     })

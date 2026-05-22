@@ -87,11 +87,19 @@ export const POST = withAuth(["rvsf_admin"], async (req, { user }) => {
     DEFAULT_PATTERNS
   )
 
-  // Determine refund decision per the three conditions
+  // Determine refund decision per the three conditions.
+  // 2026-05-22 hotfix (P0-2): condition 3 (engaged window) must enter the admin-review
+  // queue — VISION.md §4 line 115. Previously this wrote `auto_denied_engaged_phase`
+  // which was (a) not in /api/admin/refund-review's $in filter and (b) contradicted by
+  // both this file's docstring (line 9) and lib/services/refund/computeGracePhase.ts
+  // line 7. Money was silently leaking. The enum value has been removed in
+  // models/RejectionEvent.ts so this branch can never be reintroduced by accident.
+  // `refundEntryReason` records WHY the row entered the queue for audit purposes.
   let refundDecision: string
   if (phase.reason === "number_revealed") refundDecision = "auto_denied_number_revealed"
   else if (phase.eligible)                refundDecision = "auto_full"
-  else                                    refundDecision = "auto_denied_engaged_phase"
+  else                                    refundDecision = "admin_pending"
+  const refundEntryReason = phase.reason  // "grace_phase" | "engaged_phase" | "number_revealed"
 
   // ── DB state changes wrapped in a Mongoose transaction (Backend P0-1) ──
   // All-or-nothing: a mid-write failure must NOT leave Lead.state="marketplace_visible"
@@ -151,6 +159,7 @@ export const POST = withAuth(["rvsf_admin"], async (req, { user }) => {
         notifiedRvsfIds: [],
         chatFlaggedPatterns: flagged,
         refundDecision,
+        refundEntryReason,
       }],
       { session }
     )
@@ -220,6 +229,22 @@ export const POST = withAuth(["rvsf_admin"], async (req, { user }) => {
         channels: ["inapp"],
       })
     }
+  }
+
+  // 2026-05-22 P0-2 hotfix: engaged-phase rejection → admin queue. Per VISION.md §4
+  // ("the single most important defence of the per-lead revenue model") admin must
+  // be alerted, not have to poll the queue. Only the engaged-phase entry fires this;
+  // number-revealed entries already get their own audit-trail notification at the
+  // reveal-number action time.
+  if (refundDecision === "admin_pending" && refundEntryReason === "engaged_phase") {
+    const flaggedCount = flagged.length
+    await enqueueNotification({
+      kind: "engaged_phase_refund_review_admin_alert",
+      subject: `Refund review needed — ${lead.vehicle?.registrationNumber ?? "lead"} (engaged-phase reject)`,
+      bodyMarkdown: `RVSF **${rvsf?.displayName ?? "—"}** rejected lead ${leadId} after engaging the customer (${nonSystemMessageCount} message${nonSystemMessageCount === 1 ? "" : "s"} exchanged${flaggedCount ? `, ${flaggedCount} flagged pattern${flaggedCount === 1 ? "" : "s"}` : ""}). Reason: ${reason} — ${reasonNote}. Decide refund in /admin/refund-review.`,
+      channels: ["inapp", "email"],
+      leadId,
+    })
   }
 
   // Customer notification: "lead returned to marketplace" (tone per §25.19)

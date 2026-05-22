@@ -17,8 +17,27 @@ type RefundRow = {
   chatFlaggedPatterns: { patternName: string; matchedSubstring: string }[]
   customerNumberRevealed: boolean
   refundDecision: string
+  refundEntryReason?: "grace_phase" | "engaged_phase" | "number_revealed"
   refundFailureReason?: string
   createdAt: string
+}
+
+// Map RejectionEvent.refundEntryReason → human-readable chip label/colour.
+// Drives the "why is this in the queue?" cue per VISION.md §4.
+function entryReasonChip(r: RefundRow): { label: string; bg: string } | null {
+  if (r.refundDecision === "auto_full_but_refund_failed") {
+    return { label: "RAZORPAY REFUND FAILED", bg: "bg-status-error text-white" }
+  }
+  if (r.refundEntryReason === "engaged_phase") {
+    return { label: "ENGAGED-PHASE REJECT", bg: "bg-status-warning text-white" }
+  }
+  if (r.refundEntryReason === "number_revealed" || r.refundDecision === "auto_denied_number_revealed") {
+    return { label: "NUMBER REVEALED", bg: "bg-status-error text-white" }
+  }
+  if (r.refundEntryReason === "grace_phase") {
+    return { label: "GRACE-PHASE (REVIEW)", bg: "bg-brand-gray-100" }
+  }
+  return null
 }
 
 export default function RefundReviewPage() {
@@ -79,13 +98,20 @@ export default function RefundReviewPage() {
 
       {!loading && rows.length > 0 && (
         <div className="space-y-3">
-          {rows.map((r) => (
+          {rows.map((r) => {
+            const chip = entryReasonChip(r)
+            return (
             <div key={r.rejectionEventId} className="card-feature flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="font-mono text-xs">{r.vehicleReg}</span>
                   <span className="text-xs px-2 py-0.5 rounded bg-brand-gray-100">{r.reason}</span>
-                  {r.customerNumberRevealed && (
+                  {chip && (
+                    <span className={`text-xs px-2 py-0.5 rounded ${chip.bg}`}>
+                      {chip.label}
+                    </span>
+                  )}
+                  {r.customerNumberRevealed && !chip?.label.includes("NUMBER") && (
                     <span className="text-xs px-2 py-0.5 rounded bg-status-error text-white">
                       ⚠ NUMBER REVEALED
                     </span>
@@ -111,7 +137,8 @@ export default function RefundReviewPage() {
               </div>
               <button onClick={() => setSelected(r)} className="btn-brand px-4 py-2 text-sm">Review</button>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

@@ -7,7 +7,7 @@
 // URLs, no bank details — see the API route comment for why).
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
@@ -42,6 +42,15 @@ const STATUS_COPY: Record<StatusKind, { label: string; color: string; tone: stri
 }
 
 export default function ApplyStatusPage() {
+  // useSearchParams() requires a Suspense boundary in Next 15 for static export.
+  return (
+    <Suspense fallback={<div className="max-w-2xl mx-auto py-12 px-4 text-brand-gray-500">Loading…</div>}>
+      <ApplyStatusInner />
+    </Suspense>
+  )
+}
+
+function ApplyStatusInner() {
   const params = useSearchParams()
   const emailFromUrl = params.get("email") || ""
   const [email, setEmail] = useState(emailFromUrl)
