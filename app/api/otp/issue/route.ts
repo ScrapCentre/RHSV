@@ -15,11 +15,15 @@ export async function POST(req: Request) {
       )
     }
 
-    // Rate limit check — 3 per phone per 10 min
-    if (!checkOtpRateLimit(phone)) {
+    // Rate limit check — 3 per phone per 10 min (Redis-backed, in-memory fallback)
+    const rl = await checkOtpRateLimit(phone)
+    if (!rl.ok) {
       return NextResponse.json(
         { error: "Too many OTP requests. Please wait 10 minutes before trying again." },
-        { status: 429 }
+        {
+          status: 429,
+          headers: rl.retryAfter ? { "Retry-After": String(rl.retryAfter) } : undefined,
+        }
       )
     }
 
