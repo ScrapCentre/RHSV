@@ -4,6 +4,8 @@
 //
 // Admin-only. Idempotent — the underlying seed wipes prior demo leads first.
 //
+// Post-mortem: RHSV-docs/v2-fix-reseed-footgun-2026-05-22.md.
+//
 // P0 SAFETY GUARDS (added 2026-05-22 after independent reviewer flagged a
 // "one misclick wipes real leads" footgun):
 //
