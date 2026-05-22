@@ -188,7 +188,9 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     await page.getByRole("button", { name: /Accept ₹14,500/ }).click()
 
     // Customer side: the agreed-price banner replaces the offer card.
-    await expect(page.getByText("Agreed price")).toBeVisible({ timeout: 15_000 })
+    // `exact` so we hit the banner's "Agreed price" label, not the system
+    // message that also contains the phrase ("...accepted as the agreed price").
+    await expect(page.getByText("Agreed price", { exact: true })).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText("₹14,500").first()).toBeVisible()
 
     // Server truth: offer.status === accepted, Lead.agreedPrice written.
