@@ -31,9 +31,9 @@
 // is the other party. We resolve the lead by registration number (NOT a
 // hard-coded id) so the spec survives the per-reseed ObjectId churn.
 
-import { test, expect, type APIRequestContext, type BrowserContext } from "@playwright/test"
+import { test, expect, type APIRequestContext } from "@playwright/test"
 import { execSync } from "node:child_process"
-import { signInAsClient, signInAsPartner, requireBaseURL, TEST_PASSWORD } from "./helpers/auth"
+import { signInAsClient, requireBaseURL, TEST_PASSWORD } from "./helpers/auth"
 
 const LEAD_B_REG = "DL01CD5678"           // Honda City — the demo negotiation lead
 const SEED_OFFER_PAISE = 1450000          // ₹14,500 — the seeded open RVSF offer
@@ -112,9 +112,19 @@ type OfferMsg = {
 // Fetch all messages for a lead's thread.
 async function getMessages(ctx: APIRequestContext, leadId: string): Promise<OfferMsg[]> {
   const res = await ctx.get(`/api/chat/threads/${leadId}/messages`)
-  expect(res.ok(), `messages fetch failed: ${res.status()} ${await res.text()}`).toBeTruthy()
-  const { messages } = await res.json()
-  return messages as OfferMsg[]
+  const bodyText = await res.text()
+  expect(res.ok(), `messages fetch failed: ${res.status()} ${bodyText}`).toBeTruthy()
+  let parsed: any
+  try {
+    parsed = JSON.parse(bodyText)
+  } catch {
+    throw new Error(`messages response was not JSON: ${bodyText.slice(0, 300)}`)
+  }
+  expect(
+    Array.isArray(parsed?.messages),
+    `messages response missing the 'messages' array: ${bodyText.slice(0, 300)}`
+  ).toBeTruthy()
+  return parsed.messages as OfferMsg[]
 }
 
 // The single OPEN offer on the thread (there should be at most one).
@@ -180,7 +190,11 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
   }) => {
     const base = requireBaseURL(baseURL)
     await signInAsClient(context, base)
-    const leadId = await resolveLeadB(context.request as any)
+    // Dedicated, independently-verified customer API context for server-truth
+    // assertions — decoupled from the browser context's request jar.
+    const custApi = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custApi, base)
+    const leadId = await resolveLeadB(custApi)
 
     await page.goto(`${base}/me/lead/${leadId}`)
     // OfferActions uses window.confirm() before firing accept — auto-accept it.
@@ -194,9 +208,14 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     await expect(page.getByText("₹14,500").first()).toBeVisible()
 
     // Server truth: offer.status === accepted, Lead.agreedPrice written.
-    const offerState = await offerStatusFor(context.request as any, base, leadId)
-    expect(offerState, "offer should be accepted").toBe("accepted")
-    const leadRes = await (context.request as any).get(`${base}/api/leads/mine`)
+    const acceptedMsgs = await getMessages(custApi, leadId)
+    const acceptedOffers = acceptedMsgs.filter((m) => m.type === "offer")
+    expect(acceptedOffers.length, "the offer should still be on the thread").toBeGreaterThan(0)
+    expect(
+      acceptedOffers[acceptedOffers.length - 1].offer?.status,
+      "offer should be accepted"
+    ).toBe("accepted")
+    const leadRes = await custApi.get("/api/leads/mine")
     const { leads } = await leadRes.json()
     const leadB = (leads as any[]).find((l) => l?.vehicle?.registrationNumber === LEAD_B_REG)
     expect(leadB.agreedPrice, "Lead.agreedPrice must be set on accept").toBeTruthy()
@@ -211,6 +230,7 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
       SEED_OFFER_PAISE
     )
     await rvsfCtx.dispose()
+    await custApi.dispose()
   })
 
   // ── PATH 3: Customer counters → original countered, new child open ──
@@ -218,11 +238,14 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     context,
     page,
     baseURL,
+    playwright,
   }) => {
     const base = requireBaseURL(baseURL)
     await signInAsClient(context, base)
-    const leadId = await resolveLeadB(context.request as any)
-    const originalOffer = await getOpenOffer(context.request as any, leadId)
+    const custApi = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custApi, base)
+    const leadId = await resolveLeadB(custApi)
+    const originalOffer = await getOpenOffer(custApi, leadId)
 
     await page.goto(`${base}/me/lead/${leadId}`)
     await page.getByRole("button", { name: "Counter" }).click()
@@ -237,7 +260,7 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
 
     // Server truth: original offer → countered; a NEW open child offer exists,
     // posted by the customer, linked via counterOfMessageId.
-    const msgs = await getMessages(context.request as any, leadId)
+    const msgs = await getMessages(custApi, leadId)
     const original = msgs.find((m) => m._id === originalOffer._id)
     expect(original?.offer?.status, "original offer must be countered").toBe("countered")
     const child = msgs.find(
@@ -247,6 +270,7 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     expect(child!.offer!.amountPaise).toBe(1600000)
     expect(child!.offer!.actor).toBe("customer")
     expect(String(child!.offer!.counterOfMessageId)).toBe(originalOffer._id)
+    await custApi.dispose()
   })
 
   // ── PATH 4: Customer rejects → offer rejected, thread stays open ──
@@ -254,11 +278,14 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     context,
     page,
     baseURL,
+    playwright,
   }) => {
     const base = requireBaseURL(baseURL)
     await signInAsClient(context, base)
-    const leadId = await resolveLeadB(context.request as any)
-    const offer = await getOpenOffer(context.request as any, leadId)
+    const custApi = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custApi, base)
+    const leadId = await resolveLeadB(custApi)
+    const offer = await getOpenOffer(custApi, leadId)
 
     await page.goto(`${base}/me/lead/${leadId}`)
     page.once("dialog", (d) => d.accept()) // confirm() guard on reject
@@ -269,10 +296,10 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
 
     // Server truth: offer.status === rejected; thread still active (per spec
     // §7.2 "thread stays open" — a fresh offer can be posted afterwards).
-    const msgs = await getMessages(context.request as any, leadId)
+    const msgs = await getMessages(custApi, leadId)
     const rejected = msgs.find((m) => m._id === offer._id)
     expect(rejected?.offer?.status, "offer must be rejected").toBe("rejected")
-    const tRes = await (context.request as any).get(`${base}/api/chat/threads/${leadId}`)
+    const tRes = await custApi.get(`/api/chat/threads/${leadId}`)
     const tJson = await tRes.json()
     expect(tJson.active.status, "thread must stay active after an offer reject").toBe("active")
     expect(tJson.active.isReadOnly).toBeFalsy()
@@ -281,18 +308,18 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
       msgs.some((m) => m.type === "system_event" && /rejected/i.test((m as any).text ?? "")),
       "a 'rejected' system_event should be posted"
     ).toBeTruthy()
+    await custApi.dispose()
   })
 
   // ── PATH 5: RVSF counters the customer's counter (ping-pong) ──
   test("5. Ping-pong — RVSF counters the customer's counter, chain advances", async ({
-    context,
     baseURL,
     playwright,
   }) => {
     const base = requireBaseURL(baseURL)
     // Customer context (owns Lead B).
-    await signInAsClient(context, base)
-    const custCtx = context.request as APIRequestContext
+    const custCtx = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custCtx, base)
     const leadId = await resolveLeadB(custCtx)
 
     // RVSF context.
@@ -343,17 +370,17 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
       expect(c.offer!.status).toBe("countered")
     }
     await rvsfCtx.dispose()
+    await custCtx.dispose()
   })
 
   // ── PATH 6: RVSF accepts the customer's counter ──
   test("6. RVSF accepts the customer's counter → agreed price pinned", async ({
-    context,
     baseURL,
     playwright,
   }) => {
     const base = requireBaseURL(baseURL)
-    await signInAsClient(context, base)
-    const custCtx = context.request as APIRequestContext
+    const custCtx = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custCtx, base)
     const leadId = await resolveLeadB(custCtx)
 
     const rvsfCtx = await playwright.request.newContext({ baseURL: base })
@@ -390,17 +417,17 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     expect(leadB.agreedPrice?.amountPaise).toBe(1575000)
     expect(leadB.agreedPrice?.acceptedByRole).toBe("rvsf_admin")
     await rvsfCtx.dispose()
+    await custCtx.dispose()
   })
 
   // ── PATH 7: RVSF rejects the customer's counter ──
   test("7. RVSF rejects the customer's counter → counter rejected, thread open", async ({
-    context,
     baseURL,
     playwright,
   }) => {
     const base = requireBaseURL(baseURL)
-    await signInAsClient(context, base)
-    const custCtx = context.request as APIRequestContext
+    const custCtx = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custCtx, base)
     const leadId = await resolveLeadB(custCtx)
 
     const rvsfCtx = await playwright.request.newContext({ baseURL: base })
@@ -434,11 +461,11 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     const leadB = (leads as any[]).find((l) => l?.vehicle?.registrationNumber === LEAD_B_REG)
     expect(leadB.agreedPrice, "no agreed price after a reject").toBeFalsy()
     await rvsfCtx.dispose()
+    await custCtx.dispose()
   })
 
   // ── PATH 8: Offer expiry — cron gating + expired offers can't be accepted ──
   test("8. Offer expiry — cron endpoint is secret-gated; non-open offers reject accept", async ({
-    context,
     baseURL,
     playwright,
   }) => {
@@ -460,8 +487,8 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     // that same guard end-to-end by driving an offer into a NON-open state
     // (countered) and confirming accept on it returns 409 "no longer open".
     // This is the identical code path that protects an expired offer.
-    await signInAsClient(context, base)
-    const custCtx = context.request as APIRequestContext
+    const custCtx = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custCtx, base)
     const leadId = await resolveLeadB(custCtx)
     const custCsrf = await csrfHeader(custCtx)
 
@@ -506,14 +533,13 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
   })
 
   // ── PATH 9: Edge-case matrix ──
-  test("9. Edge cases — 409 on stale offer, 400 on tiny amount, 403 non-party", async ({
-    context,
+  test("9. Edge cases — 409 stale, 400 tiny amount, 403 role-gate + CSRF, self-accept", async ({
     baseURL,
     playwright,
   }) => {
     const base = requireBaseURL(baseURL)
-    await signInAsClient(context, base)
-    const custCtx = context.request as APIRequestContext
+    const custCtx = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custCtx, base)
     const leadId = await resolveLeadB(custCtx)
     const custCsrf = await csrfHeader(custCtx)
 
@@ -539,42 +565,30 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     })
     expect(tinyOffer.status(), "sub-₹1 offer-message must 400").toBe(400)
 
-    // 9c. A non-party (the admin is allowed; an RVSF from a DIFFERENT yard or
-    // an unrelated client is not). We use an unrelated client: admin.test is
-    // an `admin` (always a party per the isParty helper). The cleanest
-    // non-party with a mutate-capable role is a second client account; if
-    // none exists, the RVSF acting on its OWN offer is the self-action guard
-    // (covered in 9d). Here we assert the structural guard: a fabricated
-    // messageId in NO thread the caller belongs to → 403/404, never 200.
+    // 9c. Non-party / unauthorised-role guard. The offer routes gate on
+    // withAuth(["client","rvsf_admin","rvsf_executive","admin"]) AND then an
+    // isParty(thread) thread-membership check. The demo data has exactly one
+    // client + one RVSF (both parties to Lead B), so a real-thread caller who
+    // is in an *allowed role but not a party* is not reproducible — that
+    // branch is covered by code inspection (the isParty helper, identical in
+    // accept/counter/reject). What IS reproducible:
     //
-    // Concretely: counter/reject/accept all run isParty BEFORE mutating.
-    // Lead B's thread belongs to client.test ↔ Auraiya RVSF. We forge a
-    // request from the RVSF against a well-formed but non-existent offer id
-    // → 404 (not found). And against the real seeded offer the RVSF *is* a
-    // party, so to exercise the 403 "Not a party" branch we need a caller
-    // who is neither — see 9c-ii.
+    //  (i) A well-formed but non-existent offer id → 404 "Offer not found".
+    //      Critically this proves the accept route now looks the offer/thread
+    //      up BEFORE mutating — the IDOR fix. Pre-fix, accept flipped the
+    //      offer first and never consulted thread membership.
     const ghostId = "0".repeat(24)
-    const ghost = await rvsfCtx.post(`/api/chat/offers/${ghostId}/counter`, {
-      headers: rvsfCsrf,
-      data: { counterAmountPaise: 1500000 },
-    })
-    expect([403, 404].includes(ghost.status()), "ghost offer must 403/404").toBeTruthy()
-
-    // 9c-ii. True non-party: the RVSF accepting an offer in Lead B's thread
-    // is a PARTY (allowed). To hit "Not a party" we drive the accept route
-    // (the IDOR-hardened path) — a client who does not own the thread. The
-    // demo set has a single client (client.test) who owns ALL demo leads,
-    // so a cross-client 403 isn't reproducible here. Instead we assert the
-    // accept route REJECTS a non-existent thread (the isParty guard returns
-    // false for a null thread) — proving the guard runs before any mutation.
-    const ghostAccept = await rvsfCtx.post(`/api/chat/offers/${ghostId}/accept`, {
-      headers: rvsfCsrf,
-      data: {},
-    })
-    expect(
-      [403, 404].includes(ghostAccept.status()),
-      "accept on a ghost offer must 403/404 — the IDOR party-guard must run first"
-    ).toBeTruthy()
+    for (const action of ["accept", "counter", "reject"] as const) {
+      const body = action === "counter" ? { counterAmountPaise: 1500000 } : {}
+      const ghost = await rvsfCtx.post(`/api/chat/offers/${ghostId}/${action}`, {
+        headers: rvsfCsrf,
+        data: body,
+      })
+      expect(
+        [403, 404].includes(ghost.status()),
+        `${action} on a ghost offer must 403/404 (guard runs pre-mutation), got ${ghost.status()}`
+      ).toBeTruthy()
+    }
 
     // 9d. Self-action guard: the RVSF cannot accept its OWN seeded offer.
     const selfAccept = await rvsfCtx.post(`/api/chat/offers/${seeded._id}/accept`, {
@@ -593,11 +607,11 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     expect(noCsrf.status(), "offer mutation without CSRF must 403").toBe(403)
 
     await rvsfCtx.dispose()
+    await custCtx.dispose()
   })
 
   // ── PATH 9 (cont): acting on an offer in an ARCHIVED thread → 409 ──
   test("9f. Offer actions on an archived thread are refused (409)", async ({
-    context,
     baseURL,
     playwright,
   }) => {
@@ -606,8 +620,8 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     // The RVSF admin archives Lead B's thread by rejecting the whole lead
     // (per L55: RVSF reject → ChatThread.status = archived). Then every
     // offer primitive on the now-archived thread must 409.
-    await signInAsClient(context, base)
-    const custCtx = context.request as APIRequestContext
+    const custCtx = await playwright.request.newContext({ baseURL: base })
+    await signInClientOn(custCtx, base)
     const leadId = await resolveLeadB(custCtx)
     const seeded = await getOpenOffer(custCtx, leadId)
 
@@ -654,10 +668,36 @@ test.describe("Negotiation lifecycle — offer state machine", () => {
     expect(reject.status(), "reject on archived thread must 409").toBe(409)
 
     await rvsfCtx.dispose()
+    await custCtx.dispose()
   })
 })
 
 // ───────────────────────── local helpers ─────────────────────────
+
+// Sign an existing standalone APIRequestContext in as the customer
+// (client.test). Used for server-truth assertions so we never depend on
+// the browser context's shared request jar staying coherent across
+// page navigations / router.refresh().
+async function signInClientOn(ctx: APIRequestContext, base: string): Promise<void> {
+  const csrfRes = await ctx.get("/api/auth/csrf")
+  const { csrfToken } = await csrfRes.json()
+  const cb = await ctx.post(`/api/auth/callback/credentials?json=true`, {
+    form: {
+      csrfToken,
+      callbackUrl: `${base}/post-login`,
+      json: "true",
+      email: "client.test@scrapcentre.online",
+      password: TEST_PASSWORD,
+    },
+    maxRedirects: 0,
+  })
+  expect(
+    cb.ok() || cb.status() === 302,
+    `client sign-in failed: ${cb.status()} ${await cb.text()}`
+  ).toBeTruthy()
+  const sess = await ctx.get("/api/auth/session")
+  expect((await sess.json())?.user, "client session not established").toBeTruthy()
+}
 
 // Sign an existing standalone APIRequestContext in as the RVSF partner.
 async function signInRvsfOn(ctx: APIRequestContext, base: string): Promise<void> {
@@ -681,14 +721,3 @@ async function signInRvsfOn(ctx: APIRequestContext, base: string): Promise<void>
   expect((await sess.json())?.user, "RVSF session not established").toBeTruthy()
 }
 
-// Read the current status of the (single) most-recent offer on a thread.
-async function offerStatusFor(
-  ctx: APIRequestContext,
-  base: string,
-  leadId: string
-): Promise<string | undefined> {
-  const res = await ctx.get(`${base}/api/chat/threads/${leadId}/messages`)
-  const { messages } = await res.json()
-  const offers = (messages as OfferMsg[]).filter((m) => m.type === "offer")
-  return offers[offers.length - 1]?.offer?.status
-}
