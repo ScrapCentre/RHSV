@@ -9,4 +9,4 @@ const adapter = useReal ? real : mock
 export const createOrder = adapter.createOrder
 export const refund = adapter.refund
 export const verifyWebhookSignature = adapter.verifyWebhookSignature
-export type { CreateOrderArgs, RazorpayOrder } from "./razorpay"
+export type { CreateOrderArgs, RazorpayOrder, RazorpayRefundResult } from "./razorpay"

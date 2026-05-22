@@ -15,6 +15,14 @@ const TrueUpSchema = new Schema(
     refundId:          { type: String },
     topUpOrderId:      { type: String },
     settledAt:         { type: Date },
+    // Hotfix 2026-05-22 (P1 cron-trueup): retry-attempt counter. The weight-trueup
+    // cron increments this each time it tries to issue a Razorpay refund/topup;
+    // once it crosses the escalation threshold (5) the lead is flipped to the
+    // adminAttentionFlag queue so a human can reconcile manually instead of the
+    // cron re-firing every 6h forever.
+    attempts:          { type: Number, default: 0 },
+    lastAttemptAt:     { type: Date },
+    lastError:         { type: String },
   },
   { _id: false }
 )

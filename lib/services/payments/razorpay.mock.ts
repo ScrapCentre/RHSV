@@ -6,7 +6,7 @@
 //   - "refund-fail"              — refund throws (REJECT-002c test scenario)
 //   - "refund-pending-then-success" — refund returns pending; webhook fires later
 import { getMockConfig, simulateDelay } from "../mock-config"
-import type { CreateOrderArgs, RazorpayOrder } from "./razorpay"
+import type { CreateOrderArgs, RazorpayOrder, RazorpayRefundResult } from "./razorpay"
 
 export type RazorpayMode =
   | "success"
@@ -46,11 +46,14 @@ export function verifyWebhookSignature(_payload: string, _signature: string, _se
   return true
 }
 
-export async function refund(paymentId: string, amountPaise?: number): Promise<{ refundId: string; status: "processed" | "pending" }> {
+export async function refund(paymentId: string, amountPaise?: number): Promise<RazorpayRefundResult> {
   const cfg = await getMockConfig()
   const mode = (cfg.services as any).razorpay ?? cfg.mode
   await simulateDelay("success")
-  if (mode === "refund-fail") {
+  // Hotfix 2026-05-22 (P1 cron-trueup): also honor global `failure` mode so
+  // /admin/mock-config (which exposes only success/failure/random globally)
+  // can deterministically trigger refund failure for the cron verify step.
+  if (mode === "refund-fail" || mode === "failure") {
     throw new MockRazorpayError("REFUND_FAILED", "Mock: insufficient merchant balance")
   }
   if (mode === "refund-pending-then-success") {
