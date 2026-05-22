@@ -10,12 +10,18 @@
 //   • /rvsf/ccs + /rvsf/ccs/new — the RVSF-admin Collection-Center list and
 //     the create-CC form (auth'd as partner.test).
 //
+// Selector strategy: both forms render `<div><label>X</label><input/></div>`.
+// The htmlFor/id association is an accessibility fix committed alongside this
+// suite — but the live deploy may still run the pre-fix build. So instead of
+// getByRole("textbox", {name}) (which needs the association), we locate the
+// input as the descendant of the div whose <label> has the wanted text. That
+// works on both the pre-fix (sibling) and post-fix (associated) markup.
+//
 // Each wizard run uses a unique email + slug so the idempotent-on-email
-// /api/rvsf/apply endpoint always takes the "new application" branch and
-// never collides with a prior run. The CC create uses a unique city for the
-// same reason (one-CC-per-city uniqueness on {rvsfId, city}).
+// /api/rvsf/apply endpoint always takes the "new application" branch. The CC
+// create uses a unique city for the same reason ({rvsfId, city} uniqueness).
 
-import { test, expect } from "@playwright/test"
+import { test, expect, Page, Locator } from "@playwright/test"
 import { signInAsPartner, requireBaseURL } from "./helpers/auth"
 
 // A 1x1 PNG — smallest valid image payload to satisfy the upload mime check.
@@ -24,6 +30,20 @@ const TINY_PNG = Buffer.from(
   "890000000a49444154789c6360000000020001e221bc330000000049454e44ae426082",
   "hex"
 )
+
+/**
+ * Resolve a form input by the visible text of its <label>.
+ * Both the apply wizard (`Field`) and the new-CC form render each control as
+ * `<div><label>…</label><input/></div>` — the <input> is the immediate
+ * sibling of the <label>. The CSS adjacent-sibling combinator targets it
+ * precisely and is association-independent, so it works on both the pre-fix
+ * (no htmlFor) and post-fix (htmlFor/id) markup. `:has-text` is a
+ * case-insensitive substring match, which tolerates the parenthetical
+ * suffixes some labels carry ("URL slug (e.g. …)").
+ */
+function fieldByLabel(page: Page, labelText: string): Locator {
+  return page.locator(`label:has-text("${labelText}") + input`).first()
+}
 
 // ─── /rvsf/apply — full anonymous wizard walk-through ────────────────────────
 
@@ -47,30 +67,28 @@ test("RVSF apply wizard — anonymous applicant completes all 5 steps", async ({
   await expect(
     page.getByRole("heading", { name: /Organisation basics/ })
   ).toBeVisible()
-  const fill = (label: string | RegExp, value: string) =>
-    page.getByRole("textbox", { name: label }).fill(value)
-  await fill(/Legal name/, "QA Test Recyclers Pvt Ltd")
-  await fill(/Display name/, "QA Test Recyclers")
-  await fill(/URL slug/, slug)
-  await fill(/GST number/, "22AAAAA0000A1Z5")
-  await fill(/PAN number/, "AAAAA0000A")
-  await fill(/CPCB authorisation number/, "CPCB-QA-2026-001")
-  await fill(/Contact email/, email)
-  await fill(/Contact phone/, "+919876500001")
-  await fill(/Full name/, "QA Signatory")
-  await fill(/Designation/, "Director")
+  await fieldByLabel(page, "Legal name").fill("QA Test Recyclers Pvt Ltd")
+  await fieldByLabel(page, "Display name").fill("QA Test Recyclers")
+  await fieldByLabel(page, "URL slug").fill(slug)
+  await fieldByLabel(page, "GST number").fill("22AAAAA0000A1Z5")
+  await fieldByLabel(page, "PAN number").fill("AAAAA0000A")
+  await fieldByLabel(page, "CPCB authorisation number").fill("CPCB-QA-2026-001")
+  await fieldByLabel(page, "Contact email").fill(email)
+  await fieldByLabel(page, "Contact phone").fill("+919876500001")
+  await fieldByLabel(page, "Full name").fill("QA Signatory")
+  await fieldByLabel(page, "Designation").fill("Director")
   await page.getByRole("button", { name: /Next/ }).click()
 
   // ── Step 2 · Primary yard address ──
   await expect(
     page.getByRole("heading", { name: /Primary yard address/ })
   ).toBeVisible()
-  await fill(/Address line 1/, "Plot 12, Industrial Area")
-  await fill(/City/, "Kanpur")
-  await fill(/State/, "Uttar Pradesh")
-  await fill(/Pincode/, "208001")
-  await fill(/Latitude/, "26.45")
-  await fill(/Longitude/, "80.35")
+  await fieldByLabel(page, "Address line 1").fill("Plot 12, Industrial Area")
+  await fieldByLabel(page, "City").fill("Kanpur")
+  await fieldByLabel(page, "State").fill("Uttar Pradesh")
+  await fieldByLabel(page, "Pincode").fill("208001")
+  await fieldByLabel(page, "Latitude").fill("26.45")
+  await fieldByLabel(page, "Longitude").fill("80.35")
   await page.getByRole("button", { name: /Next/ }).click()
 
   // ── Step 3 · KYC documents (7 uploads, mock mode) ──
@@ -80,9 +98,8 @@ test("RVSF apply wizard — anonymous applicant completes all 5 steps", async ({
   // Each FileUploader renders one <input type=file>. Upload to all of them;
   // wait for the "✓ uploaded" badge count to reach 7 before advancing.
   const kycInputs = page.locator('input[type="file"]')
-  const kycCount = await kycInputs.count()
-  expect(kycCount).toBe(7)
-  for (let i = 0; i < kycCount; i++) {
+  await expect(kycInputs).toHaveCount(7)
+  for (let i = 0; i < 7; i++) {
     await kycInputs.nth(i).setInputFiles({
       name: `kyc-${i}.png`,
       mimeType: "image/png",
@@ -96,10 +113,10 @@ test("RVSF apply wizard — anonymous applicant completes all 5 steps", async ({
 
   // ── Step 4 · Bank account ──
   await expect(page.getByRole("heading", { name: /Bank account/ })).toBeVisible()
-  await fill(/Account holder name/, "QA Test Recyclers Pvt Ltd")
-  await fill(/Account number/, "001122334455")
-  await fill(/IFSC/, "HDFC0001234")
-  await fill(/Bank name/, "HDFC Bank")
+  await fieldByLabel(page, "Account holder name").fill("QA Test Recyclers Pvt Ltd")
+  await fieldByLabel(page, "Account number").fill("001122334455")
+  await fieldByLabel(page, "IFSC").fill("HDFC0001234")
+  await fieldByLabel(page, "Bank name").fill("HDFC Bank")
   // The 8th uploader (cancelled cheque) is the only file input on this step.
   await page.locator('input[type="file"]').first().setInputFiles({
     name: "cheque.png",
@@ -116,7 +133,7 @@ test("RVSF apply wizard — anonymous applicant completes all 5 steps", async ({
     page.getByRole("heading", { name: /Review & submit/ })
   ).toBeVisible()
   // Sanity: the review surface echoes the entered legal name.
-  await expect(page.getByText("QA Test Recyclers Pvt Ltd")).toBeVisible()
+  await expect(page.getByText("QA Test Recyclers Pvt Ltd").first()).toBeVisible()
   await page.getByRole("button", { name: /Submit application/ }).click()
 
   // ── Done step ──
@@ -157,8 +174,9 @@ test("RVSF CC list page renders for an authenticated rvsf_admin", async ({
     page.getByRole("heading", { name: "Collection Centers" })
   ).toBeVisible({ timeout: 20_000 })
   // The "+ Add new CC" CTA must be present (header or empty-state).
-  await expect(page.getByRole("link", { name: /Add (new|your first) CC/ }).first())
-    .toBeVisible()
+  await expect(
+    page.getByRole("link", { name: /Add (new|your first) CC/ }).first()
+  ).toBeVisible()
   // No error copy.
   await expect(page.locator(".text-status-error")).toHaveCount(0)
 })
@@ -179,17 +197,15 @@ test("RVSF admin can create a new Collection Center", async ({
     page.getByRole("heading", { name: /Add a new Collection Center/ })
   ).toBeVisible({ timeout: 20_000 })
 
-  const fill = (label: string | RegExp, value: string) =>
-    page.getByRole("textbox", { name: label }).fill(value)
-  await fill("City", city)
-  await fill("State", "Uttar Pradesh")
-  await fill(/Line 1/, "Plot 9, CC Industrial Estate")
-  await fill("Pincode", "208002")
-  await fill(/Center latitude/, "26.50")
-  await fill(/Center longitude/, "80.40")
-  await fill(/Operator name/, "QA CC Operator")
-  await fill(/Phone/, "+919876500099")
-  await fill(/Email/, `qa-cc-${Date.now()}@example.com`)
+  await fieldByLabel(page, "City").fill(city)
+  await fieldByLabel(page, "State").fill("Uttar Pradesh")
+  await fieldByLabel(page, "Line 1").fill("Plot 9, CC Industrial Estate")
+  await fieldByLabel(page, "Pincode").fill("208002")
+  await fieldByLabel(page, "Center latitude").fill("26.50")
+  await fieldByLabel(page, "Center longitude").fill("80.40")
+  await fieldByLabel(page, "Operator name").fill("QA CC Operator")
+  await fieldByLabel(page, "Phone").fill("+919876500099")
+  await fieldByLabel(page, "Email").fill(`qa-cc-${Date.now()}@example.com`)
 
   await page
     .getByRole("button", { name: /Create CC \+ generate operator login/ })
