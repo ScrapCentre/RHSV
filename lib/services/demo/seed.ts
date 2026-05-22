@@ -200,6 +200,14 @@ export async function seedDemoLeads(): Promise<SeedResult> {
     state: "negotiating",
     marketplaceVisibleAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
     inCatchmentCcIds: [primaryYard._id],
+    // Mirror the sole-catchment-CC onto Lead.assignedCcId so the webhook-style
+    // fallback in app/api/payments/razorpay/webhook/route.ts (and any future
+    // /api/rvsf/leads/[id]/assign-to-cc route) has a consistent upstream
+    // signal. Without this, the demo Lead B re-introduces the null
+    // assignedCcId every reseed and the cc_operator dashboard shows
+    // "0 assigned" even though Demo Lead B is in the Auraiya CC catchment.
+    // See /Users/pranjalpatel/Documents/RHSV-docs/v2-fix-chat-coherence-2026-05-22.md.
+    assignedCcId: primaryYard._id,
     unlock: {
       unlockedByRvsfId: auraiya._id,
       unlockedByUserId: partnerUser._id,
@@ -223,10 +231,16 @@ export async function seedDemoLeads(): Promise<SeedResult> {
     status: "paid",
     idempotencyKey: `demo_b_${Date.now()}`,
   })
+  // assignedCcId mirrors the sole-catchment-CC resolution rule used by the
+  // Razorpay webhook (app/api/payments/razorpay/webhook/route.ts). Without
+  // this, the cc_operator /my-threads inbox filter `assignedCcId === user.linkedCcId`
+  // would return [] for every demo reseed, killing the cc_operator dashboard.
+  // See /Users/pranjalpatel/Documents/RHSV-docs/v2-fix-chat-coherence-2026-05-22.md.
   const threadB = await ChatThread.create({
     leadId: leadB._id,
     customerUserId: clientUser._id,
     rvsfId: auraiya._id,
+    assignedCcId: primaryYard._id,
     participantUserIds: [clientUser._id, partnerUser._id],
     lastMessageAt: new Date(),
     status: "active",
@@ -298,11 +312,15 @@ export async function seedDemoLeads(): Promise<SeedResult> {
     status: "paid_rejected",
     idempotencyKey: `demo_c_${Date.now()}`,
   })
-  // Pretend there was a chat thread that got archived
+  // Pretend there was a chat thread that got archived. assignedCcId set on
+  // archived threads too so cc_operator inbox shows the full history
+  // (consistent with the live-cluster backfill in commit 83df941 which
+  // populated BOTH the active and archived demo threads).
   const oldThreadC = await ChatThread.create({
     leadId: leadC._id,
     customerUserId: clientUser._id,
     rvsfId: auraiya._id,
+    assignedCcId: primaryYard._id,
     participantUserIds: [clientUser._id, partnerUser._id],
     lastMessageAt: new Date(),
     status: "archived",
