@@ -3,6 +3,7 @@
 "use client"
 
 import Link from "next/link"
+import { useId } from "react"
 
 const INPUT_CLS = "w-full border border-brand-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/40"
 
@@ -17,10 +18,15 @@ export const KYC_FIELDS: { key: string; label: string; desc: string }[] = [
 ]
 
 export function Field({ label, value, onChange, placeholder, type = "text" }: any) {
+  // Associate the <label> with its <input> via a stable id so assistive tech
+  // (and e2e accessible-name queries) can resolve the control. Previously the
+  // label was an unassociated sibling — screen readers announced an unlabelled
+  // textbox and Playwright's getByRole("textbox", {name}) could not find it.
+  const id = useId()
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={INPUT_CLS} />
+      <label htmlFor={id} className="block text-sm font-medium mb-1">{label}</label>
+      <input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={INPUT_CLS} />
     </div>
   )
 }

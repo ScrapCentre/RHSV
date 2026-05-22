@@ -103,8 +103,9 @@ export default function NewCcPage() {
       <form onSubmit={submit} className="card-base space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1">City</label>
+            <label htmlFor="cc-city" className="block text-sm font-medium mb-1">City</label>
             <input
+              id="cc-city"
               value={form.city}
               onChange={(e) => update("city", e.target.value)}
               required
@@ -112,8 +113,9 @@ export default function NewCcPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">State</label>
+            <label htmlFor="cc-state" className="block text-sm font-medium mb-1">State</label>
             <input
+              id="cc-state"
               value={form.state}
               onChange={(e) => update("state", e.target.value)}
               required
@@ -129,8 +131,9 @@ export default function NewCcPage() {
           ["address.pincode", "Pincode"],
         ] as const).map(([k, label]) => (
           <div key={k}>
-            <label className="block text-sm font-medium mb-1">{label}</label>
+            <label htmlFor={`cc-${k}`} className="block text-sm font-medium mb-1">{label}</label>
             <input
+              id={`cc-${k}`}
               value={(form.address as any)[k.split(".")[1]]}
               onChange={(e) => update(k, e.target.value)}
               className="w-full border border-brand-gray-300 rounded px-3 py-2"
@@ -146,8 +149,9 @@ export default function NewCcPage() {
         </p>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1">Center latitude</label>
+            <label htmlFor="cc-lat" className="block text-sm font-medium mb-1">Center latitude</label>
             <input
+              id="cc-lat"
               value={form.catchment.center.lat}
               onChange={(e) => update("catchment.center.lat", e.target.value)}
               placeholder="26.45"
@@ -156,8 +160,9 @@ export default function NewCcPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Center longitude</label>
+            <label htmlFor="cc-lng" className="block text-sm font-medium mb-1">Center longitude</label>
             <input
+              id="cc-lng"
               value={form.catchment.center.lng}
               onChange={(e) => update("catchment.center.lng", e.target.value)}
               placeholder="79.51"
@@ -166,8 +171,9 @@ export default function NewCcPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Radius (km)</label>
+            <label htmlFor="cc-radius" className="block text-sm font-medium mb-1">Radius (km)</label>
             <input
+              id="cc-radius"
               type="number"
               min={5}
               max={500}
@@ -185,8 +191,9 @@ export default function NewCcPage() {
           ["contact.email", "Email (login id)"],
         ] as const).map(([k, label]) => (
           <div key={k}>
-            <label className="block text-sm font-medium mb-1">{label}</label>
+            <label htmlFor={`cc-${k}`} className="block text-sm font-medium mb-1">{label}</label>
             <input
+              id={`cc-${k}`}
               value={(form.contact as any)[k.split(".")[1]]}
               onChange={(e) => update(k, e.target.value)}
               required

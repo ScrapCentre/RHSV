@@ -67,6 +67,25 @@ async function _handler(req: Request) {
       },
       state: lead.state,
       marketplaceVisibleAt: lead.marketplaceVisibleAt,
+      // Post-unlock metadata — consumed by the RVSF chat page (/rvsf/chat/[id])
+      // to populate RejectLeadDialog's refund-eligibility banner. Without these,
+      // the dialog fell back to `unlockedAt = now` + `unlockAmountPaise = 0`,
+      // so the banner always claimed an auto-refund of ₹0 regardless of the
+      // real grace-window state. Safe to expose: this route is auth-gated to
+      // rvsf_admin / rvsf_executive and carries no customer PII. The customer
+      // phone is deliberately NOT included — it's released only by the
+      // /reveal-customer-number endpoint.
+      unlock: lead.unlock
+        ? {
+            unlockedAt: lead.unlock.unlockedAt,
+            unlockedByRvsfId: lead.unlock.unlockedByRvsfId?.toString(),
+            amountChargedPaise: lead.unlock.amountChargedPaise,
+            leadUnlockId: lead.unlock.leadUnlockId?.toString(),
+          }
+        : null,
+      customerNumberRevealed: lead.customerNumberRevealed
+        ? { atTime: lead.customerNumberRevealed.atTime }
+        : null,
     },
     unlockPreview: {
       amountPaise,

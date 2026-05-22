@@ -18,6 +18,7 @@ export default function RvsfChatPage() {
   const params = useParams<{ threadId: string }>()
   const router = useRouter()
   const [leadMeta, setLeadMeta] = useState<any>(null)
+  const [nonSystemMsgCount, setNonSystemMsgCount] = useState(0)
   const [showReject, setShowReject] = useState(false)
   const [showReveal, setShowReveal] = useState(false)
   const [tab, setTab] = useState<"chat" | "digielv">("chat")
@@ -26,6 +27,19 @@ export default function RvsfChatPage() {
     fetch(`/api/marketplace/leads/${params.threadId}`)
       .then((r) => r.json())
       .then((d) => setLeadMeta(d.lead))
+      .catch(() => {})
+    // Fetch the live non-system message count so RejectLeadDialog's
+    // refund-eligibility banner reflects whether the customer has actually
+    // been engaged. Previously this was hardcoded to 0, which (combined with
+    // the missing unlockedAt) made the banner always promise an auto-refund.
+    fetch(`/api/chat/threads/${params.threadId}/messages`)
+      .then((r) => (r.ok ? r.json() : { messages: [] }))
+      .then((d) => {
+        const count = (d.messages ?? []).filter(
+          (m: any) => m.senderRole !== "system"
+        ).length
+        setNonSystemMsgCount(count)
+      })
       .catch(() => {})
   }, [params.threadId])
 
@@ -92,7 +106,7 @@ export default function RvsfChatPage() {
             id: params.threadId,
             vehicleReg: leadMeta?.vehicle?.registrationNumber ?? "",
             unlockedAt: leadMeta?.unlock?.unlockedAt ?? new Date(),
-            chatNonSystemMessageCount: 0,
+            chatNonSystemMessageCount: nonSystemMsgCount,
             unlockAmountPaise: leadMeta?.unlock?.amountChargedPaise ?? 0,
             customerNumberRevealed: !!leadMeta?.customerNumberRevealed,
           }}
