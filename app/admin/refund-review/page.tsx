@@ -2,6 +2,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { apiFetch } from "@/lib/fetch"
 
 type RefundRow = {
   rejectionEventId: string
@@ -64,7 +65,7 @@ export default function RefundReviewPage() {
     try {
       const body: any = { decision, adminReviewNotes: notes }
       if (decision === "approve_partial") body.refundAmountPaise = Number(partialAmount) * 100
-      const res = await fetch(`/api/admin/refund-review/${selected.unlockId}/decide`, {
+      const res = await apiFetch(`/api/admin/refund-review/${selected.unlockId}/decide`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

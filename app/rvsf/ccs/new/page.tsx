@@ -7,6 +7,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { apiFetch } from "@/lib/fetch"
 
 export default function NewCcPage() {
   const router = useRouter()
@@ -40,7 +41,7 @@ export default function NewCcPage() {
     setError(null)
     setSubmitting(true)
     try {
-      const res = await fetch("/api/rvsf/ccs", {
+      const res = await apiFetch("/api/rvsf/ccs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

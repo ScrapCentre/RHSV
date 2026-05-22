@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast"
 import TriageLeadCard, { TriageLeadData } from "@/components/TriageLeadCard"
 import type { QualityTier } from "@/components/QualityBadge"
 import { Loader2, RefreshCw } from "lucide-react"
+import { apiFetch } from "@/lib/fetch"
 
 interface Props {
   initialLeads: any[]
@@ -61,7 +62,7 @@ export default function TriageClientSection({ initialLeads }: Props) {
   async function decide(leadStateId: string, decision: "auraiya" | "marketplace" | "rejected") {
     setActingOn(leadStateId)
     try {
-      const res = await fetch("/api/triage/decide", {
+      const res = await apiFetch("/api/triage/decide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ leadStateId, decision }),

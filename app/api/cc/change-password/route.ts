@@ -16,12 +16,15 @@ import bcrypt from "bcryptjs"
 import mongoose from "mongoose"
 import connectToDatabase from "@/lib/db"
 import { requireRole, AuthError } from "@/lib/middleware/requireRole"
+import { requireCsrf } from "@/lib/middleware/csrf"
 import User from "@/models/User"
 import type { NextRequest } from "next/server"
 
 export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
+  const csrfFail = requireCsrf(req)
+  if (csrfFail) return csrfFail
   try {
     const { user } = await requireRole(req, "cc_operator")
     const body = await req.json().catch(() => ({}))

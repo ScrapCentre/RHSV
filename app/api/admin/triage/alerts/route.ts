@@ -1,6 +1,7 @@
 // engineering-design.md §4.1 / §8 — List and create anti-hoarding alerts
 import { NextRequest, NextResponse } from "next/server"
 import { requireRole, AuthError } from "@/lib/middleware/requireRole"
+import { requireCsrf } from "@/lib/middleware/csrf"
 import connectToDatabase from "@/lib/db"
 import AntiHoardingAlert from "@/models/AntiHoardingAlert"
 
@@ -25,6 +26,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const csrfFail = requireCsrf(req)
+  if (csrfFail) return csrfFail
   try { await requireRole(req, "admin") } catch (e) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status })
     throw e

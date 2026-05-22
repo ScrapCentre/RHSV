@@ -23,6 +23,7 @@ import {
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useToast } from "@/hooks/use-toast"
+import { apiFetch } from "@/lib/fetch"
 
 export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ type: string, id: string }> }) {
     const { type, id } = use(params)
@@ -53,7 +54,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
         if (!confirm(`Confirm Executive Authorization for status: ${newStatus.toUpperCase()}?`)) return
 
         try {
-            const res = await fetch("/api/admin/requests/approve", {
+            const res = await apiFetch("/api/admin/requests/approve", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: id, type: type, status: newStatus })
@@ -79,7 +80,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
         if (!confirm("WARNING: Permanent Deletion. Proceed?")) return
 
         try {
-            const res = await fetch(`/api/admin/requests/delete?id=${id}&type=${type}`, {
+            const res = await apiFetch(`/api/admin/requests/delete?id=${id}&type=${type}`, {
                 method: "DELETE"
             })
 

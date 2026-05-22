@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
+import { apiFetch } from "@/lib/fetch"
 
 interface VehicleEntry {
     vehicleType: string
@@ -67,7 +68,7 @@ export default function BulkOutsourcingAdminDetailsPage() {
 
     const handleApprove = async () => {
         try {
-            const res = await fetch(`/api/admin/bulk-outsourcing/${id}`, {
+            const res = await apiFetch(`/api/admin/bulk-outsourcing/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'approved' })
@@ -85,7 +86,7 @@ export default function BulkOutsourcingAdminDetailsPage() {
         if (!confirm("Are you sure you want to reject and delete this submission?")) return;
 
         try {
-            const res = await fetch(`/api/admin/bulk-outsourcing/${id}`, {
+            const res = await apiFetch(`/api/admin/bulk-outsourcing/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'rejected' })

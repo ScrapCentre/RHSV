@@ -6,6 +6,7 @@ import { Recycle, Car, User, MapPin, ChevronLeft, CheckCircle, Trash2, Phone, Ha
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
+import { apiFetch } from "@/lib/fetch"
 
 export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
@@ -48,7 +49,7 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
         if (!confirm(`Confirm status transition to ${newStatus.toUpperCase()}?`)) return
 
         try {
-            const res = await fetch("/api/admin/requests/approve", {
+            const res = await apiFetch("/api/admin/requests/approve", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: id, type: "scrap-buy", status: newStatus })
@@ -80,7 +81,7 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
         if (!confirm("Are you sure you want to delete this request? This action cannot be undone.")) return
 
         try {
-            const res = await fetch(`/api/admin/requests/delete?id=${id}&type=scrap-buy`, {
+            const res = await apiFetch(`/api/admin/requests/delete?id=${id}&type=scrap-buy`, {
                 method: "DELETE"
             })
 

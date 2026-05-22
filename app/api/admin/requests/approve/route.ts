@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { requireCsrf } from "@/lib/middleware/csrf"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
 import SellVehicle from "@/models/SellVehicle"
@@ -9,6 +10,8 @@ import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
 
 export async function POST(req: NextRequest) {
+    const csrfFail = requireCsrf(req)
+    if (csrfFail) return csrfFail
     try {
         const session = await getServerSession(authOptions)
 

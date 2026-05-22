@@ -21,6 +21,7 @@ import { NextResponse } from "next/server"
 import mongoose from "mongoose"
 import connectToDatabase from "@/lib/db"
 import { requireRole, AuthError } from "@/lib/middleware/requireRole"
+import { requireCsrf } from "@/lib/middleware/csrf"
 import Lead from "@/models/Lead"
 import CollectionCenter from "@/models/CollectionCenter"
 import Notification from "@/models/Notification"
@@ -39,6 +40,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const csrfFail = requireCsrf(req)
+  if (csrfFail) return csrfFail
   try {
     const { user } = await requireRole(req, "cc_operator")
     const { id } = await params

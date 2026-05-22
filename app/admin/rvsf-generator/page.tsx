@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 
 import { useToast } from "@/components/ui/use-toast"
+import { apiFetch } from "@/lib/fetch"
 
 interface RVSFUser {
     _id: string
@@ -92,7 +93,7 @@ export default function RVSFGeneratorAdmin() {
 
         setIsCreating(true)
         try {
-            const res = await fetch("/api/admin/rvsf-generator", {
+            const res = await apiFetch("/api/admin/rvsf-generator", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
@@ -132,7 +133,7 @@ export default function RVSFGeneratorAdmin() {
         
         setIsDeleting(id)
         try {
-            const res = await fetch(`/api/admin/rvsf-generator/${id}`, {
+            const res = await apiFetch(`/api/admin/rvsf-generator/${id}`, {
                 method: "DELETE",
             })
             

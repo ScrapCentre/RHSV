@@ -14,6 +14,7 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Lock, Loader2, ShieldCheck, ArrowRight, Eye, EyeOff, CheckCircle2 } from "lucide-react"
+import { apiFetch } from "@/lib/fetch"
 
 export default function CcFirstLoginPage() {
   const { data: session, status, update } = useSession()
@@ -65,7 +66,7 @@ export default function CcFirstLoginPage() {
 
     setSubmitting(true)
     try {
-      const res = await fetch("/api/cc/change-password", {
+      const res = await apiFetch("/api/cc/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword }),

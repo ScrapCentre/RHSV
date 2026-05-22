@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { apiFetch } from "@/lib/fetch"
 
 type LeadDetail = {
   _id: string
@@ -48,7 +49,7 @@ export default function MarketplaceLeadDetailPage() {
     setUnlocking(true)
     setError(null)
     try {
-      const res = await fetch(`/api/leads/${lead._id}/unlock`, {
+      const res = await apiFetch(`/api/leads/${lead._id}/unlock`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),

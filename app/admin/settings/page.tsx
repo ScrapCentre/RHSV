@@ -5,6 +5,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { apiFetch } from "@/lib/fetch"
 
 type Setting = {
   _id: string
@@ -62,7 +63,7 @@ export default function AdminSettingsPage() {
     setSavingKey(key)
     setError(null)
     try {
-      const res = await fetch("/api/admin/settings", {
+      const res = await apiFetch("/api/admin/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key, value }),

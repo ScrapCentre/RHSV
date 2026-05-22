@@ -13,6 +13,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter, useParams } from "next/navigation"
+import { apiFetch } from "@/lib/fetch"
 
 type Rvsf = {
   _id: string
@@ -95,7 +96,7 @@ export default function AdminRvsfDetailPage() {
     setActing(kind); setActionMsg(null)
     try {
       const path = kind === "approve" ? "approve" : kind === "reject" ? "reject" : "request-info"
-      const res = await fetch(`/api/admin/rvsfs/${id}/${path}`, {
+      const res = await apiFetch(`/api/admin/rvsfs/${id}/${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: body ? JSON.stringify(body) : undefined,

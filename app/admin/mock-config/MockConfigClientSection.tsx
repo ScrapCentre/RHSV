@@ -13,6 +13,7 @@
 import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Check, RefreshCw } from "lucide-react"
+import { apiFetch } from "@/lib/fetch"
 
 type ServiceMode = "success" | "failure" | "random"
 
@@ -94,7 +95,7 @@ export default function MockConfigClientSection() {
     if (!config) return
     setSaving(true)
     try {
-      const res = await fetch("/api/admin/mock-config", {
+      const res = await apiFetch("/api/admin/mock-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: config.mode, services: config.services }),

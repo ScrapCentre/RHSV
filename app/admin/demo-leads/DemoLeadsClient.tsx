@@ -18,6 +18,7 @@ import {
   ExternalLink,
   RefreshCcw,
 } from "lucide-react"
+import { apiFetch } from "@/lib/fetch"
 
 // Verbatim string the /api/admin/reseed-demo handler requires in the body.
 // Keep in sync with RESEED_CONFIRM_STRING in
@@ -78,7 +79,7 @@ export default function DemoLeadsClient() {
     setReseeding(true)
     setReseedMsg(null)
     try {
-      const r = await fetch("/api/admin/reseed-demo", {
+      const r = await apiFetch("/api/admin/reseed-demo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // P0: the API rejects 400 without this exact confirm token. Don't

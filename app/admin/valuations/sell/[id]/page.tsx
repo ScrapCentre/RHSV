@@ -6,6 +6,7 @@ import { ShoppingCart, Car, User, MapPin, Calendar, ChevronLeft, CheckCircle, Tr
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
+import { apiFetch } from "@/lib/fetch"
 
 export default function SellDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
@@ -48,7 +49,7 @@ export default function SellDetailPage({ params }: { params: Promise<{ id: strin
         if (!confirm(`Confirm status transition to ${newStatus.toUpperCase()}?`)) return
 
         try {
-            const res = await fetch("/api/admin/requests/approve", {
+            const res = await apiFetch("/api/admin/requests/approve", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: id, type: "sell", status: newStatus })
@@ -80,7 +81,7 @@ export default function SellDetailPage({ params }: { params: Promise<{ id: strin
         if (!confirm("Are you sure you want to delete this request? This action cannot be undone.")) return
 
         try {
-            const res = await fetch(`/api/admin/requests/delete?id=${id}&type=sell`, {
+            const res = await apiFetch(`/api/admin/requests/delete?id=${id}&type=sell`, {
                 method: "DELETE"
             })
 

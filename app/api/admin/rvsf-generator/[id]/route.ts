@@ -1,10 +1,13 @@
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import connectToDatabase from "@/lib/db"
 import RVSFUser from "@/models/RVSFUser"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { requireCsrf } from "@/lib/middleware/csrf"
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const csrfFail = requireCsrf(req)
+    if (csrfFail) return csrfFail
     try {
         const session = await getServerSession(authOptions)
         const isDev = process.env.NODE_ENV === "development"

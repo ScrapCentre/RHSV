@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 
 import { useToast } from "@/components/ui/use-toast"
+import { apiFetch } from "@/lib/fetch"
 
 interface ScrapUser {
     _id: string
@@ -84,7 +85,7 @@ export default function ScrapCentreUsersAdmin() {
 
         setIsCreating(true)
         try {
-            const res = await fetch("/api/admin/scrap-center-users", {
+            const res = await apiFetch("/api/admin/scrap-center-users", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
@@ -123,7 +124,7 @@ export default function ScrapCentreUsersAdmin() {
         
         setIsDeleting(id)
         try {
-            const res = await fetch(`/api/admin/scrap-center-users/${id}`, {
+            const res = await apiFetch(`/api/admin/scrap-center-users/${id}`, {
                 method: "DELETE",
             })
             

@@ -1,6 +1,7 @@
 // engineering-design.md §4.1 — Resolve anti-hoarding alert
 import { NextRequest, NextResponse } from "next/server"
 import { requireRole, AuthError } from "@/lib/middleware/requireRole"
+import { requireCsrf } from "@/lib/middleware/csrf"
 import connectToDatabase from "@/lib/db"
 import AntiHoardingAlert from "@/models/AntiHoardingAlert"
 
@@ -8,6 +9,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const csrfFail = requireCsrf(req)
+  if (csrfFail) return csrfFail
   try { await requireRole(req, "admin") } catch (e) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status })
     throw e

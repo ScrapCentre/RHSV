@@ -14,6 +14,7 @@
 import { getServerSession } from "next-auth"
 import type { NextRequest } from "next/server"
 import { authOptions } from "@/lib/auth"
+import { requireCsrf } from "@/lib/middleware/csrf"
 
 export type Role =
   | "client"
@@ -47,6 +48,13 @@ export async function requireRole(_req: NextRequest, ...allowedRoles: Role[]) {
 
 /**
  * Wraps a route handler to translate AuthError into a clean JSON response.
+ *
+ * Also enforces CSRF (lib/middleware/csrf.ts) on every mutating verb —
+ * POST / PATCH / PUT / DELETE. Safe verbs (GET / HEAD / OPTIONS) skip
+ * the check. Endpoints that opt out of `withAuth` (raw `requireRole`
+ * call inside the handler) must add an explicit `requireCsrf(req)`
+ * themselves; see `app/api/admin/triage/alerts/route.ts` for the
+ * pattern.
  */
 export function withAuth(
   allowedRoles: Role[],
@@ -54,6 +62,12 @@ export function withAuth(
 ) {
   return async (req: NextRequest) => {
     try {
+      // CSRF runs BEFORE auth so we don't even tell an attacker whether
+      // they had a valid session (no observable diff between
+      // "no session" + "no CSRF" and "good session" + "no CSRF").
+      const csrfFail = requireCsrf(req)
+      if (csrfFail) return csrfFail
+
       const ctx = await requireRole(req, ...allowedRoles)
       return handler(req, ctx)
     } catch (err) {
