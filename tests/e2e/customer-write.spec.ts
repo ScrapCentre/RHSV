@@ -42,6 +42,7 @@ import { execSync } from "node:child_process"
 import {
   signInAsClient,
   signInAsPartner,
+  signInAsAdmin,
   requireBaseURL,
   TEST_PASSWORD,
 } from "./helpers/auth"
@@ -537,90 +538,120 @@ test("LeadHelpForm submits a support request from the lead detail page", async (
 // ───────────────────────────────────────────────────────────────────────────
 // 7. 3-TIER CALCULATOR — reg → OTP → tier-2 breakdown → tier-3 upload page
 // ───────────────────────────────────────────────────────────────────────────
-test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page", async ({
-  page,
-  baseURL,
-}) => {
-  const base = requireBaseURL(baseURL)
-
-  // -- Tier 1: reg number lookup --
-  await page.goto(`${base}/calculator`)
-  const regInput = page.getByPlaceholder("UP32 AB 1234")
-  await expect(regInput).toBeVisible()
-  await regInput.fill("UP32XY7788")
-
-  // The staging mock runs the VAHAN service in `random` mode (~20% of lookups
-  // fail with VAHAN_UNAVAILABLE → /api/calc/tier1 400 → the page shows an
-  // error toast and stays on the form). Retry the lookup until the tier-1
-  // result band appears — re-clicking "Get Value" re-fires the lookup.
-  // Tier-1 result band renders the unlock CTA. The visible label is
-  // "Verify My Number — It's Free →" but the button carries an aria-label
-  // ("Verify your mobile number to unlock the full benefit breakdown"), which
-  // is what getByRole matches against — so target by that accessible name.
-  const unlockBtn = page.getByRole("button", {
-    name: /verify your mobile number to unlock/i,
-  })
-  let bandShown = false
-  for (let attempt = 1; attempt <= 6 && !bandShown; attempt++) {
-    await page.getByRole("button", { name: /get value/i }).click()
-    bandShown = await unlockBtn
-      .waitFor({ state: "visible", timeout: 8000 })
-      .then(() => true)
-      .catch(() => false)
-  }
-  expect(
-    bandShown,
-    "tier-1 result band never rendered after 6 lookup attempts (mock VAHAN flakiness)"
-  ).toBeTruthy()
-  await unlockBtn.click()
-
-  // -- Tier 2: OTP gate --
-  await page.waitForURL(/\/calculator\/verify/, { timeout: 15_000 })
-  // Use a UNIQUE 10-digit phone per run — /api/otp/issue is rate-limited to
-  // 3 issues per phone per 10 min, so a fixed number flakes on repeat runs.
-  const phone = `9${Math.floor(100_000_000 + Math.random() * 900_000_000)}`
-  await page.getByPlaceholder("98765 43210").fill(phone)
-  await page.getByRole("button", { name: /send otp/i }).click()
-
-  // Mock mode accepts any 6-digit code. The OTP field is the `input-otp`
-  // library's single hidden <input> (autocomplete="one-time-code"), overlaid
-  // on 6 visual slot divs. pressSequentially drives it digit-by-digit so the
-  // library's controlled onChange fires for each character.
-  const otpInput = page.locator('input[autocomplete="one-time-code"]')
-  await expect(otpInput).toBeAttached({ timeout: 15_000 })
-  await otpInput.focus()
-  await otpInput.pressSequentially("123456", { delay: 100 })
-
-  // OTPInput auto-submits onComplete (6th digit). The verify page ALSO has its
-  // own "Verify →" button below — click whichever is still enabled, harmless
-  // if verification already fired (the button disables while verifying).
-  const verifyBtns = page.getByRole("button", { name: /^verify →$/i })
-  const count = await verifyBtns.count()
-  for (let i = 0; i < count; i++) {
-    const b = verifyBtns.nth(i)
-    if (await b.isEnabled().catch(() => false)) {
-      await b.click().catch(() => {})
-      break
+test.describe("3-tier calculator", () => {
+  // The calculator's Tier-1 reg lookup goes through the VAHAN mock. If that
+  // service is left in `failure` mode (Setting.mockConfig.services.vahan),
+  // EVERY lookup 400s and the calculator is unusable. Force it back to
+  // `success` up front so the customer flow is testable + the live demo
+  // works. (Mock config — not customer data — so this is a safe global reset;
+  // POST /api/admin/mock-config invalidates the 10s server-side cache, but we
+  // also wait out the TTL to be safe across any PM2 workers.)
+  test.beforeAll(async ({ browser, baseURL }) => {
+    const base = requireBaseURL(baseURL)
+    const adminCtx = await browser.newContext()
+    try {
+      await signInAsAdmin(adminCtx, base)
+      const csrf = await getCsrfToken(adminCtx.request, base)
+      const res = await adminCtx.request.post(`${base}/api/admin/mock-config`, {
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+        data: { services: { vahan: "success", otp: "success" } },
+      })
+      expect(
+        res.ok(),
+        `mock-config reset failed: ${res.status()} ${await res.text()}`
+      ).toBeTruthy()
+    } finally {
+      await adminCtx.close()
     }
-  }
-
-  // -- Tier 2 breakdown surfaces --
-  await expect(page.getByText(/number verified/i)).toBeVisible({
-    timeout: 20_000,
+    // Wait out the getMockConfig() 10s TTL cache so the next tier-1 lookup
+    // reads the freshly-written `success` mode.
+    await new Promise((r) => setTimeout(r, 11_000))
   })
-  // Target the section heading specifically — the same phrase also appears in
-  // the success toast + its aria-live status node (strict-mode would fail on
-  // a bare getByText match).
-  await expect(
-    page.getByRole("heading", { name: /here's your full breakdown/i })
-  ).toBeVisible()
 
-  // -- Tier 3: proceed to the document-upload page --
-  await page.getByRole("button", { name: /arrange free pickup/i }).click()
-  await page.waitForURL(/\/calculator\/upload/, { timeout: 15_000 })
-  await expect(
-    page.getByText(/three things, and we take it from here/i)
-  ).toBeVisible({ timeout: 15_000 })
+  test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page", async ({
+    page,
+    baseURL,
+  }) => {
+    const base = requireBaseURL(baseURL)
+
+    // -- Tier 1: reg number lookup --
+    await page.goto(`${base}/calculator`)
+    const regInput = page.getByPlaceholder("UP32 AB 1234")
+    await expect(regInput).toBeVisible()
+    await regInput.fill("UP32XY7788")
+
+    // Tier-1 result band renders the unlock CTA. The visible label is
+    // "Verify My Number — It's Free →" but the button carries an aria-label
+    // ("Verify your mobile number to unlock the full benefit breakdown"),
+    // which is the accessible name getByRole matches. Retry the lookup a few
+    // times to absorb any residual VAHAN-mock flakiness (beforeAll forces it
+    // to `success`, but a leftover `random` mode would still occasionally
+    // 400; re-clicking "Get Value" re-fires the lookup).
+    const unlockBtn = page.getByRole("button", {
+      name: /verify your mobile number to unlock/i,
+    })
+    let bandShown = false
+    for (let attempt = 1; attempt <= 6 && !bandShown; attempt++) {
+      await page.getByRole("button", { name: /get value/i }).click()
+      bandShown = await unlockBtn
+        .waitFor({ state: "visible", timeout: 8000 })
+        .then(() => true)
+        .catch(() => false)
+    }
+    expect(
+      bandShown,
+      "tier-1 result band never rendered — VAHAN mock likely still in failure mode"
+    ).toBeTruthy()
+    await unlockBtn.click()
+
+    // -- Tier 2: OTP gate --
+    await page.waitForURL(/\/calculator\/verify/, { timeout: 15_000 })
+    // Use a UNIQUE 10-digit phone per run — /api/otp/issue is rate-limited to
+    // 3 issues per phone per 10 min, so a fixed number flakes on repeat runs.
+    const phone = `9${Math.floor(100_000_000 + Math.random() * 900_000_000)}`
+    await page.getByPlaceholder("98765 43210").fill(phone)
+    await page.getByRole("button", { name: /send otp/i }).click()
+
+    // Mock mode accepts any 6-digit code. The OTP field is the `input-otp`
+    // library's single hidden <input> (autocomplete="one-time-code"), overlaid
+    // on 6 visual slot divs. pressSequentially drives it digit-by-digit so the
+    // library's controlled onChange fires for each character.
+    const otpInput = page.locator('input[autocomplete="one-time-code"]')
+    await expect(otpInput).toBeAttached({ timeout: 15_000 })
+    await otpInput.focus()
+    await otpInput.pressSequentially("123456", { delay: 100 })
+
+    // OTPInput auto-submits onComplete (6th digit). The verify page ALSO has
+    // its own "Verify →" button below — click whichever is still enabled,
+    // harmless if verification already fired (button disables while verifying).
+    const verifyBtns = page.getByRole("button", { name: /^verify →$/i })
+    const count = await verifyBtns.count()
+    for (let i = 0; i < count; i++) {
+      const b = verifyBtns.nth(i)
+      if (await b.isEnabled().catch(() => false)) {
+        await b.click().catch(() => {})
+        break
+      }
+    }
+
+    // -- Tier 2 breakdown surfaces --
+    await expect(page.getByText(/number verified/i)).toBeVisible({
+      timeout: 20_000,
+    })
+    // Target the section heading specifically — the same phrase also appears
+    // in the success toast + its aria-live status node (strict-mode would
+    // fail on a bare getByText match).
+    await expect(
+      page.getByRole("heading", { name: /here's your full breakdown/i })
+    ).toBeVisible()
+
+    // -- Tier 3: proceed to the document-upload page --
+    await page.getByRole("button", { name: /arrange free pickup/i }).click()
+    await page.waitForURL(/\/calculator\/upload/, { timeout: 15_000 })
+    await expect(
+      page.getByText(/three things, and we take it from here/i)
+    ).toBeVisible({ timeout: 15_000 })
+  })
 })
 
 // ───────────────────────────────────────────────────────────────────────────
