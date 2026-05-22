@@ -101,8 +101,8 @@ export default function RefundReviewPage() {
           {rows.map((r) => {
             const chip = entryReasonChip(r)
             return (
-            <div key={r.rejectionEventId} className="card-feature flex items-start justify-between">
-              <div className="flex-1">
+            <div key={r.rejectionEventId} className="card-feature flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="font-mono text-xs">{r.vehicleReg}</span>
                   <span className="text-xs px-2 py-0.5 rounded bg-brand-gray-100">{r.reason}</span>
@@ -126,16 +126,16 @@ export default function RefundReviewPage() {
                 <p className="text-xs text-brand-gray-700 mt-1">
                   {r.minutesElapsedSinceUnlock} min since unlock · {r.chatMessageCount} messages
                 </p>
-                <p className="text-sm text-brand-gray-700 mt-2">{r.reasonNote}</p>
+                <p className="text-sm text-brand-gray-700 mt-2 break-words">{r.reasonNote}</p>
                 {r.chatFlaggedPatterns.length > 0 && (
                   <div className="mt-2 text-xs space-y-1">
                     {r.chatFlaggedPatterns.slice(0, 3).map((f, i) => (
-                      <p key={i} className="text-status-error">⚠ {f.patternName}: <code>{f.matchedSubstring}</code></p>
+                      <p key={i} className="text-status-error break-words">⚠ {f.patternName}: <code className="break-all">{f.matchedSubstring}</code></p>
                     ))}
                   </div>
                 )}
               </div>
-              <button onClick={() => setSelected(r)} className="btn-brand px-4 py-2 text-sm">Review</button>
+              <button onClick={() => setSelected(r)} className="btn-brand px-4 py-2 text-sm shrink-0 w-full sm:w-auto">Review</button>
             </div>
             )
           })}
@@ -208,12 +208,12 @@ export default function RefundReviewPage() {
               className="w-full border border-brand-gray-300 rounded px-3 py-2 mb-4"
             />
 
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setSelected(null)} className="px-4 py-2 text-brand-gray-700">Cancel</button>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <button onClick={() => setSelected(null)} className="px-4 py-2 text-brand-gray-700 w-full sm:w-auto">Cancel</button>
               <button
                 onClick={submitDecision}
                 disabled={submitting || !decision || !notes}
-                className="btn-brand px-5 py-2"
+                className="btn-brand px-5 py-2 w-full sm:w-auto"
               >
                 {submitting ? "Submitting…" : "Submit decision"}
               </button>

@@ -121,7 +121,7 @@ function CalculatorContent() {
           )}
 
           {/* Reg number input form */}
-          <form onSubmit={handleLookup} className="flex gap-3 mb-4">
+          <form onSubmit={handleLookup} className="flex flex-col sm:flex-row gap-3 mb-4">
             <div className="flex-1 relative">
               <input
                 type="text"
@@ -139,7 +139,7 @@ function CalculatorContent() {
             <button
               type="submit"
               disabled={isLookingUp || !regNumber.trim()}
-              className="h-14 px-6 bg-[var(--brand-black)] hover:bg-[var(--brand-gray-900)] disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm whitespace-nowrap"
+              className="h-14 px-6 bg-[var(--brand-black)] hover:bg-[var(--brand-gray-900)] disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm whitespace-nowrap w-full sm:w-auto"
             >
               Get Value →
             </button>

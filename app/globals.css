@@ -134,15 +134,17 @@
     outline-offset: 2px;
   }
 
-  /* ── Touch targets (design-system §8) ── */
-  button, [role="button"], a {
+  /* ── Touch targets (design-system §8) ──
+     Apply 44x44 only to elements that opt in via .touch-target or to the
+     primary CTA buttons (.btn-brand, .btn-unlock). Forcing the rule on every
+     <button> bloated inline icon buttons (chat close ×, currency prefix,
+     navbar hamburger) and produced layout breaks on mobile. */
+  .touch-target,
+  button.btn-brand,
+  button.btn-unlock,
+  a.btn-brand,
+  a.btn-unlock {
     min-height: 44px;
-    min-width: 44px;
-  }
-  /* Override for inline-style links that should not force height */
-  a:not(.btn) {
-    min-height: unset;
-    min-width: unset;
   }
 }
 

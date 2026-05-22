@@ -152,10 +152,10 @@ export default function MarketplaceLeadDetailPage() {
 
         {preview && (
           <div className="border-t border-brand-gray-300 mt-6 pt-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <div>
                 <p className="text-sm text-brand-gray-700">Unlock fee</p>
-                <p className="text-3xl font-bold">{preview.amountDisplay}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{preview.amountDisplay}</p>
                 <p className="text-xs text-brand-gray-500">
                   {preview.basisWeightKg} kg × ₹{preview.pricePerKg}/kg
                 </p>
@@ -163,7 +163,7 @@ export default function MarketplaceLeadDetailPage() {
               <button
                 onClick={handleUnlock}
                 disabled={unlocking}
-                className="btn-brand px-6 py-3 text-lg"
+                className="btn-brand px-6 py-3 text-base sm:text-lg w-full sm:w-auto"
               >
                 {unlocking ? "Creating order…" : `Unlock for ${preview.amountDisplay}`}
               </button>

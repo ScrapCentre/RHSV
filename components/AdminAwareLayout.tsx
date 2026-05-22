@@ -7,11 +7,12 @@ import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton"
 
 export default function AdminAwareLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
-    const isAdmin = pathname?.startsWith("/admin") || 
-                    pathname?.startsWith("/b2b") || 
+    const isAdmin = pathname?.startsWith("/admin") ||
+                    pathname?.startsWith("/b2b") ||
                     pathname?.startsWith("/executive") ||
                     pathname?.startsWith("/scrapcentre") ||
-                    pathname?.startsWith("/rvsf")
+                    pathname?.startsWith("/rvsf") ||
+                    pathname?.startsWith("/cc")
 
     return (
         <div className="min-h-screen bg-background text-foreground">

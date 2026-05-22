@@ -80,28 +80,30 @@ export default async function DemoLeadsPage() {
             </span>
           </div>
 
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-900/30 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-500">
-              <tr>
-                <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Role</th>
-                <th className="px-4 py-2 text-left">Notes</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-              {TEST_USERS.map((u) => (
-                <tr key={u.email} className="hover:bg-gray-50 dark:hover:bg-slate-900/30 transition-colors">
-                  <td className="px-4 py-2 font-mono text-xs text-gray-900 dark:text-white">{u.email}</td>
-                  <td className="px-4 py-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-xs text-gray-500 dark:text-slate-400">{u.note}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
+              <thead className="bg-gray-50 dark:bg-slate-900/30 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-500">
+                <tr>
+                  <th className="px-4 py-2 text-left">Email</th>
+                  <th className="px-4 py-2 text-left">Role</th>
+                  <th className="px-4 py-2 text-left">Notes</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                {TEST_USERS.map((u) => (
+                  <tr key={u.email} className="hover:bg-gray-50 dark:hover:bg-slate-900/30 transition-colors">
+                    <td className="px-4 py-2 font-mono text-xs text-gray-900 dark:text-white whitespace-nowrap">{u.email}</td>
+                    <td className="px-4 py-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 whitespace-nowrap">
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-xs text-gray-500 dark:text-slate-400">{u.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 

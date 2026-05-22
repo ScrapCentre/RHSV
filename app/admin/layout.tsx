@@ -69,6 +69,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const pathname = usePathname()
     const router = useRouter()
 
+    // Mobile auditor fix: close sidebar by default on viewports below `lg` so a
+    // founder on a phone (375x667) lands on the dashboard content instead of an
+    // opaque dark sidebar covering the screen. Desktop keeps it open. Runs once
+    // on mount + on any cross-device viewport change.
+    useEffect(() => {
+        const mq = window.matchMedia("(max-width: 1023px)")
+        const apply = () => {
+            if (mq.matches) setIsSidebarOpen(false)
+        }
+        apply()
+        mq.addEventListener("change", apply)
+        return () => mq.removeEventListener("change", apply)
+    }, [])
+
+    // Close sidebar after navigation on mobile so the next page is visible.
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        if (window.matchMedia("(max-width: 1023px)").matches) {
+            setIsSidebarOpen(false)
+        }
+    }, [pathname])
+
     // Helper to check if a link is active
     const isActive = (path: string) => pathname === path || pathname?.startsWith(path)
 

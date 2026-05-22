@@ -26,10 +26,10 @@ export default function AdminV2Nav() {
           <Link
             key={t.href}
             href={t.href}
-            className="card-feature hover:border-brand-red transition-colors block p-4"
+            className="card-feature hover:border-brand-red transition-colors block p-3 sm:p-4"
           >
-            <div className="font-bold text-brand-black">{t.title}</div>
-            <div className="text-xs text-brand-gray-500 mt-1">{t.subtitle}</div>
+            <div className="font-bold text-brand-black text-sm sm:text-base">{t.title}</div>
+            <div className="text-[11px] sm:text-xs text-brand-gray-500 mt-1 leading-snug">{t.subtitle}</div>
           </Link>
         ))}
       </div>

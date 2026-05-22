@@ -143,7 +143,7 @@ export default function ChatThread({
   if (!thread) return <p className="p-6 text-brand-gray-500">No chat thread exists for this lead yet.</p>
 
   return (
-    <div className="flex flex-col h-[600px] border border-brand-gray-300 rounded-lg overflow-hidden bg-white">
+    <div className="flex flex-col h-[70vh] min-h-[420px] md:h-[600px] border border-brand-gray-300 rounded-lg overflow-hidden bg-white">
       {/* Archived banner (per L55) */}
       {thread.status === "archived" && (
         <div className="bg-brand-gray-100 px-4 py-3 border-b border-brand-gray-300 text-sm text-brand-gray-700">
@@ -182,27 +182,29 @@ export default function ChatThread({
       {composerEnabled && (
         <div className="border-t border-brand-gray-300 p-3 bg-white">
           {showOfferInput ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm">₹</span>
-              <input
-                type="number"
-                min="100"
-                value={offerInput}
-                onChange={(e) => setOfferInput(e.target.value)}
-                placeholder="Amount in rupees"
-                className="flex-1 border border-brand-gray-300 rounded px-3 py-2"
-              />
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-[180px]">
+                <span className="text-sm">₹</span>
+                <input
+                  type="number"
+                  min="100"
+                  value={offerInput}
+                  onChange={(e) => setOfferInput(e.target.value)}
+                  placeholder="Amount in rupees"
+                  className="flex-1 min-w-0 border border-brand-gray-300 rounded px-3 py-2"
+                />
+              </div>
               <button
                 onClick={() => postMessage({ type: "offer", offerAmountPaise: Number(offerInput) * 100 })}
                 disabled={posting || !offerInput || Number(offerInput) < 1}
-                className="btn-brand px-4 py-2"
+                className="btn-brand px-4 py-2 text-sm"
               >
                 {posting ? "Posting…" : "Send offer"}
               </button>
-              <button onClick={() => setShowOfferInput(false)} className="text-sm text-brand-gray-500">Cancel</button>
+              <button onClick={() => setShowOfferInput(false)} className="text-sm text-brand-gray-500 px-2 py-2">Cancel</button>
             </div>
           ) : (
-            <div className="flex items-end gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-2">
               <textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -210,19 +212,21 @@ export default function ChatThread({
                   ? "Ask a question or share a detail about your vehicle…"
                   : "Introduce yourself and propose pickup…"}
                 rows={2}
-                className="flex-1 border border-brand-gray-300 rounded px-3 py-2 resize-none"
+                className="flex-1 min-w-0 border border-brand-gray-300 rounded px-3 py-2 resize-none"
               />
-              <button
-                onClick={() => setShowOfferInput(true)}
-                className="text-sm border border-brand-red text-brand-red rounded px-3 py-2 h-fit"
-              >₹ Offer</button>
-              <button
-                onClick={() => postMessage({ type: "text", text: draft })}
-                disabled={posting || !draft.trim()}
-                className="btn-brand px-5 py-2"
-              >
-                {posting ? "…" : "Send"}
-              </button>
+              <div className="flex gap-2 sm:flex-col-reverse md:flex-row">
+                <button
+                  onClick={() => setShowOfferInput(true)}
+                  className="text-sm border border-brand-red text-brand-red rounded px-3 py-2 flex-1 sm:flex-initial whitespace-nowrap"
+                >₹ Offer</button>
+                <button
+                  onClick={() => postMessage({ type: "text", text: draft })}
+                  disabled={posting || !draft.trim()}
+                  className="btn-brand px-5 py-2 flex-1 sm:flex-initial"
+                >
+                  {posting ? "…" : "Send"}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -315,14 +319,14 @@ function Bubble({
             Status: {o.status}{o.status === "open" && ` · expires ${new Date(o.expiresAt).toLocaleString()}`}
           </p>
           {canActOnIt && (
-            <div className="flex gap-2 mt-3">
+            <div className="flex flex-wrap gap-2 mt-3">
               <button
                 onClick={() => {
                   if (confirm(`Accept ₹${(o.amountPaise / 100).toLocaleString("en-IN")} as the agreed price?\n\nThis will be recorded as the agreed price. Money and the vehicle change hands directly between you offline — ScrapCentre does not hold any payment.`)) {
                     onAction(msg._id, "accept")
                   }
                 }}
-                className="btn-unlock px-3 py-1.5 text-sm"
+                className="btn-unlock px-3 py-1.5 text-sm rounded"
               >Accept</button>
               <button
                 onClick={() => {
