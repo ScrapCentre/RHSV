@@ -29,17 +29,47 @@ export async function POST(req: Request) {
   const signature = req.headers.get("x-razorpay-signature") ?? ""
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET
 
-  // In mock mode (no secret set), skip signature verification but log loudly
-  let signatureValid = false
+  // HOTFIX (E2E walker §1.3 / v2-e2e-walk-2): previously this route would
+  // accept ANY unsigned POST when `RAZORPAY_WEBHOOK_SECRET` was unset and
+  // process it as a real `payment.captured` — flipping LeadUnlock → "paid",
+  // writing the Payment row, and marking the Lead "unlocked". A forged
+  // request quoting a real `order_id` could unlock leads for free. P0,
+  // money-moving endpoint. Same shape as the `cronAuth` hotfix.
+  //
+  // Behaviour now:
+  //   - secret SET, sig matches      → process event
+  //   - secret SET, sig mismatches   → 401
+  //   - secret UNSET, production     → 503 + console.error (refuse to process)
+  //   - secret UNSET, dev/staging    → warn loudly + allow (local dev only)
   if (secret) {
+    // Defensive: signature must be a 64-char hex (HMAC-SHA256). If shorter
+    // or otherwise wrong-length, `timingSafeEqual` would throw a
+    // `RangeError` because the two Buffers don't match in length. Catch
+    // that as a plain auth failure instead of bubbling a 500.
     const expected = crypto.createHmac("sha256", secret).update(raw).digest("hex")
-    signatureValid = crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+    const expectedBuf = Buffer.from(expected, "hex")
+    const providedBuf = Buffer.from(signature, "hex")
+    let signatureValid = false
+    if (expectedBuf.length === providedBuf.length && expectedBuf.length > 0) {
+      try {
+        signatureValid = crypto.timingSafeEqual(expectedBuf, providedBuf)
+      } catch {
+        signatureValid = false
+      }
+    }
     if (!signatureValid) {
       console.error("[razorpay/webhook] signature mismatch")
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
     }
   } else {
-    console.warn("[razorpay/webhook] RAZORPAY_WEBHOOK_SECRET unset — accepting unverified payload (mock mode)")
+    if (process.env.NODE_ENV === "production") {
+      console.error("[razorpay/webhook] RAZORPAY_WEBHOOK_SECRET unset in production — refusing")
+      return NextResponse.json(
+        { error: "Webhook not configured (RAZORPAY_WEBHOOK_SECRET unset in production)" },
+        { status: 503 }
+      )
+    }
+    console.warn("[razorpay/webhook] RAZORPAY_WEBHOOK_SECRET unset — allowing (dev/staging mode)")
   }
 
   let payload: any

@@ -1,6 +1,7 @@
 // M12 — chat messages (GET paginated; POST new text/image/document/offer).
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { validateObjectId } from "@/lib/middleware/objectId"
 import connectToDatabase from "@/lib/db"
 import ChatThread from "@/models/ChatThread"
 import ChatMessage from "@/models/ChatMessage"
@@ -13,6 +14,11 @@ async function loadThreadAndAuthorize(req: Request, user: any) {
   const url = new URL(req.url)
   const segments = url.pathname.split("/")
   const leadId = segments[segments.length - 2]  // /api/chat/threads/<leadId>/messages
+  // Precheck ObjectId shape — bad id was leaking Mongo CastError as 500
+  // (E2E walker §1.4).
+  if (!leadId || !/^[a-fA-F0-9]{24}$/.test(leadId)) {
+    return { error: "Invalid leadId", status: 400 } as any
+  }
   await connectToDatabase()
   const thread = await ChatThread.findOne({ leadId, status: "active" }).lean() as any
   if (!thread) return { error: "No active thread", status: 404 } as any

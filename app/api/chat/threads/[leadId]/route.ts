@@ -2,6 +2,7 @@
 // Returns the ACTIVE thread for this lead, with party membership check.
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { validateObjectId } from "@/lib/middleware/objectId"
 import connectToDatabase from "@/lib/db"
 import ChatThread from "@/models/ChatThread"
 import Lead from "@/models/Lead"
@@ -13,6 +14,10 @@ export const GET = withAuth([...PARTY_ROLES], async (req, { user }) => {
   const url = new URL(req.url)
   const segments = url.pathname.split("/")
   const leadId = segments[segments.length - 1]
+  // Precheck ObjectId shape — bad id was leaking Mongo CastError as 500
+  // (E2E walker §1.4).
+  const badId = validateObjectId(leadId, "leadId")
+  if (badId) return badId
 
   const thread = await ChatThread.findOne({ leadId, status: "active" }).lean() as any
   if (!thread) return NextResponse.json({ error: "No active thread for this lead" }, { status: 404 })

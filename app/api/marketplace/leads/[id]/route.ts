@@ -2,6 +2,7 @@
 // Photos return blurredUrl only; full data on unlock.
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { validateObjectId } from "@/lib/middleware/objectId"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import { unlockAmountPaise, formatRupees } from "@/lib/services/pricing/unlock"
@@ -18,7 +19,10 @@ async function _handler(req: Request) {
   await connectToDatabase()
   const url = new URL(req.url)
   const id = url.pathname.split("/").pop()
-  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
+  // Precheck ObjectId shape before hitting Mongo — otherwise mongoose
+  // CastError surfaces as a 500 (E2E walker §1.4).
+  const badId = validateObjectId(id, "id")
+  if (badId) return badId
 
   const lead = await Lead.findById(id).lean() as any
   if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 })

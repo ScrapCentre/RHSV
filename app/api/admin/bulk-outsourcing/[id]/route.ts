@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { validateObjectId } from "@/lib/middleware/objectId";
 import connectToDatabase from "@/lib/db";
 import BulkOutsourcing from "@/models/BulkOutsourcing";
 
@@ -14,6 +15,11 @@ export async function GET(req: Request, { params }: any) {
                 { status: 403 }
             );
         }
+
+        // Precheck ObjectId shape — bad id leaked Mongo CastError as 500
+        // (E2E walker §1.4).
+        const badId = validateObjectId(params?.id, "id");
+        if (badId) return badId;
 
         await connectToDatabase();
 
@@ -55,6 +61,9 @@ export async function PATCH(req: Request, { params }: any) {
                 { status: 403 }
             );
         }
+
+        const badId = validateObjectId(params?.id, "id");
+        if (badId) return badId;
 
         await connectToDatabase();
 
@@ -105,6 +114,9 @@ export async function DELETE(req: Request, { params }: any) {
                 { status: 403 }
             );
         }
+
+        const badId = validateObjectId(params?.id, "id");
+        if (badId) return badId;
 
         await connectToDatabase();
 

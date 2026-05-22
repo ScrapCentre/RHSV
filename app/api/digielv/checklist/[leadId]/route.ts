@@ -3,6 +3,7 @@
 // Pure data; no network. Backed by lib/services/digielv/checklist.ts.
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { validateObjectId } from "@/lib/middleware/objectId"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import RVSF from "@/models/RVSF"
@@ -13,7 +14,10 @@ export const GET = withAuth(["client", "rvsf_admin", "rvsf_executive", "admin", 
   await connectToDatabase()
   const url = new URL(req.url)
   const leadId = url.pathname.split("/").pop()
-  if (!leadId) return NextResponse.json({ error: "leadId required" }, { status: 400 })
+  // Precheck ObjectId shape — bad id leaked Mongo CastError as 500
+  // (E2E walker §1.4).
+  const badId = validateObjectId(leadId, "leadId")
+  if (badId) return badId
 
   const lead = await Lead.findById(leadId).lean() as any
   if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 })
@@ -62,6 +66,8 @@ export const POST = withAuth(["client", "admin"], async (req, { user }) => {
   await connectToDatabase()
   const url = new URL(req.url)
   const leadId = url.pathname.split("/").pop()
+  const badId = validateObjectId(leadId, "leadId")
+  if (badId) return badId
   const body = await req.json().catch(() => ({}))
   const { digiElvAppId, digiElvCdNumber } = body
   if (!digiElvAppId && !digiElvCdNumber) {

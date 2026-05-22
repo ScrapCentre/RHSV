@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server"
 import { randomBytes, createHash } from "crypto"
 import { withAuth } from "@/lib/middleware/requireRole"
+import { validateObjectId } from "@/lib/middleware/objectId"
 import connectToDatabase from "@/lib/db"
 import Lead from "@/models/Lead"
 import LeadUnlock from "@/models/LeadUnlock"
@@ -31,7 +32,10 @@ export const POST = withAuth(["rvsf_admin", "rvsf_executive"], async (req, { use
   // path: /api/leads/<id>/unlock — pick the id segment
   const segments = url.pathname.split("/")
   const id = segments[segments.length - 2]
-  if (!id) return NextResponse.json({ error: "leadId required" }, { status: 400 })
+  // Precheck ObjectId shape — bad id leaked Mongo CastError as 500
+  // (E2E walker §1.4). Money-moving endpoint, doubly important.
+  const badId = validateObjectId(id, "leadId")
+  if (badId) return badId
 
   let body: any = {}
   try { body = await req.json() } catch { /* may be empty */ }
