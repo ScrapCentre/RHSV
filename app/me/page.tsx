@@ -75,20 +75,16 @@ export default function CustomerDashboard() {
       {!loading && leads.length > 0 && (
         <div className="space-y-3">
           {leads.map((l) => (
-            <div key={l._id} className="card-base">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-mono text-brand-gray-500">{l.vehicle?.registrationNumber ?? "—"}</p>
+            <Link key={l._id} href={`/me/lead/${l._id}`} className="card-feature block">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-mono text-brand-gray-500 break-all">{l.vehicle?.registrationNumber ?? "—"}</p>
                   <p className="font-bold">{l.vehicle?.year ?? ""} {l.vehicle?.make ?? ""} {l.vehicle?.model ?? ""}</p>
                   <p className="text-xs text-brand-gray-500 mt-1">State: {l.state}</p>
                 </div>
-                {(l.state === "unlocked" || l.state === "negotiating" || l.state === "assigned_to_cc") && (
-                  <Link href={`/me/chat/${l._id}`} className="text-sm text-brand-red hover:underline">
-                    Open chat →
-                  </Link>
-                )}
+                <span className="text-sm text-brand-red shrink-0">View →</span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
