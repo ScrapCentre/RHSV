@@ -1,37 +1,34 @@
-// TEMP — diagnose calculator tier-1 UI lookup.
+// TEMP — diagnose reseed → Lead B thread active status.
 import { test, expect } from "@playwright/test"
-import { requireBaseURL } from "./helpers/auth"
+import { execSync } from "node:child_process"
+import { signInAsClient, requireBaseURL } from "./helpers/auth"
 
-test("diag calc tier1 UI", async ({ page, baseURL }) => {
+test("diag reseed then leadB thread status", async ({ context, baseURL }) => {
   const base = requireBaseURL(baseURL)
 
-  page.on("response", async (r) => {
-    if (r.url().includes("/api/calc/tier1")) {
-      console.log(`>>> tier1 ${r.status()} ${r.url()}`)
-      try {
-        console.log(`>>> tier1 body: ${(await r.text()).slice(0, 400)}`)
-      } catch {}
-    }
-  })
-  page.on("console", (m) => {
-    if (m.type() === "error") console.log(`>>> console.error: ${m.text()}`)
-  })
-  page.on("pageerror", (e) => console.log(`>>> pageerror: ${e.message}`))
+  console.log(">>> running reseed...")
+  const out = execSync(
+    `cd /opt/scrapcentre && sudo -u scrap bash -lc "set -a && source .env.local && set +a && ALLOW_PROD_SEED=1 npx tsx scripts/seed-demo-leads.ts"`,
+    { encoding: "utf8", timeout: 120_000 }
+  )
+  console.log(">>> reseed stdout tail:", out.slice(-300))
 
-  await page.goto(`${base}/calculator`)
-  await page.getByPlaceholder("UP32 AB 1234").fill("UP32XY7788")
-  await page.getByRole("button", { name: /get value/i }).click()
-  await page.waitForTimeout(8000)
+  await signInAsClient(context, base)
 
-  console.log(">>> page main after click:")
-  console.log((await page.locator("main").innerText()).slice(0, 600))
+  // ALL Lead B's
+  const min = await context.request.get(`${base}/api/leads/mine`)
+  const { leads } = await min.json()
+  const allB = (leads as any[]).filter(
+    (l) => l?.vehicle?.registrationNumber === "DL01CD5678"
+  )
+  console.log(`>>> ${allB.length} leads match DL01CD5678`)
+  for (const b of allB) {
+    console.log(`    id=${b._id} state=${b.state} agreedPrice=${JSON.stringify(b.agreedPrice)}`)
+  }
 
-  // Dump all button accessible names
-  const btns = await page.getByRole("button").all()
-  console.log(">>> buttons on page:")
-  for (const b of btns) {
-    const name = await b.textContent()
-    const aria = await b.getAttribute("aria-label")
-    console.log(`    text="${(name ?? "").trim()}" aria="${aria ?? ""}"`)
+  for (const b of allB) {
+    const tr = await context.request.get(`${base}/api/chat/threads/${b._id}`)
+    const trBody = await tr.text()
+    console.log(`>>> threads/${b._id}: ${tr.status()} ${trBody.slice(0, 300)}`)
   }
 })
