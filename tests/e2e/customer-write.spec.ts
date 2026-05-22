@@ -576,7 +576,10 @@ test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page
 
   // -- Tier 2: OTP gate --
   await page.waitForURL(/\/calculator\/verify/, { timeout: 15_000 })
-  await page.getByPlaceholder("98765 43210").fill("9876543210")
+  // Use a UNIQUE 10-digit phone per run — /api/otp/issue is rate-limited to
+  // 3 issues per phone per 10 min, so a fixed number flakes on repeat runs.
+  const phone = `9${Math.floor(100_000_000 + Math.random() * 900_000_000)}`
+  await page.getByPlaceholder("98765 43210").fill(phone)
   await page.getByRole("button", { name: /send otp/i }).click()
 
   // Mock mode accepts any 6-digit code. The OTP field is the `input-otp`
