@@ -1,7 +1,9 @@
 // engineering-design.md §4.1 / §10 — Admin triage decision; routes lead
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { requireCsrf } from "@/lib/middleware/csrf"
 import connectToDatabase from "@/lib/db"
 import LeadState from "@/models/LeadState"
 import TriageDecision from "@/models/TriageDecision"
@@ -23,7 +25,14 @@ function maskPincode(pincode: string | null): string {
   return pincode.slice(0, 3) + "***"
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // CSRF guard. This route does NOT use the `withAuth` wrapper (it calls
+  // getServerSession directly), so per lib/middleware/csrf.ts it must add
+  // an explicit requireCsrf() — otherwise a forged cross-site POST could
+  // route/reject leads. Runs before auth so we leak no session signal.
+  const csrfFail = requireCsrf(req)
+  if (csrfFail) return csrfFail
+
   const session = await getServerSession(authOptions)
   if (!session || (session.user as any).role !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
