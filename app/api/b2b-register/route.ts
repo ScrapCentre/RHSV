@@ -1,9 +1,36 @@
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import connectToDatabase from "@/lib/db"
 import B2BRegistration from "@/models/B2BRegistration"
+import { withAuth } from "@/lib/middleware/requireRole"
+import { checkRateLimit } from "@/lib/services/rate-limit"
 
-export async function POST(req: Request) {
+/**
+ * SECURITY (hotfix 2026-05-22, P0 zero-auth audit):
+ *  - POST   — PUBLIC "become a partner" registration form. Intentionally
+ *             open (anonymous self-serve, no session to ride → CSRF can't
+ *             apply). Abuse-protected with a per-IP rate limit instead.
+ *  - PATCH  — approves/rejects a registration. ADMIN-ONLY (withAuth).
+ *  - DELETE — deletes a registration. ADMIN-ONLY (withAuth).
+ *  - GET    — read-only listing; safe verb, no CSRF needed.
+ */
+
+export async function POST(req: NextRequest) {
     try {
+        // Abuse protection: this endpoint is intentionally anonymous, so it
+        // can't use a session-bound CSRF token. Rate-limit by client IP so a
+        // bot can't flood B2BRegistration docs. 5 submissions / 10 min / IP.
+        const ip =
+            req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+            req.headers.get("x-real-ip") ||
+            "unknown"
+        const rl = await checkRateLimit(`b2b-register:post:${ip}`, 5, 600)
+        if (!rl.ok) {
+            return NextResponse.json(
+                { message: "Too many registration attempts. Please try again later." },
+                { status: 429, headers: { "Retry-After": String(rl.retryAfter ?? 600) } }
+            )
+        }
+
         await connectToDatabase()
         const body = await req.json()
 
@@ -114,7 +141,9 @@ export async function GET(req: Request) {
     }
 }
 
-export async function DELETE(req: Request) {
+// ADMIN-ONLY: deletes a B2B registration request. `withAuth` enforces the
+// admin role gate AND CSRF (double-submit) before the handler runs.
+export const DELETE = withAuth(["admin"], async (req) => {
     try {
         await connectToDatabase()
         const { searchParams } = new URL(req.url)
@@ -147,9 +176,11 @@ export async function DELETE(req: Request) {
             { status: 500 }
         )
     }
-}
+})
 
-export async function PATCH(req: Request) {
+// ADMIN-ONLY: approves/rejects/changes the status of a registration.
+// `withAuth` enforces the admin role gate AND CSRF before the handler runs.
+export const PATCH = withAuth(["admin"], async (req) => {
     try {
         await connectToDatabase()
         const { searchParams } = new URL(req.url)
@@ -187,4 +218,4 @@ export async function PATCH(req: Request) {
             { status: 500 }
         )
     }
-}
+})
