@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { requireCsrf } from "@/lib/middleware/csrf"
 import connectToDatabase from "@/lib/db"
 import Contact from "@/models/Contact"
 
 export async function PATCH(
-    request: Request,
+    request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    // CSRF guard — this route calls getServerSession directly (no `withAuth`
+    // wrapper), so per lib/middleware/csrf.ts it must add requireCsrf itself.
+    const csrfFail = requireCsrf(request)
+    if (csrfFail) return csrfFail
     try {
         const session = await getServerSession(authOptions)
         if (!session || (session.user as any).role !== "admin") {
@@ -42,9 +48,12 @@ export async function PATCH(
 }
 
 export async function DELETE(
-    request: Request,
+    request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    // CSRF guard — see note on PATCH above.
+    const csrfFail = requireCsrf(request)
+    if (csrfFail) return csrfFail
     try {
         const session = await getServerSession(authOptions)
         if (!session || (session.user as any).role !== "admin") {

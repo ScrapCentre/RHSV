@@ -1,13 +1,16 @@
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import connectToDatabase from "@/lib/db"
 import RVSFUser from "@/models/RVSFUser"
 import bcrypt from "bcryptjs"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { requireCsrf } from "@/lib/middleware/csrf"
 
 export const dynamic = "force-dynamic"
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+    const csrfFail = requireCsrf(req)
+    if (csrfFail) return csrfFail
     try {
         const session = await getServerSession(authOptions)
         const isDev = process.env.NODE_ENV === "development"

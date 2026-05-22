@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { signIn, useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Car, User, MapPin, Phone, ChevronRight, ChevronLeft,
@@ -68,7 +67,6 @@ const inputCls = `
 // ─── Main wizard ──────────────────────────────────────────────────────────────
 
 export default function BuyNewWizardCard() {
-  const { status } = useSession()
   const [step, setStep] = useState(0)
   
   // Preferences
@@ -146,24 +144,14 @@ export default function BuyNewWizardCard() {
     setOtpError("")
     setVerifyingOtp(true)
 
-    if (status !== "authenticated") {
-        try {
-          const result = await signIn("phone-otp", {
-              phone: `+91${phone}`,
-              otp: "000000",
-              redirect: false,
-          });
-          if (result?.error) {
-              setOtpError("Authentication failed. Try again.");
-              setVerifyingOtp(false);
-              return;
-          }
-        } catch (err) {
-          setOtpError("Something went wrong");
-          setVerifyingOtp(false);
-          return;
-        }
-    }
+    // NOTE (v2 M14 hotfix 2026-05-22): the legacy `phone-otp` NextAuth provider
+    // was removed in M06 (security audit §1.1 — see lib/auth.ts lines 5-8).
+    // This component is an anonymous lead-capture form and does NOT require a
+    // signed-in NextAuth session: the /api/buy-vehicle endpoint treats userId
+    // as optional and saves guest leads. The customer-facing OTP+account flow
+    // lives at /calculator + /calculator/verify (uses firebase-otp).
+    // (This component is also not mounted anywhere in v2 — kept as dead code
+    // pending deletion per fix-wizard-otp summary.)
 
     setOtpVerified(true)
     setVerifyingOtp(false)

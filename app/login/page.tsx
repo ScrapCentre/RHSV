@@ -1,14 +1,15 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { signIn, getSession, useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Mail, Lock, ArrowRight, Loader2, Building2, User, Eye, EyeOff, Phone, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { auth } from "@/lib/firebase"
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth"
+import { landingForRole } from "@/lib/landing-by-role"
 
 export default function LoginPage() {
     return (
@@ -26,7 +27,20 @@ function LoginContent() {
     const [activeTab, setActiveTab] = useState<"standard" | "b2b">("standard")
     const [isLogin, setIsLogin] = useState(true)
     const { toast } = useToast()
+    const router = useRouter()
     const searchParams = useSearchParams()
+    const { data: existingSession, status: sessionStatus } = useSession()
+
+    // If a user is already authenticated, skip the form and send them to
+    // their role-appropriate landing page. Honors ?callbackUrl=… if present.
+    // Anonymous users (status === "unauthenticated") fall through and see
+    // the normal login surface.
+    useEffect(() => {
+        if (sessionStatus !== "authenticated") return
+        const role = (existingSession?.user as any)?.role
+        const cb = searchParams.get("callbackUrl")
+        router.replace(cb || landingForRole(role))
+    }, [sessionStatus, existingSession, router, searchParams])
 
     // Auto-select B2B tab if redirected from partner-register
     useEffect(() => {
@@ -131,7 +145,6 @@ function LoginContent() {
     const [phone, setPhone] = useState("")
     const [otp, setOtp] = useState("")
     const [otpSent, setOtpSent] = useState(false)
-    const [isSandboxMode, setIsSandboxMode] = useState(false)
 
     // B2B State
     const [b2bUserId, setB2BUserId] = useState("")
@@ -206,16 +219,12 @@ function LoginContent() {
                 } else if (!isLogin) {
                     // If they just registered, take them to their profile
                     window.location.href = "/profile"
-                } else if (role === "admin") {
-                    window.location.href = "/admin/dashboard"
-                } else if (role === "partner") {
-                    window.location.href = "/b2b/marketplace"
-                } else if (role === "executive") {
-                    window.location.href = "/executive/dashboard"
-                } else if (role === "scrapcentre") {
-                    window.location.href = "/scrapcentre/dashboard"
                 } else {
-                    window.location.href = "/"
+                    // Use the shared LANDING_BY_ROLE map (single source of
+                    // truth, also consumed by /post-login and /rvsf) so that
+                    // every login surface routes consistently. Unknown roles
+                    // fall back to "/" via landingForRole().
+                    window.location.href = landingForRole(role)
                 }
             }
         } catch (error) {
@@ -238,23 +247,27 @@ function LoginContent() {
             }
             setIsLoading(true)
 
-            
             try {
                 if (!recaptchaVerifier) throw new Error("Recaptcha not initialized");
-                
+
                 const formattedPhone = `+91${phone}`;
                 const confirmation = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
                 setConfirmationResult(confirmation);
-                setIsSandboxMode(false);
                 setOtpSent(true);
                 toast({ title: "OTP Sent", description: "Please check your phone for the verification code." });
             } catch (error: any) {
-                console.warn("Firebase SMS failed, falling back to Local Sandbox:", error);
-                setIsSandboxMode(true);
-                setOtpSent(true);
+                console.error("Firebase SMS failed:", error);
+                // The v1 "Sandbox Mode" fallback (hardcoded "000000" + phone-otp
+                // provider) was removed in M14: the provider no longer exists
+                // (M06 deleted it; see lib/auth.ts:5-7) and the "000000" hint
+                // re-introduced the back-door the security audit (§1.1) demanded
+                // we remove. If a local-dev OTP bypass is needed in future, it
+                // MUST be gated by NODE_ENV !== "production" AND an explicit
+                // MOCK_AUTH_ENABLED env flag — never enabled by default.
                 toast({
-                    title: "Sandbox Mode Activated",
-                    description: "Firebase credentials invalid. Use verification code '000000' to sign in.",
+                    title: "Could Not Send OTP",
+                    description: error?.message || "Phone verification is temporarily unavailable. Please try email login or try again later.",
+                    variant: "destructive",
                 });
             } finally {
                 setIsLoading(false);
@@ -264,32 +277,12 @@ function LoginContent() {
 
         setIsLoading(true)
         try {
-            if (isSandboxMode) {
-                if (otp !== "000000") {
-                    throw new Error("Invalid sandbox verification code. Use '000000'.");
-                }
-                const result = await signIn("phone-otp", {
-                    phone: `+91${phone}`,
-                    otp: "000000",
-                    name: name || `User ${phone.slice(-4)}`,
-                    redirect: false,
-                });
+            if (!confirmationResult) throw new Error("No confirmation result found");
 
-                if (result?.error) {
-                    throw new Error(result.error);
-                } else {
-                    toast({ title: "Welcome!", description: "Successfully logged in via Sandbox Mode." });
-                    const callbackUrl = searchParams.get("callbackUrl") || "/";
-                    window.location.href = callbackUrl;
-                }
-            } else {
-                if (!confirmationResult) throw new Error("No confirmation result found");
-                
-                const userCredential = await confirmationResult.confirm(otp);
-                const idToken = await userCredential.user.getIdToken();
-                
-                await handleFirebaseLoginSuccess(idToken);
-            }
+            const userCredential = await confirmationResult.confirm(otp);
+            const idToken = await userCredential.user.getIdToken();
+
+            await handleFirebaseLoginSuccess(idToken);
         } catch (error: any) {
             console.error("OTP Verification Error:", error);
             setIsLoading(false)
@@ -328,12 +321,14 @@ function LoginContent() {
                     title: "Welcome Partner",
                     description: "Redirecting to your marketplace...",
                 })
+                // b2b-credentials provider returns role=partner (legacy B2BPartner
+                // tenant — separate model, no linkedRvsfId). The shared dispatcher
+                // at /post-login maps partner → /b2b/marketplace via LANDING_BY_ROLE,
+                // which is the only marketplace that strict-equals on role === "partner"
+                // and queries the legacy Valuation/B2BPickup collections those users
+                // actually have data in. Codex P1 hotfix 2026-05-22.
                 const callbackUrl = searchParams.get("callbackUrl")
-                if (callbackUrl) {
-                    window.location.href = callbackUrl
-                } else {
-                    window.location.href = "/b2b/marketplace"
-                }
+                window.location.href = callbackUrl || "/post-login"
             }
         } catch (error) {
             console.error(error)
@@ -495,14 +490,14 @@ function LoginContent() {
                                                                     required
                                                                     value={otp}
                                                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                                                    placeholder={isSandboxMode ? "Use: 000000" : "Enter 6-digit OTP"}
+                                                                    placeholder="Enter 6-digit OTP"
                                                                     className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-[#E31E24]/30 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold tracking-[0.3em]"
                                                                 />
                                                             </div>
                                                         </div>
                                                         <div className="flex justify-between items-center px-1 pt-1">
                                                             <p className="text-[10px] text-emerald-600 font-bold italic">
-                                                                {isSandboxMode ? "⚡ Sandbox — use code 000000" : `Code sent to +91 ${phone}`}
+                                                                {`Code sent to +91 ${phone}`}
                                                             </p>
                                                             <button 
                                                                 type="button" 

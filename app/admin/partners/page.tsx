@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Shield, CheckCircle, Clock, MapPin, Phone, Mail, FileText, User } from "lucide-react"
+import { apiFetch } from "@/lib/fetch"
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
@@ -70,7 +71,7 @@ export default function B2BPartnersPage() {
                     const pendingToUpdate = regData.data.filter((r: any) => r.status === 'pending')
                     for (const req of pendingToUpdate) {
                         try {
-                            await fetch(`/api/b2b-register?id=${req._id}`, {
+                            await apiFetch(`/api/b2b-register?id=${req._id}`, {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ status: 'reviewing' })
@@ -100,7 +101,7 @@ export default function B2BPartnersPage() {
     // Handlers
     const handleReject = async (id: string) => {
         try {
-            const res = await fetch(`/api/b2b-register?id=${id}`, {
+            const res = await apiFetch(`/api/b2b-register?id=${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: 'rejected' })

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 import connectToDatabase from "@/lib/db"
 import Setting from "@/models/Setting"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { requireCsrf } from "@/lib/middleware/csrf"
 
 export const dynamic = "force-dynamic"
 
@@ -35,7 +37,11 @@ export async function GET() {
 }
 
 // POST /api/settings/scrapRates - Update settings
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+    // CSRF guard — this route calls getServerSession directly (no `withAuth`
+    // wrapper), so per lib/middleware/csrf.ts it must add requireCsrf itself.
+    const csrfFail = requireCsrf(req)
+    if (csrfFail) return csrfFail
     try {
         const session = await getServerSession(authOptions)
 

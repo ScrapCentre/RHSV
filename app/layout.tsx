@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import AuthProvider from "@/components/AuthProvider"
 import AdminAwareLayout from "@/components/AdminAwareLayout"
 import GoogleAnalytics from "@/components/GoogleAnalytics"
+import CsrfBootstrap from "@/components/CsrfBootstrap"
 
 const inter = Inter({ subsets: ["latin"] })
 const bebasNeue = Bebas_Neue({ 
@@ -16,35 +17,35 @@ const bebasNeue = Bebas_Neue({
 })
 
 export const metadata: Metadata = {
-  title: "ScrapCenter India - Vehicle Scrapping Services",
+  title: "ScrapCentre.com - Vehicle Scrapping Services",
   description:
-    "Official authorized vehicle scrapping center in India. We specialize in environmentally friendly disposal of end-of-life vehicles (ELVs) in compliance with current regulations.",
+    "Official authorized vehicle scrapping centre in India. We specialize in environmentally friendly disposal of end-of-life vehicles (ELVs) in compliance with current regulations.",
   keywords:
-    "scrap center, vehicle scrapping, car scrap, authorized scrapper, rto scrap, scrap car india",
-  authors: [{ name: "ScrapCenter India" }],
-  creator: "ScrapCenter India",
-  publisher: "ScrapCenter India",
+    "scrap centre, vehicle scrapping, car scrap, authorized scrapper, rto scrap, scrap car india, rvsf",
+  authors: [{ name: "ScrapCentre.com" }],
+  creator: "ScrapCentre.com",
+  publisher: "ScrapCentre.com",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://scrapcenter.in"),
+  metadataBase: new URL("https://scrapcentre.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "ScrapCenter India - Vehicle Scrapping Services",
+    title: "ScrapCentre.com - Vehicle Scrapping Services",
     description:
-      "Official authorized vehicle scrapping center in India. Get best price for your old car, bike or vehicle.",
-    url: "https://scrapcenter.in",
-    siteName: "ScrapCenter India",
+      "Official authorized vehicle scrapping centre in India. Get best price for your old car, bike or vehicle.",
+    url: "https://scrapcentre.com",
+    siteName: "ScrapCentre.com",
     images: [
       {
         url: "/logo.png",
         width: 1200,
         height: 630,
-        alt: "ScrapCenter India Logo",
+        alt: "ScrapCentre.com Logo",
       },
     ],
     locale: "en_IN",
@@ -52,11 +53,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ScrapCenter India - Vehicle Scrapping Services",
+    title: "ScrapCentre.com - Vehicle Scrapping Services",
     description:
-      "Official authorized vehicle scrapping center in India. Get best price for your old car, bike or vehicle.",
+      "Official authorized vehicle scrapping centre in India. Get best price for your old car, bike or vehicle.",
     images: ["/logo.png"],
-    creator: "@scrapcenter_in",
   },
   robots: {
     index: true,
@@ -69,13 +69,10 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "your-google-verification-code",
-  },
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
+    apple: "/apple-touch-icon.jpeg",
   },
 }
 
@@ -99,6 +96,7 @@ export default function RootLayout({
       <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <AuthProvider>
+            <CsrfBootstrap />
             <AdminAwareLayout>
               {children}
             </AdminAwareLayout>

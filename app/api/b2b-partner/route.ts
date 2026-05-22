@@ -1,9 +1,27 @@
 import { NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
 import connectToDatabase from "@/lib/db"
 import B2BPartner from "@/models/B2BPartner"
 import B2BRegistration from "@/models/B2BRegistration"
+import { withAuth } from "@/lib/middleware/requireRole"
 
-export async function POST(req: Request) {
+/**
+ * SECURITY (hotfix 2026-05-22, P0 zero-auth audit):
+ *  - POST — provisions a B2B partner LOGIN account. The only live caller is
+ *           the admin "Access Generator" page (app/admin/b2b-generator),
+ *           which sits behind the admin panel. This is NOT a public
+ *           self-serve endpoint, so it is gated ADMIN-ONLY via `withAuth`
+ *           (role gate + CSRF for free).
+ *           Additionally, the password is now bcrypt-hashed before storage
+ *           (was plaintext). Both B2B login providers in lib/auth.ts already
+ *           detect a `$2`-prefixed hash and `bcrypt.compare` against it, so
+ *           this is backward-compatible with any existing plaintext docs.
+ *  - GET  — read-only listing; safe verb, no CSRF needed.
+ */
+
+// ADMIN-ONLY: creates a B2B partner login account. `withAuth` enforces the
+// admin role gate AND CSRF (double-submit) before the handler runs.
+export const POST = withAuth(["admin"], async (req) => {
     try {
         await connectToDatabase()
         const body = await req.json()
@@ -27,10 +45,14 @@ export async function POST(req: Request) {
             )
         }
 
+        // Hash the password before storage — NEVER persist plaintext.
+        // Mirrors app/api/register/route.ts (bcrypt.hash(pw, 10)).
+        const hashedPassword = await bcrypt.hash(password, 10)
+
         // Create new partner
         const newPartner = await B2BPartner.create({
             userId,
-            password, // NOTE: In a real app, hash this password with bcrypt!
+            password: hashedPassword,
             businessName,
             contactNumber,
             email,
@@ -47,8 +69,11 @@ export async function POST(req: Request) {
             await B2BRegistration.findByIdAndDelete(registrationId)
         }
 
+        // Strip the password hash from the response — don't echo credentials back.
+        const { password: _pw, ...partnerSafe } = newPartner.toObject()
+
         return NextResponse.json(
-            { message: "Partner created successfully", data: newPartner },
+            { message: "Partner created successfully", data: partnerSafe },
             { status: 201 }
         )
     } catch (error: any) {
@@ -58,7 +83,7 @@ export async function POST(req: Request) {
             { status: 500 }
         )
     }
-}
+})
 
 export async function GET() {
     try {

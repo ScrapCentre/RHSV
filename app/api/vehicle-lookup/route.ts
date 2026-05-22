@@ -14,11 +14,24 @@ export async function POST(request: Request) {
 
     const formattedId = id_number.trim().toUpperCase();
 
+    // SurePass JWT moved to env var (previously hardcoded in source — long-lived
+    // credential leaked into the public repo; see security audit).
+    // If unset, the route degrades to 503 — frontend consumers
+    // (HomexHero, ValuationWizardCard) handle this via their existing
+    // try/catch fallback to manual data entry.
+    const surepassJwt = process.env.SUREPASS_JWT;
+    if (!surepassJwt) {
+      return NextResponse.json(
+        { error: 'Vehicle lookup is temporarily unavailable. Please enter vehicle details manually.' },
+        { status: 503 }
+      );
+    }
+
     const response = await fetch('https://kyc-api.surepass.app/api/v1/rc/rc-v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDM4NjYyMywianRpIjoiNWU0NTBhNjEtYzkzZS00NzRlLWFkNjItMWE4MmFmYjBjMzdiIiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2Lm1lZGljYWxAc3VyZXBhc3MuaW8iLCJuYmYiOjE3MTQzODY2MjMsImV4cCI6MjM0NTEwNjYyMywiZW1haWwiOiJtZWRpY2FsQHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.kXFo-Y5dcl5R7mQouTuaP5289-W3lMQgqb-2oLmWhis`
+        'Authorization': `Bearer ${surepassJwt}`
       },
       body: JSON.stringify({
         id_number: formattedId,

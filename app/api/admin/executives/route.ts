@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import connectToDatabase from "@/lib/db"
 import Executive from "@/models/Executive"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { requireCsrf } from "@/lib/middleware/csrf"
 import bcrypt from "bcryptjs"
 
 // GET all executives
@@ -23,7 +24,9 @@ export async function GET() {
 }
 
 // POST create a new executive
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+    const csrfFail = requireCsrf(req)
+    if (csrfFail) return csrfFail
     try {
         const session = await getServerSession(authOptions)
         if (!session || (session.user as any).role !== "admin") {

@@ -15,6 +15,7 @@ import {
     Users
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { apiFetch } from "@/lib/fetch"
 
 export default function AdminExecutivesPage() {
     const [executives, setExecutives] = useState<any[]>([])
@@ -72,7 +73,7 @@ export default function AdminExecutivesPage() {
         setIsCreating(true)
 
         try {
-            const res = await fetch("/api/admin/executives", {
+            const res = await apiFetch("/api/admin/executives", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData)
@@ -109,7 +110,7 @@ export default function AdminExecutivesPage() {
         if (!confirm("Are you sure you want to delete this executive account?")) return
 
         try {
-            const res = await fetch(`/api/admin/executives/${id}`, {
+            const res = await apiFetch(`/api/admin/executives/${id}`, {
                 method: "DELETE"
             })
             const data = await res.json()
@@ -178,7 +179,7 @@ export default function AdminExecutivesPage() {
                                     required
                                     value={formData.email}
                                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                    placeholder="exec@scrapcenter.in"
+                                    placeholder="exec@scrapcentre.com"
                                     className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-3 font-medium text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                 />
                             </div>

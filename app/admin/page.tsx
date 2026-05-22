@@ -11,6 +11,7 @@ import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
 import DashboardOverview from "@/components/admin/DashboardOverview"
 import AdminLoginForm from "@/components/admin/AdminLoginForm"
+import AdminV2Nav from "@/components/admin/AdminV2Nav"
 
 export const dynamic = "force-dynamic"
 
@@ -241,26 +242,29 @@ export default async function AdminPage() {
     }
 
     return (
-        <DashboardOverview
-            totalRequests={totalRequests}
-            formattedTotalTons={formattedTotalTons}
-            b2bTotal={b2bTotal}
-            totalApproved={totalApproved}
-            marketFeed={marketFeed}
-            valuationCounts={{
-                quote: quoteCount,
-                sell: sellCount,
-                exchange: exchangeCount,
-                buy: buyCount
-            }}
-            b2bStats={{
-                total: b2bTotal,
-                pending: b2bPending,
-                approved: b2bApproved
-            }}
-            monthlyGrowthData={formattedMonthlyGrowth}
-            activityData={formattedWeeklyActivity}
-        />
+        <>
+            <AdminV2Nav />
+            <DashboardOverview
+                totalRequests={totalRequests}
+                formattedTotalTons={formattedTotalTons}
+                b2bTotal={b2bTotal}
+                totalApproved={totalApproved}
+                marketFeed={marketFeed}
+                valuationCounts={{
+                    quote: quoteCount,
+                    sell: sellCount,
+                    exchange: exchangeCount,
+                    buy: buyCount
+                }}
+                b2bStats={{
+                    total: b2bTotal,
+                    pending: b2bPending,
+                    approved: b2bApproved
+                }}
+                monthlyGrowthData={formattedMonthlyGrowth}
+                activityData={formattedWeeklyActivity}
+            />
+        </>
     )
 }
 

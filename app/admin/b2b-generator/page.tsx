@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Shield, Key, Building, MapPin, Mail, Phone, ChevronLeft, RefreshCcw } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import Link from "next/link"
+import { apiFetch } from "@/lib/fetch"
 
 function B2BGeneratorContent() {
     const searchParams = useSearchParams()
@@ -45,7 +46,9 @@ function B2BGeneratorContent() {
 
         setIsLoading(true)
         try {
-            const res = await fetch("/api/b2b-partner", {
+            // /api/b2b-partner is admin-gated (withAuth(["admin"]) — role gate
+            // + CSRF). apiFetch injects the required X-CSRF-Token header.
+            const res = await apiFetch("/api/b2b-partner", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),

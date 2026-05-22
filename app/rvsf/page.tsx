@@ -1,11 +1,12 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Lock, ArrowRight, Loader2, Building2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { isRvsfRole, landingForRole } from "@/lib/landing-by-role"
 
 export default function RVSFLoginPage() {
     return (
@@ -21,13 +22,28 @@ export default function RVSFLoginPage() {
 
 function RVSFLoginContent() {
     const { toast } = useToast()
+    const router = useRouter()
     const searchParams = useSearchParams()
+    const { data: session, status } = useSession()
 
     const [rvsfId, setRvsfId] = useState("")
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    // If an RVSF user is already authenticated, skip the form and route them
+    // straight to their landing page. Honors ?callbackUrl=… if present,
+    // otherwise uses the shared LANDING_BY_ROLE map (single source of truth
+    // shared with /post-login and /login).
+    useEffect(() => {
+        if (status !== "authenticated") return
+        const role = (session?.user as any)?.role
+        if (isRvsfRole(role)) {
+            const cb = searchParams.get("callbackUrl")
+            router.replace(cb || landingForRole(role))
+        }
+    }, [status, session, router, searchParams])
 
     useEffect(() => {
         // Handle NextAuth URL errors
@@ -67,14 +83,16 @@ function RVSFLoginContent() {
             } else {
                 toast({
                     title: "Welcome RVSF Partner",
-                    description: "Redirecting to your dashboard...",
+                    description: "Redirecting to your marketplace...",
                 })
+                // Honor explicit ?callbackUrl=… if provided, otherwise hand off
+                // to the role-aware dispatcher at /post-login (which routes
+                // rvsf_admin / rvsf_executive to /rvsf/marketplace).
+                // We avoid the legacy /rvsf_leads/dashboard target — that page
+                // still guards on role === "rvsf" (pre-v2 taxonomy) and would
+                // bounce v2 users back to the home page.
                 const callbackUrl = searchParams.get("callbackUrl")
-                if (callbackUrl) {
-                    window.location.href = callbackUrl
-                } else {
-                    window.location.href = "/rvsf_leads/dashboard"
-                }
+                window.location.href = callbackUrl || "/post-login"
             }
         } catch (err) {
             console.error(err)

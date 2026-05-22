@@ -1,0 +1,246 @@
+// M13 — Razorpay webhook handler (POST, public, signature-verified).
+//
+// On `payment.captured`:
+//   1. Verify HMAC-SHA256 signature against RAZORPAY_WEBHOOK_SECRET
+//   2. Find the matching LeadUnlock by razorpay_order_id; flip status → "paid"
+//   3. Write a Payment row {purpose:"lead_unlock", status:"success"}
+//   4. Atomically transition Lead.state → "unlocked"; Lead.unlock subdoc populated
+//   5. Create the ChatThread + auto-system message ("RVSF X has unlocked your lead…")
+//   6. Fire notifications (customer + RVSF + in-catchment dispatcher)
+//
+// Webhook URL: https://scrapcentre.com/api/payments/razorpay/webhook
+// Razorpay dashboard webhook config: events=payment.captured + refund.processed,
+// secret=RAZORPAY_WEBHOOK_SECRET.
+//
+// Per locked decisions L26 (FCFS atomic unlock), L31 (per-unlock Razorpay).
+import { NextResponse } from "next/server"
+import crypto from "crypto"
+import connectToDatabase from "@/lib/db"
+import LeadUnlock from "@/models/LeadUnlock"
+import Lead from "@/models/Lead"
+import Payment from "@/models/Payment"
+import ChatThread from "@/models/ChatThread"
+import ChatMessage from "@/models/ChatMessage"
+import RVSF from "@/models/RVSF"
+import { enqueueNotification } from "@/lib/services/notifications/dispatcher"
+
+export async function POST(req: Request) {
+  const raw = await req.text()
+  const signature = req.headers.get("x-razorpay-signature") ?? ""
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET
+
+  // HOTFIX (E2E walker §1.3 / v2-e2e-walk-2): previously this route would
+  // accept ANY unsigned POST when `RAZORPAY_WEBHOOK_SECRET` was unset and
+  // process it as a real `payment.captured` — flipping LeadUnlock → "paid",
+  // writing the Payment row, and marking the Lead "unlocked". A forged
+  // request quoting a real `order_id` could unlock leads for free. P0,
+  // money-moving endpoint. Same shape as the `cronAuth` hotfix.
+  //
+  // Behaviour now:
+  //   - secret SET, sig matches      → process event
+  //   - secret SET, sig mismatches   → 401
+  //   - secret UNSET, production     → 503 + console.error (refuse to process)
+  //   - secret UNSET, dev/staging    → warn loudly + allow (local dev only)
+  if (secret) {
+    // Defensive: signature must be a 64-char hex (HMAC-SHA256). If shorter
+    // or otherwise wrong-length, `timingSafeEqual` would throw a
+    // `RangeError` because the two Buffers don't match in length. Catch
+    // that as a plain auth failure instead of bubbling a 500.
+    const expected = crypto.createHmac("sha256", secret).update(raw).digest("hex")
+    const expectedBuf = Buffer.from(expected, "hex")
+    const providedBuf = Buffer.from(signature, "hex")
+    let signatureValid = false
+    if (expectedBuf.length === providedBuf.length && expectedBuf.length > 0) {
+      try {
+        signatureValid = crypto.timingSafeEqual(expectedBuf, providedBuf)
+      } catch {
+        signatureValid = false
+      }
+    }
+    if (!signatureValid) {
+      console.error("[razorpay/webhook] signature mismatch")
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
+    }
+  } else {
+    if (process.env.NODE_ENV === "production") {
+      console.error("[razorpay/webhook] RAZORPAY_WEBHOOK_SECRET unset in production — refusing")
+      return NextResponse.json(
+        { error: "Webhook not configured (RAZORPAY_WEBHOOK_SECRET unset in production)" },
+        { status: 503 }
+      )
+    }
+    console.warn("[razorpay/webhook] RAZORPAY_WEBHOOK_SECRET unset — allowing (dev/staging mode)")
+  }
+
+  let payload: any
+  try { payload = JSON.parse(raw) } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  }
+
+  const event = payload.event
+  const webhookEventId = payload?.id ?? `evt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+
+  await connectToDatabase()
+
+  // Idempotency: dedupe by webhookEventId via Payment row
+  const dup = await Payment.findOne({ webhookEventId }).lean()
+  if (dup) return NextResponse.json({ ok: true, deduped: true })
+
+  if (event === "payment.captured") {
+    const pmt = payload.payload?.payment?.entity ?? {}
+    const orderId   = pmt.order_id
+    const paymentId = pmt.id
+    const amountPaise = pmt.amount
+
+    if (!orderId) return NextResponse.json({ error: "missing order_id" }, { status: 400 })
+
+    // Find the LeadUnlock we created at order-create time
+    const unlock = await LeadUnlock.findOne({ razorpayOrderId: orderId }) as any
+    if (!unlock) {
+      console.error(`[razorpay/webhook] no LeadUnlock for order ${orderId}`)
+      return NextResponse.json({ error: "Unknown order" }, { status: 404 })
+    }
+    if (unlock.status === "paid") {
+      // already processed
+      return NextResponse.json({ ok: true, alreadyPaid: true })
+    }
+
+    // Atomic single-unlock guarantee: the partial-unique index on
+    // leadunlocks.{leadId,status:"paid"} ensures only one of N parallel
+    // webhook events can flip to "paid" for the same leadId.
+    let flipped = false
+    try {
+      await LeadUnlock.updateOne(
+        { _id: unlock._id, status: { $ne: "paid" } },
+        { $set: {
+          status: "paid",
+          razorpayPaymentId: paymentId,
+          razorpaySignature: signature,
+        } }
+      )
+      flipped = true
+    } catch (err: any) {
+      // duplicate key → another webhook delivery beat us; that's fine
+      console.warn(`[razorpay/webhook] unlock flip skipped (race): ${err?.message}`)
+    }
+    if (!flipped) return NextResponse.json({ ok: true, race: true })
+
+    // Write Payment row (audit trail)
+    await Payment.create({
+      purpose: "lead_unlock",
+      leadUnlockId: unlock._id,
+      rvsfId: unlock.rvsfId,
+      amountPaise,
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      status: "success",
+      webhookEventId,
+    })
+
+    // Flip Lead state + populate unlock subdoc
+    const lead = await Lead.findOneAndUpdate(
+      { _id: unlock.leadId, state: { $in: ["approved_marketplace", "marketplace_visible", "stale_alerted", "revived", "rvsf_rejected"] } },
+      {
+        $set: {
+          state: "unlocked",
+          unlock: {
+            unlockedByRvsfId:    unlock.rvsfId,
+            unlockedByUserId:    unlock.triggeredByUserId,
+            unlockedAt:          new Date(),
+            weightKgCharged:     unlock.weightKgAtUnlock,
+            pricePerKgCharged:   unlock.pricePerKgAtUnlock,
+            amountChargedPaise:  unlock.baseAmountPaise,
+            leadUnlockId:        unlock._id,
+          },
+        },
+      },
+      { new: true }
+    ) as any
+
+    if (!lead) {
+      console.warn(`[razorpay/webhook] lead ${unlock.leadId} not in unlockable state; payment captured but state not flipped`)
+      return NextResponse.json({ ok: true, warning: "lead state not flipped" })
+    }
+
+    // Create the ChatThread + auto-system message (per L43).
+    //
+    // HOTFIX 2026-05-22 (P1, v2-codereview §P2-5 + chat-coherence task):
+    // `ChatThread.assignedCcId` was never written by ANY code path, which
+    // killed the cc_operator chat surface — `/api/chat/my-threads` filters
+    // cc_operators by `assignedCcId === user.linkedCcId`, so the operator's
+    // inbox was permanently empty even when leads were unlocked in their
+    // catchment. We resolve assignedCcId here, at thread-creation time, in
+    // priority order:
+    //   1. `Lead.assignedCcId` if already set — when RVSF admin's assign-to-CC
+    //      action runs BEFORE unlock (or in any future flow), this is the
+    //      canonical assignment and we mirror it.
+    //   2. Sole catchment CC fallback — if the lead has exactly one CC in
+    //      `inCatchmentCcIds`, that CC is unambiguously the one that will
+    //      handle the physical work (true for the Auraiya demo where one
+    //      RVSF owns one primary yard, and for any single-CC RVSF in v2).
+    //      With >1 CCs, we leave it null until the RVSF admin explicitly
+    //      assigns — a future /api/rvsf/leads/[id]/assign-to-cc route (and
+    //      any other path that writes Lead.assignedCcId post-unlock) MUST
+    //      mirror the same write to ChatThread.assignedCcId for the active
+    //      thread, e.g.
+    //         await ChatThread.updateOne(
+    //           { leadId, status: "active" },
+    //           { $set: { assignedCcId } }
+    //         )
+    const rvsf = await RVSF.findById(unlock.rvsfId).lean() as any
+    let assignedCcId: any = lead.assignedCcId ?? null
+    if (!assignedCcId && Array.isArray(lead.inCatchmentCcIds) && lead.inCatchmentCcIds.length === 1) {
+      assignedCcId = lead.inCatchmentCcIds[0]
+    }
+    const thread = await ChatThread.create({
+      leadId: lead._id,
+      customerUserId: lead.customerUserId,
+      rvsfId: unlock.rvsfId,
+      ...(assignedCcId ? { assignedCcId } : {}),
+      participantUserIds: lead.customerUserId ? [lead.customerUserId, unlock.triggeredByUserId] : [unlock.triggeredByUserId],
+      lastMessageAt: new Date(),
+      status: "active",
+    })
+    await ChatMessage.create({
+      threadId: thread._id,
+      senderUserId: null,
+      senderRole: "system",
+      type: "system_event",
+      text: `RVSF ${rvsf?.displayName ?? "—"} has unlocked your lead and will reach out shortly.`,
+    })
+
+    // Fire notifications (per L27 Option D)
+    if (lead.customerUserId) {
+      await enqueueNotification({
+        kind: "lead_unlocked_customer",
+        recipientUserId: lead.customerUserId.toString(),
+        subject: "An RVSF has reviewed your scrap request",
+        bodyMarkdown: `**${rvsf?.displayName ?? "An RVSF"}** has unlocked your lead for the ${lead.vehicle?.year ?? ""} ${lead.vehicle?.make ?? ""} ${lead.vehicle?.model ?? ""}. They'll message you shortly in the platform chat.`,
+        channels: ["email", "inapp", "whatsapp"],
+        whatsappTemplateName: "lead_unlocked_customer_notice",
+        leadId: lead._id.toString(),
+      })
+    }
+    await enqueueNotification({
+      kind: "lead_unlocked_rvsf",
+      recipientUserId: unlock.triggeredByUserId.toString(),
+      subject: `Lead unlocked — ${lead.vehicle?.registrationNumber}`,
+      bodyMarkdown: `You unlocked the lead for **${lead.vehicle?.registrationNumber}** (₹${(unlock.baseAmountPaise / 100).toFixed(2)}). Open the chat to start the conversation.`,
+      channels: ["email", "inapp"],
+      leadId: lead._id.toString(),
+    })
+
+    return NextResponse.json({
+      ok: true,
+      leadUnlockId: unlock._id.toString(),
+      chatThreadId: thread._id.toString(),
+    })
+  }
+
+  if (event === "refund.processed") {
+    // Wired up in M16 along with the reject-refund flow
+    return NextResponse.json({ ok: true, queuedForM16: true })
+  }
+
+  return NextResponse.json({ ok: true, ignored: event })
+}
