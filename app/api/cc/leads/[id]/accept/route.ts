@@ -79,12 +79,31 @@ export async function POST(
       )
     }
 
-    // Idempotent push — duplicate clicks return { alreadyAccepted: true }.
-    const updateRes = await Lead.updateOne(
+    // Idempotency — determine "already accepted" from the lead we just loaded,
+    // NOT from updateOne().modifiedCount.
+    //
+    // Why not modifiedCount: the Lead schema has `{ timestamps: true }`, so
+    // Mongoose injects `$set: { updatedAt: <now> }` into EVERY updateOne. That
+    // bumps `updatedAt` unconditionally, so `modifiedCount` is always 1 even
+    // when `$addToSet` adds nothing. The old `modifiedCount === 0` test
+    // therefore returned `false` on every call — so a duplicate accept was
+    // never detected and the parent-RVSF Notification fired on every click
+    // (double-click / refresh / re-accept all spammed the RVSF dashboard,
+    // the exact thing the notification guard below is meant to prevent).
+    //
+    // The pre-fetched `lead.ccAcceptedBy` is the reliable source of truth: if
+    // this CC's id is already in it, this is a duplicate accept.
+    const alreadyAccepted = (lead.ccAcceptedBy ?? [])
+      .map((c: any) => c?.toString?.())
+      .includes(ccIdStr)
+
+    // Push is still idempotent at the data layer ($addToSet). We run it even on
+    // a duplicate (harmless no-op on the set) so a partially-written prior
+    // state self-heals.
+    await Lead.updateOne(
       { _id: lead._id },
       { $addToSet: { ccAcceptedBy: user.linkedCcId } }
     )
-    const alreadyAccepted = updateRes.modifiedCount === 0
 
     // Notify the parent RVSF — fire-and-forget on the response path.
     // Only emit a notification on the FIRST accept by this CC (not on dupes)
