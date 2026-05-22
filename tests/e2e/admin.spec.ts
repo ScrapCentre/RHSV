@@ -35,8 +35,15 @@ test("admin can reach /admin/mock-config via the v2 sidebar; config loads cleanl
 
   // -- Page-level: hit /admin and confirm the v2 tile grid shows up --
   await page.goto(`${base}/admin`)
+  // NOTE: the AdminV2Nav heading carries `uppercase` in its className, so
+  // `innerText()` (which reflects computed text-transform) returns
+  // "ADMIN V2", not the source "Admin v2". Match case-insensitively against
+  // textContent so this assertion is robust to that CSS transform.
   await expect.poll(
-    async () => (await page.locator("body").innerText()).includes("Admin v2"),
+    async () => {
+      const txt = (await page.locator("body").textContent()) ?? ""
+      return /admin v2/i.test(txt)
+    },
     { message: "Admin v2 tile-grid label missing", timeout: 15_000 }
   ).toBeTruthy()
 

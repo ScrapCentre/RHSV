@@ -38,8 +38,13 @@ test("cc operator dashboard shows ≥1 lead in catchment (ObjectId-cast regressi
   // briefly show a stale 0 on a cold deploy.)
   await expect.poll(
     async () => {
+      // innerText returns text with the CSS `text-transform: uppercase` applied,
+      // so the stat-card heading reads "IN YOUR CATCHMENT" on screen. The guard
+      // below MUST be case-insensitive — an earlier `.includes("In your catchment")`
+      // (mixed-case) silently never matched, so this poll always returned -1 and
+      // the test timed out even though the dashboard rendered "2" correctly.
       const text = await page.locator("body").innerText()
-      if (!text.includes("In your catchment")) return -1
+      if (!/in your catchment/i.test(text)) return -1
       // Find the number immediately after "In your catchment" / before "leads marketplace-visible".
       const match = text.match(/In your catchment\s+(\d+)\s+leads marketplace-visible/i)
       if (!match) return -1
