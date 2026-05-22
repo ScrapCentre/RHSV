@@ -162,12 +162,41 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, warning: "lead state not flipped" })
     }
 
-    // Create the ChatThread + auto-system message (per L43)
+    // Create the ChatThread + auto-system message (per L43).
+    //
+    // HOTFIX 2026-05-22 (P1, v2-codereview §P2-5 + chat-coherence task):
+    // `ChatThread.assignedCcId` was never written by ANY code path, which
+    // killed the cc_operator chat surface — `/api/chat/my-threads` filters
+    // cc_operators by `assignedCcId === user.linkedCcId`, so the operator's
+    // inbox was permanently empty even when leads were unlocked in their
+    // catchment. We resolve assignedCcId here, at thread-creation time, in
+    // priority order:
+    //   1. `Lead.assignedCcId` if already set — when RVSF admin's assign-to-CC
+    //      action runs BEFORE unlock (or in any future flow), this is the
+    //      canonical assignment and we mirror it.
+    //   2. Sole catchment CC fallback — if the lead has exactly one CC in
+    //      `inCatchmentCcIds`, that CC is unambiguously the one that will
+    //      handle the physical work (true for the Auraiya demo where one
+    //      RVSF owns one primary yard, and for any single-CC RVSF in v2).
+    //      With >1 CCs, we leave it null until the RVSF admin explicitly
+    //      assigns — a future /api/rvsf/leads/[id]/assign-to-cc route (and
+    //      any other path that writes Lead.assignedCcId post-unlock) MUST
+    //      mirror the same write to ChatThread.assignedCcId for the active
+    //      thread, e.g.
+    //         await ChatThread.updateOne(
+    //           { leadId, status: "active" },
+    //           { $set: { assignedCcId } }
+    //         )
     const rvsf = await RVSF.findById(unlock.rvsfId).lean() as any
+    let assignedCcId: any = lead.assignedCcId ?? null
+    if (!assignedCcId && Array.isArray(lead.inCatchmentCcIds) && lead.inCatchmentCcIds.length === 1) {
+      assignedCcId = lead.inCatchmentCcIds[0]
+    }
     const thread = await ChatThread.create({
       leadId: lead._id,
       customerUserId: lead.customerUserId,
       rvsfId: unlock.rvsfId,
+      ...(assignedCcId ? { assignedCcId } : {}),
       participantUserIds: lead.customerUserId ? [lead.customerUserId, unlock.triggeredByUserId] : [unlock.triggeredByUserId],
       lastMessageAt: new Date(),
       status: "active",

@@ -1,4 +1,21 @@
 // M12 — chat messages (GET paginated; POST new text/image/document/offer).
+//
+// ROLE ASYMMETRY (hotfix 2026-05-22, P1 v2-codereview §P1-2 + §P2-5):
+//   - GET allows: client, rvsf_admin, rvsf_executive, admin, cc_operator
+//     The cc_operator gets READ-ONLY visibility on the chat for their
+//     assigned lead — they need to see pickup-logistics negotiated between
+//     customer ↔ RVSF (VISION.md §3 line 80 "pickup logistics negotiated
+//     in chat … vehicle arrives at the CC"). Previously, /api/chat/my-threads
+//     listed the threads for cc_operator but this route's PARTY_ROLES did NOT
+//     include cc_operator — so the operator clicked a thread and got 403.
+//   - POST allows ONLY: client, rvsf_admin, rvsf_executive, admin
+//     CC operator is deliberately excluded from posting. VISION.md §7 + L19
+//     scope the CC operator to "manage the physical scrap workflow at their
+//     yard" — they are not a negotiation party. The negotiation (offers,
+//     pricing) is strictly customer ↔ rvsf_executive (per L37, L53).
+//   - ChatMessage.senderRole enum has no `cc_operator` value either; allowing
+//     POST would force us to either coerce them to rvsf_executive (misleading
+//     audit trail) or extend the enum (out of scope for a hotfix).
 import { NextResponse } from "next/server"
 import { withAuth } from "@/lib/middleware/requireRole"
 import { validateObjectId } from "@/lib/middleware/objectId"
@@ -8,7 +25,12 @@ import ChatMessage from "@/models/ChatMessage"
 import Lead from "@/models/Lead"
 import ConfigSetting from "@/models/ConfigSetting"
 
+// Posting (write) roles — CC operator deliberately excluded; see header comment.
 const PARTY_ROLES = ["client", "rvsf_admin", "rvsf_executive", "admin"] as const
+// Reading roles — same as PARTY_ROLES + cc_operator (read-only visibility on
+// the thread for the lead assigned to their CC). See header comment + the
+// `isParty` branch in `loadThreadAndAuthorize`.
+const READ_ROLES = ["client", "rvsf_admin", "rvsf_executive", "admin", "cc_operator"] as const
 
 async function loadThreadAndAuthorize(req: Request, user: any) {
   const url = new URL(req.url)
@@ -25,12 +47,16 @@ async function loadThreadAndAuthorize(req: Request, user: any) {
   const isParty =
     user.role === "admin" ||
     (user.role === "client" && thread.customerUserId?.toString() === user.id) ||
-    ((user.role === "rvsf_admin" || user.role === "rvsf_executive") && thread.rvsfId?.toString() === user.linkedRvsfId)
+    ((user.role === "rvsf_admin" || user.role === "rvsf_executive") && thread.rvsfId?.toString() === user.linkedRvsfId) ||
+    // cc_operator: only the operator whose CC the thread is assigned to can read.
+    // Mirror of the `assignedCcId === user.linkedCcId` check in
+    // app/api/chat/threads/[leadId]/route.ts so the two endpoints stay in lockstep.
+    (user.role === "cc_operator" && thread.assignedCcId?.toString() === user.linkedCcId)
   if (!isParty) return { error: "Forbidden", status: 403 } as any
   return { thread } as any
 }
 
-export const GET = withAuth([...PARTY_ROLES], async (req, { user }) => {
+export const GET = withAuth([...READ_ROLES], async (req, { user }) => {
   const r = await loadThreadAndAuthorize(req, user)
   if (r.error) return NextResponse.json({ error: r.error }, { status: r.status })
 
@@ -46,6 +72,7 @@ export const GET = withAuth([...PARTY_ROLES], async (req, { user }) => {
   return NextResponse.json({ messages: messages.reverse() })
 })
 
+// POST intentionally uses PARTY_ROLES (cc_operator excluded — see header).
 export const POST = withAuth([...PARTY_ROLES], async (req, { user }) => {
   const r = await loadThreadAndAuthorize(req, user)
   if (r.error) return NextResponse.json({ error: r.error }, { status: r.status })
