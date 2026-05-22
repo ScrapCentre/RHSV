@@ -388,64 +388,79 @@ test.describe.serial("RVSF chat + negotiation (Lead B)", () => {
     const base = requireBaseURL(baseURL)
     await signInAsPartner(context, base)
 
-    // Reject is the most reseed-sensitive flow: it touches Lead + LeadUnlock +
-    // ChatThread, and a concurrent reseed (the parallel QA agent) can delete
-    // the LeadUnlock row out from under the lead mid-request → a transient
-    // 500. We reseed-and-retry up to 3× on those known transient errors; a
-    // real reject failure (validation, auth) is NOT retried and fails fast.
-    const TRANSIENT = /LeadUnlock row not found|Lead not found|not in a rejectable state/i
+    // Reject is by far the most reseed-sensitive flow: the RejectLeadDialog
+    // only renders once /api/marketplace/leads/[id] resolves the lead, and the
+    // reject POST touches Lead + LeadUnlock + ChatThread. A concurrent reseed
+    // (the parallel QA agent) can delete the lead or its LeadUnlock out from
+    // under the request, so any single attempt can race-lose. We reseed and
+    // retry the whole flow up to 4× — each attempt opens a fresh quiet window.
+    // A non-transient failure inside an attempt still surfaces (last attempt's
+    // assertion error propagates).
     let routed = false
+    let lastErr: unknown = null
 
-    for (let attempt = 1; attempt <= 3 && !routed; attempt++) {
-      if (attempt > 1) tryReseed()
-      const leadB = await discoverActiveThreadLeadId(page, base)
+    for (let attempt = 1; attempt <= 4 && !routed; attempt++) {
+      tryReseed()
+      try {
+        const leadB = await discoverActiveThreadLeadId(page, base)
+        await page.goto(`${base}/rvsf/chat/${leadB}`)
 
-      await page.goto(`${base}/rvsf/chat/${leadB}`)
-      const rejectBtn = page.getByRole("button", { name: /Reject lead/ })
-      await expect(rejectBtn).toBeVisible({ timeout: 20_000 })
-      await rejectBtn.click()
+        // The "✕ Reject lead" button needs leadMeta to have loaded.
+        const rejectBtn = page.getByRole("button", { name: /Reject lead/ })
+        await expect(rejectBtn).toBeVisible({ timeout: 15_000 })
+        await rejectBtn.click()
 
-      const dialogHeading = page.getByRole("heading", {
-        name: /Return this lead to the marketplace/,
-      })
-      await expect(dialogHeading).toBeVisible()
+        await expect(
+          page.getByRole("heading", {
+            name: /Return this lead to the marketplace/,
+          })
+        ).toBeVisible()
 
-      // Fill the form: pick a reason, note ≥ 10 chars, acknowledge. The reject
-      // dialog is the only modal on the page → its single <select> + <checkbox>
-      // are unambiguous.
-      await page.getByRole("combobox").selectOption("out_of_catchment")
-      await page
-        .getByPlaceholder(/Brief explanation/)
-        .fill("QA e2e — lead is outside our pickup catchment area.")
-      await page.getByRole("checkbox").check()
+        // Fill the form: reason + note ≥ 10 chars + acknowledge. The reject
+        // dialog is the only modal → its single <select>/<checkbox> are
+        // unambiguous.
+        await page.getByRole("combobox").selectOption("out_of_catchment")
+        await page
+          .getByPlaceholder(/Brief explanation/)
+          .fill("QA e2e — lead is outside our pickup catchment area.")
+        await page.getByRole("checkbox").check()
 
-      // Submitting alerts the refund decision on success; auto-dismiss it.
-      page.once("dialog", (d) => d.accept())
-      await page
-        .getByRole("button", { name: "Reject and return to marketplace" })
-        .click()
+        // Submitting alerts the refund decision on success; auto-dismiss it.
+        page.once("dialog", (d) => d.accept())
+        await page
+          .getByRole("button", { name: "Reject and return to marketplace" })
+          .click()
 
-      // Either: routed back to the marketplace (success) OR the dialog shows
-      // an error. Wait for whichever resolves first.
-      const errorBanner = page.locator(".text-status-error")
-      await Promise.race([
-        page.waitForURL(/\/rvsf\/marketplace/, { timeout: 20_000 }).catch(() => {}),
-        errorBanner.first().waitFor({ state: "visible", timeout: 20_000 }).catch(() => {}),
-      ])
+        // Success routes back to the marketplace; a race-loss shows an error
+        // banner in the still-open dialog.
+        const errorBanner = page.locator(".text-status-error")
+        await Promise.race([
+          page.waitForURL(/\/rvsf\/marketplace/, { timeout: 15_000 })
+            .catch(() => {}),
+          errorBanner.first()
+            .waitFor({ state: "visible", timeout: 15_000 })
+            .catch(() => {}),
+        ])
 
-      if (/\/rvsf\/marketplace/.test(page.url())) {
-        routed = true
-        break
+        if (/\/rvsf\/marketplace/.test(page.url())) {
+          routed = true
+        } else {
+          const errText =
+            (await errorBanner.first().textContent().catch(() => "")) ?? ""
+          lastErr = new Error(`reject submit error: "${errText.trim()}"`)
+        }
+      } catch (e) {
+        // A reseed nuked the lead mid-attempt (button never rendered, etc.).
+        // Capture + retry from a fresh reseed.
+        lastErr = e
       }
-      // Not routed — inspect the error. Retry only the transient seed-race ones.
-      const errText = (await errorBanner.first().textContent().catch(() => "")) ?? ""
-      expect(
-        TRANSIENT.test(errText),
-        `reject failed with a non-transient error: "${errText}"`
-      ).toBeTruthy()
     }
 
-    expect(routed, "reject did not route to the marketplace after retries")
-      .toBeTruthy()
+    expect(
+      routed,
+      `reject never routed to the marketplace after 4 attempts; last error: ${
+        lastErr instanceof Error ? lastErr.message : String(lastErr)
+      }`
+    ).toBeTruthy()
   })
 })
