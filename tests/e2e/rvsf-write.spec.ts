@@ -74,15 +74,18 @@ async function discoverActiveThreadLeadId(page: Page, base: string): Promise<str
 /**
  * Sign in as the customer in a SEPARATE browser context and post an offer on
  * `leadId`. The offer just needs to exist so partner.test has a counterparty
- * offer to counter / accept (it cannot act on its own). Returns the new
- * offer's messageId.
+ * offer to counter / accept (it cannot act on its own).
+ *
+ * Returns `{ ok }`: a 404 "No active thread" (the parallel QA agent archived
+ * the thread between discovery and this POST) is reported as `ok:false` so the
+ * caller can reseed + retry. Any other non-OK status throws.
  */
 async function customerPostsOffer(
   newContext: () => Promise<BrowserContext>,
   base: string,
   leadId: string,
   amountRupees: number
-): Promise<string> {
+): Promise<{ ok: boolean }> {
   const ctx = await newContext()
   try {
     await signInAsClient(ctx, base)
@@ -93,15 +96,38 @@ async function customerPostsOffer(
       headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
       data: { type: "offer", offerAmountPaise: amountRupees * 100 },
     })
-    expect(
-      res.ok(),
-      `customer offer post failed: ${res.status()} ${await res.text()}`
-    ).toBeTruthy()
-    const body = await res.json()
-    return body.message?._id
+    if (res.ok()) return { ok: true }
+    // Transient reseed race — thread archived/deleted out from under us.
+    if (res.status() === 404) return { ok: false }
+    throw new Error(`customer offer post failed: ${res.status()} ${await res.text()}`)
   } finally {
     await ctx.close()
   }
+}
+
+/**
+ * Run a destructive Lead-B flow with reseed-and-retry. `body` does the full
+ * flow (discover thread → set up → act → assert) and throws on any failure;
+ * the wrapper reseeds and retries up to `attempts` times. This rides out the
+ * parallel QA agent's reseed churn (archived threads, deleted leads).
+ */
+async function withReseedRetry(
+  body: () => Promise<void>,
+  attempts = 4
+): Promise<void> {
+  let lastErr: unknown = null
+  for (let i = 1; i <= attempts; i++) {
+    if (i > 1) tryReseed()
+    try {
+      await body()
+      return
+    } catch (e) {
+      lastErr = e
+    }
+  }
+  throw lastErr instanceof Error
+    ? lastErr
+    : new Error(`flow failed after ${attempts} attempts: ${String(lastErr)}`)
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -190,42 +216,49 @@ test.describe.serial("RVSF chat + negotiation (Lead B)", () => {
     const base = requireBaseURL(baseURL)
     await signInAsPartner(context, base)
 
-    const leadB = await discoverActiveThreadLeadId(page, base)
-    await page.goto(`${base}/rvsf/chat/${leadB}`)
+    await withReseedRetry(async () => {
+      const leadB = await discoverActiveThreadLeadId(page, base)
+      await page.goto(`${base}/rvsf/chat/${leadB}`)
 
-    // The ChatThread composer textarea (RVSF placeholder copy).
-    const composer = page.getByPlaceholder("Introduce yourself and propose pickup…")
-    await expect(composer).toBeVisible({ timeout: 20_000 })
+      // The ChatThread composer textarea (RVSF placeholder copy). It only
+      // renders on an active thread — a reseed-archived thread hides it.
+      const composer = page.getByPlaceholder(
+        "Introduce yourself and propose pickup…"
+      )
+      await expect(composer).toBeVisible({ timeout: 15_000 })
 
-    const stamp = `QA-rvsf-text ${Date.now()}`
-    await composer.fill(stamp)
-    await page.getByRole("button", { name: "Send", exact: true }).click()
+      const stamp = `QA-rvsf-text ${Date.now()}`
+      await composer.fill(stamp)
+      await page.getByRole("button", { name: "Send", exact: true }).click()
 
-    // The new bubble must appear in the thread (refresh() re-pulls on success).
-    await expect(page.getByText(stamp)).toBeVisible({ timeout: 20_000 })
+      // The new bubble must appear in the thread (refresh() re-pulls on success).
+      await expect(page.getByText(stamp)).toBeVisible({ timeout: 15_000 })
+    })
   })
 
   test("RVSF can post a price offer in chat", async ({ context, page, baseURL }) => {
     const base = requireBaseURL(baseURL)
     await signInAsPartner(context, base)
 
-    const leadB = await discoverActiveThreadLeadId(page, base)
-    await page.goto(`${base}/rvsf/chat/${leadB}`)
+    await withReseedRetry(async () => {
+      const leadB = await discoverActiveThreadLeadId(page, base)
+      await page.goto(`${base}/rvsf/chat/${leadB}`)
 
-    await expect(
-      page.getByPlaceholder("Introduce yourself and propose pickup…")
-    ).toBeVisible({ timeout: 20_000 })
+      await expect(
+        page.getByPlaceholder("Introduce yourself and propose pickup…")
+      ).toBeVisible({ timeout: 15_000 })
 
-    // Open the offer composer, enter an amount, send.
-    await page.getByRole("button", { name: "₹ Offer" }).click()
-    const amountRupees = 13700 + Math.floor(Math.random() * 800)
-    await page.getByPlaceholder("Amount in rupees").fill(String(amountRupees))
-    await page.getByRole("button", { name: "Send offer" }).click()
+      // Open the offer composer, enter an amount, send.
+      await page.getByRole("button", { name: "₹ Offer" }).click()
+      const amountRupees = 13700 + Math.floor(Math.random() * 800)
+      await page.getByPlaceholder("Amount in rupees").fill(String(amountRupees))
+      await page.getByRole("button", { name: "Send offer" }).click()
 
-    // The new offer bubble renders the formatted amount.
-    const formatted = amountRupees.toLocaleString("en-IN")
-    await expect(page.getByText(`₹${formatted}`).first()).toBeVisible({
-      timeout: 20_000,
+      // The new offer bubble renders the formatted amount.
+      const formatted = amountRupees.toLocaleString("en-IN")
+      await expect(page.getByText(`₹${formatted}`).first()).toBeVisible({
+        timeout: 15_000,
+      })
     })
   })
 
@@ -234,36 +267,43 @@ test.describe.serial("RVSF chat + negotiation (Lead B)", () => {
   }) => {
     const base = requireBaseURL(baseURL)
     await signInAsPartner(context, base)
-    const leadB = await discoverActiveThreadLeadId(page, base)
 
-    // The customer posts an offer first so partner.test has one to counter.
-    const offerRupees = 11000 + Math.floor(Math.random() * 900)
-    await customerPostsOffer(() => browser.newContext(), base, leadB, offerRupees)
+    await withReseedRetry(async () => {
+      const leadB = await discoverActiveThreadLeadId(page, base)
 
-    await page.goto(`${base}/rvsf/chat/${leadB}`)
-    await expect(
-      page.getByPlaceholder("Introduce yourself and propose pickup…")
-    ).toBeVisible({ timeout: 20_000 })
+      // The customer posts an offer first so partner.test has one to counter.
+      // A 404 here means a reseed archived the thread — throw to trigger retry.
+      const offerRupees = 11000 + Math.floor(Math.random() * 900)
+      const posted = await customerPostsOffer(
+        () => browser.newContext(), base, leadB, offerRupees
+      )
+      if (!posted.ok) throw new Error("customer offer post hit an archived thread")
 
-    // The customer offer bubble carries Accept / Counter / Reject buttons for
-    // partner.test (not partner.test's own offer). Counter uses window.prompt
-    // — register the dialog handler before clicking.
-    const counterRupees = offerRupees + 500
-    page.once("dialog", (d) => d.accept(String(counterRupees)))
+      await page.goto(`${base}/rvsf/chat/${leadB}`)
+      await expect(
+        page.getByPlaceholder("Introduce yourself and propose pickup…")
+      ).toBeVisible({ timeout: 15_000 })
 
-    // Scope to the customer's offer card to avoid clicking a stale RVSF offer.
-    const custOfferCard = page
-      .locator("div")
-      .filter({ hasText: "Customer offer" })
-      .filter({ hasText: `₹${offerRupees.toLocaleString("en-IN")}` })
-      .last()
-    await expect(custOfferCard).toBeVisible({ timeout: 20_000 })
-    await custOfferCard.getByRole("button", { name: "Counter" }).click()
+      // The customer offer bubble carries Accept / Counter / Reject buttons for
+      // partner.test (not partner.test's own offer). Counter uses window.prompt
+      // — register the dialog handler before clicking.
+      const counterRupees = offerRupees + 500
+      page.once("dialog", (d) => d.accept(String(counterRupees)))
 
-    // The counter creates a fresh RVSF offer at the countered amount.
-    await expect(
-      page.getByText(`₹${counterRupees.toLocaleString("en-IN")}`).first()
-    ).toBeVisible({ timeout: 20_000 })
+      // Scope to the customer's offer card to avoid clicking a stale RVSF offer.
+      const custOfferCard = page
+        .locator("div")
+        .filter({ hasText: "Customer offer" })
+        .filter({ hasText: `₹${offerRupees.toLocaleString("en-IN")}` })
+        .last()
+      await expect(custOfferCard).toBeVisible({ timeout: 15_000 })
+      await custOfferCard.getByRole("button", { name: "Counter" }).click()
+
+      // The counter creates a fresh RVSF offer at the countered amount.
+      await expect(
+        page.getByText(`₹${counterRupees.toLocaleString("en-IN")}`).first()
+      ).toBeVisible({ timeout: 15_000 })
+    })
   })
 
   test("RVSF can accept a customer's offer (pins the agreed price)", async ({
@@ -271,29 +311,37 @@ test.describe.serial("RVSF chat + negotiation (Lead B)", () => {
   }) => {
     const base = requireBaseURL(baseURL)
     await signInAsPartner(context, base)
-    const leadB = await discoverActiveThreadLeadId(page, base)
 
-    const offerRupees = 12000 + Math.floor(Math.random() * 900)
-    await customerPostsOffer(() => browser.newContext(), base, leadB, offerRupees)
+    await withReseedRetry(async () => {
+      const leadB = await discoverActiveThreadLeadId(page, base)
 
-    await page.goto(`${base}/rvsf/chat/${leadB}`)
-    await expect(
-      page.getByPlaceholder("Introduce yourself and propose pickup…")
-    ).toBeVisible({ timeout: 20_000 })
+      const offerRupees = 12000 + Math.floor(Math.random() * 900)
+      const posted = await customerPostsOffer(
+        () => browser.newContext(), base, leadB, offerRupees
+      )
+      if (!posted.ok) throw new Error("customer offer post hit an archived thread")
 
-    // Accept uses window.confirm — auto-accept it.
-    page.once("dialog", (d) => d.accept())
+      await page.goto(`${base}/rvsf/chat/${leadB}`)
+      await expect(
+        page.getByPlaceholder("Introduce yourself and propose pickup…")
+      ).toBeVisible({ timeout: 15_000 })
 
-    const custOfferCard = page
-      .locator("div")
-      .filter({ hasText: "Customer offer" })
-      .filter({ hasText: `₹${offerRupees.toLocaleString("en-IN")}` })
-      .last()
-    await expect(custOfferCard).toBeVisible({ timeout: 20_000 })
-    await custOfferCard.getByRole("button", { name: "Accept" }).click()
+      // Accept uses window.confirm — auto-accept it.
+      page.once("dialog", (d) => d.accept())
 
-    // On accept the thread pins an "Agreed price" banner.
-    await expect(page.getByText(/Agreed price:/)).toBeVisible({ timeout: 20_000 })
+      const custOfferCard = page
+        .locator("div")
+        .filter({ hasText: "Customer offer" })
+        .filter({ hasText: `₹${offerRupees.toLocaleString("en-IN")}` })
+        .last()
+      await expect(custOfferCard).toBeVisible({ timeout: 15_000 })
+      await custOfferCard.getByRole("button", { name: "Accept" }).click()
+
+      // On accept the thread pins an "Agreed price" banner.
+      await expect(page.getByText(/Agreed price:/)).toBeVisible({
+        timeout: 15_000,
+      })
+    })
   })
 
   test("RejectLeadDialog opens with a refund-eligibility banner", async ({
@@ -301,51 +349,53 @@ test.describe.serial("RVSF chat + negotiation (Lead B)", () => {
   }) => {
     const base = requireBaseURL(baseURL)
     await signInAsPartner(context, base)
-    const leadB = await discoverActiveThreadLeadId(page, base)
 
-    // Probe whether the marketplace-detail fix is deployed: the corrected
-    // route returns an `unlock` key. The live deploy may still run the
-    // pre-fix build (PM does one final deploy), so the strict grace-state
-    // assertion is gated on the fix actually being live.
-    const detailRes = await page.request.get(
-      `${base}/api/marketplace/leads/${leadB}`
-    )
-    const detail = await detailRes.json()
-    const fixDeployed = detail?.lead && "unlock" in detail.lead
+    await withReseedRetry(async () => {
+      const leadB = await discoverActiveThreadLeadId(page, base)
 
-    await page.goto(`${base}/rvsf/chat/${leadB}`)
-    // rvsf_admin sees the "✕ Reject lead" toolbar button once leadMeta loads.
-    const rejectBtn = page.getByRole("button", { name: /Reject lead/ })
-    await expect(rejectBtn).toBeVisible({ timeout: 20_000 })
-    await rejectBtn.click()
+      // Probe whether the marketplace-detail fix is deployed: the corrected
+      // route returns an `unlock` key. The live deploy may still run the
+      // pre-fix build (PM does one final deploy), so the strict grace-state
+      // assertion is gated on the fix actually being live.
+      const detailRes = await page.request.get(
+        `${base}/api/marketplace/leads/${leadB}`
+      )
+      const detail = await detailRes.json()
+      const fixDeployed = detail?.lead && "unlock" in detail.lead
 
-    // The dialog header + the reason <select> must render.
-    const dialogHeading = page.getByRole("heading", {
-      name: /Return this lead to the marketplace/,
+      await page.goto(`${base}/rvsf/chat/${leadB}`)
+      // rvsf_admin sees the "✕ Reject lead" toolbar button once leadMeta loads.
+      const rejectBtn = page.getByRole("button", { name: /Reject lead/ })
+      await expect(rejectBtn).toBeVisible({ timeout: 15_000 })
+      await rejectBtn.click()
+
+      // The dialog header + the reason <select> must render.
+      const dialogHeading = page.getByRole("heading", {
+        name: /Return this lead to the marketplace/,
+      })
+      await expect(dialogHeading).toBeVisible()
+      await expect(page.getByText("Reason", { exact: true })).toBeVisible()
+
+      // The dialog MUST always render one of the three refund-eligibility
+      // banners (red number-revealed / green auto-refund / amber no-auto).
+      await expect(
+        page.getByText(/No automatic refund|Auto-refund: ₹/).first()
+      ).toBeVisible()
+
+      // Strict correctness — only assert once the marketplace-detail fix is
+      // live. Demo Lead B was unlocked ~2h ago (past the 60-min grace window)
+      // with chat messages, so the banner must NOT promise an auto-refund.
+      // Pre-fix the dialog fell back to unlockedAt=now + count=0 and always
+      // wrongly showed "Auto-refund: ₹0". See the route fix in this branch.
+      if (fixDeployed) {
+        await expect(page.getByText(/No automatic refund/)).toBeVisible()
+        await expect(page.getByText(/Auto-refund: ₹/)).toHaveCount(0)
+      }
+
+      // Cancel closes the dialog cleanly.
+      await page.getByRole("button", { name: "Cancel" }).click()
+      await expect(dialogHeading).toHaveCount(0)
     })
-    await expect(dialogHeading).toBeVisible()
-    await expect(page.getByText("Reason", { exact: true })).toBeVisible()
-
-    // The dialog MUST always render exactly one of the three refund-eligibility
-    // banners (red number-revealed / green auto-refund / amber no-auto-refund).
-    const anyBanner = page.getByText(
-      /No automatic refund|Auto-refund: ₹/
-    )
-    await expect(anyBanner.first()).toBeVisible()
-
-    // Strict correctness — only assert once the marketplace-detail fix is
-    // live. Demo Lead B was unlocked ~2h ago (past the 60-min grace window)
-    // with chat messages, so the banner must NOT promise an auto-refund.
-    // Pre-fix the dialog fell back to unlockedAt=now + count=0 and always
-    // wrongly showed "Auto-refund: ₹0". See route fix in this commit.
-    if (fixDeployed) {
-      await expect(page.getByText(/No automatic refund/)).toBeVisible()
-      await expect(page.getByText(/Auto-refund: ₹/)).toHaveCount(0)
-    }
-
-    // Cancel closes the dialog cleanly.
-    await page.getByRole("button", { name: "Cancel" }).click()
-    await expect(dialogHeading).toHaveCount(0)
   })
 
   test("RVSF can reveal the customer's phone number", async ({
@@ -353,33 +403,38 @@ test.describe.serial("RVSF chat + negotiation (Lead B)", () => {
   }) => {
     const base = requireBaseURL(baseURL)
     await signInAsPartner(context, base)
-    const leadB = await discoverActiveThreadLeadId(page, base)
 
-    await page.goto(`${base}/rvsf/chat/${leadB}`)
-    const revealBtn = page.getByRole("button", { name: /Reveal customer's number/ })
-    await expect(revealBtn).toBeVisible({ timeout: 20_000 })
-    await revealBtn.click()
+    await withReseedRetry(async () => {
+      const leadB = await discoverActiveThreadLeadId(page, base)
 
-    // The dialog is in one of two states depending on whether the number was
-    // already revealed (a prior run, or a parallel agent). Handle both:
-    //   - fresh:    confirm copy + a "Reveal number" button → click it
-    //   - revealed: the phone is already shown
-    const confirmBtn = page.getByRole("button", { name: "Reveal number" })
-    if (await confirmBtn.isVisible().catch(() => false)) {
+      await page.goto(`${base}/rvsf/chat/${leadB}`)
+      const revealBtn = page.getByRole("button", {
+        name: /Reveal customer's number/,
+      })
+      await expect(revealBtn).toBeVisible({ timeout: 15_000 })
+      await revealBtn.click()
+
+      // The dialog is in one of two states depending on whether the number was
+      // already revealed (a prior run, or a parallel agent). Handle both:
+      //   - fresh:    confirm copy + a "Reveal number" button → click it
+      //   - revealed: the phone is already shown
+      const confirmBtn = page.getByRole("button", { name: "Reveal number" })
+      if (await confirmBtn.isVisible().catch(() => false)) {
+        await expect(
+          page.getByText(/automatic refunds on this lead/)
+        ).toBeVisible()
+        await confirmBtn.click()
+      }
+
+      // Either way the dialog must end on the phone-number panel.
       await expect(
-        page.getByText(/automatic refunds on this lead/)
-      ).toBeVisible()
-      await confirmBtn.click()
-    }
-
-    // Either way the dialog must end on the phone-number panel.
-    await expect(
-      page.getByRole("heading", { name: "Customer phone number" })
-    ).toBeVisible({ timeout: 20_000 })
-    // A +91 number must render (demo customer phones are +9199999000xx).
-    await expect(page.getByText(/\+91\d{10}/)).toBeVisible()
-    // The refund-policy reminder must be shown.
-    await expect(page.getByText(/Refund policy reminder/)).toBeVisible()
+        page.getByRole("heading", { name: "Customer phone number" })
+      ).toBeVisible({ timeout: 15_000 })
+      // A +91 number must render (demo customer phones are +9199999000xx).
+      await expect(page.getByText(/\+91\d{10}/)).toBeVisible()
+      // The refund-policy reminder must be shown.
+      await expect(page.getByText(/Refund policy reminder/)).toBeVisible()
+    })
   })
 
   test("RVSF admin can reject a lead with a reason", async ({
@@ -392,75 +447,53 @@ test.describe.serial("RVSF chat + negotiation (Lead B)", () => {
     // only renders once /api/marketplace/leads/[id] resolves the lead, and the
     // reject POST touches Lead + LeadUnlock + ChatThread. A concurrent reseed
     // (the parallel QA agent) can delete the lead or its LeadUnlock out from
-    // under the request, so any single attempt can race-lose. We reseed and
-    // retry the whole flow up to 4× — each attempt opens a fresh quiet window.
-    // A non-transient failure inside an attempt still surfaces (last attempt's
-    // assertion error propagates).
-    let routed = false
-    let lastErr: unknown = null
+    // under the request — so the whole flow runs under reseed-and-retry.
+    await withReseedRetry(async () => {
+      const leadB = await discoverActiveThreadLeadId(page, base)
+      await page.goto(`${base}/rvsf/chat/${leadB}`)
 
-    for (let attempt = 1; attempt <= 4 && !routed; attempt++) {
-      tryReseed()
-      try {
-        const leadB = await discoverActiveThreadLeadId(page, base)
-        await page.goto(`${base}/rvsf/chat/${leadB}`)
+      // The "✕ Reject lead" button needs leadMeta to have loaded.
+      const rejectBtn = page.getByRole("button", { name: /Reject lead/ })
+      await expect(rejectBtn).toBeVisible({ timeout: 15_000 })
+      await rejectBtn.click()
 
-        // The "✕ Reject lead" button needs leadMeta to have loaded.
-        const rejectBtn = page.getByRole("button", { name: /Reject lead/ })
-        await expect(rejectBtn).toBeVisible({ timeout: 15_000 })
-        await rejectBtn.click()
+      await expect(
+        page.getByRole("heading", {
+          name: /Return this lead to the marketplace/,
+        })
+      ).toBeVisible()
 
-        await expect(
-          page.getByRole("heading", {
-            name: /Return this lead to the marketplace/,
-          })
-        ).toBeVisible()
+      // Fill the form: reason + note ≥ 10 chars + acknowledge. The reject
+      // dialog is the only modal → its single <select>/<checkbox> are
+      // unambiguous.
+      await page.getByRole("combobox").selectOption("out_of_catchment")
+      await page
+        .getByPlaceholder(/Brief explanation/)
+        .fill("QA e2e — lead is outside our pickup catchment area.")
+      await page.getByRole("checkbox").check()
 
-        // Fill the form: reason + note ≥ 10 chars + acknowledge. The reject
-        // dialog is the only modal → its single <select>/<checkbox> are
-        // unambiguous.
-        await page.getByRole("combobox").selectOption("out_of_catchment")
-        await page
-          .getByPlaceholder(/Brief explanation/)
-          .fill("QA e2e — lead is outside our pickup catchment area.")
-        await page.getByRole("checkbox").check()
+      // Submitting alerts the refund decision on success; auto-dismiss it.
+      page.once("dialog", (d) => d.accept())
+      await page
+        .getByRole("button", { name: "Reject and return to marketplace" })
+        .click()
 
-        // Submitting alerts the refund decision on success; auto-dismiss it.
-        page.once("dialog", (d) => d.accept())
-        await page
-          .getByRole("button", { name: "Reject and return to marketplace" })
-          .click()
+      // Success routes back to the marketplace; a reseed race-loss shows an
+      // error banner in the still-open dialog → throw to trigger a retry.
+      const errorBanner = page.locator(".text-status-error")
+      await Promise.race([
+        page.waitForURL(/\/rvsf\/marketplace/, { timeout: 15_000 })
+          .catch(() => {}),
+        errorBanner.first()
+          .waitFor({ state: "visible", timeout: 15_000 })
+          .catch(() => {}),
+      ])
 
-        // Success routes back to the marketplace; a race-loss shows an error
-        // banner in the still-open dialog.
-        const errorBanner = page.locator(".text-status-error")
-        await Promise.race([
-          page.waitForURL(/\/rvsf\/marketplace/, { timeout: 15_000 })
-            .catch(() => {}),
-          errorBanner.first()
-            .waitFor({ state: "visible", timeout: 15_000 })
-            .catch(() => {}),
-        ])
-
-        if (/\/rvsf\/marketplace/.test(page.url())) {
-          routed = true
-        } else {
-          const errText =
-            (await errorBanner.first().textContent().catch(() => "")) ?? ""
-          lastErr = new Error(`reject submit error: "${errText.trim()}"`)
-        }
-      } catch (e) {
-        // A reseed nuked the lead mid-attempt (button never rendered, etc.).
-        // Capture + retry from a fresh reseed.
-        lastErr = e
+      if (!/\/rvsf\/marketplace/.test(page.url())) {
+        const errText =
+          (await errorBanner.first().textContent().catch(() => "")) ?? ""
+        throw new Error(`reject did not route; dialog error: "${errText.trim()}"`)
       }
-    }
-
-    expect(
-      routed,
-      `reject never routed to the marketplace after 4 attempts; last error: ${
-        lastErr instanceof Error ? lastErr.message : String(lastErr)
-      }`
-    ).toBeTruthy()
+    })
   })
 })
