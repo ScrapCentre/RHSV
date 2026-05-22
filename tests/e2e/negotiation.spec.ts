@@ -139,9 +139,19 @@ async function getOpenOffer(ctx: APIRequestContext, leadId: string): Promise<Off
 
 test.describe("Negotiation lifecycle — offer state machine", () => {
   test.skip(!SEED_HOST, "destructive negotiation suite only runs on the seeded host (VM 221)")
-  // These tests re-seed shared demo data; never run them in parallel with
-  // each other or they will trample one another's offer state.
-  test.describe.configure({ mode: "serial" })
+  // Serial: these tests re-seed shared demo data; running them in parallel
+  // would trample one another's offer state.
+  //
+  // retries: 1 — the v2 e2e suites ALL mutate the same `Demo Customer …`
+  // demo leads (every spec calls scripts/seed-demo-leads.ts). If a sibling
+  // suite (rvsf-write / admin-write / customer-write) reseeds the shared DB
+  // mid-test, our just-rendered offer's ChatMessage is deleted + recreated
+  // with a new _id, and an in-flight accept/counter/reject 409s on the now-
+  // stale id. That is cross-suite test contention, NOT a product bug — one
+  // retry (with a fresh beforeEach reseed) clears the transient collision.
+  // For a clean single-pass run, schedule this suite when no other
+  // demo-data-mutating suite is running.
+  test.describe.configure({ mode: "serial", retries: 1 })
 
   // Fresh open ₹14,500 offer before EVERY test (brief: re-seed between paths).
   test.beforeEach(() => {
