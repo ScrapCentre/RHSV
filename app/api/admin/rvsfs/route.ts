@@ -8,7 +8,16 @@ import RVSF from "@/models/RVSF"
 
 export const dynamic = "force-dynamic"
 
-const VALID_STATUSES = ["applied", "kyc_pending", "kyc_review", "active", "suspended", "rejected"]
+const VALID_STATUSES = [
+  "applied",
+  "kyc_pending",
+  "kyc_review",
+  "pending_more_info",
+  "active",
+  "suspended",
+  "rejected",
+  "rejected_with_notes",
+]
 
 export const GET = withAuth(["admin"], async (req, _ctx) => {
   await connectToDatabase()

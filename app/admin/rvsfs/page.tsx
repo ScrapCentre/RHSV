@@ -23,17 +23,23 @@ const STATUS_OPTIONS = [
   { value: "applied", label: "Applied" },
   { value: "kyc_pending", label: "KYC pending" },
   { value: "kyc_review", label: "KYC review" },
+  { value: "pending_more_info", label: "Pending more info" },
   { value: "active", label: "Active" },
   { value: "suspended", label: "Suspended" },
   { value: "rejected", label: "Rejected" },
+  { value: "rejected_with_notes", label: "Rejected (with notes)" },
 ]
 
 function statusBadgeClass(status: string): string {
   if (status === "active") return "bg-green-100 text-green-800"
-  if (status === "rejected" || status === "suspended") return "bg-red-100 text-red-800"
-  if (status === "kyc_review" || status === "kyc_pending") return "bg-yellow-100 text-yellow-800"
+  if (status === "rejected" || status === "rejected_with_notes" || status === "suspended") return "bg-red-100 text-red-800"
+  if (status === "kyc_review" || status === "kyc_pending" || status === "applied") return "bg-yellow-100 text-yellow-800"
+  if (status === "pending_more_info") return "bg-orange-100 text-orange-800"
   return "bg-brand-gray-100 text-brand-gray-700"
 }
+
+// Statuses where the admin's "Review" button is actionable.
+const REVIEWABLE_STATUSES = new Set(["applied", "kyc_pending", "kyc_review", "pending_more_info"])
 
 export default function AdminRVSFsPage() {
   const [rows, setRows] = useState<Row[]>([])
@@ -84,6 +90,7 @@ export default function AdminRVSFsPage() {
                 <th className="px-4 py-3">Location</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Joined</th>
+                <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -105,6 +112,18 @@ export default function AdminRVSFsPage() {
                   </td>
                   <td className="px-4 py-3 text-xs text-brand-gray-500">
                     {new Date(r.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/rvsfs/${r._id}`}
+                      className={`text-xs font-semibold px-3 py-1 rounded ${
+                        REVIEWABLE_STATUSES.has(r.status)
+                          ? "bg-brand-red text-white hover:bg-brand-red/90"
+                          : "bg-brand-gray-100 text-brand-gray-700 hover:bg-brand-gray-300"
+                      }`}
+                    >
+                      {REVIEWABLE_STATUSES.has(r.status) ? "Review" : "View"}
+                    </Link>
                   </td>
                 </tr>
               ))}
