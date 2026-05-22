@@ -548,8 +548,11 @@ test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page
   const regInput = page.getByPlaceholder("UP32 AB 1234")
   await expect(regInput).toBeVisible()
   await regInput.fill("UP32XY7788")
-  await page.getByRole("button", { name: /get value/i }).click()
 
+  // The staging mock runs the VAHAN service in `random` mode (~20% of lookups
+  // fail with VAHAN_UNAVAILABLE → /api/calc/tier1 400 → the page shows an
+  // error toast and stays on the form). Retry the lookup until the tier-1
+  // result band appears — re-clicking "Get Value" re-fires the lookup.
   // Tier-1 result band renders the unlock CTA. The visible label is
   // "Verify My Number — It's Free →" but the button carries an aria-label
   // ("Verify your mobile number to unlock the full benefit breakdown"), which
@@ -557,7 +560,18 @@ test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page
   const unlockBtn = page.getByRole("button", {
     name: /verify your mobile number to unlock/i,
   })
-  await expect(unlockBtn).toBeVisible({ timeout: 20_000 })
+  let bandShown = false
+  for (let attempt = 1; attempt <= 6 && !bandShown; attempt++) {
+    await page.getByRole("button", { name: /get value/i }).click()
+    bandShown = await unlockBtn
+      .waitFor({ state: "visible", timeout: 8000 })
+      .then(() => true)
+      .catch(() => false)
+  }
+  expect(
+    bandShown,
+    "tier-1 result band never rendered after 6 lookup attempts (mock VAHAN flakiness)"
+  ).toBeTruthy()
   await unlockBtn.click()
 
   // -- Tier 2: OTP gate --
