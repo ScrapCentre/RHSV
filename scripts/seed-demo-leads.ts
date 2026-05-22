@@ -6,11 +6,23 @@
  * logic is shared with the /api/admin/reseed-demo endpoint, so the founder
  * can re-seed from the browser via /admin/demo-leads without SSHing in.
  *
- * Idempotent: deletes any prior demo leads (customerName ^/Demo /) first.
+ * Idempotent: deletes any prior demo leads matched by the canonical
+ * `DEMO_CLEANUP_REGEX` (/^Demo Customer [A-Z]( |—|$)/) — won't match real
+ * customer names that happen to start with "Demo".
+ *
+ * Production safety: refuses to run in production unless ALLOW_PROD_SEED=1
+ * (enforced inside seedDemoLeads()). Catch the guard error here so the CLI
+ * exits with a clean message instead of a stack trace.
  *
  * Usage: npx tsx scripts/seed-demo-leads.ts
+ *        ALLOW_PROD_SEED=1 npx tsx scripts/seed-demo-leads.ts  # prod only
  */
-import { seedDemoLeads, DemoSeedPrerequisiteError, TEST_PASSWORD } from "@/lib/services/demo/seed"
+import {
+  seedDemoLeads,
+  DemoSeedPrerequisiteError,
+  DemoSeedProductionGuardError,
+  TEST_PASSWORD,
+} from "@/lib/services/demo/seed"
 
 async function main() {
   try {
@@ -44,6 +56,11 @@ async function main() {
     console.log("")
     process.exit(0)
   } catch (err) {
+    if (err instanceof DemoSeedProductionGuardError) {
+      // Production guard tripped — clean exit, no stack trace.
+      console.error(err.message)
+      process.exit(2)
+    }
     if (err instanceof DemoSeedPrerequisiteError) {
       console.error(err.message)
       process.exit(1)

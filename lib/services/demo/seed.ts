@@ -4,11 +4,16 @@
  * Extracted from scripts/seed-demo-leads.ts so both the CLI script and the
  * /api/admin/reseed-demo endpoint can call the same logic in-process.
  *
- * Idempotent: deletes any prior demo leads (matched by customerName ^/Demo /)
- * before recreating them.
+ * Idempotent: deletes any prior demo leads (matched by the canonical
+ * DEMO_CLEANUP_REGEX below) before recreating them.
  *
  * Returns a `SeedResult` describing the freshly-seeded entities so the API
  * route can ship the IDs back to the admin UI without re-querying.
+ *
+ * Production safety: refuses to run unless ALLOW_PROD_SEED=1 when
+ * NODE_ENV=production. The /api/admin/reseed-demo endpoint AND the CLI
+ * wrapper both go through this guard so a misclick in the admin UI can't
+ * silently wipe real customer leads.
  */
 import mongoose from "mongoose"
 import connectToDatabase from "@/lib/db"
@@ -22,9 +27,49 @@ import CollectionCenter from "@/models/CollectionCenter"
 import User from "@/models/User"
 
 // Well-known shared test password — same as scripts/seed-v2-test-users.ts.
-// Used by the admin demo-leads page (private staging only) so the founder
-// doesn't have to memorise it.
+// NOT exported into any client bundle — only consumed server-side (CLI
+// script + server components / API routes that have already passed admin
+// auth). Anything that needs to display this in the browser must fetch it
+// from an admin-gated server endpoint, never inline it into a "use client"
+// module.
 export const TEST_PASSWORD = "NovalytixTest2026!"
+
+/**
+ * Canonical cleanup regex for "Demo Customer A — …" / "… B — …" / "… C — …"
+ * style names produced by `seedDemoLeads()` below.
+ *
+ * Deliberately tight: the previous `/^Demo /` pattern also matched real
+ * Indian names that happen to start with "Demo" (e.g. "Demo Singh"). This
+ * pattern requires the literal "Demo Customer " prefix followed by a single
+ * uppercase letter and either a space, an em-dash, or end-of-string — so it
+ * only matches the seeded fixtures, never a real customer name.
+ *
+ * Used by BOTH `seedDemoLeads()` cleanup and the CLI wrapper. The GET
+ * listing endpoint (app/api/admin/demo-leads/route.ts) still uses the
+ * looser `/^Demo /` because GET is read-only and the founder may want to
+ * see hand-created demo rows too — destructive ops use this stricter form.
+ */
+export const DEMO_CLEANUP_REGEX = /^Demo Customer [A-Z]( |—|$)/
+
+/**
+ * Throws if invoked in production without the explicit ALLOW_PROD_SEED=1
+ * opt-in. Same pattern as scripts/seed-v2-test-users.ts — both CLI and
+ * API call-sites funnel through here so the guard can't be forgotten.
+ */
+export function assertSeedAllowed(): void {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PROD_SEED !== "1") {
+    throw new DemoSeedProductionGuardError(
+      "Refusing to run demo seed in production. Set ALLOW_PROD_SEED=1 on the server env to override."
+    )
+  }
+}
+
+export class DemoSeedProductionGuardError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "DemoSeedProductionGuardError"
+  }
+}
 
 export type SeedResult = {
   leadAId: string
@@ -45,10 +90,19 @@ export class DemoSeedPrerequisiteError extends Error {
 
 /**
  * Seed the 3 canonical demo leads + chat thread + refund event.
- * Throws DemoSeedPrerequisiteError if seed-v2-test-users.ts hasn't been run
- * yet (no Auraiya RVSF or test users in DB).
+ *
+ * Throws:
+ *   - DemoSeedProductionGuardError if running in production without
+ *     ALLOW_PROD_SEED=1 (BEFORE any DB connection or mutation).
+ *   - DemoSeedPrerequisiteError if seed-v2-test-users.ts hasn't been run
+ *     yet (no Auraiya RVSF or test users in DB).
  */
 export async function seedDemoLeads(): Promise<SeedResult> {
+  // P0: refuse to run in production unless explicitly opted in. This
+  // function performs destructive `Lead.deleteMany(...)` so guard MUST run
+  // before any DB connection or mutation.
+  assertSeedAllowed()
+
   await connectToDatabase()
 
   const auraiya = await RVSF.findOne({ slug: "auraiya-rvsf" }).lean() as any
@@ -73,8 +127,10 @@ export async function seedDemoLeads(): Promise<SeedResult> {
     )
   }
 
-  // Wipe prior demo data
-  const oldLeads = await Lead.find({ "calc.computedAt": { $exists: true }, customerName: { $regex: /^Demo / } }).lean()
+  // Wipe prior demo data. Uses the strict DEMO_CLEANUP_REGEX so we never
+  // match a real customer whose name happens to start with "Demo" (e.g.
+  // "Demo Singh"). Only fixtures of the form "Demo Customer A — …" match.
+  const oldLeads = await Lead.find({ "calc.computedAt": { $exists: true }, customerName: { $regex: DEMO_CLEANUP_REGEX } }).lean()
   let cleanedUp = 0
   if (oldLeads.length) {
     const oldIds = oldLeads.map(l => l._id)
@@ -286,6 +342,7 @@ export async function seedDemoLeads(): Promise<SeedResult> {
       { patternName: "phone_number_local", messageId: oldThreadC._id, matchedSubstring: "9876543210" },
     ],
     refundDecision: "admin_pending",
+    refundEntryReason: "engaged_phase",  // P0-2 hotfix: required audit field on RejectionEvent
   })
 
   return {

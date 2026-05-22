@@ -31,6 +31,7 @@ import {
     History,
     Wrench,
     Sliders,
+    Bell,
 } from "lucide-react"
 
 import { useSession, signOut } from "next-auth/react"
@@ -396,6 +397,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     {isActive('/admin/audit-log') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-teal-500 rounded-r-full" />}
                                     <History className={`w-5 h-5 mr-3.5 ${isActive('/admin/audit-log') ? 'text-teal-400' : 'text-slate-400 group-hover:text-white'}`} />
                                     <span className="font-semibold">Audit Log</span>
+                                </Link>
+                            </motion.div>
+                            {/* M15 (2026-05-22): dispatched-notification queue viewer.
+                                Founder-demo target: surfaces every Notification row + its per-channel
+                                send status + delivery-log evidence, so the founder can show
+                                "the mock WhatsApp landed here, here's the body." */}
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/notifications" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/notifications') ? 'bg-emerald-500/10 text-emerald-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/notifications') && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-full" />}
+                                    <Bell className={`w-5 h-5 mr-3.5 ${isActive('/admin/notifications') ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Notif. Queue</span>
                                 </Link>
                             </motion.div>
                         </div>
