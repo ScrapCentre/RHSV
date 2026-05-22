@@ -32,7 +32,11 @@ const PARTY_ROLES = ["client", "rvsf_admin", "rvsf_executive", "admin"] as const
 // `isParty` branch in `loadThreadAndAuthorize`.
 const READ_ROLES = ["client", "rvsf_admin", "rvsf_executive", "admin", "cc_operator"] as const
 
-async function loadThreadAndAuthorize(req: Request, user: any) {
+// HOTFIX 2026-05-22 (Codex P2 — chat archived-thread access):
+// `mode: "read"` loads any-status thread (read-only history access);
+// `mode: "write"` retains the strict active-only filter so the POST handler
+// can never accept new messages on a closed thread.
+async function loadThreadAndAuthorize(req: Request, user: any, mode: "read" | "write" = "read") {
   const url = new URL(req.url)
   const segments = url.pathname.split("/")
   const leadId = segments[segments.length - 2]  // /api/chat/threads/<leadId>/messages
@@ -42,8 +46,19 @@ async function loadThreadAndAuthorize(req: Request, user: any) {
     return { error: "Invalid leadId", status: 400 } as any
   }
   await connectToDatabase()
-  const thread = await ChatThread.findOne({ leadId, status: "active" }).lean() as any
-  if (!thread) return { error: "No active thread", status: 404 } as any
+  let thread: any = null
+  if (mode === "write") {
+    // Writes require an active thread — never post into an archived one.
+    thread = await ChatThread.findOne({ leadId, status: "active" }).lean()
+    if (!thread) return { error: "No active thread", status: 404 } as any
+  } else {
+    // Read path: prefer active, else most recent archived (history view).
+    thread = await ChatThread.findOne({ leadId, status: "active" }).lean()
+    if (!thread) {
+      thread = await ChatThread.findOne({ leadId, status: "archived" }).sort({ createdAt: -1 }).lean()
+    }
+    if (!thread) return { error: "No thread", status: 404 } as any
+  }
   const isParty =
     user.role === "admin" ||
     (user.role === "client" && thread.customerUserId?.toString() === user.id) ||
@@ -57,7 +72,8 @@ async function loadThreadAndAuthorize(req: Request, user: any) {
 }
 
 export const GET = withAuth([...READ_ROLES], async (req, { user }) => {
-  const r = await loadThreadAndAuthorize(req, user)
+  // Read mode → allows archived-thread history view (Codex P2 hotfix).
+  const r = await loadThreadAndAuthorize(req, user, "read")
   if (r.error) return NextResponse.json({ error: r.error }, { status: r.status })
 
   const url = new URL(req.url)
@@ -69,12 +85,16 @@ export const GET = withAuth([...READ_ROLES], async (req, { user }) => {
 
   const messages = await ChatMessage.find(q).sort({ createdAt: -1 }).limit(limit).lean()
   // Reverse so client gets chronological order
-  return NextResponse.json({ messages: messages.reverse() })
+  return NextResponse.json({
+    messages: messages.reverse(),
+    isReadOnly: r.thread.status !== "active",
+  })
 })
 
 // POST intentionally uses PARTY_ROLES (cc_operator excluded — see header).
+// Write mode → strict `status === "active"` filter (no posting on closed threads).
 export const POST = withAuth([...PARTY_ROLES], async (req, { user }) => {
-  const r = await loadThreadAndAuthorize(req, user)
+  const r = await loadThreadAndAuthorize(req, user, "write")
   if (r.error) return NextResponse.json({ error: r.error }, { status: r.status })
 
   const body = await req.json().catch(() => ({}))

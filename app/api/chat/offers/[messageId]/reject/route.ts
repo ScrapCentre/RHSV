@@ -32,6 +32,14 @@ export const POST = withAuth(["client", "rvsf_admin", "rvsf_executive", "admin"]
   if (!isParty(thread, user)) {
     return NextResponse.json({ error: "Not a party to this thread" }, { status: 403 })
   }
+  // HOTFIX 2026-05-22 (Codex P2 — chat archived-thread access):
+  // Refuse to act on offers in an archived thread. The thread is read-only,
+  // so no negotiation primitive (accept/counter/reject) may run. The accept
+  // + counter handlers already guard on this; we now mirror in reject for
+  // parity (Codex flagged the asymmetric guard while reviewing this hotfix).
+  if (!thread || thread.status !== "active") {
+    return NextResponse.json({ error: "Thread is archived" }, { status: 409 })
+  }
 
   const updated = await ChatMessage.findOneAndUpdate(
     { _id: messageId, "offer.status": "open" },

@@ -28,6 +28,7 @@ type ThreadMeta = {
   _id: string
   leadId: string
   status: "active" | "archived"
+  isReadOnly?: boolean
   pinnedOfferMessageId?: string
   pinnedOfferAmountPaise?: number
   closedReason?: string
@@ -37,10 +38,12 @@ export default function ChatThread({
   leadId,
   currentUserId,
   currentUserRole,  // "customer" | "rvsf_executive" | "rvsf_admin" | "admin"
+  isReadOnly: forceReadOnly = false,  // page may force RO; server flag is the source of truth otherwise.
 }: {
   leadId: string
   currentUserId: string
   currentUserRole: "customer" | "rvsf_executive" | "rvsf_admin" | "admin"
+  isReadOnly?: boolean
 }) {
   const [thread, setThread] = useState<ThreadMeta | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -53,7 +56,13 @@ export default function ChatThread({
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const isCustomer = currentUserRole === "customer"
-  const composerEnabled = thread?.status === "active"
+  // HOTFIX 2026-05-22 (Codex P2 — chat archived-thread access):
+  // Composer is disabled when the thread is archived OR the page forced RO.
+  // Trust the server's `isReadOnly` flag if present (covers status that may
+  // grow beyond active/archived later) and fall back to status comparison.
+  const serverReadOnly = thread?.isReadOnly ?? (thread?.status !== "active")
+  const isThreadReadOnly = forceReadOnly || serverReadOnly
+  const composerEnabled = !!thread && !isThreadReadOnly
 
   const refresh = useCallback(async () => {
     try {
@@ -82,8 +91,10 @@ export default function ChatThread({
     function tick() {
       if (cancelled) return
       const visible = !document.hidden
-      // Stop polling once thread is archived (one final tick at 60s)
-      if (thread?.status === "archived" && currentUserRole !== "admin") {
+      // Read-only / archived → slow heartbeat (no new traffic possible). Admin
+      // still polls fast so they can supervise live threads in another tab.
+      const isReadOnlyForPoll = (thread?.isReadOnly ?? (thread?.status !== "active"))
+      if (isReadOnlyForPoll && currentUserRole !== "admin") {
         setTimeout(tick, 60000)
       } else {
         const delay = visible ? 5000 : 30000
@@ -144,12 +155,15 @@ export default function ChatThread({
 
   return (
     <div className="flex flex-col h-[70vh] min-h-[420px] md:h-[600px] border border-brand-gray-300 rounded-lg overflow-hidden bg-white">
-      {/* Archived banner (per L55) */}
-      {thread.status === "archived" && (
+      {/* Archived / read-only banner (per L55 + Codex P2 2026-05-22) */}
+      {isThreadReadOnly && (
         <div className="bg-brand-gray-100 px-4 py-3 border-b border-brand-gray-300 text-sm text-brand-gray-700">
-          {isCustomer
-            ? "This RVSF has returned your job to our marketplace. A new RVSF will reach out here when they unlock."
-            : "This lead was returned to the marketplace — the thread is read-only. Another RVSF can now unlock it."}
+          <p className="font-semibold mb-0.5">Conversation closed — read only</p>
+          <p>
+            {isCustomer
+              ? "This RVSF has returned your job to our marketplace. A new RVSF will reach out here when they unlock. The history below is preserved for your reference."
+              : "This lead was returned to the marketplace — another RVSF can now unlock it. The history below is preserved for your records."}
+          </p>
         </div>
       )}
 
@@ -174,6 +188,7 @@ export default function ChatThread({
             isMine={m.senderUserId === currentUserId}
             currentUserRole={currentUserRole}
             onAction={handleOfferAction}
+            actionsDisabled={isThreadReadOnly}
           />
         ))}
       </div>
@@ -236,12 +251,13 @@ export default function ChatThread({
 }
 
 function Bubble({
-  msg, isMine, currentUserRole, onAction,
+  msg, isMine, currentUserRole, onAction, actionsDisabled = false,
 }: {
   msg: Message
   isMine: boolean
   currentUserRole: string
   onAction: (mid: string, action: "accept" | "counter" | "reject", amount?: number) => void
+  actionsDisabled?: boolean
 }) {
   if (msg.senderRole === "system") {
     return (
@@ -300,7 +316,9 @@ function Bubble({
   if (msg.type === "offer") {
     const o = msg.offer!
     const isOpen = o.status === "open"
-    const canActOnIt = isOpen && !isMine && (currentUserRole === "customer" || currentUserRole === "rvsf_admin" || currentUserRole === "rvsf_executive")
+    // Read-only thread → no accept/counter/reject buttons (the API would reject
+    // them anyway with 409 "Thread is archived"; this is purely a UX guard).
+    const canActOnIt = isOpen && !isMine && !actionsDisabled && (currentUserRole === "customer" || currentUserRole === "rvsf_admin" || currentUserRole === "rvsf_executive")
     const statusClass = {
       open: "border-brand-red",
       accepted: "border-status-success bg-status-success/10",
