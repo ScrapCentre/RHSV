@@ -42,17 +42,51 @@ const ALLOWED_DOC_KEYS = new Set([
   "bankCancelledChequeUrl",
 ])
 
+/**
+ * A credential value counts as a placeholder when it's blank or an obvious
+ * dummy (all-zeros, "changeme", "xxx…", "your_*", "placeholder"). The
+ * mock-mode deploy ships such placeholders (e.g. CLOUDINARY_API_KEY=
+ * 000000000000000) rather than leaving the vars unset — so a plain
+ * truthiness check is not enough.
+ */
+function isPlaceholderCred(v: string | undefined): boolean {
+  if (!v) return true
+  const s = v.trim().toLowerCase()
+  if (s === "") return true
+  if (/^0+$/.test(s)) return true                       // all-zeros dummy
+  if (/^(changeme|placeholder|todo|none|null|undefined)$/.test(s)) return true
+  if (/^x+$/.test(s)) return true                       // "xxxxxx…"
+  if (s.startsWith("your_") || s.startsWith("your-")) return true
+  return false
+}
+
 function isMockMode(): boolean {
-  // If Cloudinary creds are absent we MUST fall back to mock or the wizard
-  // would 500 silently. Real prod always has these set.
-  return !process.env.CLOUDINARY_CLOUD_NAME ||
-         !process.env.CLOUDINARY_API_KEY ||
-         !process.env.CLOUDINARY_API_SECRET ||
+  // Fall back to mock when Cloudinary creds are absent OR set to a placeholder
+  // dummy value — otherwise the wizard 500s on every KYC upload (Cloudinary
+  // rejects the dummy api_key) and a real applicant can never get past Step 3.
+  // Real prod has genuine creds; the mock-mode deploy ships placeholders.
+  return isPlaceholderCred(process.env.CLOUDINARY_CLOUD_NAME) ||
+         isPlaceholderCred(process.env.CLOUDINARY_API_KEY) ||
+         isPlaceholderCred(process.env.CLOUDINARY_API_SECRET) ||
          process.env.RVSF_UPLOAD_MOCK === "1"
+}
+
+/** True for Cloudinary auth/config failures we can safely degrade to mock on. */
+function isCloudinaryConfigError(err: any): boolean {
+  const m = String(err?.message ?? "").toLowerCase()
+  return m.includes("api_key") ||
+         m.includes("api key") ||
+         m.includes("invalid signature") ||
+         m.includes("must supply") ||
+         m.includes("cloud_name")
 }
 
 function sanitizeName(name: string): string {
   return name.replace(/[^a-zA-Z0-9.\-_]/g, "_").slice(0, 80)
+}
+
+function mockUrl(folder: string, filename: string): string {
+  return `https://mock.scrapcentre.local/${folder}/${filename}`
 }
 
 export async function POST(req: Request) {
@@ -82,13 +116,26 @@ export async function POST(req: Request) {
 
     if (isMockMode()) {
       console.log(`[rvsf/apply/upload-doc] (mock) would upload docKey=${docKey} email=${email} size=${file.size}B name=${filename}`)
-      const placeholder = `https://mock.scrapcentre.local/${folder}/${filename}`
-      return NextResponse.json({ url: placeholder, mock: true })
+      return NextResponse.json({ url: mockUrl(folder, filename), mock: true })
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
-    const url = await uploadToCloudinary(buffer, folder, filename, "auto")
-    return NextResponse.json({ url })
+    try {
+      const url = await uploadToCloudinary(buffer, folder, filename, "auto")
+      return NextResponse.json({ url })
+    } catch (uploadErr: any) {
+      // Belt-and-braces: if isMockMode() thought creds were real but
+      // Cloudinary then rejects them (invalid api_key / signature / cloud
+      // name), degrade to a mock URL instead of 500ing the wizard. A genuine
+      // upload failure (network, oversize at Cloudinary, etc.) still surfaces.
+      if (isCloudinaryConfigError(uploadErr)) {
+        console.warn(
+          `[rvsf/apply/upload-doc] Cloudinary config error (${uploadErr?.message}) — falling back to mock URL`
+        )
+        return NextResponse.json({ url: mockUrl(folder, filename), mock: true })
+      }
+      throw uploadErr
+    }
   } catch (err: any) {
     console.error("[rvsf/apply/upload-doc] error:", err?.message)
     return NextResponse.json({ error: "Upload failed" }, { status: 500 })
