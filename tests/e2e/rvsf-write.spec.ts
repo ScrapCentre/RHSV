@@ -387,34 +387,65 @@ test.describe.serial("RVSF chat + negotiation (Lead B)", () => {
   }) => {
     const base = requireBaseURL(baseURL)
     await signInAsPartner(context, base)
-    const leadB = await discoverActiveThreadLeadId(page, base)
 
-    await page.goto(`${base}/rvsf/chat/${leadB}`)
-    const rejectBtn = page.getByRole("button", { name: /Reject lead/ })
-    await expect(rejectBtn).toBeVisible({ timeout: 20_000 })
-    await rejectBtn.click()
+    // Reject is the most reseed-sensitive flow: it touches Lead + LeadUnlock +
+    // ChatThread, and a concurrent reseed (the parallel QA agent) can delete
+    // the LeadUnlock row out from under the lead mid-request → a transient
+    // 500. We reseed-and-retry up to 3× on those known transient errors; a
+    // real reject failure (validation, auth) is NOT retried and fails fast.
+    const TRANSIENT = /LeadUnlock row not found|Lead not found|not in a rejectable state/i
+    let routed = false
 
-    await expect(
-      page.getByRole("heading", { name: /Return this lead to the marketplace/ })
-    ).toBeVisible()
+    for (let attempt = 1; attempt <= 3 && !routed; attempt++) {
+      if (attempt > 1) tryReseed()
+      const leadB = await discoverActiveThreadLeadId(page, base)
 
-    // Fill the form: pick a reason, write a note ≥ 10 chars, acknowledge. The
-    // reject dialog is the only modal on the page, so its single <select> +
-    // <checkbox> are unambiguous.
-    await page.getByRole("combobox").selectOption("out_of_catchment")
-    await page
-      .getByPlaceholder(/Brief explanation/)
-      .fill("QA e2e — lead is outside our pickup catchment area.")
-    await page.getByRole("checkbox").check()
+      await page.goto(`${base}/rvsf/chat/${leadB}`)
+      const rejectBtn = page.getByRole("button", { name: /Reject lead/ })
+      await expect(rejectBtn).toBeVisible({ timeout: 20_000 })
+      await rejectBtn.click()
 
-    // Submitting alerts the refund decision; auto-dismiss the alert.
-    page.once("dialog", (d) => d.accept())
-    await page
-      .getByRole("button", { name: "Reject and return to marketplace" })
-      .click()
+      const dialogHeading = page.getByRole("heading", {
+        name: /Return this lead to the marketplace/,
+      })
+      await expect(dialogHeading).toBeVisible()
 
-    // On success the page routes back to the marketplace.
-    await page.waitForURL(/\/rvsf\/marketplace/, { timeout: 20_000 })
-    expect(page.url()).toContain("/rvsf/marketplace")
+      // Fill the form: pick a reason, note ≥ 10 chars, acknowledge. The reject
+      // dialog is the only modal on the page → its single <select> + <checkbox>
+      // are unambiguous.
+      await page.getByRole("combobox").selectOption("out_of_catchment")
+      await page
+        .getByPlaceholder(/Brief explanation/)
+        .fill("QA e2e — lead is outside our pickup catchment area.")
+      await page.getByRole("checkbox").check()
+
+      // Submitting alerts the refund decision on success; auto-dismiss it.
+      page.once("dialog", (d) => d.accept())
+      await page
+        .getByRole("button", { name: "Reject and return to marketplace" })
+        .click()
+
+      // Either: routed back to the marketplace (success) OR the dialog shows
+      // an error. Wait for whichever resolves first.
+      const errorBanner = page.locator(".text-status-error")
+      await Promise.race([
+        page.waitForURL(/\/rvsf\/marketplace/, { timeout: 20_000 }).catch(() => {}),
+        errorBanner.first().waitFor({ state: "visible", timeout: 20_000 }).catch(() => {}),
+      ])
+
+      if (/\/rvsf\/marketplace/.test(page.url())) {
+        routed = true
+        break
+      }
+      // Not routed — inspect the error. Retry only the transient seed-race ones.
+      const errText = (await errorBanner.first().textContent().catch(() => "")) ?? ""
+      expect(
+        TRANSIENT.test(errText),
+        `reject failed with a non-transient error: "${errText}"`
+      ).toBeTruthy()
+    }
+
+    expect(routed, "reject did not route to the marketplace after retries")
+      .toBeTruthy()
   })
 })
