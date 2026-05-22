@@ -233,11 +233,21 @@ export const authOptions: NextAuthOptions = {
                         ? await bcrypt.compare(credentials.password, stored)
                         : stored === credentials.password
                     if (!isMatch) return null
+                    // Return the legacy "partner" role — the entire /app/b2b/*
+                    // page surface and /app/api/b2b/* handlers strict-equal on
+                    // `role === "partner"`. Previously this returned
+                    // "rvsf_admin", which routed B2BPartner sessions into the
+                    // v2 /rvsf/marketplace (the dispatcher mapped rvsf_admin →
+                    // /rvsf/marketplace), but v2 marketplace APIs require a
+                    // populated `linkedRvsfId` that B2BPartner docs never
+                    // carry, so partners saw "Your RVSF has no active CCs yet"
+                    // and were locked out of leads they paid for. Codex P1
+                    // 2026-05-22; founder decision: keep legacy /b2b flow alive.
                     return {
                         id: partner._id.toString(),
                         name: partner.businessName,
                         email: partner.email,
-                        role: "rvsf_admin",
+                        role: "partner",
                     }
                 } catch (err: any) {
                     console.error("[B2B Auth] DB error:", err?.message)

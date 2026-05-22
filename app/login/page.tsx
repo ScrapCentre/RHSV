@@ -321,9 +321,12 @@ function LoginContent() {
                     title: "Welcome Partner",
                     description: "Redirecting to your marketplace...",
                 })
-                // b2b-credentials provider returns role=rvsf_admin in v2, so
-                // the right landing is the RVSF marketplace. Route through the
-                // shared dispatcher so any role drift is handled in one place.
+                // b2b-credentials provider returns role=partner (legacy B2BPartner
+                // tenant — separate model, no linkedRvsfId). The shared dispatcher
+                // at /post-login maps partner → /b2b/marketplace via LANDING_BY_ROLE,
+                // which is the only marketplace that strict-equals on role === "partner"
+                // and queries the legacy Valuation/B2BPickup collections those users
+                // actually have data in. Codex P1 hotfix 2026-05-22.
                 const callbackUrl = searchParams.get("callbackUrl")
                 window.location.href = callbackUrl || "/post-login"
             }

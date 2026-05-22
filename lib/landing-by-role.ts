@@ -9,7 +9,15 @@ export const LANDING_BY_ROLE: Record<string, string> = {
     client:          "/me",
     rvsf_admin:      "/rvsf/marketplace",
     rvsf_executive:  "/rvsf/marketplace",
-    partner:         "/rvsf/marketplace",       // legacy alias for rvsf_*
+    // The "partner" role is created exclusively by the b2b-credentials provider
+    // (B2BPartner collection — Novalytix's legacy B2B portal). Those sessions
+    // have NO linkedRvsfId, so they can't use the v2 /rvsf/marketplace path
+    // (whose APIs strict-equal on linkedRvsfId). The legacy /b2b/marketplace
+    // page + /api/valuations/marketplace + /api/b2b/pickups all strict-equal on
+    // `role === "partner"`, so this is the only landing that actually works
+    // for them. Codex P1 hotfix 2026-05-22; founder decision: keep legacy
+    // /b2b flow alive for paying B2BPartner accounts.
+    partner:         "/b2b/marketplace",
     // The "rvsf" role is created exclusively by Novalytix's /rvsf_leads
     // buy-flow (POST /api/rvsf/purchase). Those records live in the legacy
     // RVSFUser collection without a linkedRvsfId, so they can't use the v2
@@ -37,15 +45,19 @@ export function landingForRole(role: string | null | undefined): string {
 }
 
 /**
- * True when the role belongs to the RVSF tenant (admin, executive, or a
- * legacy "partner" / "rvsf" alias). Used by `/rvsf` to decide whether an
- * already-authenticated visitor should skip the login form.
+ * True when the role belongs to the RVSF tenant (admin, executive, or the
+ * legacy "rvsf" alias from Novalytix's /rvsf_leads buy-flow). Used by `/rvsf`
+ * to decide whether an already-authenticated visitor should skip the login form.
+ *
+ * Note: "partner" is NOT included — that role is the legacy B2BPartner tenant
+ * (separate model, no RVSF linkage), and is handled by /b2b. An already-signed-in
+ * B2B partner who lands on /rvsf will simply see the RVSF login form, not be
+ * auto-bounced to /b2b/marketplace.
  */
 export function isRvsfRole(role: string | null | undefined): boolean {
     return (
         role === "rvsf_admin" ||
         role === "rvsf_executive" ||
-        role === "partner" ||
         role === "rvsf"
     )
 }
