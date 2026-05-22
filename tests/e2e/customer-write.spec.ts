@@ -103,18 +103,28 @@ async function postFreshRvsfOffer(
   try {
     await signInAsPartner(partnerCtx, base)
     const csrf = await getCsrfToken(partnerCtx.request, base)
-    const res = await partnerCtx.request.post(
-      `${base}/api/chat/threads/${leadBId}/messages`,
-      {
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
-        data: { type: "offer", offerAmountPaise: amountRupees * 100 },
-      }
-    )
+
+    // Retry on 404 ("No active thread") — immediately after a re-seed the
+    // staging server can briefly serve a read-after-write-lagged view where
+    // the fresh active thread isn't visible to the write-mode lookup yet.
+    let res: import("@playwright/test").APIResponse | null = null
+    for (let attempt = 1; attempt <= 6; attempt++) {
+      res = await partnerCtx.request.post(
+        `${base}/api/chat/threads/${leadBId}/messages`,
+        {
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+          data: { type: "offer", offerAmountPaise: amountRupees * 100 },
+        }
+      )
+      if (res.ok()) break
+      if (res.status() !== 404) break // a real error — surface it below
+      await new Promise((r) => setTimeout(r, 1500))
+    }
     expect(
-      res.ok(),
-      `partner offer POST failed: ${res.status()} ${await res.text()}`
+      res!.ok(),
+      `partner offer POST failed: ${res!.status()} ${await res!.text()}`
     ).toBeTruthy()
-    const body = await res.json()
+    const body = await res!.json()
     expect(body.message?._id, "offer messageId missing from response").toBeTruthy()
     return body.message._id as string
   } finally {
@@ -249,10 +259,21 @@ test.describe("negotiation widget on /me/lead/[B]", () => {
               (l) => l.vehicle?.registrationNumber === LEAD_B_REG
             )
             if (!b || b.state !== "negotiating" || b.agreedPrice) return "not-ready"
+            // The thread must be present AND active (not archived) — a write
+            // (offer POST) requires status:"active". /api/chat/threads/[id]
+            // surfaces isReadOnly so we can distinguish.
+            const t = await verifyCtx.request.get(
+              `${base}/api/chat/threads/${b._id}`
+            )
+            if (!t.ok()) return "no-thread"
+            const tBody = await t.json()
+            if (tBody.active?.status !== "active" || tBody.active?.isReadOnly) {
+              return "thread-not-active"
+            }
             const m = await verifyCtx.request.get(
               `${base}/api/chat/threads/${b._id}/messages`
             )
-            if (!m.ok()) return "no-thread"
+            if (!m.ok()) return "no-messages"
             const { messages } = await m.json()
             const open = (messages as any[]).filter(
               (x) => x.type === "offer" && x.offer?.status === "open"
@@ -529,9 +550,12 @@ test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page
   await regInput.fill("UP32XY7788")
   await page.getByRole("button", { name: /get value/i }).click()
 
-  // Tier-1 result band renders the unlock CTA ("Verify My Number — It's Free").
+  // Tier-1 result band renders the unlock CTA. The visible label is
+  // "Verify My Number — It's Free →" but the button carries an aria-label
+  // ("Verify your mobile number to unlock the full benefit breakdown"), which
+  // is what getByRole matches against — so target by that accessible name.
   const unlockBtn = page.getByRole("button", {
-    name: /verify my number/i,
+    name: /verify your mobile number to unlock/i,
   })
   await expect(unlockBtn).toBeVisible({ timeout: 20_000 })
   await unlockBtn.click()
