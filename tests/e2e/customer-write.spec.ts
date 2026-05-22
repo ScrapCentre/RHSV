@@ -591,7 +591,12 @@ test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page
   await expect(page.getByText(/number verified/i)).toBeVisible({
     timeout: 20_000,
   })
-  await expect(page.getByText(/here's your full breakdown/i)).toBeVisible()
+  // Target the section heading specifically — the same phrase also appears in
+  // the success toast + its aria-live status node (strict-mode would fail on
+  // a bare getByText match).
+  await expect(
+    page.getByRole("heading", { name: /here's your full breakdown/i })
+  ).toBeVisible()
 
   // -- Tier 3: proceed to the document-upload page --
   await page.getByRole("button", { name: /arrange free pickup/i }).click()
