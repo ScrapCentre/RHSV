@@ -46,24 +46,46 @@ test("RVSF can open a chat thread from the inbox", async ({
   const base = requireBaseURL(baseURL)
   await signInAsPartner(context, base)
 
-  // Discover an active thread directly (the inbox links to /rvsf/chat/[leadId]).
-  const res = await page.request.get(`${base}/api/chat/my-threads`)
-  expect(res.ok(), `my-threads failed: ${res.status()}`).toBeTruthy()
-  const { threads } = await res.json()
-  const active = (threads ?? []).find((t: any) => t.status === "active")
-  expect(active, "no active demo thread — reseed needed").toBeTruthy()
+  // The parallel QA agent reseeds demo data continuously, so a thread id can
+  // go stale between discovery and navigation. Re-discover + re-navigate up to
+  // 3× and assert on the always-present chat-page chrome (the tab strip + the
+  // reveal-number toolbar button render independent of lead metadata).
+  let opened = false
+  let lastErr: unknown = null
 
-  await page.goto(`${base}/rvsf/chat/${active.leadId}`)
+  for (let attempt = 1; attempt <= 3 && !opened; attempt++) {
+    try {
+      const res = await page.request.get(`${base}/api/chat/my-threads`)
+      expect(res.ok(), `my-threads failed: ${res.status()}`).toBeTruthy()
+      const { threads } = await res.json()
+      const active = (threads ?? []).find((t: any) => t.status === "active")
+      expect(active, "no active demo thread — reseed needed").toBeTruthy()
 
-  // The thread page renders the chat tab + the RVSF action toolbar.
-  await expect(
-    page.getByRole("button", { name: /Reveal customer's number/ })
-  ).toBeVisible({ timeout: 20_000 })
-  // The Chat / DigiELV checklist tab strip must render.
-  await expect(page.getByRole("button", { name: "Chat" })).toBeVisible()
-  await expect(
-    page.getByRole("button", { name: /DigiELV checklist/ })
-  ).toBeVisible()
+      await page.goto(`${base}/rvsf/chat/${active.leadId}`)
+
+      // The Chat / DigiELV tab strip + the reveal-number button render once
+      // the session resolves, regardless of whether lead metadata loaded.
+      await expect(page.getByRole("button", { name: "Chat" })).toBeVisible({
+        timeout: 15_000,
+      })
+      await expect(
+        page.getByRole("button", { name: /DigiELV checklist/ })
+      ).toBeVisible()
+      await expect(
+        page.getByRole("button", { name: /Reveal customer's number/ })
+      ).toBeVisible()
+      opened = true
+    } catch (e) {
+      lastErr = e
+    }
+  }
+
+  expect(
+    opened,
+    `chat thread page never opened after 3 attempts; last error: ${
+      lastErr instanceof Error ? lastErr.message : String(lastErr)
+    }`
+  ).toBeTruthy()
 })
 
 // ─── RVSF logout ────────────────────────────────────────────────────────────
