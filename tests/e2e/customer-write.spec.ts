@@ -3,29 +3,42 @@
  *
  * Exercises every mutating action a `role: client` user can perform:
  *   1. Login via the EMAIL/PASS tab → lands on /me
- *   2. /me dashboard renders the lead list + thread count
+ *   2. /me dashboard renders the lead list + thread count + new-quote link
  *   3. /me/lead/[id] renders for all 3 demo leads, no client-side crash
- *   4. THE NEGOTIATION WIDGET on Lead B — Accept / Counter / Reject + a fresh
- *      RVSF offer renders. (Founder's #1 bug.)
+ *   4. THE NEGOTIATION WIDGET on Lead B — fresh-offer render, Counter, Reject,
+ *      Accept (the founder's #1 reported bug). Companion to negotiation.spec.ts
+ *      which owns the exhaustive offer-state-machine matrix; this file proves
+ *      the CUSTOMER widget (components/me/OfferActions.tsx on /me/lead/[id])
+ *      drives all four actions end-to-end through the browser.
  *   5. /me/chat inbox + /me/chat/[threadId] — open a thread, send a message
  *   6. The "I need to change something" LeadHelpForm — submit it
- *   7. 3-tier calculator — reg → OTP → tier-2 → tier-3
+ *   7. 3-tier calculator — reg → OTP → tier-2 breakdown → tier-3 upload page
  *   8. Customer logout
  *
  * ALL write actions are driven through the BROWSER (page.click / page.fill)
  * so the global CSRF fetch interceptor (lib/install-csrf-fetch.ts) applies —
  * a direct request.post() would 403 without a hand-attached X-CSRF-Token.
  *
- * Negotiation independence: Accept and Reject CONSUME the open offer, so each
- * negotiation test posts its OWN fresh RVSF offer (as partner.test) before
- * acting on it. This makes every test independent + re-runnable without an
- * external reseed between runs. Counter is non-destructive (it leaves a new
- * open offer) but still uses a self-posted offer for isolation.
+ * NEGOTIATION-WIDGET ISOLATION:
+ *   The negotiation tests share a single demo lead (Lead B has exactly one
+ *   chat thread). To keep them independent + re-runnable:
+ *     - The whole negotiation block runs SERIALLY.
+ *     - `beforeAll` re-seeds ONCE — this clears any stale `Lead.agreedPrice`
+ *       (set by a prior Accept run) so the active-offer card renders again,
+ *       and waits until the live server actually sees the fresh open offer.
+ *     - Each test then posts its OWN fresh RVSF offer (as partner.test) and
+ *       acts on the newest one — so leftover offers from a prior test never
+ *       interfere (the lead page selects the most-recent open offer).
+ *     - Accept runs LAST: it is the only action that pins `agreedPrice`
+ *       permanently, so nothing after it depends on a clear lead.
+ *   Re-seed shells out locally (the Playwright box IS VM 221, where the
+ *   seeder + .env.local live); off that host the block self-skips.
  *
- * Pre-req: scripts/seed-demo-leads.ts has been run (Lead A/B/C exist for
- * client.test@scrapcentre.online; Lead B is `negotiating` with a thread).
+ * Pre-req: scripts/seed-demo-leads.ts has been run at least once (Lead A/B/C
+ * exist for client.test@scrapcentre.online; Lead B is `negotiating`).
  */
-import { test, expect, BrowserContext } from "@playwright/test"
+import { test, expect, type Browser } from "@playwright/test"
+import { execSync } from "node:child_process"
 import {
   signInAsClient,
   signInAsPartner,
@@ -43,24 +56,50 @@ import {
 
 const CLIENT_EMAIL = "client.test@scrapcentre.online"
 
+// ───────────────────────── re-seed helper ─────────────────────────
+// The suite runs ON VM 221 where the repo + seeder live. Re-seed resets the
+// demo leads to a clean state (Lead B = `negotiating`, agreedPrice unset,
+// one open ₹14,500 RVSF offer). Off that host (e.g. a dev laptop) the
+// negotiation block self-skips — it is destructive + staging-only.
+const VM_REPO = "/opt/scrapcentre"
+
+function onSeedHost(): boolean {
+  try {
+    execSync(
+      `test -f ${VM_REPO}/scripts/seed-demo-leads.ts && test -f ${VM_REPO}/.env.local`,
+      { stdio: "ignore" }
+    )
+    return true
+  } catch {
+    return false
+  }
+}
+const SEED_HOST = onSeedHost()
+
+function reseed(): void {
+  execSync(
+    `cd ${VM_REPO} && sudo -u scrap bash -lc "set -a && source .env.local && set +a && ` +
+      `ALLOW_PROD_SEED=1 npx tsx scripts/seed-demo-leads.ts"`,
+    { stdio: "pipe", timeout: 120_000 }
+  )
+}
+
 /**
- * Post a fresh OPEN offer from the RVSF side into Lead B's chat thread.
- *
- * Uses a throwaway partner.test API context (separate cookie jar) so the
- * customer's browser context is untouched. The RVSF-posted offer has
- * `offer.actor: "rvsf"` and `senderUserId = partner` → the customer is NOT
- * the poster, so the customer can legitimately Accept it (the accept route
- * forbids self-accept by senderUserId).
+ * Post a fresh OPEN offer from the RVSF side into Lead B's chat thread, using
+ * a throwaway partner.test API context (separate cookie jar — the customer's
+ * browser context is untouched). The RVSF-posted offer has actor "rvsf" and
+ * senderUserId = partner, so the customer is NOT the poster and may legally
+ * Accept it (the accept route forbids self-accept by senderUserId).
  *
  * Returns the new offer's messageId.
  */
 async function postFreshRvsfOffer(
-  browser: BrowserContext["browser"],
+  browser: Browser,
   base: string,
   leadBId: string,
   amountRupees: number
 ): Promise<string> {
-  const partnerCtx = await browser!.newContext()
+  const partnerCtx = await browser.newContext()
   try {
     await signInAsPartner(partnerCtx, base)
     const csrf = await getCsrfToken(partnerCtx.request, base)
@@ -94,7 +133,6 @@ test("customer login via EMAIL/PASS tab lands on /me", async ({ page, baseURL })
   // the email+password form replaces the phone-OTP form.
   await page.getByRole("button", { name: /email \/ pass/i }).click()
 
-  // Email-or-ID + Password fields.
   await page.getByPlaceholder("email@example.com").fill(CLIENT_EMAIL)
   await page.getByPlaceholder("••••••••").fill(TEST_PASSWORD)
   await page.getByRole("button", { name: /^sign in$/i }).click()
@@ -131,8 +169,8 @@ test("/me dashboard shows leads, thread count, and new-quote link", async ({
   const quoteLink = page.getByRole("link", { name: /get a new quote/i })
   await expect(quoteLink).toHaveAttribute("href", "/calculator")
 
-  // Thread count card — Lead B + Lead C threads exist, so "My conversations"
-  // must say "N active thread(s)" (not "No threads yet").
+  // Thread count card — Lead B has a thread, so "My conversations" must say
+  // "N active thread(s)" (not "No threads yet").
   await expect(page.getByText(/active thread/i)).toBeVisible()
 })
 
@@ -149,7 +187,9 @@ test("/me/lead/[id] renders cleanly for all 3 demo leads", async ({
 
   const leads = await fetchMyLeads(context.request, base)
   const demo = leads.filter((l) =>
-    [LEAD_A_REG, LEAD_B_REG, LEAD_C_REG].includes(l.vehicle?.registrationNumber ?? "")
+    [LEAD_A_REG, LEAD_B_REG, LEAD_C_REG].includes(
+      l.vehicle?.registrationNumber ?? ""
+    )
   )
   expect(demo.length, "expected 3 demo leads").toBeGreaterThanOrEqual(3)
 
@@ -158,8 +198,8 @@ test("/me/lead/[id] renders cleanly for all 3 demo leads", async ({
     page.on("pageerror", (e) => pageErrors.push(e.message))
 
     await page.goto(`${base}/me/lead/${lead._id}`)
-    // Hero (reg number) + stepper labels + the always-present "Your quote"
-    // and "Activity" sections must all render.
+    // Hero (reg number) + the always-present "Your quote", "Documents", and
+    // "Activity" sections must all render.
     await expect(
       page.getByText(lead.vehicle!.registrationNumber!, { exact: true }).first()
     ).toBeVisible({ timeout: 15_000 })
@@ -176,167 +216,225 @@ test("/me/lead/[id] renders cleanly for all 3 demo leads", async ({
 })
 
 // ───────────────────────────────────────────────────────────────────────────
-// 4a. NEGOTIATION WIDGET — a fresh RVSF offer renders on the lead detail page
+// 4. THE NEGOTIATION WIDGET — fresh-offer render + Counter + Reject + Accept
+//    (founder's #1 bug). Serial block; re-seeds once up front; each test
+//    self-posts its own RVSF offer; Accept runs LAST. See file header.
 // ───────────────────────────────────────────────────────────────────────────
-test("negotiation: a fresh RVSF offer renders on /me/lead/[B]", async ({
-  context,
-  page,
-  baseURL,
-}) => {
-  const base = requireBaseURL(baseURL)
-  await signInAsClient(context, base)
-  const leadB = await resolveLeadByReg(context.request, base, LEAD_B_REG)
-
-  // Post a distinctive fresh offer from the RVSF side.
-  const amount = 13700
-  await postFreshRvsfOffer(context.browser(), base, leadB._id, amount)
-
-  await page.goto(`${base}/me/lead/${leadB._id}`)
-  // The active-offer card shows "OFFER FROM RVSF" + the rupee amount.
-  await expect(page.getByText(/offer from rvsf/i)).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByText(`₹${amount.toLocaleString("en-IN")}`).first()).toBeVisible()
-  // And the action buttons exist (customer may act on an RVSF-posted offer).
-  await expect(page.getByRole("button", { name: new RegExp(`accept ₹`, "i") })).toBeVisible()
-  await expect(page.getByRole("button", { name: /^counter$/i })).toBeVisible()
-  await expect(page.getByRole("button", { name: /^reject$/i })).toBeVisible()
-})
-
-// ───────────────────────────────────────────────────────────────────────────
-// 4b. NEGOTIATION WIDGET — COUNTER an RVSF offer (non-destructive)
-// ───────────────────────────────────────────────────────────────────────────
-test("negotiation: customer COUNTERs an RVSF offer on /me/lead/[B]", async ({
-  context,
-  page,
-  baseURL,
-}) => {
-  const base = requireBaseURL(baseURL)
-  await signInAsClient(context, base)
-  const leadB = await resolveLeadByReg(context.request, base, LEAD_B_REG)
-
-  await postFreshRvsfOffer(context.browser(), base, leadB._id, 13900)
-
-  await page.goto(`${base}/me/lead/${leadB._id}`)
-  await expect(page.getByText(/offer from rvsf/i)).toBeVisible({ timeout: 15_000 })
-
-  // Click "Counter" → the inline counter-amount input appears.
-  await page.getByRole("button", { name: /^counter$/i }).click()
-  const counterAmount = 15250
-  const counterInput = page.getByPlaceholder("e.g. 15000")
-  await expect(counterInput).toBeVisible()
-  await counterInput.fill(String(counterAmount))
-  await page.getByRole("button", { name: /^send$/i }).click()
-
-  // OfferActions calls router.refresh() on success. The new offer is now a
-  // CUSTOMER offer → the page shows "Your open offer" with the countered
-  // amount, and the customer can no longer act (waiting on RVSF).
-  await expect(page.getByText(/your open offer/i)).toBeVisible({ timeout: 15_000 })
-  await expect(
-    page.getByText(`₹${counterAmount.toLocaleString("en-IN")}`).first()
-  ).toBeVisible()
-  await expect(page.getByText(/you posted this offer/i)).toBeVisible()
-
-  // Verify server-side: a new open offer of the countered amount, posted by
-  // the customer, now exists in the thread.
-  const csrf = await getCsrfToken(context.request, base)
-  const msgsRes = await context.request.get(
-    `${base}/api/chat/threads/${leadB._id}/messages`,
-    { headers: { "X-CSRF-Token": csrf } }
+test.describe("negotiation widget on /me/lead/[B]", () => {
+  test.skip(
+    !SEED_HOST,
+    "negotiation block re-seeds shared demo data — only runs on the seeded host (VM 221)"
   )
-  expect(msgsRes.ok()).toBeTruthy()
-  const { messages } = await msgsRes.json()
-  const openCustomerOffer = (messages as any[]).find(
-    (m) =>
-      m.type === "offer" &&
-      m.offer?.status === "open" &&
-      m.offer?.actor === "customer" &&
-      m.offer?.amountPaise === counterAmount * 100
-  )
-  expect(
-    openCustomerOffer,
-    "countered offer not found as an open customer offer in the thread"
-  ).toBeTruthy()
-})
+  test.describe.configure({ mode: "serial" })
 
-// ───────────────────────────────────────────────────────────────────────────
-// 4c. NEGOTIATION WIDGET — ACCEPT an RVSF offer (destructive → self-seeded)
-// ───────────────────────────────────────────────────────────────────────────
-test("negotiation: customer ACCEPTs an RVSF offer on /me/lead/[B]", async ({
-  context,
-  page,
-  baseURL,
-}) => {
-  const base = requireBaseURL(baseURL)
-  await signInAsClient(context, base)
-  const leadB = await resolveLeadByReg(context.request, base, LEAD_B_REG)
+  // One re-seed up front: clears any stale Lead.agreedPrice from a prior
+  // Accept run (which would otherwise suppress the active-offer card), and
+  // we then wait until the live server actually sees the fresh open offer
+  // (guards against the brief read-after-write lag on the staging replica).
+  test.beforeAll(async ({ browser, baseURL }) => {
+    const base = requireBaseURL(baseURL)
+    reseed()
 
-  const amount = 14250
-  await postFreshRvsfOffer(context.browser(), base, leadB._id, amount)
-
-  await page.goto(`${base}/me/lead/${leadB._id}`)
-  await expect(page.getByText(/offer from rvsf/i)).toBeVisible({ timeout: 15_000 })
-
-  // OfferActions.handleAccept() fires a window.confirm() — auto-accept it.
-  page.once("dialog", (d) => d.accept())
-  await page.getByRole("button", { name: /accept ₹/i }).click()
-
-  // After accept, the page re-renders with the green "Agreed price" banner
-  // (lead.agreedPrice is now set) and the offer card disappears.
-  await expect(page.getByText(/agreed price/i)).toBeVisible({ timeout: 15_000 })
-  await expect(
-    page.getByText(`₹${amount.toLocaleString("en-IN")}`).first()
-  ).toBeVisible()
-
-  // Server-side confirmation: Lead.agreedPrice.amountPaise is pinned.
-  const leadsAfter = await fetchMyLeads(context.request, base)
-  const leadBAfter: any = leadsAfter.find(
-    (l) => l.vehicle?.registrationNumber === LEAD_B_REG
-  )
-  expect(leadBAfter?.agreedPrice?.amountPaise, "Lead.agreedPrice not pinned").toBe(
-    amount * 100
-  )
-})
-
-// ───────────────────────────────────────────────────────────────────────────
-// 4d. NEGOTIATION WIDGET — REJECT an RVSF offer (destructive → self-seeded)
-// ───────────────────────────────────────────────────────────────────────────
-test("negotiation: customer REJECTs an RVSF offer on /me/lead/[B]", async ({
-  context,
-  page,
-  baseURL,
-}) => {
-  const base = requireBaseURL(baseURL)
-  await signInAsClient(context, base)
-  const leadB = await resolveLeadByReg(context.request, base, LEAD_B_REG)
-
-  const amount = 13300
-  const offerId = await postFreshRvsfOffer(context.browser(), base, leadB._id, amount)
-
-  await page.goto(`${base}/me/lead/${leadB._id}`)
-  await expect(page.getByText(/offer from rvsf/i)).toBeVisible({ timeout: 15_000 })
-
-  // handleReject() also fires a window.confirm() — auto-accept the dialog.
-  page.once("dialog", (d) => d.accept())
-  await page.getByRole("button", { name: /^reject$/i }).click()
-
-  // After reject, OfferActions calls router.refresh(); the offer is no longer
-  // open so the active-offer card disappears. (The lead stays `negotiating`,
-  // so the badge reverts to "Negotiating" with no open offer.)
-  await expect(page.getByText(/offer from rvsf/i)).not.toBeVisible({
-    timeout: 15_000,
+    // Poll the live API until the freshly-seeded Lead B shows up `negotiating`
+    // with no agreedPrice and exactly one open offer — i.e. the reseed is
+    // visible to the server the tests will hit.
+    const verifyCtx = await browser.newContext()
+    try {
+      await signInAsClient(verifyCtx, base)
+      await expect
+        .poll(
+          async () => {
+            const leads = await fetchMyLeads(verifyCtx.request, base)
+            const b: any = leads.find(
+              (l) => l.vehicle?.registrationNumber === LEAD_B_REG
+            )
+            if (!b || b.state !== "negotiating" || b.agreedPrice) return "not-ready"
+            const m = await verifyCtx.request.get(
+              `${base}/api/chat/threads/${b._id}/messages`
+            )
+            if (!m.ok()) return "no-thread"
+            const { messages } = await m.json()
+            const open = (messages as any[]).filter(
+              (x) => x.type === "offer" && x.offer?.status === "open"
+            )
+            return open.length === 1 ? "ready" : `open=${open.length}`
+          },
+          {
+            message: "reseed did not settle to a clean open-offer state",
+            timeout: 30_000,
+            intervals: [1000, 2000, 3000],
+          }
+        )
+        .toBe("ready")
+    } finally {
+      await verifyCtx.close()
+    }
   })
 
-  // Server-side: the offer's status is now "rejected".
-  const csrf = await getCsrfToken(context.request, base)
-  const msgsRes = await context.request.get(
-    `${base}/api/chat/threads/${leadB._id}/messages`,
-    { headers: { "X-CSRF-Token": csrf } }
-  )
-  expect(msgsRes.ok()).toBeTruthy()
-  const { messages } = await msgsRes.json()
-  const rejected = (messages as any[]).find((m) => m._id === offerId)
-  expect(rejected?.offer?.status, "rejected offer status not updated").toBe(
-    "rejected"
-  )
+  // ── 4a: a fresh RVSF offer renders the active-offer card ──
+  test("a fresh RVSF offer renders the active-offer card with all 3 actions", async ({
+    context,
+    page,
+    baseURL,
+  }) => {
+    const base = requireBaseURL(baseURL)
+    await signInAsClient(context, base)
+    const leadB = await resolveLeadByReg(context.request, base, LEAD_B_REG)
+
+    const amount = 13700
+    await postFreshRvsfOffer(context.browser()!, base, leadB._id, amount)
+
+    await page.goto(`${base}/me/lead/${leadB._id}`)
+    await expect(page.getByText(/offer from rvsf/i)).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(
+      page.getByText(`₹${amount.toLocaleString("en-IN")}`).first()
+    ).toBeVisible()
+    // The customer is the non-poster → all three actions present + enabled.
+    await expect(
+      page.getByRole("button", { name: /accept ₹/i })
+    ).toBeVisible()
+    await expect(page.getByRole("button", { name: /^counter$/i })).toBeVisible()
+    await expect(page.getByRole("button", { name: /^reject$/i })).toBeVisible()
+  })
+
+  // ── 4b: COUNTER an RVSF offer (non-destructive) ──
+  test("customer COUNTERs an RVSF offer", async ({ context, page, baseURL }) => {
+    const base = requireBaseURL(baseURL)
+    await signInAsClient(context, base)
+    const leadB = await resolveLeadByReg(context.request, base, LEAD_B_REG)
+
+    await postFreshRvsfOffer(context.browser()!, base, leadB._id, 13900)
+
+    await page.goto(`${base}/me/lead/${leadB._id}`)
+    await expect(page.getByText(/offer from rvsf/i)).toBeVisible({
+      timeout: 15_000,
+    })
+
+    // Click "Counter" → the inline counter-amount input appears.
+    await page.getByRole("button", { name: /^counter$/i }).click()
+    const counterAmount = 15250
+    const counterInput = page.getByPlaceholder("e.g. 15000")
+    await expect(counterInput).toBeVisible()
+    await counterInput.fill(String(counterAmount))
+    await page.getByRole("button", { name: /^send$/i }).click()
+
+    // OfferActions calls router.refresh() on success. The new offer is now a
+    // CUSTOMER offer → the page shows "Your open offer" with the countered
+    // amount, and the customer can no longer act (waiting on the RVSF).
+    await expect(page.getByText(/your open offer/i)).toBeVisible({
+      timeout: 15_000,
+    })
+    await expect(
+      page.getByText(`₹${counterAmount.toLocaleString("en-IN")}`).first()
+    ).toBeVisible()
+    await expect(page.getByText(/you posted this offer/i)).toBeVisible()
+
+    // Server truth: a new open CUSTOMER offer of the countered amount exists.
+    const csrf = await getCsrfToken(context.request, base)
+    const msgsRes = await context.request.get(
+      `${base}/api/chat/threads/${leadB._id}/messages`,
+      { headers: { "X-CSRF-Token": csrf } }
+    )
+    expect(msgsRes.ok()).toBeTruthy()
+    const { messages } = await msgsRes.json()
+    const openCustomerOffer = (messages as any[]).find(
+      (m) =>
+        m.type === "offer" &&
+        m.offer?.status === "open" &&
+        m.offer?.actor === "customer" &&
+        m.offer?.amountPaise === counterAmount * 100
+    )
+    expect(
+      openCustomerOffer,
+      "countered offer not found as an open customer offer in the thread"
+    ).toBeTruthy()
+  })
+
+  // ── 4c: REJECT an RVSF offer (non-destructive — lead stays negotiating) ──
+  test("customer REJECTs an RVSF offer", async ({ context, page, baseURL }) => {
+    const base = requireBaseURL(baseURL)
+    await signInAsClient(context, base)
+    const leadB = await resolveLeadByReg(context.request, base, LEAD_B_REG)
+
+    const offerId = await postFreshRvsfOffer(
+      context.browser()!,
+      base,
+      leadB._id,
+      13300
+    )
+
+    await page.goto(`${base}/me/lead/${leadB._id}`)
+    await expect(page.getByText(/offer from rvsf/i)).toBeVisible({
+      timeout: 15_000,
+    })
+
+    // handleReject() fires a window.confirm() — auto-accept the dialog.
+    page.once("dialog", (d) => d.accept())
+    await page.getByRole("button", { name: /^reject$/i }).click()
+
+    // Server truth is the reliable signal: the offer's status flips to
+    // "rejected". (The card visually disappears too, but the lead may still
+    // carry an open CUSTOMER counter from 4b, so we assert on the offer id.)
+    await expect
+      .poll(
+        async () => {
+          const csrf = await getCsrfToken(context.request, base)
+          const r = await context.request.get(
+            `${base}/api/chat/threads/${leadB._id}/messages`,
+            { headers: { "X-CSRF-Token": csrf } }
+          )
+          if (!r.ok()) return "fetch-failed"
+          const { messages } = await r.json()
+          const o = (messages as any[]).find((m) => m._id === offerId)
+          return o?.offer?.status ?? "missing"
+        },
+        {
+          message: "rejected offer status did not flip to 'rejected'",
+          timeout: 15_000,
+        }
+      )
+      .toBe("rejected")
+  })
+
+  // ── 4d: ACCEPT an RVSF offer (DESTRUCTIVE — pins agreedPrice; runs LAST) ──
+  test("customer ACCEPTs an RVSF offer", async ({ context, page, baseURL }) => {
+    const base = requireBaseURL(baseURL)
+    await signInAsClient(context, base)
+    const leadB = await resolveLeadByReg(context.request, base, LEAD_B_REG)
+
+    const amount = 14250
+    await postFreshRvsfOffer(context.browser()!, base, leadB._id, amount)
+
+    await page.goto(`${base}/me/lead/${leadB._id}`)
+    await expect(page.getByText(/offer from rvsf/i)).toBeVisible({
+      timeout: 15_000,
+    })
+
+    // OfferActions.handleAccept() fires a window.confirm() — auto-accept it.
+    page.once("dialog", (d) => d.accept())
+    await page.getByRole("button", { name: /accept ₹/i }).click()
+
+    // After accept, the page re-renders with the green "Agreed price" banner
+    // (lead.agreedPrice is now set) and the active-offer card disappears.
+    await expect(
+      page.getByText("Agreed price", { exact: true })
+    ).toBeVisible({ timeout: 15_000 })
+    await expect(
+      page.getByText(`₹${amount.toLocaleString("en-IN")}`).first()
+    ).toBeVisible()
+
+    // Server truth: Lead.agreedPrice.amountPaise is pinned to the accepted amt.
+    const leadsAfter = await fetchMyLeads(context.request, base)
+    const leadBAfter: any = leadsAfter.find(
+      (l) => l.vehicle?.registrationNumber === LEAD_B_REG
+    )
+    expect(
+      leadBAfter?.agreedPrice?.amountPaise,
+      "Lead.agreedPrice not pinned after accept"
+    ).toBe(amount * 100)
+  })
 })
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -353,10 +451,12 @@ test("/me/chat inbox lists threads + customer can send a chat message", async ({
 
   // Inbox lists at least Lead B's thread.
   await page.goto(`${base}/me/chat`)
-  await expect(page.getByText("My conversations")).toBeVisible({ timeout: 15_000 })
-  await expect(
-    page.getByText(`Lead ${leadB._id.slice(-6)}`)
-  ).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText("My conversations")).toBeVisible({
+    timeout: 15_000,
+  })
+  await expect(page.getByText(`Lead ${leadB._id.slice(-6)}`)).toBeVisible({
+    timeout: 15_000,
+  })
 
   // Open Lead B's thread.
   await page.goto(`${base}/me/chat/${leadB._id}`)
@@ -371,8 +471,8 @@ test("/me/chat inbox lists threads + customer can send a chat message", async ({
   await composer.fill(unique)
   await page.getByRole("button", { name: /^send$/i }).click()
 
-  // The ChatThread component calls refresh() after a successful POST — the
-  // sent message bubble must appear in the scroll area.
+  // ChatThread calls refresh() after a successful POST — the sent message
+  // bubble must appear in the scroll area.
   await expect(page.getByText(unique)).toBeVisible({ timeout: 15_000 })
 })
 
@@ -396,8 +496,8 @@ test("LeadHelpForm submits a support request from the lead detail page", async (
     .click()
   await expect(page.getByText("Tell us what needs to change")).toBeVisible()
 
-  // Name / email / phone are prefilled from the session; phone may be empty,
-  // so fill all three defensively. The message textarea is required.
+  // Name / email are prefilled from the session; phone may be empty — fill all
+  // three defensively. The message textarea is required.
   await page.getByPlaceholder("Your name").fill("Test Client")
   await page.getByPlaceholder("Email").fill(CLIENT_EMAIL)
   await page.getByPlaceholder("Phone").fill("9876500001")
@@ -414,7 +514,7 @@ test("LeadHelpForm submits a support request from the lead detail page", async (
 })
 
 // ───────────────────────────────────────────────────────────────────────────
-// 7. 3-TIER CALCULATOR — reg → OTP → tier-2 breakdown → tier-3
+// 7. 3-TIER CALCULATOR — reg → OTP → tier-2 breakdown → tier-3 upload page
 // ───────────────────────────────────────────────────────────────────────────
 test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page", async ({
   page,
@@ -429,8 +529,10 @@ test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page
   await regInput.fill("UP32XY7788")
   await page.getByRole("button", { name: /get value/i }).click()
 
-  // Tier-1 result band renders the unlock CTA.
-  const unlockBtn = page.getByRole("button", { name: /verify my number|unlock/i })
+  // Tier-1 result band renders the unlock CTA ("Verify My Number — It's Free").
+  const unlockBtn = page.getByRole("button", {
+    name: /verify my number/i,
+  })
   await expect(unlockBtn).toBeVisible({ timeout: 20_000 })
   await unlockBtn.click()
 
@@ -450,7 +552,7 @@ test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page
 
   // OTPInput auto-submits onComplete (6th digit). The verify page ALSO has its
   // own "Verify →" button below — click whichever is still enabled, harmless
-  // if verification already fired (button disables while verifying).
+  // if verification already fired (the button disables while verifying).
   const verifyBtns = page.getByRole("button", { name: /^verify →$/i })
   const count = await verifyBtns.count()
   for (let i = 0; i < count; i++) {
@@ -462,13 +564,13 @@ test("calculator: reg lookup → OTP → tier-2 breakdown → tier-3 upload page
   }
 
   // -- Tier 2 breakdown surfaces --
-  await expect(page.getByText(/number verified/i)).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText(/number verified/i)).toBeVisible({
+    timeout: 20_000,
+  })
   await expect(page.getByText(/here's your full breakdown/i)).toBeVisible()
 
   // -- Tier 3: proceed to the document-upload page --
-  await page
-    .getByRole("button", { name: /arrange free pickup/i })
-    .click()
+  await page.getByRole("button", { name: /arrange free pickup/i }).click()
   await page.waitForURL(/\/calculator\/upload/, { timeout: 15_000 })
   await expect(
     page.getByText(/three things, and we take it from here/i)
@@ -484,10 +586,13 @@ test("customer logout clears the session", async ({ context, page, baseURL }) =>
 
   // Confirm we're authenticated first.
   let sessionRes = await context.request.get(`${base}/api/auth/session`)
-  expect((await sessionRes.json())?.user, "not signed in before logout").toBeTruthy()
+  expect(
+    (await sessionRes.json())?.user,
+    "not signed in before logout"
+  ).toBeTruthy()
 
   // NextAuth sign-out: POST /api/auth/signout with the CSRF token (this is a
-  // NextAuth route, so it uses NextAuth's own CSRF, not the app interceptor).
+  // NextAuth route — it uses NextAuth's own CSRF, not the app interceptor).
   const csrfRes = await context.request.get(`${base}/api/auth/csrf`)
   const { csrfToken } = await csrfRes.json()
   const signOutRes = await context.request.post(`${base}/api/auth/signout`, {
@@ -500,8 +605,10 @@ test("customer logout clears the session", async ({ context, page, baseURL }) =>
   const after = await sessionRes.json()
   expect(after?.user, "session still active after logout").toBeFalsy()
 
-  // And /me must bounce an unauthenticated visitor (the client component
-  // renders the "Please log in" fallback when status !== authenticated).
+  // And /me must show the unauthenticated fallback (the client component
+  // renders "Please log in" when status !== authenticated).
   await page.goto(`${base}/me`)
-  await expect(page.getByText(/please.*log in/i)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/please.*log in/i)).toBeVisible({
+    timeout: 15_000,
+  })
 })
