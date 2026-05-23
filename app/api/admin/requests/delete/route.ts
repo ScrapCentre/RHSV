@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -34,10 +34,7 @@ export async function DELETE(req: NextRequest) {
                 deleted = await Valuation.findByIdAndDelete(id)
                 if (!deleted) deleted = await WizardLead.findByIdAndDelete(id)
                 break
-            case "sell":
-                deleted = await SellVehicle.findByIdAndDelete(id)
-                if (!deleted) deleted = await WizardLead.findByIdAndDelete(id)
-                break
+
             case "exchange":
                 deleted = await ExchangeVehicle.findByIdAndDelete(id)
                 break

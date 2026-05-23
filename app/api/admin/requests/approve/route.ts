@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -38,12 +38,7 @@ export async function POST(req: NextRequest) {
             if (!updated) {
                 updated = await WizardLead.findByIdAndUpdate(id, { status }, { new: true });
             }
-        } else if (type === "sell") {
-            // Check legacy SellVehicle first, then WizardLead (sell)
-            updated = await SellVehicle.findByIdAndUpdate(id, { status }, { new: true });
-            if (!updated) {
-                updated = await WizardLead.findByIdAndUpdate(id, { status }, { new: true });
-            }
+
         } else if (type === "buy") {
             // Check legacy BuyVehicle first, then WizardLead (buy)
             updated = await BuyVehicle.findByIdAndUpdate(id, { status }, { new: true });

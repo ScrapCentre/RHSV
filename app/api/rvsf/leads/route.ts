@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -33,13 +33,11 @@ export async function GET() {
 
         const [
             latestQuotes,
-            latestSells,
             latestExchanges,
             latestBuys,
             latestWizards
         ] = await Promise.all([
             Valuation.find(quoteExcludeFilter).sort({ createdAt: -1 }).lean(),
-            SellVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             ExchangeVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             BuyVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             WizardLead.find(excludeFilter).sort({ createdAt: -1 }).lean(),
@@ -305,7 +303,6 @@ export async function GET() {
         }
 
         const filteredQuotes = latestQuotes.filter(isPurchased)
-        const filteredSells = latestSells.filter(isPurchased)
         const filteredExchanges = latestExchanges.filter(isPurchased)
         const filteredBuys = latestBuys.filter(isPurchased)
         const filteredWizards = latestWizards.filter(isPurchased)
@@ -323,18 +320,7 @@ export async function GET() {
                     location: formatLocation(item)
                 };
             }),
-            ...filteredSells.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                return {
-                    _id: plainItem._id,
-                    createdAt: plainItem.createdAt,
-                    type: 'sell',
-                    customerName: item.name || "Customer",
-                    customerPhone: item.phone || "N/A",
-                    vehicleInfo: `${item.registrationYear || ''} ${item.customBrand || item.brand || ''} ${item.customModel || item.model || ''}`.trim(),
-                    location: formatLocation(item)
-                };
-            }),
+
             ...filteredExchanges.map((item: any) => {
                 const plainItem = JSON.parse(JSON.stringify(item));
                 return {
@@ -364,7 +350,7 @@ export async function GET() {
                 const serviceType = plainItem.serviceType || plainItem.type || "wizard";
                 let linkType = serviceType;
                 if (serviceType === "scrap") { linkType = "quote"; }
-                if (serviceType === "sell" || serviceType === "wizard-sell") { linkType = "sell"; }
+
                 if (serviceType === "buy" || serviceType === "wizard-buy") { linkType = "buy"; }
                 
                 let vehicleInfoStr = serviceType === "buy" ? `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}` : 

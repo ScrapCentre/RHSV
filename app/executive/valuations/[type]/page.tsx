@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
 import { FileText, Recycle, ShoppingCart, Sparkles, ArrowUpRight, CheckCircle, Clock } from "lucide-react"
@@ -80,38 +80,7 @@ export default async function ExecutiveLeadsListing({ params }: { params: Promis
             icon = <Sparkles className="w-8 h-8 text-purple-500" />
             break
         }
-        case "sell": {
-            const [legacySells, wizardSells] = await Promise.all([
-                SellVehicle.find().sort({ createdAt: -1 }).lean(),
-                WizardLead.find({ serviceType: "sell" }).sort({ createdAt: -1 }).lean()
-            ])
-            leads = [
-                ...legacySells.map((r: any) => ({
-                    _id: r._id.toString(),
-                    customerName: r.name || "N/A",
-                    customerPhone: r.phone || "N/A",
-                    vehicleInfo: `${r.brand || ""} ${r.model || ""}`.trim() || "N/A",
-                    regNo: r.registrationNumber || "N/A",
-                    status: r.status || "pending",
-                    createdAt: r.createdAt,
-                    viewHref: `/executive/valuations/sell/${r._id}`
-                })),
-                ...wizardSells.map((w: any) => ({
-                    _id: w._id.toString(),
-                    customerName: w.name || "N/A",
-                    customerPhone: w.phone || "N/A",
-                    vehicleInfo: `${w.brand || ""} ${w.model || ""}`.trim() || "N/A",
-                    regNo: w.regNo || "N/A",
-                    status: w.status || "pending",
-                    createdAt: w.createdAt,
-                    viewHref: `/executive/valuations/sell/${w._id}`
-                }))
-            ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            title = "Sell Old Vehicle"
-            accentColor = "green"
-            icon = <ShoppingCart className="w-8 h-8 text-green-500" />
-            break
-        }
+
         case "buy": {
             const [legacyBuys, wizardBuys] = await Promise.all([
                 BuyVehicle.find().sort({ createdAt: -1 }).lean(),

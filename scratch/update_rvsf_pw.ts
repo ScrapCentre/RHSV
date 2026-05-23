@@ -28,11 +28,19 @@ async function run() {
     const hashedPassword = await bcrypt.hash("xyz", salt);
 
     const RVSFUser = mongoose.models.RVSFUser || mongoose.model('RVSFUser', new mongoose.Schema({}, { strict: false }));
-    const result = await RVSFUser.updateOne(
-        { rvsfId: "rvsf01@gmail.com" },
+    
+    // Fix: query by email or correct rvsfId, not rvsfId = email
+    const result1 = await RVSFUser.updateOne(
+        { email: "rvsf01@gmail.com" },
         { $set: { password: hashedPassword } }
     );
-    console.log("Updated password result:", result);
+    console.log("Updated rvsf01@gmail.com password result:", result1);
+
+    const result2 = await RVSFUser.updateOne(
+        { email: "partner.52850@rvsf.in" },
+        { $set: { password: hashedPassword } }
+    );
+    console.log("Updated partner.52850@rvsf.in password result:", result2);
 
     await mongoose.connection.close();
 }

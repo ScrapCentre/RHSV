@@ -13,7 +13,6 @@ interface DashboardOverviewProps {
     marketFeed: any[]
     valuationCounts: {
         quote: number
-        sell: number
         exchange: number
         buy: number
     }
@@ -78,18 +77,14 @@ export default function DashboardOverview({
             {/* Color Legend */}
             <motion.div variants={itemVariants} className="bg-white dark:bg-[#0E192D] px-4 py-3 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
                 <h3 className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">Data Type Legend</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
                         <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-200 dark:shadow-none"></div>
                         <span className="text-xs font-bold text-blue-700 dark:text-blue-400">Scrap</span>
                     </div>
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
                         <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400">Exchange</span>
-                    </div>
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30">
-                        <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-green-700 dark:text-green-400">Sell Old</span>
+                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400">Scrap &amp; Buy</span>
                     </div>
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/30">
                         <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-200 dark:shadow-none"></div>
@@ -186,11 +181,6 @@ export default function DashboardOverview({
                                                 Scrap &amp; Buy
                                             </span>
                                         )}
-                                        {item.type === 'sell' && (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/50">
-                                                Sell Vehicle
-                                            </span>
-                                        )}
                                         {item.type === 'buy' && (
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50">
                                                 Buy Vehicle
@@ -273,11 +263,6 @@ export default function DashboardOverview({
                                             {item.type === 'scrap-buy' && (
                                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
                                                     Scrap &amp; Buy
-                                                </span>
-                                            )}
-                                            {item.type === 'sell' && (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/50">
-                                                    Sell Vehicle
                                                 </span>
                                             )}
                                             {item.type === 'buy' && (

@@ -4,7 +4,7 @@ import B2BPickup from "@/models/B2BPickup"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -63,9 +63,7 @@ export async function POST(req: Request) {
             case "valuation":
                 model = Valuation
                 break
-            case "sell":
-                model = SellVehicle
-                break
+
             case "exchange":
                 model = ExchangeVehicle
                 break

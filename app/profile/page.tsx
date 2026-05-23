@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import B2BRegistration from "@/models/B2BRegistration"
@@ -54,9 +54,8 @@ export default async function ProfilePage() {
             ].filter(q => q.userId !== null)
         }
 
-        const [valuations, sellRequests, exchangeRequests, buyRequests, wizardLeads, latestRegistration, existingPartner, scrapSetting] = await Promise.all([
+        const [valuations, exchangeRequests, buyRequests, wizardLeads, latestRegistration, existingPartner, scrapSetting] = await Promise.all([
             Valuation.find(query).sort({ createdAt: -1 }),
-            SellVehicle.find(query).sort({ createdAt: -1 }),
             ExchangeVehicle.find(query).sort({ createdAt: -1 }),
             BuyVehicle.find(query).sort({ createdAt: -1 }),
             WizardLead.find({
@@ -84,7 +83,7 @@ export default async function ProfilePage() {
                 }
                 return { ...obj, type: 'valuation' }
             }),
-            ...sellRequests.map(s => ({ ...s.toObject(), type: 'sell' })),
+
             ...exchangeRequests.map(e => ({ ...e.toObject(), type: 'exchange' })),
             ...buyRequests.map(b => ({ ...b.toObject(), type: 'buy' })),
             ...wizardLeads.map((w: any) => {

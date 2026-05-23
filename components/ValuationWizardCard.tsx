@@ -22,6 +22,24 @@ const BRANDS = ["Maruti Suzuki", "Hyundai", "Tata", "Mahindra", "Toyota", "Honda
 const YEARS = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "Older"]
 const FUEL_TYPES = ["Petrol", "Diesel", "CNG", "Electric", "Hybrid"]
 
+const BRAND_LOGOS: Record<string, string> = {
+    "Maruti Suzuki": "https://logo.clearbit.com/marutisuzuki.com",
+    "Hyundai": "https://logo.clearbit.com/hyundai.com",
+    "Tata": "https://logo.clearbit.com/tatamotors.com",
+    "Mahindra": "https://logo.clearbit.com/mahindra.com",
+    "Toyota": "https://logo.clearbit.com/toyota.com",
+    "Honda": "https://logo.clearbit.com/honda.com",
+    "Kia": "https://logo.clearbit.com/kia.com",
+    "Skoda": "https://logo.clearbit.com/skoda-auto.com",
+    "Volkswagen": "https://logo.clearbit.com/volkswagen.co.in",
+    "MG": "https://logo.clearbit.com/mgmotor.co.in",
+    "Nissan": "https://logo.clearbit.com/nissan.in",
+    "Renault": "https://logo.clearbit.com/renault.co.in",
+    "Ford": "https://logo.clearbit.com/india.ford.com",
+    "Jeep": "https://logo.clearbit.com/jeep-india.com",
+    "Other": ""
+}
+
 const normalizeFuelType = (fuel?: string): string => {
     if (!fuel) return "";
     const cleanFuel = fuel.trim().toUpperCase();
@@ -391,13 +409,15 @@ export default function ValuationWizardCard() {
     }
 
     const heroOffset = fromHero ? 1 : 0 // subtract 1 step when vehicle number is skipped
-    const totalSteps = (!serviceType ? 1 : (serviceType === "sell" ? 8 - heroOffset : serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 9 - heroOffset : 8 - heroOffset) : 4)))
+    const totalSteps = (!serviceType ? 1 : (serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 9 - heroOffset : 8 - heroOffset) : 4)))
 
     if (mode === "scrap-valuation") {
         // Calculate scrap value based on weight and baseScrapRate. Default to 15k-25k if no weight found.
         const scrapWeight = parseInt(String(formData.weight).replace(/\D/g, '')) || 0;
         const minScrapValue = scrapWeight ? scrapWeight * (baseScrapRate - 1) : 15000;
         const maxScrapValue = scrapWeight ? scrapWeight * (baseScrapRate + 1) : 25000;
+        const potentialCDDiscount = formData.buyNew === "yes" ? (cdDiscount !== null ? cdDiscount : 0) : 25000;
+        const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
         const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
 
         return (
@@ -433,23 +453,39 @@ export default function ValuationWizardCard() {
                                 <motion.div 
                                     initial={{ opacity: 0, y: 15 }} 
                                     animate={{ opacity: 1, y: 0 }} 
-                                    className="bg-slate-900 rounded-[1.5rem] p-6 text-white relative overflow-hidden shadow-xl shadow-slate-200 group"
+                                    className="bg-gradient-to-br from-slate-900 via-[#0a1120] to-slate-900 rounded-[1.5rem] p-6 text-white relative overflow-hidden shadow-xl shadow-slate-200 group border border-slate-800"
                                 >
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/20 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-green-500/30 transition-colors duration-500"></div>
-                                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#E31E24]/10 rounded-full blur-[60px] -ml-24 -mb-24"></div>
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-emerald-500/30 transition-colors duration-500"></div>
+                                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] -ml-24 -mb-24"></div>
                                     
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 relative z-10">Estimated Cash Value</p>
+                                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2 relative z-10 flex items-center gap-2">
+                                        <Sparkles className="w-3.5 h-3.5" /> Total Potential Benefit
+                                    </p>
                                     <div className="relative z-10">
-                                        <div className="flex items-baseline gap-2 mb-2">
-                                            <span className="text-3xl md:text-4xl font-black tracking-tighter text-white">₹{formatCurrency(minScrapValue)}</span>
-                                            <span className="text-lg md:text-xl text-slate-500 font-bold tracking-tighter">to ₹{formatCurrency(maxScrapValue)}</span>
+                                        <div className="flex items-baseline gap-2 mb-4">
+                                            <span className="text-4xl md:text-5xl font-black tracking-tighter text-white">Up to ₹{formatCurrency(maxTotalBenefit)}*</span>
                                         </div>
-                                        <div className="flex items-center gap-2 py-1.5 px-2.5 bg-white/5 rounded-lg border border-white/10 w-fit">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                        
+                                        {/* Breakdown */}
+                                        <div className="grid grid-cols-2 gap-3 mb-5">
+                                            <div className="bg-white/5 border border-white/10 rounded-xl p-3 shadow-inner">
+                                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Scrap Value</p>
+                                                <p className="text-xl font-black text-white">₹{formatCurrency(minScrapValue)} - ₹{formatCurrency(maxScrapValue)}</p>
+                                            </div>
+                                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 shadow-inner">
+                                                <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest mb-1">CD Certificate</p>
+                                                <p className="text-xl font-black text-emerald-400">
+                                                    {formData.buyNew === "yes" && cdDiscount === null ? <Loader2 className="w-4 h-4 animate-spin inline" /> : `+ ₹${formatCurrency(potentialCDDiscount)}`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2 py-1.5 px-2.5 bg-white/5 rounded-lg border border-white/10 w-fit mb-3">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                                             <p className="text-slate-300 text-[10px] font-bold uppercase tracking-widest">Market Rate: High Demand</p>
                                         </div>
-                                        <p className="mt-4 text-slate-400 text-[11px] leading-relaxed max-w-md">
-                                            This valuation is based on current industrial scrap indices and the verified weight of {formData.weight || "1,200kg"}.
+                                        <p className="text-slate-400 text-[10px] leading-relaxed max-w-md italic">
+                                            *Calculated using industrial scrap indices for {formData.weight || "1,200kg"} and maximum CD Certificate redemption value.
                                         </p>
                                     </div>
                                 </motion.div>
@@ -475,46 +511,47 @@ export default function ValuationWizardCard() {
                                     initial={{ opacity: 0, x: 20 }} 
                                     animate={{ opacity: 1, x: 0 }} 
                                     transition={{ delay: 0.2 }} 
-                                    className="bg-gradient-to-br from-amber-50 via-amber-100/40 to-amber-50 border border-amber-200 rounded-[1.25rem] p-5 relative overflow-hidden shadow-lg shadow-amber-900/5"
+                                    className="bg-gradient-to-br from-amber-50 via-amber-100/40 to-amber-50 border border-amber-200 rounded-[1.25rem] p-5 relative overflow-hidden shadow-lg shadow-amber-900/5 h-full"
                                 >
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200 rounded-full blur-[50px] opacity-40 -mr-16 -mt-16"></div>
-                                    <div className="flex items-start gap-3 relative z-10">
-                                        <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/30">
-                                            <Sparkles className="w-4.5 h-4.5" />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <h4 className="text-amber-950 font-black text-[12px] uppercase tracking-wider">CD Certificate Advantage</h4>
-                                            <div className="space-y-2">
-                                                {formData.buyNew === "yes" ? (
-                                                    cdDiscount !== null ? (
-                                                        <div className="space-y-1.5">
-                                                            <p className="text-amber-900 font-medium text-[11px] leading-snug">
-                                                                Registration savings for your new <span className="font-bold">{formData.desiredCompany}</span>:
-                                                            </p>
-                                                            <div className="bg-amber-500 text-white px-3 py-1.5 rounded-xl text-center shadow-md">
-                                                                <p className="text-[9px] font-black uppercase tracking-tighter">Extra Discount</p>
-                                                                <p className="text-base font-black tracking-tighter">₹{formatCurrency(cdDiscount)}</p>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-amber-800 font-medium text-[11px] flex items-center gap-2">
-                                                            <Loader2 className="w-3 h-3 animate-spin" /> Tailoring savings...
-                                                        </p>
-                                                    )
-                                                ) : (
-                                                    <div className="space-y-1.5">
-                                                        <p className="text-amber-800 font-medium text-[11px] leading-snug">
-                                                            Redeemable discount on your next vehicle purchase:
-                                                        </p>
-                                                        <div className="bg-amber-200/50 border border-amber-300 px-3 py-1 rounded-xl text-center">
-                                                            <p className="text-amber-950 font-black text-[13px] tracking-tighter">₹15,000 - ₹25,000</p>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                <div className="pt-1.5 border-t border-amber-200/50">
-                                                    <p className="text-[9px] text-amber-700/80 italic font-medium">*Govt. mandated benefit for recycling</p>
-                                                </div>
+                                    <div className="flex flex-col h-full relative z-10">
+                                        <div className="flex items-start gap-3 mb-4">
+                                            <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/30">
+                                                <Sparkles className="w-4.5 h-4.5" />
                                             </div>
+                                            <div className="space-y-1.5">
+                                                <h4 className="text-amber-950 font-black text-[12px] uppercase tracking-wider">CD Certificate Advantage</h4>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex-1 flex flex-col justify-center">
+                                            {formData.buyNew === "yes" ? (
+                                                <div className="space-y-3">
+                                                    <p className="text-amber-900 font-medium text-[12px] leading-relaxed">
+                                                        By scrapping through our RVSF, you are legally entitled to registration savings on your new <span className="font-black text-amber-950">{formData.desiredCompany}</span>.
+                                                    </p>
+                                                    <div className="bg-white/60 border border-amber-200/60 p-3 rounded-xl">
+                                                        <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1">Guaranteed Benefit</p>
+                                                        <p className="text-xl font-black text-amber-950 flex items-center gap-2">
+                                                            {cdDiscount === null ? <Loader2 className="w-5 h-5 animate-spin" /> : `₹${formatCurrency(cdDiscount)}`}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <p className="text-amber-900 font-medium text-[12px] leading-relaxed">
+                                                        You will receive a Govt. authorized Certificate of Deposit which can be used or traded later for vehicle registration discounts.
+                                                    </p>
+                                                    <div className="bg-white/60 border border-amber-200/60 p-3 rounded-xl">
+                                                        <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1">Estimated Value</p>
+                                                        <p className="text-lg font-black text-amber-950">₹15,000 - ₹25,000</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="pt-3 mt-3 border-t border-amber-200/50">
+                                            <p className="text-[9px] text-amber-700/80 italic font-medium">*Govt. mandated benefit for recycling</p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -690,7 +727,6 @@ export default function ValuationWizardCard() {
                                     <div className="grid gap-2.5 max-w-sm mx-auto px-4">
                                         {[
                                             ...(!fromHero ? [{ title: "Buy a new Vehicle", description: "Exchange offers & OEM benefits", key: "buy" }] : []),
-                                            { title: "Sell your Vehicle", description: "Best market price & doorstep pickup", key: "sell" },
                                             { title: "Scrap your Vehicle", description: "Eco-friendly & max scrap value", key: "scrap" }
                                         ].map((opt) => (
                                             <button
@@ -714,201 +750,7 @@ export default function ValuationWizardCard() {
                                 </div>
                             )}
 
-                            {/* ── SELL FLOW ── */}
-                            {serviceType === "sell" && (
-                                <>
-                                    {step === 0 && (
-                                        <div className="space-y-5 text-center">
-                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Car className="w-7 h-7 text-[#E31E24]" /></div>
-                                            <div className="space-y-0.5">
-                                                <h3 className="text-xl font-bold text-slate-900">Vehicle Number</h3>
-                                                <p className="text-slate-500 text-[11px] font-medium">Enter your registration number (e.g. DL-01-AB-1234)</p>
-                                            </div>
-                                            <div className="relative max-w-md mx-auto">
-                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                                                <input type="text" placeholder="DL-01-AB-1234" value={formData.regNo} onChange={(e) => setFormData({...formData, regNo: e.target.value.toUpperCase()})} className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-black tracking-widest text-slate-900 focus:outline-none focus:border-[#E31E24] transition-all text-center" />
-                                            </div>
-                                            <button disabled={!formData.regNo || isFetching} onClick={handleRegSubmit} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2 group uppercase tracking-widest text-[10px]">
-                                                {isFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch Details"}
-                                                {!isFetching && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
-                                            </button>
-                                        </div>
-                                    )}
 
-                                    {step === 1 && (
-                                        <div className="space-y-4">
-                                            <div className="text-center">
-                                                <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-2"><ClipboardList className="w-6 h-6 text-[#E31E24]" /></div>
-                                                <h3 className="text-lg font-bold text-slate-900">Verify Vehicle Details</h3>
-                                                <p className="text-slate-500 text-[11px] font-medium">Auto-filled based on your registration</p>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-2.5 max-w-md mx-auto">
-                                                <div className="space-y-0.5">
-                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Company / Brand</label>
-                                                    <input type="text" value={formData.brand} onChange={(e) => setFormData({...formData, brand: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
-                                                    <input type="text" value={formData.model} onChange={(e) => setFormData({...formData, model: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Swift" />
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Reg. Year</label>
-                                                    <input type="text" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Weight (KG)</label>
-                                                    <input type="text" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. 1200" />
-                                                </div>
-                                            </div>
-                                            <button onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">Confirm & Continue <ArrowRight className="w-3.5 h-3.5" /></button>
-                                        </div>
-                                    )}
-
-                                    {step === 2 && (
-                                        <div className="space-y-5 text-center">
-                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Gauge className="w-7 h-7 text-[#E31E24]" /></div>
-                                            <h3 className="text-xl font-bold text-slate-900">Distance Travelled</h3>
-                                            <p className="text-slate-500 text-[11px] font-medium">Total kilometers on the odometer</p>
-                                            <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
-                                                {["0 - 10,000", "10,000 - 30,000", "30,000 - 60,000", "60,000+"].map((range, i) => (
-                                                    <button key={i} onClick={() => { setFormData({...formData, kms: range}); nextStep() }} className="p-2.5 border border-slate-100 rounded-xl text-[10px] font-bold text-slate-700 hover:border-[#E31E24] hover:bg-red-50 transition-all">{range} KM</button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {step === 3 && (
-                                        <div className="space-y-5 text-center">
-                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Fuel className="w-7 h-7 text-[#E31E24]" /></div>
-                                            <h3 className="text-xl font-bold text-slate-900">Fuel Type</h3>
-                                            <p className="text-slate-500 text-[11px] font-medium">
-                                                {formData.fuel ? <span className="text-emerald-600 font-bold">✓ Auto-filled from registration — confirm or change</span> : "Which fuel does your car use?"}
-                                            </p>
-                                            <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
-                                                {FUEL_TYPES.map((f, i) => {
-                                                    const isSelected = formData.fuel === f
-                                                    return (
-                                                        <button
-                                                            key={i}
-                                                            onClick={() => setFormData({...formData, fuel: f})}
-                                                            className={`px-4 py-2 border rounded-xl text-[10px] font-bold transition-all ${
-                                                                isSelected
-                                                                    ? "bg-[#E31E24] border-[#E31E24] text-white shadow-md shadow-red-500/20"
-                                                                    : "border-slate-100 text-slate-700 hover:border-[#E31E24] hover:bg-red-50"
-                                                            }`}
-                                                        >
-                                                            {f}
-                                                            {isSelected && <CheckCircle className="w-3 h-3 ml-1.5 inline-block" />}
-                                                        </button>
-                                                    )
-                                                })}
-                                            </div>
-                                            <button
-                                                disabled={!formData.fuel}
-                                                onClick={() => nextStep()}
-                                                className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                Confirm & Continue <ArrowRight className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {step === 4 && (
-                                        <div className="space-y-5 text-center">
-                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
-                                            <h3 className="text-xl font-bold text-slate-900">Your Name</h3>
-                                            <input type="text" placeholder="Enter Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" autoFocus />
-                                            <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-slate-900 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-[10px]">Continue</button>
-                                        </div>
-                                    )}
-
-                                    {step === 5 && (
-                                        <div className="space-y-4 text-center">
-                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1"><MapPin className="w-7 h-7 text-[#E31E24]" /></div>
-                                            <h3 className="text-xl font-bold text-slate-900">Your Location</h3>
-                                            <div className="space-y-3 max-w-md mx-auto">
-                                                <div className="space-y-1 text-left">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">State</label>
-                                                    <select value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value, city: ""})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
-                                                        <option value="" disabled>Select State</option>
-                                                        {STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div className="space-y-1 text-left">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">City</label>
-                                                    <select value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" disabled={!formData.state}>
-                                                        <option value="" disabled>{formData.state ? "Select City" : "Select State First"}</option>
-                                                        {formData.state && (indiaData[formData.state] || []).map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div className="space-y-1 text-left">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
-                                                    <input 
-                                                        type="tel" 
-                                                        placeholder="6-digit Pincode" 
-                                                        value={formData.pincode} 
-                                                        onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} 
-                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
-                                                    />
-                                                 </div>
-                                            </div>
-                                            <button disabled={!formData.state || !formData.city || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-slate-900 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-[10px]">Continue</button>
-                                        </div>
-                                    )}
-
-                                    {step === 6 && (
-                                        <div className="space-y-6 text-center">
-                                            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                                {otpSent ? <Lock className="w-8 h-8 text-[#E31E24]" /> : <Smartphone className="w-8 h-8 text-[#E31E24]" />}
-                                            </div>
-                                            <h3 className="text-2xl font-bold text-slate-900">{otpSent ? "Verification" : "Login with Phone"}</h3>
-                                            
-                                            <div className="space-y-3 max-w-sm mx-auto">
-                                                <div className="relative">
-                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
-                                                    <input 
-                                                        type="tel" 
-                                                        disabled={otpSent}
-                                                        placeholder="Mobile Number" 
-                                                        value={formData.phone} 
-                                                        onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
-                                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
-                                                        maxLength={10} 
-                                                    />
-                                                </div>
-
-                                                {otpSent && (
-                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                                                        <input 
-                                                            type="tel" 
-                                                            placeholder="••••••" 
-                                                            value={formData.otp} 
-                                                            onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
-                                                            className="w-full px-4 py-3 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
-                                                            maxLength={6} 
-                                                            autoFocus 
-                                                        />
-                                                        <button 
-                                                            onClick={() => { setOtpSent(false); setFormData({...formData, otp: ""}) }}
-                                                            className="text-[10px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
-                                                        >
-                                                            Change Number
-                                                        </button>
-                                                    </motion.div>
-                                                )}
-                                            </div>
-
-                                            <button 
-                                                disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying} 
-                                                onClick={otpSent ? handleVerifyOtp : handleSendOtp} 
-                                                className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2"
-                                            >
-                                                {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "Verify & Sell" : "Get OTP")}
-                                            </button>
-                                        </div>
-                                    )}
-                                </>
-                            )}
 
                             {/* ── BUY FLOW ── */}
                             {serviceType === "buy" && (
@@ -922,7 +764,26 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1.5 text-left">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Brand</label>
-                                                    <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
+                                                    <div className="grid grid-cols-4 gap-2">
+                                                        {BRANDS.map((b) => (
+                                                            <button
+                                                                key={b}
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, desiredCompany: b })}
+                                                                className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${formData.desiredCompany === b ? 'border-[#E31E24] bg-red-50 shadow-sm' : 'border-slate-100 bg-white hover:border-red-200 hover:bg-red-50/50'}`}
+                                                            >
+                                                                {BRAND_LOGOS[b] ? (
+                                                                    <img src={BRAND_LOGOS[b]} alt={b} className="w-7 h-7 object-contain mb-1 drop-shadow-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
+                                                                ) : (
+                                                                    <div className="w-7 h-7 flex items-center justify-center bg-slate-100 rounded-full mb-1"><Car className="w-3.5 h-3.5 text-slate-400" /></div>
+                                                                )}
+                                                                <span className="text-[8px] font-bold text-slate-700 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full px-0.5">{b}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    {formData.desiredCompany && !BRANDS.includes(formData.desiredCompany) && (
+                                                        <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full mt-2 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
+                                                    )}
                                                 </div>
                                                 <div className="space-y-1.5 text-left">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Model</label>
@@ -1068,7 +929,26 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-3 max-w-md mx-auto">
                                                 <div className="space-y-1.5 text-left">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Brand</label>
-                                                    <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
+                                                    <div className="grid grid-cols-4 gap-2">
+                                                        {BRANDS.map((b) => (
+                                                            <button
+                                                                key={b}
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, desiredCompany: b })}
+                                                                className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${formData.desiredCompany === b ? 'border-[#E31E24] bg-red-50 shadow-sm' : 'border-slate-100 bg-white hover:border-red-200 hover:bg-red-50/50'}`}
+                                                            >
+                                                                {BRAND_LOGOS[b] ? (
+                                                                    <img src={BRAND_LOGOS[b]} alt={b} className="w-7 h-7 object-contain mb-1 drop-shadow-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
+                                                                ) : (
+                                                                    <div className="w-7 h-7 flex items-center justify-center bg-slate-100 rounded-full mb-1"><Car className="w-3.5 h-3.5 text-slate-400" /></div>
+                                                                )}
+                                                                <span className="text-[8px] font-bold text-slate-700 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full px-0.5">{b}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    {formData.desiredCompany && !BRANDS.includes(formData.desiredCompany) && (
+                                                        <input type="text" placeholder="e.g. Maruti Suzuki" value={formData.desiredCompany} onChange={(e) => setFormData({...formData, desiredCompany: e.target.value})} className="w-full mt-2 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
+                                                    )}
                                                 </div>
                                                 <div className="space-y-1.5 text-left">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Model</label>

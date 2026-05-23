@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -25,9 +25,8 @@ export default async function ApprovedRequestsPage() {
 
     // Fetch all approved requests from all collections
     const statusFilter = { status: { $in: ["approved", "pickup_scheduled", "reached_collection_centre", "car_scrapped"] } };
-    const [quoteRequests, sellRequests, exchangeRequests, buyRequests, wizardRequests] = await Promise.all([
+    const [quoteRequests, exchangeRequests, buyRequests, wizardRequests] = await Promise.all([
         Valuation.find(statusFilter).sort({ createdAt: -1 }).lean(),
-        SellVehicle.find(statusFilter).sort({ createdAt: -1 }).lean(),
         ExchangeVehicle.find(statusFilter).sort({ createdAt: -1 }).lean(),
         BuyVehicle.find(statusFilter).sort({ createdAt: -1 }).lean(),
         WizardLead.find(statusFilter).sort({ createdAt: -1 }).lean()
@@ -51,7 +50,6 @@ export default async function ApprovedRequestsPage() {
     // Combine all requests with type information
     const allRequests = [
         ...quoteRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "quote", typeName: "Get Free Quote", color: "blue" })),
-        ...sellRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "sell", typeName: "Sell Old Vehicle", color: "green" })),
         ...exchangeRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "exchange", typeName: "Exchange Vehicle", color: "purple" })),
         ...buyRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "buy", typeName: "Buy New Vehicle", color: "orange" })),
         ...wizardRequests.map(formatWizardLead)
@@ -73,8 +71,7 @@ export default async function ApprovedRequestsPage() {
     function getVehicleInfo(req: any) {
         if (req.type === "quote") {
             return `${req.brand || 'Unknown'} ${req.model || ''} (${req.year || 'N/A'})`
-        } else if (req.type === "sell") {
-            return `${req.brand || 'Unknown'} ${req.model || ''} (${req.registrationYear || req.year || 'N/A'})`
+
         } else if (req.type === "exchange") {
             return `${req.oldVehicleBrand || 'Unknown'} ${req.oldVehicleModel || ''} → ${req.newVehicleBrand || ''}`
         } else if (req.type === "buy") {

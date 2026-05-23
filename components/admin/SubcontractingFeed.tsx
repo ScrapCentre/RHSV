@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Filter, ArrowRight, Activity, MapPin, Download, Mail } from "lucide-react"
+import { Filter, ArrowRight, Activity, MapPin, Download, Mail, AlertTriangle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 
 interface SubcontractingFeedProps {
     initialData: any[]
+    error?: string | null
 }
 
 const tableRowVariants = {
@@ -18,7 +19,7 @@ const tableRowVariants = {
     })
 }
 
-export default function SubcontractingFeed({ initialData }: SubcontractingFeedProps) {
+export default function SubcontractingFeed({ initialData, error }: SubcontractingFeedProps) {
     const [filterType, setFilterType] = useState<string>("all")
     const [filterState, setFilterState] = useState<string>("all")
     const [filterCity, setFilterCity] = useState<string>("all")
@@ -135,6 +136,27 @@ export default function SubcontractingFeed({ initialData }: SubcontractingFeedPr
 
     return (
         <div className="bg-white dark:bg-[#0E192D] rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
+
+            {/* Error Banner */}
+            {error && (
+                <div className="m-4 sm:m-6 flex items-start gap-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                    <div className="shrink-0 w-10 h-10 rounded-xl bg-red-100 dark:bg-red-800/40 flex items-center justify-center">
+                        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-red-800 dark:text-red-300 mb-0.5">Failed to load RVSF data</p>
+                        <p className="text-xs text-red-600 dark:text-red-400 leading-relaxed break-words">{error}</p>
+                    </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all"
+                    >
+                        <RefreshCw className="w-3 h-3" />
+                        Retry
+                    </button>
+                </div>
+            )}
+
             {/* Header / Filters */}
             <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-slate-800 flex flex-col gap-4 bg-gray-50/50 dark:bg-[#0E192D]">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-3">
@@ -147,7 +169,6 @@ export default function SubcontractingFeed({ initialData }: SubcontractingFeedPr
                         >
                             <option value="all">All Types</option>
                             <option value="quote">Scrap Quotes</option>
-                            <option value="sell">Sell Requests</option>
                             <option value="exchange">Exchange Requests</option>
                             <option value="buy">Buy Requests</option>
                         </select>

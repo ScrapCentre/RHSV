@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -25,13 +25,11 @@ export default async function ExecutiveApprovedLeads() {
     // Fetch approved, approved_to_rvsf, pickup_scheduled, reached_collection_centre, and car_scrapped leads from all collections
     const [
         approvedQuotes,
-        approvedSells,
         approvedExchanges,
         approvedBuys,
         approvedWizards
     ] = await Promise.all([
         Valuation.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
-        SellVehicle.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
         ExchangeVehicle.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
         BuyVehicle.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
         WizardLead.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
@@ -45,13 +43,7 @@ export default async function ExecutiveApprovedLeads() {
             customerPhone: item.contact?.phone || "N/A",
             vehicleInfo: `${item.year || 'N/A'} ${item.brand || 'Unknown'} ${item.model || ''}`
         })),
-        ...approvedSells.map((item: any) => ({
-            ...JSON.parse(JSON.stringify(item)),
-            type: 'sell',
-            customerName: item.name || "N/A",
-            customerPhone: item.phone || "N/A",
-            vehicleInfo: `${item.registrationYear || 'N/A'} ${item.brand || 'Unknown'} ${item.model || ''}`
-        })),
+
         ...approvedExchanges.map((item: any) => ({
             ...JSON.parse(JSON.stringify(item)),
             type: 'exchange',

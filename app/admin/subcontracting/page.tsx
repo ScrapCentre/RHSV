@@ -1,9 +1,10 @@
+
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -20,6 +21,7 @@ export default async function SubcontractingPage() {
     }
 
     let subcontractingFeed: any[] = []
+    let fetchError: string | null = null
 
     try {
         await connectToDatabase()
@@ -31,13 +33,11 @@ export default async function SubcontractingPage() {
         // Mongoose Queries for approved RVSF leads
         const [
             latestQuotes,
-            latestSells,
             latestExchanges,
             latestBuys,
             latestWizards
         ] = await Promise.all([
             Valuation.find(quoteExcludeFilter).sort({ createdAt: -1 }).lean(),
-            SellVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             ExchangeVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             BuyVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             WizardLead.find(excludeFilter).sort({ createdAt: -1 }).lean(),
@@ -56,17 +56,7 @@ export default async function SubcontractingPage() {
                     location: `${item.address?.city || 'N/A'}, ${item.address?.state || 'N/A'}`
                 };
             }),
-            ...latestSells.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                return {
-                    ...plainItem,
-                    type: 'sell',
-                    customerName: item.name || "N/A",
-                    customerPhone: item.phone || "N/A",
-                    vehicleInfo: `${item.registrationYear} ${item.customBrand || item.brand} ${item.customModel || item.model}`,
-                    location: `${item.city || 'N/A'}, ${item.state || 'N/A'}`
-                };
-            }),
+
             ...latestExchanges.map((item: any) => {
                 const plainItem = JSON.parse(JSON.stringify(item));
                 return {
@@ -96,12 +86,12 @@ export default async function SubcontractingPage() {
                 let linkType = serviceType;
                 if (serviceType === "scrap") { typeName = "Scrap Vehicle"; linkType = "quote"; }
                 if (serviceType === "scrap-buy") { typeName = "Scrap & Buy New"; }
-                if (serviceType === "sell" || serviceType === "wizard-sell") { typeName = "Sell Old Vehicle"; linkType = "sell"; }
+
                 if (serviceType === "buy" || serviceType === "wizard-buy") { typeName = "Buy New Vehicle"; linkType = "buy"; }
-                
-                let vehicleInfoStr = serviceType === "buy" ? `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}` : 
-                                   (serviceType === "scrap" && item.category === "scrap_and_buy") ? `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}` :
-                                   `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
+
+                let vehicleInfoStr = serviceType === "buy" ? `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}` :
+                    (serviceType === "scrap" && item.category === "scrap_and_buy") ? `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}` :
+                        `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
 
                 return {
                     ...plainItem,
@@ -116,8 +106,14 @@ export default async function SubcontractingPage() {
             })
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error fetching Subcontracting data:", error)
+        // Extract a user-friendly message from the error
+        if (error?.message?.includes("ECONNREFUSED") || error?.message?.includes("connect")) {
+            fetchError = "Could not connect to the database. Please check your MongoDB connection and ensure your IP is whitelisted in Atlas."
+        } else {
+            fetchError = error?.message || "An unexpected error occurred while loading RVSF data."
+        }
     }
 
     return (
@@ -133,7 +129,7 @@ export default async function SubcontractingPage() {
                 </div>
             </div>
 
-            <SubcontractingFeed initialData={subcontractingFeed} />
+            <SubcontractingFeed initialData={subcontractingFeed} error={fetchError} />
         </div>
     )
 }

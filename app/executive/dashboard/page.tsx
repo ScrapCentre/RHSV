@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -36,13 +36,11 @@ export default async function ExecutiveDashboardPage() {
         // 1. Fetch Full Market Feed
         const [
             allQuotes,
-            allSells,
             allExchanges,
             allBuys,
             allWizardLeads
         ] = await Promise.all([
             Valuation.find().sort({ createdAt: -1 }).limit(10).lean(),
-            SellVehicle.find().sort({ createdAt: -1 }).limit(10).lean(),
             ExchangeVehicle.find().sort({ createdAt: -1 }).limit(10).lean(),
             BuyVehicle.find().sort({ createdAt: -1 }).limit(10).lean(),
             WizardLead.find().sort({ createdAt: -1 }).limit(10).lean(),
@@ -56,13 +54,7 @@ export default async function ExecutiveDashboardPage() {
                 customerPhone: item.contact?.phone || "N/A",
                 vehicleInfo: `${item.year} ${item.brand} ${item.model}`
             })),
-            ...allSells.map((item: any) => ({
-                ...JSON.parse(JSON.stringify(item)),
-                type: 'sell',
-                customerName: item.name || "N/A",
-                customerPhone: item.phone || "N/A",
-                vehicleInfo: `${item.registrationYear} ${item.brand} ${item.model}`
-            })),
+
             ...allExchanges.map((item: any) => ({
                 ...JSON.parse(JSON.stringify(item)),
                 type: 'exchange',
@@ -112,25 +104,22 @@ export default async function ExecutiveDashboardPage() {
         // 3. Stats
         const [
             countQuotes,
-            countSells,
             countExchanges,
             countBuys,
             countWizard,
             countOutsourcing
         ] = await Promise.all([
             Valuation.countDocuments({ status: 'approved' }),
-            SellVehicle.countDocuments({ status: 'approved' }),
             ExchangeVehicle.countDocuments({ status: 'approved' }),
             BuyVehicle.countDocuments({ status: 'approved' }),
             WizardLead.countDocuments({ status: 'approved' }),
             BulkOutsourcing.countDocuments()
         ])
 
-        stats.totalApproved = countQuotes + countSells + countExchanges + countBuys + countWizard
+        stats.totalApproved = countQuotes + countExchanges + countBuys + countWizard
         stats.totalOutsourcing = countOutsourcing
         stats.totalLeadVolume = await Promise.all([
             Valuation.countDocuments(),
-            SellVehicle.countDocuments(),
             ExchangeVehicle.countDocuments(),
             BuyVehicle.countDocuments(),
             WizardLead.countDocuments()

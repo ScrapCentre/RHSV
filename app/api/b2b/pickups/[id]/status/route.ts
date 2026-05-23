@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
 import B2BPickup from "@/models/B2BPickup"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -49,9 +48,7 @@ export async function POST(
                 case "valuation":
                     legacyModel = Valuation
                     break
-                case "sell":
-                    legacyModel = SellVehicle
-                    break
+
                 case "exchange":
                     legacyModel = ExchangeVehicle
                     break

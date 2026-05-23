@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import WizardLead from "@/models/WizardLead"
 import { uploadToCloudinary } from "@/lib/cloudinary"
@@ -78,19 +78,13 @@ export async function PATCH(req: NextRequest) {
         let updateStatus = "pending";
         const customFieldsToSet: any = {};
 
-        if (source === "sell-vehicle") {
-            Model = SellVehicle
-            if (fullAddress) customFieldsToSet.fullAddress = fullAddress
-            if (state) customFieldsToSet.state = state
-            if (city) customFieldsToSet.city = city
-            if (pincode) customFieldsToSet.pincode = pincode
-        } else if (source === "exchange-vehicle") {
+        if (source === "exchange-vehicle") {
             Model = ExchangeVehicle
             if (fullAddress) customFieldsToSet.fullAddress = fullAddress
             if (state) customFieldsToSet.state = state
             if (city) customFieldsToSet.city = city
             if (pincode) customFieldsToSet.pincode = pincode
-        } else if (["scrap", "sell", "buy"].includes(source)) {
+        } else if (["scrap", "buy"].includes(source)) {
             const isWizard = await WizardLead.findById(valuationId)
             if (isWizard) {
                 Model = WizardLead

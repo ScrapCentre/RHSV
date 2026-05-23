@@ -1,7 +1,10 @@
 import mongoose from "mongoose"
 import bcrypt from "bcryptjs"
 
-const MONGODB_URI = "mongodb+srv://scrapcentre69_db_user:FMTSiCszPRoHDnmI@cluster0.4qzm4t3.mongodb.net/project"
+import * as dotenv from "dotenv"
+dotenv.config({ path: ".env.local" })
+
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/project"
 
 async function run() {
   try {

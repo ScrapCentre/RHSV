@@ -20,7 +20,6 @@ import { motion } from "framer-motion"
 interface DashboardChartsProps {
     valuationCounts: {
         quote: number
-        sell: number
         exchange: number
         buy: number
     }
@@ -37,9 +36,8 @@ export default function DashboardCharts({ valuationCounts, b2bStats, monthlyGrow
     // Chart 1: Service Distribution
     const serviceData = [
         { name: "Buy New", value: valuationCounts.buy, color: "#f97316" }, // Orange
-        { name: "Exchange", value: valuationCounts.exchange, color: "#a855f7" }, // Purple
+        { name: "Scrap & Buy", value: valuationCounts.exchange, color: "#a855f7" }, // Purple
         { name: "Scrap", value: valuationCounts.quote, color: "#3b82f6" }, // Blue
-        { name: "Sell Old", value: valuationCounts.sell, color: "#22c55e" }, // Green
     ]
 
     return (

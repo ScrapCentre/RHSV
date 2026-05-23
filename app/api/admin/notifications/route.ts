@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import Contact from "@/models/Contact"
@@ -25,7 +25,6 @@ export async function GET() {
         // Fetch latest new/pending requests from relevant models, including the stepper WizardLeads
         const [
             valuations,
-            sellRequests,
             exchangeRequests,
             buyRequests,
             contactRequests,
@@ -34,7 +33,6 @@ export async function GET() {
             wizardLeads
         ] = await Promise.all([
             Valuation.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
-            SellVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             ExchangeVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             BuyVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             Contact.find({ status: "new" }).sort({ createdAt: -1 }).limit(10).lean(),
@@ -53,14 +51,7 @@ export async function GET() {
                 createdAt: v.createdAt,
                 href: `/admin/valuations/quote/${v._id}?highlight=true`
             })),
-            ...sellRequests.map((s: any) => ({
-                id: s._id,
-                type: "sell",
-                title: "New Sell Request",
-                description: `${s.brand} ${s.model}`,
-                createdAt: s.createdAt,
-                href: `/admin/valuations/sell/${s._id}?highlight=true`
-            })),
+
             ...exchangeRequests.map((e: any) => ({
                 id: e._id,
                 type: "exchange",
@@ -111,10 +102,7 @@ export async function GET() {
                     type = "valuation"
                     title = "New Scrap & Buy Request"
                     href = `/admin/valuations/scrap-buy/${wl._id}?highlight=true`
-                } else if (wl.serviceType === "sell") {
-                    type = "sell"
-                    title = "New Sell Request"
-                    href = `/admin/valuations/sell/${wl._id}?highlight=true`
+
                 } else if (wl.serviceType === "buy") {
                     type = "buy"
                     title = "New Buy Inquiry"

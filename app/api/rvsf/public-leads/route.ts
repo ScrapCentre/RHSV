@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
 import Valuation from "@/models/Valuation"
-import SellVehicle from "@/models/SellVehicle"
+
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -99,13 +99,11 @@ export async function GET(request: Request) {
 
         const [
             latestQuotes,
-            latestSells,
             latestExchanges,
             latestBuys,
             latestWizards
         ] = await Promise.all([
             Valuation.find(quoteExcludeFilter).sort({ createdAt: -1 }).lean(),
-            SellVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             ExchangeVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             BuyVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             WizardLead.find(excludeFilter).sort({ createdAt: -1 }).lean(),
@@ -114,7 +112,7 @@ export async function GET(request: Request) {
         // Group into a single structure
         const allLeads = [
             ...latestQuotes.map((item: any) => ({ ...item, type: 'quote' })),
-            ...latestSells.map((item: any) => ({ ...item, type: 'sell' })),
+
             ...latestExchanges.map((item: any) => ({ ...item, type: 'exchange' })),
             ...latestBuys.map((item: any) => ({ ...item, type: 'buy' })),
             ...latestWizards.map((item: any) => ({ ...item, type: item.serviceType || 'wizard' }))
@@ -153,8 +151,6 @@ export async function GET(request: Request) {
             let vehicleInfo = "Vehicle Details Hidden"
             if (item.type === 'quote') {
                 vehicleInfo = `${item.year || '20XX'} ${item.brand || 'Vehicle'} ${item.model || ''} (${item.vehicleType || ''})`.trim()
-            } else if (item.type === 'sell') {
-                vehicleInfo = `${item.registrationYear || '20XX'} ${item.customBrand || item.brand || 'Vehicle'} ${item.customModel || item.model || ''}`.trim()
             } else if (item.type === 'exchange') {
                 vehicleInfo = `Exchange: ${item.oldVehicleBrand || 'Old'} -> ${item.newVehicleBrand || 'New'}`.trim()
             } else if (item.type === 'buy') {
