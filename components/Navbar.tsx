@@ -30,7 +30,7 @@ export default function Navbar() {
 
   const navItems = [
     { name: "Free Valuation", href: "#services" },
-    { name: "RVSF", href: "/rvsf_leads" },
+    { name: "RVSF", href: "/rvsf/apply" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ]

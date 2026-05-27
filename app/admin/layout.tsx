@@ -235,6 +235,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 </Link>
                             </motion.div>
                             <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/rvsf-applications" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/rvsf-applications') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/rvsf-applications') && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
+                                    )}
+                                    <FileText className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/rvsf-applications') ? 'text-[#E31E24]' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">RVSF Applications</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
                                 <Link href="/admin/bulk-outsourcing" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/bulk-outsourcing') ? 'bg-purple-500/10 text-purple-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
                                     {isActive('/admin/bulk-outsourcing') && (
                                         <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-purple-500 rounded-r-full" />
@@ -313,6 +322,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     )}
                                     <MessageSquare className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/contact') ? 'text-blue-400' : 'text-slate-400 group-hover:text-white'}`} />
                                     <span className="font-semibold">Contact Requests</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/admin/refund-review" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/admin/refund-review') ? 'bg-emerald-500/10 text-emerald-400 shadow-sm' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+                                    {isActive('/admin/refund-review') && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-full" />
+                                    )}
+                                    <RefreshCcw className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/admin/refund-review') ? 'text-emerald-400' : 'text-slate-400 group-hover:text-white'}`} />
+                                    <span className="font-semibold">Refund Requests</span>
                                 </Link>
                             </motion.div>
                         </div>

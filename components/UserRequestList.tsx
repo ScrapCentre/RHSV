@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link"
 import {
     Car,
     Calendar,
@@ -23,7 +24,9 @@ import {
     Box,
     IndianRupee,
     Recycle,
-    Sparkles
+    Sparkles,
+    MessageSquare,
+    ArrowRight
 } from "lucide-react"
 
 interface BaseRequest {
@@ -206,6 +209,15 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 </div>
                                 <div className="flex flex-col items-end gap-3">
                                     {getStatusBadge(req.status)}
+                                    {req.chatThreadId && (
+                                        <Link
+                                            href={`/profile/chat/${req.chatThreadId}`}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider bg-[#E31E24] hover:bg-red-700 text-white transition-all shadow-md active:scale-[0.97]"
+                                        >
+                                            <MessageSquare className="w-3.5 h-3.5 animate-pulse" /> Chat & Negotiate
+                                        </Link>
+                                    )}
                                     <div className={`flex items-center gap-1 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity ${colors.text}`}>
                                         View Details <ChevronRight className="w-4 h-4" />
                                     </div>
@@ -447,12 +459,20 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                             </div>
 
                             {/* Action Button */}
-                            <div className="p-4 sm:p-5 bg-slate-900 border-t border-slate-800 shrink-0">
+                            <div className="p-4 sm:p-5 bg-slate-900 border-t border-slate-800 shrink-0 space-y-3">
+                                {selectedRequest.chatThreadId && (
+                                    <Link
+                                        href={`/profile/chat/${selectedRequest.chatThreadId}`}
+                                        className="w-full bg-[#E31E24] hover:bg-red-700 text-white font-extrabold text-xs py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                                    >
+                                        <MessageSquare className="w-4 h-4 animate-pulse" /> Open Chat & Negotiate <ArrowRight className="w-4 h-4" />
+                                    </Link>
+                                )}
                                 <button
                                     onClick={() => setSelectedRequest(null)}
-                                    className="w-full bg-white hover:bg-gray-200 text-slate-900 font-bold py-3 sm:py-3.5 rounded-xl transition-all shadow-lg active:scale-[0.98]"
+                                    className="w-full bg-slate-850 hover:bg-slate-800 text-white font-bold py-3 sm:py-3.5 rounded-xl transition-all border border-slate-800 active:scale-[0.98]"
                                 >
-                                    Done
+                                    Close Details
                                 </button>
                             </div>
                         </motion.div>

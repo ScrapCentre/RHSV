@@ -241,7 +241,13 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     if (!isMatch) return null;
-                    return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf" }
+                    return { 
+                        id: (rvsf as any)._id.toString(), 
+                        name: (rvsf as any).name, 
+                        email: (rvsf as any).email, 
+                        role: "rvsf",
+                        rvsfId: (rvsf as any).rvsfId 
+                    }
                 } catch (err: any) {
                     console.error("[RVSF Auth] Error:", err);
                     if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
@@ -288,9 +294,12 @@ export const authOptions: NextAuthOptions = {
                         email: user.email ?? null, 
                         role: user.role || "client" 
                     }
-                } catch (err) {
+                } catch (err: any) {
                     console.error("Master OTP Error:", err);
-                    return null;
+                    if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
+                        throw new Error("DATABASE_CONNECTION_ERROR");
+                    }
+                    throw new Error(`AUTH_ERROR: ${err.message || "Unknown error during phone sign-in"}`);
                 }
             }
         }),
@@ -419,6 +428,7 @@ export const authOptions: NextAuthOptions = {
                 } else {
                     token.role = (user as any).role || "client";
                     token.id = user.id;
+                    if ((user as any).rvsfId) token.rvsfId = (user as any).rvsfId;
                 }
             }
             return token
@@ -427,6 +437,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 (session.user as any).role = token.role;
                 (session.user as any).id = token.id;
+                if (token.rvsfId) (session.user as any).rvsfId = token.rvsfId;
             }
             return session
         },

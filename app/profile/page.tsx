@@ -11,7 +11,9 @@ import B2BPartner from "@/models/B2BPartner"
 import Setting from "@/models/Setting"
 import WizardLead from "@/models/WizardLead"
 import User from "@/models/User"
-import { User as UserIcon, Package, Clock, Calendar, CheckCircle, Car, Building2, AlertCircle, RefreshCw, ShoppingCart, Tag } from "lucide-react"
+import ChatThread from "@/models/ChatThread"
+import RVSFUser from "@/models/RVSFUser"
+import { User as UserIcon, Package, Clock, Calendar, CheckCircle, Car, Building2, AlertCircle, RefreshCw, ShoppingCart, Tag, MessageSquare, ArrowRight, DollarSign } from "lucide-react"
 import Link from "next/link"
 import UserRequestList from "@/components/UserRequestList"
 import mongoose from "mongoose"
@@ -35,6 +37,7 @@ export default async function ProfilePage() {
     const userId = (session.user as any).id
 
     let allRequests: any[] = []
+    let enrichedChatThreads: any[] = []
     let registration: any = null
     let partner: any = null
     let error: boolean = false
@@ -96,6 +99,70 @@ export default async function ProfilePage() {
                 return { ...obj, type }
             }),
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+        // 4. Fetch associated Chat Threads
+        const chatThreads = await ChatThread.find({
+            $or: [
+                { customerId: userId },
+                { leadId: { $in: allRequests.map(r => r._id.toString()) } }
+            ]
+        }).sort({ updatedAt: -1 }).lean()
+
+        // Fetch associated RVSF names
+        const rvsfIds = chatThreads.map(ct => ct.rvsfId)
+        const rvsfUsers = await RVSFUser.find({ rvsfId: { $in: rvsfIds } }).lean()
+        const rvsfNameMap: Record<string, string> = {}
+        for (const ru of rvsfUsers) {
+            rvsfNameMap[ru.rvsfId] = ru.name || "RVSF Partner"
+        }
+
+        // Helper function for getting title
+        const getRequestTitleForServer = (req: any) => {
+            if (req.type === 'buy') return `${req.vehicleBrand} ${req.vehicleModel}`
+            if (req.type === 'wizard-buy') return `${req.desiredCompany} ${req.desiredModel}`
+            if (req.type === 'valuation' || req.type === 'scrap' || req.type === 'sell' || req.type === 'wizard-sell' || req.type === 'scrap-buy') {
+                return `${req.brand} ${req.model}`
+            }
+            if (req.type === 'exchange') return `${req.oldVehicleBrand} ${req.oldVehicleModel}`
+            return "Vehicle"
+        }
+
+        // Map Chat Threads with extra details
+        enrichedChatThreads = chatThreads.map(ct => {
+            const lastMessage = ct.messages && ct.messages.length > 0 
+                ? ct.messages[ct.messages.length - 1] 
+                : null
+            
+            // Find corresponding request to get vehicle details
+            const matchedRequest = allRequests.find(r => r._id.toString() === ct.leadId)
+            const vehicleInfo = matchedRequest 
+                ? getRequestTitleForServer(matchedRequest) 
+                : "Vehicle Negotiation"
+
+            return {
+                _id: ct._id.toString(),
+                leadId: ct.leadId,
+                rvsfId: ct.rvsfId,
+                rvsfName: rvsfNameMap[ct.rvsfId] || "RVSF Partner",
+                vehicleInfo,
+                lastMessage: lastMessage ? lastMessage.message : "No messages yet",
+                lastMessageTime: lastMessage ? lastMessage.createdAt : ct.updatedAt,
+                agreedPrice: ct.agreedPrice || null
+            }
+        })
+
+        // Map chatThreadId onto requests themselves for UserRequestList to show CTA
+        const chatThreadMap: Record<string, string> = {}
+        for (const ct of chatThreads) {
+            chatThreadMap[ct.leadId] = ct._id.toString()
+        }
+
+        allRequests = allRequests.map(req => {
+            return {
+                ...req,
+                chatThreadId: chatThreadMap[req._id.toString()] || null
+            }
+        })
 
         registration = latestRegistration
         partner = existingPartner
@@ -207,6 +274,66 @@ export default async function ProfilePage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Active Negotiations & Chats */}
+                        {enrichedChatThreads.length > 0 && (
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-500">
+                                        <MessageSquare className="w-6 h-6 animate-pulse" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Active Negotiations</h2>
+                                </div>
+                                
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    {enrichedChatThreads.map((ct) => (
+                                        <div 
+                                            key={ct._id}
+                                            className="bg-white dark:bg-[#0E192D] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col justify-between transition-all hover:border-blue-500/30 group"
+                                        >
+                                            <div className="space-y-3">
+                                                <div className="flex items-start justify-between">
+                                                    <div>
+                                                        <h3 className="font-extrabold text-gray-900 dark:text-white group-hover:text-blue-500 transition-colors">
+                                                            {ct.vehicleInfo}
+                                                        </h3>
+                                                        <p className="text-[10px] text-gray-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                                                            Partner: {ct.rvsfName}
+                                                        </p>
+                                                    </div>
+                                                    {ct.agreedPrice ? (
+                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                            Deal Locked: ₹{ct.agreedPrice}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                                                            Negotiating
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="bg-gray-50 dark:bg-slate-900/50 p-3 rounded-xl border border-gray-100 dark:border-slate-800/80">
+                                                    <p className="text-xs text-gray-500 dark:text-slate-400 font-semibold line-clamp-1">
+                                                        Last Msg: <span className="text-gray-700 dark:text-slate-200 font-bold italic">"{ct.lastMessage}"</span>
+                                                    </p>
+                                                    <p className="text-[9px] text-gray-400 dark:text-slate-500 mt-1 font-mono">
+                                                        {new Date(ct.lastMessageTime).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="pt-4 mt-4 border-t border-gray-100 dark:border-slate-800/80">
+                                                <Link 
+                                                    href={`/profile/chat/${ct._id}`}
+                                                    className="w-full bg-[#E31E24] hover:bg-red-700 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-md hover:shadow-red-600/10 flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                                                >
+                                                    <MessageSquare className="w-3.5 h-3.5" /> Open Chat & Negotiate <ArrowRight className="w-3.5 h-3.5" />
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* History */}
                         <div className="space-y-6">

@@ -276,7 +276,15 @@ function LoginContent() {
                 });
 
                 if (result?.error) {
-                    throw new Error(result.error);
+                    let errorMsg = "Phone sign-in failed. Please try again.";
+                    if (result.error.includes("AUTH_ERROR:")) {
+                        errorMsg = result.error.split("AUTH_ERROR:")[1].trim();
+                    } else if (result.error.includes("DATABASE_CONNECTION_ERROR")) {
+                        errorMsg = "Database connection failed. Please ensure your IP is whitelisted in MongoDB Atlas.";
+                    } else if (result.error === "CredentialsSignin") {
+                        errorMsg = "Authentication failed. Please check your details and try again.";
+                    }
+                    toast({ title: "Login Failed", description: errorMsg, variant: "destructive" });
                 } else {
                     toast({ title: "Welcome!", description: "Successfully logged in via Sandbox Mode." });
                     const callbackUrl = searchParams.get("callbackUrl") || "/";
