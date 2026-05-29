@@ -99,12 +99,12 @@ export default function ValuationPage({ formData, onClose }: { formData: FormDat
             transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
             className="text-center mb-12"
           >
-            <div className="inline-block bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-200 rounded-2xl px-8 py-6">
-              <p className="text-gray-500 text-sm uppercase tracking-widest mb-2">Estimated Valuation</p>
-              <p className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+            <div className="inline-block bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-200 rounded-xl px-5 py-4">
+              <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-1.5">Estimated Valuation</p>
+              <p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
                 ₹{valuation.toLocaleString("en-IN")}
               </p>
-              <p className="text-gray-500 text-sm mt-2">For your {brandName} {formData.model}</p>
+              <p className="text-gray-500 text-xs mt-1.5">For your {brandName} {formData.model}</p>
             </div>
           </motion.div>
 
@@ -140,13 +140,13 @@ export default function ValuationPage({ formData, onClose }: { formData: FormDat
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1 }}
-            className="flex justify-center"
+            className="flex justify-start"
           >
             <motion.button
               onClick={() => setShowEKYC(true)}
-              className="relative px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg rounded-lg shadow-lg overflow-hidden group"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="relative px-8 py-3.5 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white font-black text-[15px] rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.45)] hover:shadow-[0_0_30px_rgba(249,115,22,0.65)] border border-orange-400/35 overflow-hidden group"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               {/* Animated background */}
               <motion.div
@@ -156,16 +156,16 @@ export default function ValuationPage({ formData, onClose }: { formData: FormDat
 
               {/* Button text with pulsing animation */}
               <motion.span
-                className="relative z-10 flex items-center justify-center"
-                animate={{ scale: [1, 1.05, 1] }}
+                className="relative z-10 flex items-center justify-center gap-2"
+                animate={{ scale: [1, 1.03, 1] }}
                 transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
               >
-                🚀 Final Step eKYC
+                Get More Precise Valution
               </motion.span>
 
               {/* Highlight effect - rings expanding */}
               <motion.div
-                className="absolute inset-0 border-2 border-orange-400 rounded-lg"
+                className="absolute inset-0 border-2 border-orange-400 rounded-2xl"
                 animate={{
                   scale: [1, 1.1, 1.2],
                   opacity: [1, 0.5, 0],

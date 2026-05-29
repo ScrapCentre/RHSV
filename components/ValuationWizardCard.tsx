@@ -156,6 +156,15 @@ export default function ValuationWizardCard() {
     const [otpSent, setOtpSent] = useState(false)
     const [isSandboxMode, setIsSandboxMode] = useState(false)
 
+    // Scrap calculations (honest ±20% pricing band)
+    const scrapWeight = parseInt(String(formData.weight).replace(/\D/g, '')) || 0;
+    const baseValuation = scrapWeight ? scrapWeight * baseScrapRate : 15750; // default average scrap rate if weight not found
+    const minScrapValue = Math.round((baseValuation * 0.8) / 100) * 100;
+    const maxScrapValue = Math.round((baseValuation * 1.2) / 100) * 100;
+    const potentialCDDiscount = formData.buyNew === "yes" ? (cdDiscount !== null ? cdDiscount : 55000) : 55000;
+    const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
+    const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
+
     const getOrCreateRecaptcha = (): RecaptchaVerifier => {
         if (recaptchaVerifierRef.current) return recaptchaVerifierRef.current
         const verifier = new RecaptchaVerifier(auth, 'wizard-recaptcha-container', {
@@ -214,6 +223,15 @@ export default function ValuationWizardCard() {
         if (serviceType === "scrap" && formData.buyNew === "no" && step >= 4) display -= 1
         return display
     }
+
+    const totalSteps = (() => {
+        if (!serviceType) return 1;
+        if (serviceType === "buy") return 4;
+        let total = 9;
+        if (fromHero) total -= 1;
+        if (formData.buyNew === "no") total -= 1;
+        return total;
+    })();
 
     const handleRegSubmit = async () => {
         if (!formData.regNo) return
@@ -408,179 +426,243 @@ export default function ValuationWizardCard() {
         exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
     }
 
-    const heroOffset = fromHero ? 1 : 0 // subtract 1 step when vehicle number is skipped
-    const totalSteps = (!serviceType ? 1 : (serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 9 - heroOffset : 8 - heroOffset) : 4)))
-
     if (mode === "scrap-valuation") {
-        // Calculate scrap value based on weight and baseScrapRate. Default to 15k-25k if no weight found.
-        const scrapWeight = parseInt(String(formData.weight).replace(/\D/g, '')) || 0;
-        const minScrapValue = scrapWeight ? scrapWeight * (baseScrapRate - 1) : 15000;
-        const maxScrapValue = scrapWeight ? scrapWeight * (baseScrapRate + 1) : 25000;
-        const potentialCDDiscount = formData.buyNew === "yes" ? (cdDiscount !== null ? cdDiscount : 0) : 25000;
-        const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
-        const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
-
         return (
             <>
                 <div id="wizard-recaptcha-container"></div>
-                <div className="w-full max-w-4xl mx-auto px-4 py-8">
-                <motion.div 
-                    initial={{ scale: 0.98, opacity: 0 }} 
-                    animate={{ scale: 1, opacity: 1 }} 
-                    className="bg-white border border-slate-200 rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden"
-                >
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 via-[#E31E24] to-amber-500" />
-                    
-                    <div className="relative z-10">
-                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
-                                    <Recycle className="w-5 h-5 text-green-600" />
-                                </div>
-                                <div>
-                                    <p className="text-[9px] font-black text-green-600 uppercase tracking-[0.3em] mb-0.5">Evaluation Finalized</p>
-                                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Your Vehicle's Scrap Worth</h2>
-                                </div>
-                            </div>
-                            <div className="px-3 py-1 bg-slate-900 rounded-full hidden md:block">
-                                <p className="text-[9px] font-bold text-white uppercase tracking-widest">Quote ID: SC-{Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            {/* Left Section: Valuation & Details (7 cols) */}
-                            <div className="lg:col-span-7 space-y-4">
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 15 }} 
-                                    animate={{ opacity: 1, y: 0 }} 
-                                    className="bg-gradient-to-br from-slate-900 via-[#0a1120] to-slate-900 rounded-[1.5rem] p-6 text-white relative overflow-hidden shadow-xl shadow-slate-200 group border border-slate-800"
-                                >
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-emerald-500/30 transition-colors duration-500"></div>
-                                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] -ml-24 -mb-24"></div>
-                                    
-                                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2 relative z-10 flex items-center gap-2">
-                                        <Sparkles className="w-3.5 h-3.5" /> Total Potential Benefit
-                                    </p>
-                                    <div className="relative z-10">
-                                        <div className="flex items-baseline gap-2 mb-4">
-                                            <span className="text-4xl md:text-5xl font-black tracking-tighter text-white">Up to ₹{formatCurrency(maxTotalBenefit)}*</span>
-                                        </div>
-                                        
-                                        {/* Breakdown */}
-                                        <div className="grid grid-cols-2 gap-3 mb-5">
-                                            <div className="bg-white/5 border border-white/10 rounded-xl p-3 shadow-inner">
-                                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Scrap Value</p>
-                                                <p className="text-xl font-black text-white">₹{formatCurrency(minScrapValue)} - ₹{formatCurrency(maxScrapValue)}</p>
-                                            </div>
-                                            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 shadow-inner">
-                                                <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest mb-1">CD Certificate</p>
-                                                <p className="text-xl font-black text-emerald-400">
-                                                    {formData.buyNew === "yes" && cdDiscount === null ? <Loader2 className="w-4 h-4 animate-spin inline" /> : `+ ₹${formatCurrency(potentialCDDiscount)}`}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2 py-1.5 px-2.5 bg-white/5 rounded-lg border border-white/10 w-fit mb-3">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                            <p className="text-slate-300 text-[10px] font-bold uppercase tracking-widest">Market Rate: High Demand</p>
-                                        </div>
-                                        <p className="text-slate-400 text-[10px] leading-relaxed max-w-md italic">
-                                            *Calculated using industrial scrap indices for {formData.weight || "1,200kg"} and maximum CD Certificate redemption value.
-                                        </p>
+                <div className="w-full max-w-3xl mx-auto px-4 py-6">
+                    <motion.div 
+                        initial={{ scale: 0.98, opacity: 0 }} 
+                        animate={{ scale: 1, opacity: 1 }} 
+                        className="bg-white border border-slate-200 rounded-[1.5rem] p-5 md:p-6 shadow-2xl relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 via-[#E31E24] to-amber-500" />
+                        
+                        <div className="relative z-10">
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
+                                        <Recycle className="w-5 h-5 text-green-600" />
                                     </div>
-                                </motion.div>
-
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    {[
-                                        { label: "Brand", value: formData.brand || "N/A" },
-                                        { label: "Model", value: formData.model || "N/A" },
-                                        { label: "Year", value: formData.year || "N/A" },
-                                        { label: "Weight", value: formData.weight || "N/A" }
-                                    ].map((item, idx) => (
-                                        <div key={idx} className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{item.label}</p>
-                                            <p className="text-[10px] font-black text-slate-800">{item.value}</p>
-                                        </div>
-                                    ))}
+                                    <div>
+                                        <p className="text-[9px] font-black text-green-600 uppercase tracking-[0.3em] mb-0.5">Evaluation Finalized</p>
+                                        <h2 className="text-xl font-black text-slate-900 tracking-tight">Your Vehicle's Scrap Worth</h2>
+                                    </div>
+                                </div>
+                                <div className="px-3 py-1 bg-slate-900 rounded-full hidden md:block">
+                                    <p className="text-[9px] font-bold text-white uppercase tracking-widest">Quote ID: SC-{Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
                                 </div>
                             </div>
 
-                            {/* Right Section: Benefits & Actions (5 cols) */}
-                            <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
-                                <motion.div 
-                                    initial={{ opacity: 0, x: 20 }} 
-                                    animate={{ opacity: 1, x: 0 }} 
-                                    transition={{ delay: 0.2 }} 
-                                    className="bg-gradient-to-br from-amber-50 via-amber-100/40 to-amber-50 border border-amber-200 rounded-[1.25rem] p-5 relative overflow-hidden shadow-lg shadow-amber-900/5 h-full"
-                                >
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200 rounded-full blur-[50px] opacity-40 -mr-16 -mt-16"></div>
-                                    <div className="flex flex-col h-full relative z-10">
-                                        <div className="flex items-start gap-3 mb-4">
-                                            <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/30">
-                                                <Sparkles className="w-4.5 h-4.5" />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <h4 className="text-amber-950 font-black text-[12px] uppercase tracking-wider">CD Certificate Advantage</h4>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex-1 flex flex-col justify-center">
-                                            {formData.buyNew === "yes" ? (
-                                                <div className="space-y-3">
-                                                    <p className="text-amber-900 font-medium text-[12px] leading-relaxed">
-                                                        By scrapping through our RVSF, you are legally entitled to registration savings on your new <span className="font-black text-amber-950">{formData.desiredCompany}</span>.
-                                                    </p>
-                                                    <div className="bg-white/60 border border-amber-200/60 p-3 rounded-xl">
-                                                        <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1">Guaranteed Benefit</p>
-                                                        <p className="text-xl font-black text-amber-950 flex items-center gap-2">
-                                                            {cdDiscount === null ? <Loader2 className="w-5 h-5 animate-spin" /> : `₹${formatCurrency(cdDiscount)}`}
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                                {/* Left Section: Valuation & Details (7 cols) */}
+                                <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
+                                    <div className="space-y-3">
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 15 }} 
+                                            animate={{ opacity: 1, y: 0 }} 
+                                            className="bg-gradient-to-br from-slate-900 via-[#0a1120] to-slate-900 rounded-xl py-2 px-3 text-white relative overflow-hidden shadow-lg border border-slate-800"
+                                        >
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-emerald-500/30 transition-colors duration-500"></div>
+                                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] -ml-24 -mb-24"></div>
+                                            
+                                            <p className="text-[7px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-0.5 relative z-10 flex items-center gap-1">
+                                                <Sparkles className="w-2.5 h-2.5" /> Total Potential Benefit
+                                            </p>
+                                            <div className="relative z-10">
+                                                <div className="flex items-baseline gap-1 mb-0.5">
+                                                    <span className="text-lg md:text-xl font-black tracking-tight text-white">Up to ₹{formatCurrency(maxTotalBenefit)}*</span>
+                                                </div>
+                                                
+                                                {/* Breakdown */}
+                                                <div className="grid grid-cols-2 gap-1 mb-1">
+                                                    <div className="bg-white/5 border border-white/10 rounded-md py-0.5 px-1.5 shadow-inner">
+                                                        <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest mb-0.2">Scrap Value</p>
+                                                        <p className="text-[10px] font-black text-white">₹{formatCurrency(minScrapValue)} - ₹{formatCurrency(maxScrapValue)}</p>
+                                                    </div>
+                                                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-md py-0.5 px-1.5 shadow-inner">
+                                                        <p className="text-[6px] text-emerald-400 font-bold uppercase tracking-widest mb-0.2">CD Certificate</p>
+                                                        <p className="text-[10px] font-black text-emerald-400">
+                                                            {formData.buyNew === "yes" && cdDiscount === null ? <Loader2 className="w-3 animate-spin inline" /> : `+ ₹${formatCurrency(potentialCDDiscount)}`}
                                                         </p>
                                                     </div>
                                                 </div>
-                                            ) : (
-                                                <div className="space-y-3">
-                                                    <p className="text-amber-900 font-medium text-[12px] leading-relaxed">
-                                                        You will receive a Govt. authorized Certificate of Deposit which can be used or traded later for vehicle registration discounts.
-                                                    </p>
-                                                    <div className="bg-white/60 border border-amber-200/60 p-3 rounded-xl">
-                                                        <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1">Estimated Value</p>
-                                                        <p className="text-lg font-black text-amber-950">₹15,000 - ₹25,000</p>
-                                                    </div>
+                                                
+                                                <div className="flex items-center gap-1 py-0.2 px-1 bg-white/5 rounded border border-white/10 w-fit mb-0.5">
+                                                    <div className="w-0.5 h-0.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                    <p className="text-slate-300 text-[6px] font-bold uppercase tracking-widest">Market Rate: High Demand</p>
                                                 </div>
-                                            )}
-                                        </div>
-                                        
-                                        <div className="pt-3 mt-3 border-t border-amber-200/50">
-                                            <p className="text-[9px] text-amber-700/80 italic font-medium">*Govt. mandated benefit for recycling</p>
+                                                <p className="text-slate-400 text-[6.5px] leading-normal max-w-md italic">
+                                                    *Calculated using industrial scrap indices for {formData.weight || "854kg"} and maximum CD Certificate redemption value.
+                                                </p>
+                                            </div>
+                                        </motion.div>
+
+                                        {/* Unlocked Benefits Grid */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="border border-emerald-200 rounded-xl p-2.5 bg-emerald-50/40 relative overflow-hidden group">
+                                                <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                <p className="text-[7.5px] text-emerald-800 font-black uppercase tracking-wider mb-0.5">CD Certificate</p>
+                                                <p className="text-xs font-black text-emerald-700">
+                                                    {formData.buyNew === "yes" && cdDiscount === null ? <Loader2 className="w-3 h-3 animate-spin inline-block" /> : `+ ₹${formatCurrency(potentialCDDiscount)}`}
+                                                </p>
+                                                <p className="text-[7.5px] text-emerald-600 font-medium">Registration & tax waiver</p>
+                                            </div>
+
+                                            <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50 relative overflow-hidden group">
+                                                <div className="absolute top-1.5 right-1.5 px-1 py-0.2 bg-amber-500 text-white rounded-[3px] text-[6.5px] font-black tracking-widest uppercase shadow-sm">Coming Soon</div>
+                                                <p className="text-[7.5px] text-slate-500 font-black uppercase tracking-wider mb-0.5">Dealer OEM Discount</p>
+                                                <p className="text-xs font-black text-slate-800">Up to ₹10,000</p>
+                                                <p className="text-[7.5px] text-slate-400 font-medium">Scrappage exchange benefits</p>
+                                            </div>
+
+                                            <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50 relative overflow-hidden group">
+                                                <div className="absolute top-1.5 right-1.5 px-1 py-0.2 bg-amber-500 text-white rounded-[3px] text-[6.5px] font-black tracking-widest uppercase shadow-sm">Coming Soon</div>
+                                                <p className="text-[7.5px] text-slate-500 font-black uppercase tracking-wider mb-0.5">Green Finance</p>
+                                                <p className="text-xs font-black text-slate-800">Up to ₹15,000</p>
+                                                <p className="text-[7.5px] text-slate-400 font-medium">Lower interest green loans</p>
+                                            </div>
+
+                                            <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50 relative overflow-hidden group">
+                                                <div className="absolute top-1.5 right-1.5 px-1 py-0.2 bg-amber-500 text-white rounded-[3px] text-[6.5px] font-black tracking-widest uppercase shadow-sm">Coming Soon</div>
+                                                <p className="text-[7.5px] text-slate-500 font-black uppercase tracking-wider mb-0.5">Green Insurance</p>
+                                                <p className="text-xs font-black text-slate-800">Up to ₹8,000</p>
+                                                <p className="text-[7.5px] text-slate-400 font-medium">Eco insurance rebates</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </motion.div>
 
-                                <div className="space-y-2.5">
-                                    <a 
-                                        href="/ekyc" 
-                                        onClick={() => {
-                                            localStorage.setItem("kycFormData", JSON.stringify(formData));
-                                            localStorage.setItem("kycSource", "scrap");
-                                        }}
-                                        className="w-full flex flex-col items-center justify-center gap-0.5 py-3.5 bg-[#E31E24] text-white rounded-xl shadow-xl shadow-red-500/30 hover:bg-red-600 hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden relative"
+                                    {/* Action button at bottom of left column */}
+                                    <div className="pt-3 flex justify-start">
+                                        <a 
+                                            href="/ekyc" 
+                                            onClick={() => {
+                                                localStorage.setItem("kycFormData", JSON.stringify(formData));
+                                                localStorage.setItem("kycSource", "scrap");
+                                            }}
+                                            className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center bg-gradient-to-r from-[#E31E24] via-red-500 to-[#E31E24] text-white rounded-xl shadow-[0_0_20px_rgba(227,30,36,0.45)] hover:shadow-[0_0_30px_rgba(227,30,36,0.65)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group overflow-hidden relative border border-red-400/30"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                                            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 relative z-10">
+                                                Get More Precise Valution
+                                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {/* Right Section: Benefits & Actions (5 cols) */}
+                                <div className="lg:col-span-5">
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: 20 }} 
+                                        animate={{ opacity: 1, x: 0 }} 
+                                        transition={{ delay: 0.2 }} 
+                                        className="bg-slate-50 border border-slate-200 rounded-[1.25rem] p-6 shadow-xl relative overflow-hidden h-full flex flex-col justify-between"
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                                        <span className="text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 relative z-10">
-                                            Initiate Instant eKYC
-                                            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                                        </span>
-                                        <span className="text-[8px] font-bold text-white/80 uppercase tracking-widest italic relative z-10">🚀 Secure Priority Dispatch</span>
-                                    </a>
-                                    
-                                    <button onClick={() => router.push("/")} className="w-full py-2.5 border border-slate-200 text-slate-400 font-black rounded-xl hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all uppercase tracking-[0.2em] text-[9px]">
-                                        Return Home
-                                    </button>
+                                        {/* Bill / Invoice Header */}
+                                        <div>
+                                            <div className="flex justify-between items-center pb-3 border-b border-dashed border-slate-300 mb-4">
+                                                <div>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Est. Invoice</p>
+                                                    <h4 className="text-slate-800 font-black text-xs uppercase tracking-wider">Benefit Summary Receipt</h4>
+                                                </div>
+                                                <div className="px-2 py-0.5 bg-[#E31E24]/10 border border-[#E31E24]/20 rounded text-[8px] font-bold text-[#E31E24]">
+                                                    EST-BILL
+                                                </div>
+                                            </div>
+
+                                            {/* Bill Details */}
+                                            <div className="space-y-3.5 text-[11px]">
+                                                {/* Vehicle Detail Row */}
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider shrink-0">Scrap Vehicle</span>
+                                                    <span className="text-slate-800 font-black text-right">
+                                                        {formData.brand || "HYUNDAI MOTOR INDIA LTD"} {formData.model || "SANTRO XG"} ({formData.year || "2005"})
+                                                    </span>
+                                                </div>
+
+                                                {/* Unladen Weight Row */}
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">Unladen Weight</span>
+                                                    <span className="text-slate-800 font-black">{scrapWeight || 854} kg</span>
+                                                </div>
+
+                                                {/* Scrap Rate Base Row */}
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">Base Rate / KG</span>
+                                                    <span className="text-slate-800 font-black">₹{baseScrapRate} / kg</span>
+                                                </div>
+
+                                                {/* Divider */}
+                                                <div className="border-t border-slate-200 my-2"></div>
+
+                                                {/* Itemized Calculations */}
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-600 font-medium">Scrap Value Estimate (Average)</span>
+                                                        <span className="text-slate-800 font-bold">₹{((scrapWeight || 854) * baseScrapRate).toLocaleString('en-IN')}</span>
+                                                    </div>
+                                                    
+                                                    <div className="flex justify-between items-center text-emerald-600">
+                                                        <span className="font-bold flex items-center gap-1">
+                                                            CD Certificate Advantage
+                                                        </span>
+                                                        <span className="font-black">+ ₹{potentialCDDiscount.toLocaleString('en-IN')}</span>
+                                                    </div>
+
+                                                    <div className="flex justify-between items-center text-slate-500 italic">
+                                                        <span className="font-medium flex items-center gap-1">
+                                                            Dealer OEM Discount <span className="text-[7px] font-black tracking-wider uppercase px-1 bg-amber-500 text-white rounded">Soon</span>
+                                                        </span>
+                                                        <span className="font-bold">+ ₹10,000</span>
+                                                    </div>
+
+                                                    <div className="flex justify-between items-center text-slate-500 italic">
+                                                        <span className="font-medium flex items-center gap-1">
+                                                            Green Finance Savings <span className="text-[7px] font-black tracking-wider uppercase px-1 bg-amber-500 text-white rounded">Soon</span>
+                                                        </span>
+                                                        <span className="font-bold">+ ₹15,000</span>
+                                                    </div>
+
+                                                    <div className="flex justify-between items-center text-slate-500 italic">
+                                                        <span className="font-medium flex items-center gap-1">
+                                                            Green Insurance Savings <span className="text-[7px] font-black tracking-wider uppercase px-1 bg-amber-500 text-white rounded">Soon</span>
+                                                        </span>
+                                                        <span className="font-bold">+ ₹8,000</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Dashed Total Divider */}
+                                                <div className="border-t border-dashed border-slate-300 my-3"></div>
+
+                                                {/* Total Combined Worth */}
+                                                <div className="bg-slate-900 rounded-xl p-4 text-white">
+                                                    <div className="flex justify-between items-center">
+                                                        <div>
+                                                            <p className="text-[8px] text-emerald-400 font-black uppercase tracking-widest">Grand Total Benefit</p>
+                                                            <p className="text-xs text-slate-300 font-medium leading-none mt-0.5">Scrap + CD + Partner Savings</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className="text-xl font-black text-white tracking-tight">
+                                                                ₹{(((scrapWeight || 854) * baseScrapRate) + potentialCDDiscount + 10000 + 15000 + 8000).toLocaleString('en-IN')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Note footer */}
+                                        <div className="pt-4 mt-4 border-t border-dashed border-slate-200">
+                                            <p className="text-[9px] text-slate-400 leading-normal text-center italic">
+                                                *Our team will assist you for getting best value of your CD Certificate.
+                                            </p>
+                                        </div>
+                                    </motion.div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
                 </div>
             </>
         )
@@ -655,17 +737,19 @@ export default function ValuationWizardCard() {
                                         <p className="text-amber-700 text-[10px] font-medium">Complete your eKYC now to get instant approval and faster pickup scheduling.</p>
                                     </div>
 
-                                    <a 
-                                        href="/ekyc" 
-                                        onClick={() => {
-                                            localStorage.setItem("kycFormData", JSON.stringify(formData));
-                                            localStorage.setItem("kycSource", serviceType);
-                                        }}
-                                        className="w-full flex items-center justify-center gap-2 py-3 bg-[#E31E24] text-white font-black rounded-xl shadow-lg shadow-red-500/25 hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] group"
-                                    >
-                                        Complete eKYC
-                                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                                    </a>
+                                    <div className="flex justify-start w-full">
+                                        <a 
+                                            href="/ekyc" 
+                                            onClick={() => {
+                                                localStorage.setItem("kycFormData", JSON.stringify(formData));
+                                                localStorage.setItem("kycSource", serviceType);
+                                            }}
+                                            className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center gap-2 bg-gradient-to-r from-[#E31E24] via-red-500 to-[#E31E24] text-white font-black rounded-xl shadow-[0_0_20px_rgba(227,30,36,0.45)] hover:shadow-[0_0_30px_rgba(227,30,36,0.65)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 uppercase tracking-widest text-[10px] md:text-[11px] group border border-red-400/30"
+                                        >
+                                            Get More Precise Valution
+                                            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                        </a>
+                                    </div>
                                 </>
                             )}
                             
@@ -692,7 +776,7 @@ export default function ValuationWizardCard() {
     return (
         <>
             <div id="wizard-recaptcha-container"></div>
-            <div className="w-full max-w-2xl mx-auto px-4">
+            <div className={`w-full ${serviceType === "scrap" && step === 7 ? "max-w-3xl" : "max-w-2xl"} mx-auto px-4 transition-all duration-500`}>
             <div className="bg-white border border-slate-200 rounded-[1rem] overflow-hidden shadow-2xl">
                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <button onClick={prevStep} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#E31E24] transition-all"><ArrowLeft className="w-3.5 h-3.5" /></button>
@@ -1044,57 +1128,151 @@ export default function ValuationWizardCard() {
                                     )}
 
                                     {step === 7 && (
-                                        <div className="space-y-5 text-center">
-                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                                                {otpSent ? <Lock className="w-7 h-7 text-[#E31E24]" /> : <Smartphone className="w-7 h-7 text-[#E31E24]" />}
+                                        <div className="space-y-4">
+                                            <div className="text-center mb-2">
+                                                <h3 className="text-xl font-bold text-slate-900 leading-tight">Your Scrap Valuation is Ready! 🎉</h3>
+                                                <p className="text-slate-500 text-[11px] font-medium">Verify your mobile number to unlock Certificate of Deposit (CD) and other green benefits.</p>
                                             </div>
-                                            <h3 className="text-xl font-bold text-slate-900">{otpSent ? "Verification" : "Login with Phone"}</h3>
-                                            
-                                            <div className="space-y-3 max-w-md mx-auto">
-                                                <div className="relative">
-                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
-                                                    <input 
-                                                        type="tel" 
-                                                        disabled={otpSent}
-                                                        placeholder="Mobile Number" 
-                                                        value={formData.phone} 
-                                                        onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
-                                                        className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
-                                                        maxLength={10} 
-                                                    />
+
+                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-stretch max-w-3xl mx-auto">
+                                                {/* Left Panel: Anonymous Valuation Card (Tier 1) */}
+                                                <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
+                                                     <div className="bg-gradient-to-br from-slate-900 via-[#0f172a] to-slate-900 rounded-xl py-2 px-3 text-white relative overflow-hidden shadow-lg border border-slate-800 flex-1 flex flex-col justify-center">
+                                                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px]"></div>
+                                                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 rounded-full blur-[30px]"></div>
+                                                         
+                                                         <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-0.5 block">
+                                                             ⚡ Tier 1 — Anonymous Estimate
+                                                         </span>
+                                                         <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                                             {formData.brand && formData.model ? `${formData.brand} ${formData.model}` : "Your Vehicle's"} Scrap Worth
+                                                         </h4>
+                                                         <div className="text-xl font-black tracking-tight text-white mb-0.5">
+                                                             ₹{minScrapValue.toLocaleString('en-IN')} – ₹{maxScrapValue.toLocaleString('en-IN')}
+                                                         </div>
+                                                         <p className="text-[8px] text-slate-400 italic leading-snug">
+                                                             *Honest ±20% scrap pricing based on {scrapWeight ? `${scrapWeight}kg unladen weight` : "market averages"} and global scrap metal indices. No single inflated numbers.
+                                                         </p>
+                                                     </div>
+
+                                                    {/* Locked Benefits Grid */}
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {/* CD Certificate Card (Locked) */}
+                                                        <div className="relative border border-slate-100 rounded-xl p-2 bg-slate-50 overflow-hidden group">
+                                                            <div className="filter blur-[4px] select-none pointer-events-none transition-all duration-300">
+                                                                <p className="text-[7.5px] text-slate-400 font-black uppercase tracking-wider mb-0.5">CD Value Range</p>
+                                                                <p className="text-xs font-black text-slate-800">₹15,000 – ₹25,000</p>
+                                                                <p className="text-[7.5px] text-slate-400">Save on new car tax</p>
+                                                            </div>
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] transition-all">
+                                                                <Lock className="w-3.5 h-3.5 text-[#E31E24] mb-0.5" />
+                                                                <span className="text-[7.5px] font-black text-slate-800 uppercase tracking-widest text-center px-1">Unlock CD Benefits</span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {/* Dealer OEM Discount Card (Locked) */}
+                                                        <div className="relative border border-slate-100 rounded-xl p-2 bg-slate-50 overflow-hidden group">
+                                                            <div className="filter blur-[4px] select-none pointer-events-none transition-all duration-300">
+                                                                <p className="text-[7.5px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Dealer Discount</p>
+                                                                <p className="text-xs font-black text-slate-800">Up to ₹10,000</p>
+                                                                <p className="text-[7.5px] text-slate-400">OEM Exchange Bonus</p>
+                                                            </div>
+                                                            <div className="absolute top-1 right-1 px-1 bg-slate-900 text-white rounded text-[5px] font-black tracking-widest uppercase z-20">Coming Soon</div>
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] transition-all">
+                                                                <Lock className="w-3.5 h-3.5 text-[#E31E24] mb-0.5" />
+                                                                <span className="text-[7.5px] font-black text-slate-800 uppercase tracking-widest text-center px-1">Verify to Unlock</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Green Finance Savings Card (Locked) */}
+                                                        <div className="relative border border-slate-100 rounded-xl p-2 bg-slate-50 overflow-hidden group">
+                                                            <div className="filter blur-[4px] select-none pointer-events-none transition-all duration-300">
+                                                                <p className="text-[7.5px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Green Finance</p>
+                                                                <p className="text-xs font-black text-slate-800">Up to ₹15,000</p>
+                                                                <p className="text-[7.5px] text-slate-400">Special EV Loan Rates</p>
+                                                            </div>
+                                                            <div className="absolute top-1 right-1 px-1 bg-slate-900 text-white rounded text-[5px] font-black tracking-widest uppercase z-20">Coming Soon</div>
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] transition-all">
+                                                                <Lock className="w-3.5 h-3.5 text-[#E31E24] mb-0.5" />
+                                                                <span className="text-[7.5px] font-black text-slate-800 uppercase tracking-widest text-center px-1">Verify to Unlock</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Green Insurance Savings Card (Locked) */}
+                                                        <div className="relative border border-slate-100 rounded-xl p-2 bg-slate-50 overflow-hidden group">
+                                                            <div className="filter blur-[4px] select-none pointer-events-none transition-all duration-300">
+                                                                <p className="text-[7.5px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Green Insurance</p>
+                                                                <p className="text-xs font-black text-slate-800">Up to ₹8,000</p>
+                                                                <p className="text-[7.5px] text-slate-400">Eco Insurance Rebate</p>
+                                                            </div>
+                                                            <div className="absolute top-1 right-1 px-1 bg-slate-900 text-white rounded text-[5px] font-black tracking-widest uppercase z-20">Coming Soon</div>
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] transition-all">
+                                                                <Lock className="w-3.5 h-3.5 text-[#E31E24] mb-0.5" />
+                                                                <span className="text-[7.5px] font-black text-slate-800 uppercase tracking-widest text-center px-1">Verify to Unlock</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
-                                                {otpSent && (
-                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                                                        <input 
-                                                            type="tel" 
-                                                            placeholder={isSandboxMode ? "Use: 000000" : "••••••"} 
-                                                            value={formData.otp} 
-                                                            onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
-                                                            className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
-                                                            maxLength={6} 
-                                                            autoFocus 
-                                                        />
-                                                        {isSandboxMode && (
-                                                            <p className="text-[10px] text-amber-600 font-bold">⚡ Sandbox mode — enter 000000</p>
-                                                        )}
-                                                        <button 
-                                                            onClick={() => { setOtpSent(false); setFormData({...formData, otp: ""}); setIsSandboxMode(false); }}
-                                                            className="text-[10px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
-                                                        >
-                                                            Change Number
-                                                        </button>
-                                                    </motion.div>
-                                                )}
-                                            </div>
+                                                {/* Right Panel: Phone & OTP verification Form */}
+                                                <div className="lg:col-span-5 flex flex-col justify-center bg-slate-50 border border-slate-100 rounded-2xl p-5 shadow-sm">
+                                                    <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                                                        {otpSent ? <Lock className="w-6 h-6 text-[#E31E24]" /> : <Smartphone className="w-6 h-6 text-[#E31E24]" />}
+                                                    </div>
+                                                    <h4 className="text-center font-black text-slate-900 uppercase tracking-wider text-[11px] mb-1">
+                                                        {otpSent ? "Verify Code" : "Unlock Benefits"}
+                                                    </h4>
+                                                    <p className="text-center text-slate-500 text-[10px] mb-4 leading-normal">
+                                                        {otpSent ? "Enter the 6-digit SMS verification code" : "Enter your phone number to unlock your CD certificate and partner benefits."}
+                                                    </p>
 
-                                            <button 
-                                                disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying} 
-                                                onClick={otpSent ? handleVerifyOtp : handleSendOtp} 
-                                                className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2"
-                                            >
-                                                {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "Verify & Get Valuation" : "Get OTP")}
-                                            </button>
+                                                    <div className="space-y-3">
+                                                        <div className="relative">
+                                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-xs">+91</span>
+                                                            <input 
+                                                                type="tel" 
+                                                                disabled={otpSent}
+                                                                placeholder="10-digit number" 
+                                                                value={formData.phone} 
+                                                                onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
+                                                                className="w-full pl-11 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-60 disabled:bg-slate-100 transition-all text-center" 
+                                                                maxLength={10} 
+                                                            />
+                                                        </div>
+
+                                                        {otpSent && (
+                                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2.5">
+                                                                <input 
+                                                                    type="tel" 
+                                                                    placeholder={isSandboxMode ? "Use: 000000" : "••••••"} 
+                                                                    value={formData.otp} 
+                                                                    onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
+                                                                    className="w-full px-3 py-2 bg-white border border-[#E31E24]/30 rounded-xl text-lg text-center font-black tracking-[0.3em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
+                                                                    maxLength={6} 
+                                                                    autoFocus 
+                                                                />
+                                                                {isSandboxMode && (
+                                                                    <p className="text-[9px] text-amber-600 font-bold text-center">⚡ Sandbox mode — enter 000000</p>
+                                                                )}
+                                                                <button 
+                                                                    onClick={() => { setOtpSent(false); setFormData({...formData, otp: ""}); setIsSandboxMode(false); }}
+                                                                    className="text-[9px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors w-full text-center"
+                                                                >
+                                                                    Change Number
+                                                                </button>
+                                                            </motion.div>
+                                                        )}
+
+                                                        <button 
+                                                            disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying} 
+                                                            onClick={otpSent ? handleVerifyOtp : handleSendOtp} 
+                                                            className="w-full py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[9px] tracking-widest flex items-center justify-center gap-1.5"
+                                                        >
+                                                            {isSendingOtp || isVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (otpSent ? "Verify & Unlock" : "Get OTP")}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </>
