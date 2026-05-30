@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 
-import Valuation from "@/models/Valuation";
+import WizardLead from "@/models/WizardLead";
 import ExchangeVehicle from "@/models/ExchangeVehicle";
 
 export async function GET(
@@ -22,7 +22,7 @@ export async function GET(
         switch (type) {
 
             case "valuation":
-                Model = Valuation;
+                Model = WizardLead;
                 break;
             case "exchange":
                 Model = ExchangeVehicle;

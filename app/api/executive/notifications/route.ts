@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/db";
-import Valuation from "@/models/Valuation";
+import WizardLead from "@/models/WizardLead";
 
 import ExchangeVehicle from "@/models/ExchangeVehicle";
 import BuyVehicle from "@/models/BuyVehicle";
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
 
         // Fetch recent pending requests from the 4 forms
         const [quotes, exchanges, buys] = await Promise.all([
-            Valuation.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(10).lean(),
+            WizardLead.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(10).lean(),
             ExchangeVehicle.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(10).lean(),
             BuyVehicle.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(10).lean(),
         ]);
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
                 id: item._id,
                 type: 'quote',
                 title: 'New Quote Request',
-                message: `${item.contact?.name || 'A customer'} requested a quote for ${item.year} ${item.brand} ${item.model}`,
+                message: `${item.name || 'A customer'} requested a quote for ${item.year || ''} ${item.brand || ''} ${item.model || ''}`,
                 createdAt: item.createdAt
             })),
 

@@ -3,8 +3,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -25,8 +23,7 @@ export default async function ApprovedRequestsPage() {
 
     // Fetch all approved requests from all collections
     const statusFilter = { status: { $in: ["approved", "pickup_scheduled", "reached_collection_centre", "car_scrapped"] } };
-    const [quoteRequests, exchangeRequests, buyRequests, wizardRequests] = await Promise.all([
-        Valuation.find(statusFilter).sort({ createdAt: -1 }).lean(),
+    const [exchangeRequests, buyRequests, wizardRequests] = await Promise.all([
         ExchangeVehicle.find(statusFilter).sort({ createdAt: -1 }).lean(),
         BuyVehicle.find(statusFilter).sort({ createdAt: -1 }).lean(),
         WizardLead.find(statusFilter).sort({ createdAt: -1 }).lean()
@@ -49,7 +46,6 @@ export default async function ApprovedRequestsPage() {
 
     // Combine all requests with type information
     const allRequests = [
-        ...quoteRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "quote", typeName: "Get Free Quote", color: "blue" })),
         ...exchangeRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "exchange", typeName: "Exchange Vehicle", color: "purple" })),
         ...buyRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "buy", typeName: "Buy New Vehicle", color: "orange" })),
         ...wizardRequests.map(formatWizardLead)

@@ -698,6 +698,8 @@ export const indiaData: Record<string, string[]> = {
         "Fatehpur",
         "Firozabad",
         "Gautam Buddha Nagar",
+        "Noida",
+        "Greater Noida",
         "Ghaziabad",
         "Ghazipur",
         "Gonda",

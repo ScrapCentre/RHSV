@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -27,17 +25,14 @@ export async function POST(req: NextRequest) {
 
         let updated = null;
 
-        // Smart model selection with fallback to WizardLead for modern flows
+        // Smart model selection
         if (type === "scrap-buy") {
             updated = await WizardLead.findByIdAndUpdate(id, { status }, { new: true });
         } else if (type === "exchange") {
             updated = await ExchangeVehicle.findByIdAndUpdate(id, { status }, { new: true });
         } else if (type === "quote") {
-            // Check legacy Valuation first, then WizardLead (scrap_only)
-            updated = await Valuation.findByIdAndUpdate(id, { status }, { new: true });
-            if (!updated) {
-                updated = await WizardLead.findByIdAndUpdate(id, { status }, { new: true });
-            }
+            // Check WizardLead (scrap_only)
+            updated = await WizardLead.findByIdAndUpdate(id, { status }, { new: true });
 
         } else if (type === "buy") {
             // Check legacy BuyVehicle first, then WizardLead (buy)

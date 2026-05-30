@@ -2,8 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import B2BRegistration from "@/models/B2BRegistration"
@@ -57,8 +55,7 @@ export default async function ProfilePage() {
             ].filter(q => q.userId !== null)
         }
 
-        const [valuations, exchangeRequests, buyRequests, wizardLeads, latestRegistration, existingPartner, scrapSetting] = await Promise.all([
-            Valuation.find(query).sort({ createdAt: -1 }),
+        const [exchangeRequests, buyRequests, wizardLeads, latestRegistration, existingPartner, scrapSetting] = await Promise.all([
             ExchangeVehicle.find(query).sort({ createdAt: -1 }),
             BuyVehicle.find(query).sort({ createdAt: -1 }),
             WizardLead.find({
@@ -77,18 +74,8 @@ export default async function ProfilePage() {
 
         // 3. Merge and add types for identification
         allRequests = [
-            ...valuations.map(v => {
-                const obj = v.toObject()
-                // Backfill estimatedValue if missing
-                if (obj.estimatedValue == null && obj.vehicleWeight) {
-                    const weightInTons = parseFloat(obj.vehicleWeight) || 0
-                    obj.estimatedValue = weightInTons * 1000 * scrapPricePerKg
-                }
-                return { ...obj, type: 'valuation' }
-            }),
-
-            ...exchangeRequests.map(e => ({ ...e.toObject(), type: 'exchange' })),
-            ...buyRequests.map(b => ({ ...b.toObject(), type: 'buy' })),
+            ...exchangeRequests.map((e: any) => ({ ...e.toObject(), type: 'exchange' })),
+            ...buyRequests.map((b: any) => ({ ...b.toObject(), type: 'buy' })),
             ...wizardLeads.map((w: any) => {
                 const obj = w.toObject ? w.toObject() : w
                 // Map WizardLead category to a display type

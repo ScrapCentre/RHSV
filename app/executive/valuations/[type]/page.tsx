@@ -2,8 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
 import { FileText, Recycle, ShoppingCart, Sparkles, ArrowUpRight, CheckCircle, Clock } from "lucide-react"
@@ -29,33 +27,18 @@ export default async function ExecutiveLeadsListing({ params }: { params: Promis
 
     switch (type) {
         case "quote": {
-            // Merge legacy Valuation + WizardLead scrap_only
-            const [valuations, wizardScrap] = await Promise.all([
-                Valuation.find().sort({ createdAt: -1 }).lean(),
-                WizardLead.find({ serviceType: "scrap", category: "scrap_only" }).sort({ createdAt: -1 }).lean()
-            ])
-            leads = [
-                ...valuations.map((v: any) => ({
-                    _id: v._id.toString(),
-                    customerName: v.contact?.name || "N/A",
-                    customerPhone: v.contact?.phone || "N/A",
-                    vehicleInfo: `${v.brand || ""} ${v.model || ""}`.trim() || "N/A",
-                    regNo: v.vehicleNumber || "N/A",
-                    status: v.status || "pending",
-                    createdAt: v.createdAt,
-                    viewHref: `/executive/valuations/quote/${v._id}`
-                })),
-                ...wizardScrap.map((w: any) => ({
-                    _id: w._id.toString(),
-                    customerName: w.name || "N/A",
-                    customerPhone: w.phone || "N/A",
-                    vehicleInfo: `${w.brand || ""} ${w.model || ""}`.trim() || "N/A",
-                    regNo: w.regNo || "N/A",
-                    status: w.status || "pending",
-                    createdAt: w.createdAt,
-                    viewHref: `/executive/valuations/quote/${w._id}`
-                }))
-            ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            // Fetch scrap_only from WizardLead
+            const wizardScrap = await WizardLead.find({ serviceType: "scrap", category: "scrap_only" }).sort({ createdAt: -1 }).lean()
+            leads = wizardScrap.map((w: any) => ({
+                _id: w._id.toString(),
+                customerName: w.name || "N/A",
+                customerPhone: w.phone || "N/A",
+                vehicleInfo: `${w.brand || ""} ${w.model || ""}`.trim() || "N/A",
+                regNo: w.regNo || "N/A",
+                status: w.status || "pending",
+                createdAt: w.createdAt,
+                viewHref: `/executive/valuations/quote/${w._id}`
+            }))
             title = "Scrap Vehicle"
             accentColor = "blue"
             icon = <Recycle className="w-8 h-8 text-blue-500" />

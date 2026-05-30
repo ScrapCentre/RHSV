@@ -6,7 +6,6 @@ import crypto from "crypto"
 import Razorpay from "razorpay"
 
 // Models
-import Valuation from "@/models/Valuation"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -16,7 +15,6 @@ import ChatThread from "@/models/ChatThread"
 
 // ─── Model map ──────────────────────────────────────────────────
 const MODEL_MAP: Record<string, any> = {
-    Valuation,
     ExchangeVehicle,
     BuyVehicle,
     WizardLead,
@@ -62,13 +60,7 @@ function extractCustomerInfo(lead: any, source: string) {
     let customerId = ""
     let vehicleInfo = ""
 
-    if (source === "Valuation") {
-        name = lead.contact?.name || "Customer"
-        email = lead.contact?.email || ""
-        phone = lead.contact?.phone || ""
-        customerId = lead.userId || ""
-        vehicleInfo = `${lead.year || ""} ${lead.brand || ""} ${lead.model || ""}`.trim()
-    } else if (source === "ExchangeVehicle") {
+    if (source === "ExchangeVehicle") {
         name = lead.customerName || "Customer"
         phone = lead.customerPhone || ""
         customerId = lead.userId || ""

@@ -3,7 +3,6 @@ import connectToDatabase from "@/lib/db"
 import B2BPickup from "@/models/B2BPickup"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import Valuation from "@/models/Valuation"
 
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
@@ -59,11 +58,6 @@ export async function POST(req: Request) {
         // Update the original lead
         let model
         switch (leadType) {
-            case "quote":
-            case "valuation":
-                model = Valuation
-                break
-
             case "exchange":
                 model = ExchangeVehicle
                 break

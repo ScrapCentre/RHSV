@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
+import WizardLead from "@/models/WizardLead"
 import { Shield, Clock, CheckCircle, Smartphone, MapPin, Car, Calendar, DollarSign, ChevronLeft, FileText } from "lucide-react"
 import Link from "next/link"
 
@@ -21,8 +21,8 @@ export default async function ValuationsPage() {
 
     try {
         await connectToDatabase()
-        // Fetch Valuations sorted by newest
-        valuations = await Valuation.find({}).sort({ createdAt: -1 })
+        // Fetch WizardLeads (scrap requests) sorted by newest
+        valuations = await WizardLead.find({ serviceType: "scrap" }).sort({ createdAt: -1 })
     } catch (e) {
         console.error("Valuations Page Error:", e)
         error = "Failed to load valuation data. Please try again later."
@@ -105,7 +105,7 @@ export default async function ValuationsPage() {
                         </div>
                     </div>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                        {valuations.reduce((acc: number, val: any) => acc + (parseFloat(val.vehicleWeight) || 0), 0).toFixed(1)}T
+                        {valuations.reduce((acc: number, val: any) => acc + (parseFloat(val.weight) || 0), 0).toFixed(1)}T
                     </p>
                     <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">processed so far</p>
                 </div>
@@ -127,15 +127,15 @@ export default async function ValuationsPage() {
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 mb-2">
-                                                    {val.vehicleType}
+                                                    {val.serviceType}
                                                 </span>
                                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                                                     {val.brand} {val.model} <span className="text-gray-400 dark:text-slate-500 font-normal">({val.year})</span>
                                                 </h3>
                                                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 mt-1">
-                                                    <span className="font-mono bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded text-gray-700 dark:text-slate-300">{val.vehicleNumber}</span>
+                                                    <span className="font-mono bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded text-gray-700 dark:text-slate-300">{val.regNo || "N/A"}</span>
                                                     <span>•</span>
-                                                    <span>{val.vehicleWeight} Tons</span>
+                                                    <span>{val.weight} Tons</span>
                                                 </div>
                                             </div>
                                             <div className="lg:hidden">
@@ -149,8 +149,8 @@ export default async function ValuationsPage() {
                                                     <Smartphone className="w-4 h-4" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-gray-900 dark:text-white">{val.contact?.name}</p>
-                                                    <p>{val.contact?.phone}</p>
+                                                    <p className="font-medium text-gray-900 dark:text-white">{val.name || "Guest"}</p>
+                                                    <p>{val.phone}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-400">
@@ -158,7 +158,7 @@ export default async function ValuationsPage() {
                                                     <MapPin className="w-4 h-4" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-gray-900 dark:text-white">Pincode: {val.address?.pincode}</p>
+                                                    <p className="font-medium text-gray-900 dark:text-white">Pincode: {val.pincode}</p>
                                                     <p className="text-xs text-gray-400 dark:text-slate-500">Submitted {new Date(val.createdAt).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
@@ -170,9 +170,9 @@ export default async function ValuationsPage() {
                                         <div className="hidden lg:block">
                                             {getStatusBadge(val.status)}
                                         </div>
-                                        <button className="w-full lg:w-auto px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-black transition-colors">
+                                        <Link href={`/admin/valuations/quote/${val._id}`} className="w-full lg:w-auto px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-black transition-colors text-center">
                                             View Details
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

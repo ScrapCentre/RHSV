@@ -4,14 +4,12 @@ import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import UnlockedLead from "@/models/UnlockedLead"
 import RefundRequest from "@/models/RefundRequest"
-import Valuation from "@/models/Valuation"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
 
 // ─── Model map ──────────────────────────────────────────────────
 const MODEL_MAP: Record<string, any> = {
-    Valuation,
     ExchangeVehicle,
     BuyVehicle,
     WizardLead,

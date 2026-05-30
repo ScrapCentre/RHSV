@@ -4,8 +4,6 @@ import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import B2BRegistration from "@/models/B2BRegistration"
 import B2BPartner from "@/models/B2BPartner"
-import Valuation from "@/models/Valuation"
-
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -46,14 +44,12 @@ export default async function AdminPage() {
         const [
             b2bPendingCount,
             b2bPartnerCount,
-            quoteRes,
             exchangeRes,
             buyRes,
             wizardLeadsAll
         ] = await Promise.all([
             B2BRegistration.countDocuments({ status: 'pending' }),
             B2BPartner.countDocuments(),
-            Valuation.countDocuments(),
             ExchangeVehicle.countDocuments(),
             BuyVehicle.countDocuments(),
             WizardLead.find().lean()
@@ -65,7 +61,7 @@ export default async function AdminPage() {
         b2bCount = b2bPending 
 
         // Initial counts from dedicated collections
-        quoteCount = quoteRes
+        quoteCount = 0
         exchangeCount = exchangeRes
         buyCount = buyRes
 
@@ -73,8 +69,7 @@ export default async function AdminPage() {
         wizardLeadsAll.forEach((lead: any) => {
             if (lead.serviceType === 'scrap') {
                 if (lead.category === 'scrap_and_buy') {
-                    // This is a special case, maybe count as both or separate? 
-                    // Let's count as Scrap (Free Quote) for now as it's the primary intent
+                    // This is a special case, count as Scrap (Free Quote)
                     quoteCount++
                 } else {
                     quoteCount++
@@ -84,23 +79,19 @@ export default async function AdminPage() {
             }
         })
 
-        // Market Feed Fetching (Keep existing logic but use the fetched wizardLeadsAll for the slice)
+        // Market Feed Fetching
         const latestWizardLeads = [...wizardLeadsAll]
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 10);
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         const [
-            latestQuotes,
             latestExchanges,
             latestBuys
         ] = await Promise.all([
-            Valuation.find().sort({ createdAt: -1 }).limit(5).lean(),
             ExchangeVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
             BuyVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
         ])
 
         marketFeed = [
-            ...latestQuotes.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'quote', customerName: item.contact?.name || "N/A", customerPhone: item.contact?.phone || "N/A", vehicleInfo: `${item.year} ${item.brand} ${item.model} (${item.vehicleType})` })),
             ...latestExchanges.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'exchange', customerName: item.customerName || "N/A", customerPhone: item.customerPhone || "N/A", vehicleInfo: `Old: ${item.oldVehicleBrand} ${item.oldVehicleModel} -> New: ${item.newVehicleBrand}` })),
             ...latestBuys.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'buy', customerName: item.customerName || "N/A", customerPhone: item.customerPhone || "N/A", vehicleInfo: `Looking for: ${item.customBrand || item.vehicleBrand} ${item.customModel || item.vehicleModel}` })),
             ...latestWizardLeads.map((item: any) => {
@@ -113,25 +104,23 @@ export default async function AdminPage() {
 
                 return { ...JSON.parse(JSON.stringify(item)), type: resolvedType, customerName: item.name || "N/A", customerPhone: item.phone || "N/A", vehicleInfo: vehicleInfoStr };
             })
-        ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 15);
+        ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
         totalRequests = quoteCount + exchangeCount + buyCount
 
         // Total Approved logic (simplified for clarity)
-        const [appQ, appE, appB, appW] = await Promise.all([
-            Valuation.countDocuments({ status: 'approved' }),
+        const [appE, appB, appW] = await Promise.all([
             ExchangeVehicle.countDocuments({ status: 'approved' }),
             BuyVehicle.countDocuments({ status: 'approved' }),
             WizardLead.countDocuments({ status: 'approved' })
         ])
-        totalApproved = appQ + appE + appB + appW
+        totalApproved = appE + appB + appW
 
         // Total Tons calculation
-        const valuationsWithWeight = await Valuation.find({}, { vehicleWeight: 1 }).lean()
         let totalTons = 0
-        valuationsWithWeight.forEach((v: any) => {
-            if (v.vehicleWeight) {
-                const weightStr = v.vehicleWeight.toLowerCase().replace(/,/g, '')
+        latestWizardLeads.forEach((v: any) => {
+            if (v.weight) {
+                const weightStr = v.weight.toLowerCase().replace(/,/g, '')
                 const num = parseFloat(weightStr)
                 if (!isNaN(num)) {
                     if (weightStr.includes('kg')) totalTons += num / 1000
@@ -154,8 +143,7 @@ export default async function AdminPage() {
             { $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } }, count: { $sum: 1 } } }
         ];
 
-        const [mQ, mE, mB, mW] = await Promise.all([
-            Valuation.aggregate(monthlyAggregation),
+        const [mE, mB, mW] = await Promise.all([
             ExchangeVehicle.aggregate(monthlyAggregation),
             BuyVehicle.aggregate(monthlyAggregation),
             WizardLead.aggregate(monthlyAggregation)
@@ -169,7 +157,7 @@ export default async function AdminPage() {
             monthlyTotals[`${d.getFullYear()}-${d.getMonth() + 1}`] = 0;
         }
 
-        [...mQ, ...mE, ...mB, ...mW].forEach(item => {
+        [...mE, ...mB, ...mW].forEach(item => {
             const key = `${item._id.year}-${item._id.month}`;
             if (monthlyTotals[key] !== undefined) monthlyTotals[key] += item.count;
         });
@@ -189,8 +177,7 @@ export default async function AdminPage() {
             { $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" }, dayOfWeek: { $dayOfWeek: "$createdAt" } }, count: { $sum: 1 } } }
         ];
 
-        const [dQ, dE, dB, dP, dR, dW] = await Promise.all([
-            Valuation.aggregate(dailyAggregation),
+        const [dE, dB, dP, dR, dW] = await Promise.all([
             ExchangeVehicle.aggregate(dailyAggregation),
             BuyVehicle.aggregate(dailyAggregation),
             B2BPartner.aggregate(dailyAggregation),
@@ -207,7 +194,7 @@ export default async function AdminPage() {
             dailyTotals[`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`] = { requests: 0, partners: 0, dayOfWeek: d.getDay() + 1 };
         }
 
-        [...dQ, ...dE, ...dB, ...dW].forEach(item => {
+        [...dE, ...dB, ...dW].forEach(item => {
             const key = `${item._id.year}-${item._id.month}-${item._id.day}`;
             if (dailyTotals[key] !== undefined) dailyTotals[key].requests += item.count;
         });

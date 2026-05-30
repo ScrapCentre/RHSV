@@ -5,7 +5,6 @@ import connectToDatabase from "@/lib/db"
 import Razorpay from "razorpay"
 
 // Models
-import Valuation from "@/models/Valuation"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -13,7 +12,6 @@ import RVSFUser from "@/models/RVSFUser"
 
 // ─── Model map ──────────────────────────────────────────────────
 const MODEL_MAP: Record<string, any> = {
-    Valuation,
     ExchangeVehicle,
     BuyVehicle,
     WizardLead,
@@ -24,14 +22,7 @@ const MODEL_MAP: Record<string, any> = {
 function extractWeightTons(lead: any, source: string): number {
     let weightKg = 0
 
-    if (source === "Valuation") {
-        // vehicleWeight is stored as string, could be in tons or kg
-        const raw = parseFloat(lead.vehicleWeight || "0")
-        if (raw > 0) {
-            // If value is < 10, it's likely in tons; otherwise kg
-            weightKg = raw < 10 ? raw * 1000 : raw
-        }
-    } else if (source === "WizardLead") {
+    if (source === "WizardLead") {
         // weight field — stored as string (tons)
         const raw = parseFloat(lead.weight || "0")
         if (raw > 0) {
@@ -154,10 +145,7 @@ export async function POST(request: NextRequest) {
 
         // Build lead description
         let leadDescription = "Vehicle Lead Unlock"
-        if (source === "Valuation") {
-            const l = lead as any
-            leadDescription = `${l.year || ""} ${l.brand || ""} ${l.model || ""}`.trim() || "Vehicle Lead"
-        } else if (source === "WizardLead") {
+        if (source === "WizardLead") {
             const l = lead as any
             leadDescription = `${l.year || ""} ${l.brand || ""} ${l.model || ""}`.trim() || "Vehicle Lead"
         } else if (source === "ExchangeVehicle") {

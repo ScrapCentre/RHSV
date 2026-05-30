@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
 import B2BPickup from "@/models/B2BPickup"
-import Valuation from "@/models/Valuation"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -44,11 +43,6 @@ export async function POST(
         if (status === 'car_scrapped') {
             let legacyModel
             switch (pickup.leadType) {
-                case "quote":
-                case "valuation":
-                    legacyModel = Valuation
-                    break
-
                 case "exchange":
                     legacyModel = ExchangeVehicle
                     break

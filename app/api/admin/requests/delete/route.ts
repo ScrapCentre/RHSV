@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
 
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
@@ -31,8 +30,7 @@ export async function DELETE(req: NextRequest) {
 
         switch (type) {
             case "quote":
-                deleted = await Valuation.findByIdAndDelete(id)
-                if (!deleted) deleted = await WizardLead.findByIdAndDelete(id)
+                deleted = await WizardLead.findByIdAndDelete(id)
                 break
 
             case "exchange":

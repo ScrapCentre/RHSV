@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 
-import Valuation from "@/models/Valuation";
+import WizardLead from "@/models/WizardLead";
 import ExchangeVehicle from "@/models/ExchangeVehicle";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
@@ -54,7 +54,7 @@ export async function POST(
         switch (type) {
 
             case "valuation":
-                Model = Valuation;
+                Model = WizardLead;
                 break;
             case "exchange":
                 Model = ExchangeVehicle;

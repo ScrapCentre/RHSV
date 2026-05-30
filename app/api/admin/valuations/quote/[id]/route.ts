@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
 import WizardLead from "@/models/WizardLead"
 
 export async function GET(
@@ -31,40 +30,32 @@ export async function GET(
         }
 
         console.log("[API/QUOTE] ID requested:", cleanId)
-        let valuation = await Valuation.findById(cleanId).lean()
-
-        if (valuation) {
-            if (valuation.status === "pending") {
-                await Valuation.findByIdAndUpdate(cleanId, { status: "reviewing" })
-                valuation.status = "reviewing"
+        let valuation = null
+        const wizardLead = await WizardLead.findById(cleanId).lean()
+        if (wizardLead) {
+            if (wizardLead.status === "pending") {
+                await WizardLead.findByIdAndUpdate(cleanId, { status: "reviewing" })
+                wizardLead.status = "reviewing"
             }
-        } else {
-            const wizardLead = await WizardLead.findById(cleanId).lean()
-            if (wizardLead) {
-                if (wizardLead.status === "pending") {
-                    await WizardLead.findByIdAndUpdate(cleanId, { status: "reviewing" })
-                    wizardLead.status = "reviewing"
-                }
-                valuation = {
-                    _id: wizardLead._id,
-                    status: wizardLead.status || "reviewing",
-                    vehicleType: "Car", // Default assumption for wizard leads right now
-                    brand: wizardLead.brand,
-                    model: wizardLead.model,
-                    year: wizardLead.year,
-                    vehicleNumber: wizardLead.regNo || "N/A",
-                    vehicleWeight: wizardLead.weight,
-                    contact: {
-                        name: wizardLead.name,
-                        phone: wizardLead.phone
-                    },
-                    address: {
-                        pincode: wizardLead.pincode
-                    },
-                    createdAt: wizardLead.createdAt,
-                    updatedAt: wizardLead.updatedAt
-                } as any
-            }
+            valuation = {
+                _id: wizardLead._id,
+                status: wizardLead.status || "reviewing",
+                vehicleType: "Car", // Default assumption for wizard leads right now
+                brand: wizardLead.brand,
+                model: wizardLead.model,
+                year: wizardLead.year,
+                vehicleNumber: wizardLead.regNo || "N/A",
+                vehicleWeight: wizardLead.weight,
+                contact: {
+                    name: wizardLead.name,
+                    phone: wizardLead.phone
+                },
+                address: {
+                    pincode: wizardLead.pincode
+                },
+                createdAt: wizardLead.createdAt,
+                updatedAt: wizardLead.updatedAt
+            } as any
         }
 
         if (!valuation) {

@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
-import Valuation from "@/models/Valuation";
-
 import ExchangeVehicle from "@/models/ExchangeVehicle";
 import BuyVehicle from "@/models/BuyVehicle";
 import WizardLead from "@/models/WizardLead";
@@ -23,8 +21,7 @@ export async function GET(req: Request) {
         await connectToDatabase();
 
         // Fetch only approved requests from all categories
-        const [valuations, exchangeRequests, buyRequests, wizardLeads] = await Promise.all([
-            Valuation.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 }),
+        const [exchangeRequests, buyRequests, wizardLeads] = await Promise.all([
             ExchangeVehicle.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 }),
             BuyVehicle.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 }),
             WizardLead.find({ status: { $in: ["approved", "approved_to_rvsf"] } }).sort({ createdAt: -1 })
@@ -32,7 +29,6 @@ export async function GET(req: Request) {
 
         // Merge all approved requests with type identifier
         const allApprovedRequests = [
-            ...valuations.map(v => ({ ...v.toObject(), type: 'valuation' })),
 
             ...exchangeRequests.map(e => ({ ...e.toObject(), type: 'exchange' })),
             ...buyRequests.map(b => ({ ...b.toObject(), type: 'buy' })),

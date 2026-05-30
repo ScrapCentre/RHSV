@@ -2,8 +2,6 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -35,25 +33,16 @@ export default async function ExecutiveDashboardPage() {
 
         // 1. Fetch Full Market Feed
         const [
-            allQuotes,
             allExchanges,
             allBuys,
             allWizardLeads
         ] = await Promise.all([
-            Valuation.find().sort({ createdAt: -1 }).limit(10).lean(),
             ExchangeVehicle.find().sort({ createdAt: -1 }).limit(10).lean(),
             BuyVehicle.find().sort({ createdAt: -1 }).limit(10).lean(),
             WizardLead.find().sort({ createdAt: -1 }).limit(10).lean(),
         ])
 
         marketFeed = [
-            ...allQuotes.map((item: any) => ({
-                ...JSON.parse(JSON.stringify(item)),
-                type: 'quote',
-                customerName: item.contact?.name || "N/A",
-                customerPhone: item.contact?.phone || "N/A",
-                vehicleInfo: `${item.year} ${item.brand} ${item.model}`
-            })),
 
             ...allExchanges.map((item: any) => ({
                 ...JSON.parse(JSON.stringify(item)),
@@ -103,23 +92,20 @@ export default async function ExecutiveDashboardPage() {
 
         // 3. Stats
         const [
-            countQuotes,
             countExchanges,
             countBuys,
             countWizard,
             countOutsourcing
         ] = await Promise.all([
-            Valuation.countDocuments({ status: 'approved' }),
             ExchangeVehicle.countDocuments({ status: 'approved' }),
             BuyVehicle.countDocuments({ status: 'approved' }),
             WizardLead.countDocuments({ status: 'approved' }),
             BulkOutsourcing.countDocuments()
         ])
 
-        stats.totalApproved = countQuotes + countExchanges + countBuys + countWizard
+        stats.totalApproved = countExchanges + countBuys + countWizard
         stats.totalOutsourcing = countOutsourcing
         stats.totalLeadVolume = await Promise.all([
-            Valuation.countDocuments(),
             ExchangeVehicle.countDocuments(),
             BuyVehicle.countDocuments(),
             WizardLead.countDocuments()
@@ -128,21 +114,14 @@ export default async function ExecutiveDashboardPage() {
         // 4. Activity Timeline
         // Combine recent submissions and status changes
         const [
-            recentQuotes,
             recentB2B,
             recentOutsourcing
         ] = await Promise.all([
-            Valuation.find().sort({ createdAt: -1 }).limit(5).lean(),
             B2BRegistration.find().sort({ createdAt: -1 }).limit(5).lean(),
             BulkOutsourcing.find().sort({ createdAt: -1 }).limit(5).lean()
         ])
 
         timelineItems = [
-            ...recentQuotes.map((item: any) => ({
-                action: "New Valuation Request",
-                description: `${item.contact?.name || 'A customer'} requested a quote for a ${item.brand} ${item.model}.`,
-                timestamp: item.createdAt
-            })),
             ...recentB2B.map((item: any) => ({
                 action: "Partner Registration",
                 description: `${item.businessName} applied for B2B partnership.`,

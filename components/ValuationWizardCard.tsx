@@ -51,6 +51,108 @@ const normalizeFuelType = (fuel?: string): string => {
     return fuel.charAt(0).toUpperCase() + fuel.slice(1).toLowerCase();
 };
 
+const matchState = (detectedState: string): string => {
+    if (!detectedState) return "";
+    const cleanState = detectedState.toLowerCase().replace(/[^a-z0-9]/g, "");
+    
+    const matched = STATES.find(s => {
+        const cleanS = s.toLowerCase().replace(/[^a-z0-9]/g, "");
+        return cleanS === cleanState || cleanState.includes(cleanS) || cleanS.includes(cleanState);
+    });
+    if (matched) return matched;
+    
+    if (cleanState.includes("delhi") || cleanState === "nct") return "Delhi";
+    if (cleanState.includes("uttarpradesh") || cleanState === "up") return "Uttar Pradesh";
+    if (cleanState.includes("haryana") || cleanState === "hr") return "Haryana";
+    if (cleanState.includes("punjab") || cleanState === "pb") return "Punjab";
+    if (cleanState.includes("maharashtra") || cleanState === "mh") return "Maharashtra";
+    if (cleanState.includes("karnataka") || cleanState === "ka") return "Karnataka";
+    if (cleanState.includes("tamilnadu") || cleanState === "tn") return "Tamil Nadu";
+    if (cleanState.includes("westbengal") || cleanState === "wb") return "West Bengal";
+    if (cleanState.includes("jammu") || cleanState === "jk") return "Jammu and Kashmir";
+    return "";
+};
+
+const matchCity = (state: string, postOffices: any[]): string => {
+    if (!state || !postOffices || postOffices.length === 0) return "";
+    const citiesList = indiaData[state] || [];
+    
+    const isPlaceholder = (val: string): boolean => {
+        const clean = val.toLowerCase().replace(/[^a-z0-9]/g, "");
+        return clean === "" || clean === "na" || clean === "null" || clean === "none" || clean === "notapplicable";
+    };
+
+    // 1. Try exact match first on District, Division, Block, then Name
+    const fieldsToTry = ["District", "Division", "Block", "Name"];
+    for (const field of fieldsToTry) {
+        for (const po of postOffices) {
+            const val = po[field];
+            if (!val || isPlaceholder(val)) continue;
+            const cleanVal = val.toLowerCase().replace(/[^a-z0-9]/g, "");
+            
+            const matched = citiesList.find(c => {
+                const cleanC = c.toLowerCase().replace(/[^a-z0-9]/g, "");
+                return cleanC === cleanVal;
+            });
+            if (matched) return matched;
+        }
+    }
+
+    // 2. Try fuzzy (includes) match if no exact match found
+    for (const field of fieldsToTry) {
+        for (const po of postOffices) {
+            const val = po[field];
+            if (!val || isPlaceholder(val)) continue;
+            const cleanVal = val.toLowerCase().replace(/[^a-z0-9]/g, "");
+            if (cleanVal.length < 3) continue; // Skip very short values for fuzzy matching
+            
+            const matched = citiesList.find(c => {
+                const cleanC = c.toLowerCase().replace(/[^a-z0-9]/g, "");
+                if (cleanC.length < 3) return false;
+                return cleanVal.includes(cleanC) || cleanC.includes(cleanVal);
+            });
+            if (matched) return matched;
+        }
+    }
+    
+    // 3. Fallback: match on the first post office District directly using simple match
+    const firstPo = postOffices[0];
+    if (firstPo && firstPo.District && !isPlaceholder(firstPo.District)) {
+        const cleanDist = firstPo.District.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const matched = citiesList.find(c => {
+            const cleanC = c.toLowerCase().replace(/[^a-z0-9]/g, "");
+            return cleanC === cleanDist || (cleanDist.length >= 3 && cleanC.length >= 3 && (cleanDist.includes(cleanC) || cleanC.includes(cleanDist)));
+        });
+        if (matched) return matched;
+    }
+    
+    return "";
+};
+
+const matchCityByName = (state: string, detectedCity: string): string => {
+    if (!state || !detectedCity) return "";
+    const citiesList = indiaData[state] || [];
+    const cleanVal = detectedCity.toLowerCase().replace(/[^a-z0-9]/g, "");
+    
+    // Try exact match first
+    let matched = citiesList.find(c => {
+        const cleanC = c.toLowerCase().replace(/[^a-z0-9]/g, "");
+        return cleanC === cleanVal;
+    });
+    if (matched) return matched;
+    
+    // Try fuzzy match
+    if (cleanVal.length >= 3) {
+        matched = citiesList.find(c => {
+            const cleanC = c.toLowerCase().replace(/[^a-z0-9]/g, "");
+            return cleanC.length >= 3 && (cleanVal.includes(cleanC) || cleanC.includes(cleanVal));
+        });
+        if (matched) return matched;
+    }
+    
+    return "";
+};
+
 // ─── Wizard Component ─────────────────────────────────────────────────────────
 
 export default function ValuationWizardCard() {
@@ -61,6 +163,11 @@ export default function ValuationWizardCard() {
     const [step, setStep] = useState(0)
     const [direction, setDirection] = useState(1)
     const [fromHero, setFromHero] = useState(false)
+    const [quoteId, setQuoteId] = useState("")
+
+    useEffect(() => {
+        setQuoteId("SC-" + Math.random().toString(36).substr(2, 6).toUpperCase())
+    }, [])
     
     // Form Data
     const [formData, setFormData] = useState({
@@ -97,17 +204,117 @@ export default function ValuationWizardCard() {
                 fuel: data.fuel || ""
             }))
             setFromHero(true)
-            setServiceType("")
-            setStep(0)
+            setServiceType("scrap") // Bypasses Situation selection and directly sets to scrap flow
+            setStep(1)              // Directly opens step 1: Verify Vehicle Details
             setMode("wizard")
         }
         window.addEventListener('hero-vehicle-data', handleHeroData as EventListener)
         return () => window.removeEventListener('hero-vehicle-data', handleHeroData as EventListener)
     }, [])
 
+    // Backup: ensure hero flow always skips to Step 2 (Verify Vehicle Details)
+    // This catches cases where the event-based setServiceType is lost (e.g. React Strict Mode double-mount)
+    useEffect(() => {
+        if (fromHero && formData.regNo && !serviceType) {
+            setServiceType("scrap")
+            setStep(1)
+            setDirection(1)
+        }
+    }, [fromHero, formData.regNo, serviceType])
+
     const [isFetching, setIsFetching] = useState(false)
     const [isSendingOtp, setIsSendingOtp] = useState(false)
     const [isVerifying, setIsVerifying] = useState(false)
+    const [isDetectingLocation, setIsDetectingLocation] = useState(false)
+
+    const verifyAndFillViaPincode = async (pincode: string): Promise<boolean> => {
+        console.log("verifyAndFillViaPincode: Triggered for pincode", pincode);
+        try {
+            const res = await fetch(`/api/location/pincode?pincode=${pincode}`);
+            console.log("verifyAndFillViaPincode: HTTP status", res.status);
+            if (!res.ok) {
+                console.warn("verifyAndFillViaPincode: API request failed with status", res.status);
+                return false;
+            }
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                console.warn("verifyAndFillViaPincode: Response is not JSON", contentType);
+                return false;
+            }
+
+            const resData = await res.json();
+            console.log("verifyAndFillViaPincode: Received data", resData);
+            let postalData = null;
+            if (resData) {
+                if (resData.success && Array.isArray(resData.data)) {
+                    postalData = resData.data;
+                } else if (Array.isArray(resData)) {
+                    postalData = resData;
+                }
+            }
+            console.log("verifyAndFillViaPincode: Extracted postalData", postalData);
+
+            if (postalData && postalData[0] && postalData[0].Status === "Success") {
+                const postOffices = postalData[0].PostOffice || [];
+                if (postOffices.length > 0) {
+                    const postOffice = postOffices[0];
+                    const matchedState = matchState(postOffice.State);
+                    console.log("verifyAndFillViaPincode: matchedState", matchedState, "from raw state", postOffice.State);
+                    if (matchedState) {
+                        const matchedCity = matchCity(matchedState, postOffices);
+                        console.log("verifyAndFillViaPincode: matchedCity", matchedCity);
+                        setFormData(prev => ({
+                            ...prev,
+                            pincode: pincode,
+                            state: matchedState,
+                            city: matchedCity
+                        }));
+                        return true;
+                    }
+                }
+            } else {
+                console.warn("verifyAndFillViaPincode: Postal data status is not Success", postalData);
+            }
+        } catch (err) {
+            console.error("verifyAndFillViaPincode: Postal API validation failed:", err);
+        }
+        return false;
+    };
+
+    // Auto-fetch state/city when a 6-digit Pincode is typed
+    useEffect(() => {
+        if (formData.pincode && formData.pincode.length === 6) {
+            const runLookup = async () => {
+                setIsDetectingLocation(true);
+                const success = await verifyAndFillViaPincode(formData.pincode);
+                setIsDetectingLocation(false);
+                if (success) {
+                    toast({
+                        title: "Location Found",
+                        description: "Auto-filled state and city details successfully."
+                    });
+                } else {
+                    setFormData(prev => ({
+                        ...prev,
+                        state: "",
+                        city: ""
+                    }));
+                    toast({
+                        title: "Location Lookup Failed",
+                        description: "Could not resolve pincode details. Please enter manually.",
+                        variant: "destructive"
+                    });
+                }
+            };
+            runLookup();
+        } else if (formData.pincode && formData.pincode.length < 6) {
+            setFormData(prev => ({
+                ...prev,
+                state: "",
+                city: ""
+            }));
+        }
+    }, [formData.pincode]);
 
     // Scrap Valuation Pricing
     const [cdDiscount, setCdDiscount] = useState<number | null>(null)
@@ -116,15 +323,20 @@ export default function ValuationWizardCard() {
     const [baseScrapRate, setBaseScrapRate] = useState<number>(25) // Default to 25
 
     useEffect(() => {
-        // Fetch global scrap rates
+        // Fetch global scrap rates with safe JSON parsing
         fetch('/api/settings/scrapRates')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error(`scrapRates status ${res.status}`);
+                const ct = res.headers.get('content-type');
+                if (!ct || !ct.includes('application/json')) throw new Error('scrapRates response was not JSON');
+                return res.json();
+            })
             .then(data => {
                 if (data && data.scrapPricePerKg) {
                     setBaseScrapRate(data.scrapPricePerKg);
                 }
             })
-            .catch(err => console.error("Failed to fetch base scrap rate:", err));
+            .catch(err => console.warn("Failed to fetch base scrap rate (using default 25):", err?.message || err));
     }, []);
 
     useEffect(() => {
@@ -156,15 +368,6 @@ export default function ValuationWizardCard() {
     const [otpSent, setOtpSent] = useState(false)
     const [isSandboxMode, setIsSandboxMode] = useState(false)
 
-    // Scrap calculations (honest ±20% pricing band)
-    const scrapWeight = parseInt(String(formData.weight).replace(/\D/g, '')) || 0;
-    const baseValuation = scrapWeight ? scrapWeight * baseScrapRate : 15750; // default average scrap rate if weight not found
-    const minScrapValue = Math.round((baseValuation * 0.8) / 100) * 100;
-    const maxScrapValue = Math.round((baseValuation * 1.2) / 100) * 100;
-    const potentialCDDiscount = formData.buyNew === "yes" ? (cdDiscount !== null ? cdDiscount : 55000) : 55000;
-    const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
-    const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
-
     const getOrCreateRecaptcha = (): RecaptchaVerifier => {
         if (recaptchaVerifierRef.current) return recaptchaVerifierRef.current
         const verifier = new RecaptchaVerifier(auth, 'wizard-recaptcha-container', {
@@ -177,6 +380,142 @@ export default function ValuationWizardCard() {
         recaptchaVerifierRef.current = verifier
         return verifier
     }
+
+    const handleFetchLocation = async () => {
+        setIsDetectingLocation(true);
+
+        try {
+            // Try high-accuracy IP Geolocation first (extremely fast, requires zero browser prompts)
+            const ipRes = await fetch("https://ipapi.co/json/");
+            if (ipRes.ok) {
+                const contentType = ipRes.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const ipData = await ipRes.json();
+                    let pincode = "";
+                    if (ipData && ipData.postal) {
+                        pincode = ipData.postal.replace(/\D/g, '').slice(0, 6);
+                    }
+                    
+                    if (pincode && pincode.length === 6) {
+                        const success = await verifyAndFillViaPincode(pincode);
+                        if (success) {
+                            toast({
+                                title: "Location Auto-detected",
+                                description: "Resolved location details from network IP."
+                            });
+                            setIsDetectingLocation(false);
+                            return;
+                        }
+                    }
+                    
+                    const detectedState = ipData.region || ipData.state || "";
+                    const detectedCity = ipData.city || "";
+                    const matchedState = matchState(detectedState);
+                    if (matchedState) {
+                        const matchedCity = matchCityByName(matchedState, detectedCity);
+                        setFormData(prev => ({
+                            ...prev,
+                            pincode: pincode || prev.pincode,
+                            state: matchedState,
+                            city: matchedCity || prev.city
+                        }));
+                        toast({
+                            title: "Location Auto-detected (Approximate)",
+                            description: `Based on your IP: ${matchedCity || detectedCity || "Select City"}, ${matchedState}`
+                        });
+                        setIsDetectingLocation(false);
+                        return;
+                    }
+                }
+            }
+        } catch (ipError) {
+            console.warn("IP geolocation failed, falling back to GPS:", ipError);
+        }
+
+        // Fallback: HTML5 GPS Geolocation API
+        if (!navigator.geolocation) {
+            toast({
+                title: "Not Supported",
+                description: "Geolocation is not supported by your browser.",
+                variant: "destructive"
+            });
+            setIsDetectingLocation(false);
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+                    if (!res.ok) throw new Error("Failed to fetch address details");
+                    
+                    const contentType = res.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) throw new Error("Nominatim response was not JSON");
+                    
+                    const data = await res.json();
+                    const address = data.address || {};
+                    const detectedPostcode = (address.postcode || "").replace(/\s/g, "");
+                    const cleanedPincode = detectedPostcode.replace(/\D/g, '').slice(0, 6);
+
+                    if (cleanedPincode && cleanedPincode.length === 6) {
+                        const success = await verifyAndFillViaPincode(cleanedPincode);
+                        if (success) {
+                            toast({
+                                title: "Location Auto-detected",
+                                description: "Resolved location details from GPS coordinates."
+                            });
+                            setIsDetectingLocation(false);
+                            return;
+                        }
+                    }
+
+                    const detectedState = address.state || address.region || "";
+                    const detectedCity = address.city || address.town || address.village || address.suburb || address.county || address.state_district || address.city_district || "";
+                    const matchedState = matchState(detectedState);
+                    
+                    if (matchedState) {
+                        const matchedCity = matchCityByName(matchedState, detectedCity);
+                        setFormData(prev => ({
+                            ...prev,
+                            state: matchedState,
+                            city: matchedCity || prev.city,
+                            pincode: cleanedPincode || prev.pincode
+                        }));
+                        toast({
+                            title: "Location Auto-detected (GPS)",
+                            description: `Coordinates resolved to: ${matchedCity || detectedCity || "Select City"}, ${matchedState}`
+                        });
+                    } else {
+                        throw new Error(`Could not map detected state "${detectedState}" to India states list`);
+                    }
+                } catch (error: any) {
+                    console.error("Reverse lookup error:", error);
+                    toast({
+                        title: "Fetch Failed",
+                        description: "Could not retrieve exact location details. Please select manually.",
+                        variant: "destructive"
+                    });
+                } finally {
+                    setIsDetectingLocation(false);
+                }
+            },
+            (error) => {
+                console.error("Geolocation error:", error);
+                let msg = "Please enable GPS and try again.";
+                if (error.code === error.PERMISSION_DENIED) {
+                    msg = "Location permission denied. Please select manually.";
+                }
+                toast({
+                    title: "Access Denied",
+                    description: msg,
+                    variant: "destructive"
+                });
+                setIsDetectingLocation(false);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    };
 
     const handleOptionClick = (key: string) => {
         setServiceType(key)
@@ -204,6 +543,7 @@ export default function ValuationWizardCard() {
         setDirection(-1)
         // When fromHero, step 1 is the first flow step, so go back to situation selection
         if (fromHero && serviceType && step === 1) {
+            setFromHero(false) // Clear hero flag so backup useEffect doesn't re-trigger
             setServiceType("")
             setOtpSent(false)
         } else if (serviceType && step === 0) {
@@ -223,15 +563,6 @@ export default function ValuationWizardCard() {
         if (serviceType === "scrap" && formData.buyNew === "no" && step >= 4) display -= 1
         return display
     }
-
-    const totalSteps = (() => {
-        if (!serviceType) return 1;
-        if (serviceType === "buy") return 4;
-        let total = 9;
-        if (fromHero) total -= 1;
-        if (formData.buyNew === "no") total -= 1;
-        return total;
-    })();
 
     const handleRegSubmit = async () => {
         if (!formData.regNo) return
@@ -275,6 +606,11 @@ export default function ValuationWizardCard() {
                 },
                 body: JSON.stringify({ id_number: formData.regNo }),
             });
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Vehicle lookup returned non-JSON response (status ${response.status})`);
+            }
 
             const rawData = await response.json();
 
@@ -359,14 +695,18 @@ export default function ValuationWizardCard() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, serviceType })
             });
+            if (!res.ok) throw new Error(`wizard-lead returned status ${res.status}`);
+            const ct = res.headers.get("content-type");
+            if (!ct || !ct.includes("application/json")) throw new Error("wizard-lead response was not JSON");
+            
             const data = await res.json();
-            if (data.lead?._id) {
+            if (data && data.lead && data.lead._id) {
                 localStorage.setItem("kycValuationId", data.lead._id);
             }
         } catch (error) {
             console.error("Failed to save lead data:", error);
         }
-    }
+    };
 
     const handleVerifyOtp = async () => {
         if (formData.otp.length !== 6 && formData.otp.length !== 4) return
@@ -426,243 +766,255 @@ export default function ValuationWizardCard() {
         exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
     }
 
+    const heroOffset = fromHero ? 1 : 0 // subtract 1 step when vehicle number is skipped
+    const totalSteps = (!serviceType ? 1 : (serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 9 - heroOffset : 8 - heroOffset) : 4)))
+
     if (mode === "scrap-valuation") {
+        // Calculate scrap value based on weight and baseScrapRate
+        const weightNum = parseInt(String(formData.weight).replace(/\D/g, '')) || 1200;
+        const ratePerKg = baseScrapRate || 25;
+
+        // Scrap value estimates
+        const averageScrapValue = weightNum * ratePerKg;
+        const minScrapValue = Math.round((weightNum * Math.max(1, ratePerKg - 5)) / 100) * 100;
+        const maxScrapValue = Math.round((weightNum * (ratePerKg + 5)) / 100) * 100;
+
+        // CD certificate value
+        const potentialCDDiscount = cdDiscount !== null ? cdDiscount : 55000;
+
+        // Totals
+        const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
+        const dealerOemDiscount = 10000;
+        const greenFinanceSavings = 15000;
+        const greenInsuranceSavings = 8000;
+
+        const grandTotalBenefit = averageScrapValue + potentialCDDiscount + dealerOemDiscount + greenFinanceSavings + greenInsuranceSavings;
+        const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
+
         return (
             <>
                 <div id="wizard-recaptcha-container"></div>
-                <div className="w-full max-w-3xl mx-auto px-4 py-6">
-                    <motion.div 
-                        initial={{ scale: 0.98, opacity: 0 }} 
-                        animate={{ scale: 1, opacity: 1 }} 
-                        className="bg-white border border-slate-200 rounded-[1.5rem] p-5 md:p-6 shadow-2xl relative overflow-hidden"
-                    >
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-500 via-[#E31E24] to-amber-500" />
-                        
-                        <div className="relative z-10">
-                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
-                                        <Recycle className="w-5 h-5 text-green-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[9px] font-black text-green-600 uppercase tracking-[0.3em] mb-0.5">Evaluation Finalized</p>
-                                        <h2 className="text-xl font-black text-slate-900 tracking-tight">Your Vehicle's Scrap Worth</h2>
+                <div className="w-full max-w-5xl mx-auto px-4 py-8">
+                <motion.div 
+                    initial={{ scale: 0.98, opacity: 0 }} 
+                    animate={{ scale: 1, opacity: 1 }} 
+                    className="bg-white border border-slate-100 rounded-[2rem] p-6 md:p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.06)] relative overflow-hidden"
+                >
+                    {/* Accent top line */}
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 via-[#E31E24] to-amber-500" />
+                    
+                    <div className="relative z-10">
+                        {/* Header Row */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6 pb-6 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
+                                    <Recycle className="w-6 h-6 text-green-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.2em] mb-0.5 flex items-center gap-1.5">
+                                        EVALUATION FINALIZED
+                                    </p>
+                                    <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight">Your Vehicle's Scrap Worth</h2>
+                                </div>
+                            </div>
+                            <div className="px-4 py-1.5 bg-slate-950 rounded-full shadow-md border border-slate-800 flex items-center">
+                                <p className="text-[9px] font-black text-white uppercase tracking-widest">QUOTE ID: {quoteId || "SC-XXXXXX"}</p>
+                            </div>
+                        </div>
+
+                        {/* Main Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            {/* Left Column: Potential Benefit & Cards (7 cols) */}
+                            <div className="lg:col-span-7 space-y-6">
+                                {/* Total Potential Benefit Box */}
+                                <div className="bg-gradient-to-br from-[#122333] to-[#0c1622] rounded-[1.25rem] p-5 text-white relative overflow-hidden shadow-lg border border-slate-800">
+                                    <p className="text-[9px] font-black text-emerald-400 uppercase tracking-[0.15em] mb-1.5 flex items-center gap-1.5">
+                                        <Zap className="w-3.5 h-3.5 fill-emerald-400 text-emerald-400" /> TOTAL POTENTIAL BENEFIT
+                                    </p>
+                                    <div className="relative z-10">
+                                        <h3 className="text-3xl md:text-4xl font-extrabold text-white leading-none tracking-tight mb-4">
+                                            Up to ₹{formatCurrency(maxTotalBenefit)}*
+                                        </h3>
+                                        
+                                        {/* Breakdown Box */}
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div className="border border-white/10 bg-white/[0.02] rounded-xl p-3.5">
+                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">SCRAP VALUE</p>
+                                                <p className="text-sm font-black text-white mt-0.5">₹{formatCurrency(minScrapValue)} - ₹{formatCurrency(maxScrapValue)}</p>
+                                            </div>
+                                            <div className="border border-emerald-500/10 bg-emerald-500/[0.02] rounded-xl p-3.5">
+                                                <p className="text-[8px] font-bold text-emerald-400 uppercase tracking-wider">CD CERTIFICATE</p>
+                                                <p className="text-sm font-black text-emerald-400 mt-0.5">
+                                                    {formData.buyNew === "yes" && cdDiscount === null ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin text-emerald-400 inline" />
+                                                    ) : `+ ₹${formatCurrency(potentialCDDiscount)}`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <span className="inline-block px-2.5 py-0.5 bg-black/40 border border-white/10 text-slate-200 text-[8px] font-bold rounded-full tracking-wider uppercase mb-2">
+                                            ⚡ MARKET RATE: HIGH DEMAND
+                                        </span>
+                                        
+                                        <p className="text-slate-400 text-[9px] leading-normal italic mt-1">
+                                            *Calculated using industrial scrap indices for {weightNum} and maximum CD Certificate redemption value.
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="px-3 py-1 bg-slate-900 rounded-full hidden md:block">
-                                    <p className="text-[9px] font-bold text-white uppercase tracking-widest">Quote ID: SC-{Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
+
+                                {/* 2x2 Grid of Benefit Cards */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Card 1: CD Certificate */}
+                                    <div className="bg-[#f0fdf4] border border-emerald-100 rounded-xl p-4 relative shadow-sm hover:shadow-md transition-all">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 absolute top-4 right-4" />
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">CD CERTIFICATE</p>
+                                        <p className="text-xl font-black text-emerald-600 mt-1">
+                                            {formData.buyNew === "yes" && cdDiscount === null ? (
+                                                <Loader2 className="w-4 h-4 animate-spin inline text-emerald-600" />
+                                            ) : `+ ₹${formatCurrency(potentialCDDiscount)}`}
+                                        </p>
+                                        <p className="text-[10px] text-emerald-800/80 font-medium mt-0.5">Registration & tax waiver</p>
+                                    </div>
+
+                                    {/* Card 2: Dealer OEM Discount */}
+                                    <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-4 relative hover:shadow-sm transition-all">
+                                        <span className="absolute top-4 right-4 bg-amber-100 text-amber-800 text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">COMING SOON</span>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">DEALER OEM DISCOUNT</p>
+                                        <p className="text-xl font-black text-slate-800 mt-1">Up to ₹{formatCurrency(dealerOemDiscount)}</p>
+                                        <p className="text-[10px] text-slate-500 font-medium mt-0.5">Scrappage exchange benefits</p>
+                                    </div>
+
+                                    {/* Card 3: Green Finance */}
+                                    <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-4 relative hover:shadow-sm transition-all">
+                                        <span className="absolute top-4 right-4 bg-amber-100 text-amber-800 text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">COMING SOON</span>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">GREEN FINANCE</p>
+                                        <p className="text-xl font-black text-slate-800 mt-1">Up to ₹{formatCurrency(greenFinanceSavings)}</p>
+                                        <p className="text-[10px] text-slate-500 font-medium mt-0.5">Lower interest green loans</p>
+                                    </div>
+
+                                    {/* Card 4: Green Insurance */}
+                                    <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-4 relative hover:shadow-sm transition-all">
+                                        <span className="absolute top-4 right-4 bg-amber-100 text-amber-800 text-[7px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">COMING SOON</span>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">GREEN INSURANCE</p>
+                                        <p className="text-xl font-black text-slate-800 mt-1">Up to ₹{formatCurrency(greenInsuranceSavings)}</p>
+                                        <p className="text-[10px] text-slate-500 font-medium mt-0.5">Eco insurance rebates</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-                                {/* Left Section: Valuation & Details (7 cols) */}
-                                <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
-                                    <div className="space-y-3">
-                                        <motion.div 
-                                            initial={{ opacity: 0, y: 15 }} 
-                                            animate={{ opacity: 1, y: 0 }} 
-                                            className="bg-gradient-to-br from-slate-900 via-[#0a1120] to-slate-900 rounded-xl py-2 px-3 text-white relative overflow-hidden shadow-lg border border-slate-800"
-                                        >
-                                            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-emerald-500/30 transition-colors duration-500"></div>
-                                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] -ml-24 -mb-24"></div>
-                                            
-                                            <p className="text-[7px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-0.5 relative z-10 flex items-center gap-1">
-                                                <Sparkles className="w-2.5 h-2.5" /> Total Potential Benefit
-                                            </p>
-                                            <div className="relative z-10">
-                                                <div className="flex items-baseline gap-1 mb-0.5">
-                                                    <span className="text-lg md:text-xl font-black tracking-tight text-white">Up to ₹{formatCurrency(maxTotalBenefit)}*</span>
-                                                </div>
-                                                
-                                                {/* Breakdown */}
-                                                <div className="grid grid-cols-2 gap-1 mb-1">
-                                                    <div className="bg-white/5 border border-white/10 rounded-md py-0.5 px-1.5 shadow-inner">
-                                                        <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest mb-0.2">Scrap Value</p>
-                                                        <p className="text-[10px] font-black text-white">₹{formatCurrency(minScrapValue)} - ₹{formatCurrency(maxScrapValue)}</p>
-                                                    </div>
-                                                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-md py-0.5 px-1.5 shadow-inner">
-                                                        <p className="text-[6px] text-emerald-400 font-bold uppercase tracking-widest mb-0.2">CD Certificate</p>
-                                                        <p className="text-[10px] font-black text-emerald-400">
-                                                            {formData.buyNew === "yes" && cdDiscount === null ? <Loader2 className="w-3 animate-spin inline" /> : `+ ₹${formatCurrency(potentialCDDiscount)}`}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="flex items-center gap-1 py-0.2 px-1 bg-white/5 rounded border border-white/10 w-fit mb-0.5">
-                                                    <div className="w-0.5 h-0.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                                    <p className="text-slate-300 text-[6px] font-bold uppercase tracking-widest">Market Rate: High Demand</p>
-                                                </div>
-                                                <p className="text-slate-400 text-[6.5px] leading-normal max-w-md italic">
-                                                    *Calculated using industrial scrap indices for {formData.weight || "854kg"} and maximum CD Certificate redemption value.
-                                                </p>
+                            {/* Right Column: Invoice Benefit Summary Receipt (5 cols) */}
+                            <div className="lg:col-span-5">
+                                <div className="bg-[#f8fafc] border border-slate-200/80 rounded-[1.5rem] p-6 flex flex-col justify-between shadow-inner h-full">
+                                    <div className="space-y-4">
+                                        {/* Invoice Header */}
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">EST. INVOICE</p>
+                                                <h4 className="text-slate-900 font-black text-md leading-tight uppercase tracking-tight">BENEFIT SUMMARY RECEIPT</h4>
                                             </div>
-                                        </motion.div>
-
-                                        {/* Unlocked Benefits Grid */}
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="border border-emerald-200 rounded-xl p-2.5 bg-emerald-50/40 relative overflow-hidden group">
-                                                <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                                <p className="text-[7.5px] text-emerald-800 font-black uppercase tracking-wider mb-0.5">CD Certificate</p>
-                                                <p className="text-xs font-black text-emerald-700">
-                                                    {formData.buyNew === "yes" && cdDiscount === null ? <Loader2 className="w-3 h-3 animate-spin inline-block" /> : `+ ₹${formatCurrency(potentialCDDiscount)}`}
-                                                </p>
-                                                <p className="text-[7.5px] text-emerald-600 font-medium">Registration & tax waiver</p>
-                                            </div>
-
-                                            <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50 relative overflow-hidden group">
-                                                <div className="absolute top-1.5 right-1.5 px-1 py-0.2 bg-amber-500 text-white rounded-[3px] text-[6.5px] font-black tracking-widest uppercase shadow-sm">Coming Soon</div>
-                                                <p className="text-[7.5px] text-slate-500 font-black uppercase tracking-wider mb-0.5">Dealer OEM Discount</p>
-                                                <p className="text-xs font-black text-slate-800">Up to ₹10,000</p>
-                                                <p className="text-[7.5px] text-slate-400 font-medium">Scrappage exchange benefits</p>
-                                            </div>
-
-                                            <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50 relative overflow-hidden group">
-                                                <div className="absolute top-1.5 right-1.5 px-1 py-0.2 bg-amber-500 text-white rounded-[3px] text-[6.5px] font-black tracking-widest uppercase shadow-sm">Coming Soon</div>
-                                                <p className="text-[7.5px] text-slate-500 font-black uppercase tracking-wider mb-0.5">Green Finance</p>
-                                                <p className="text-xs font-black text-slate-800">Up to ₹15,000</p>
-                                                <p className="text-[7.5px] text-slate-400 font-medium">Lower interest green loans</p>
-                                            </div>
-
-                                            <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50 relative overflow-hidden group">
-                                                <div className="absolute top-1.5 right-1.5 px-1 py-0.2 bg-amber-500 text-white rounded-[3px] text-[6.5px] font-black tracking-widest uppercase shadow-sm">Coming Soon</div>
-                                                <p className="text-[7.5px] text-slate-500 font-black uppercase tracking-wider mb-0.5">Green Insurance</p>
-                                                <p className="text-xs font-black text-slate-800">Up to ₹8,000</p>
-                                                <p className="text-[7.5px] text-slate-400 font-medium">Eco insurance rebates</p>
-                                            </div>
+                                            <span className="bg-red-50 text-red-500 border border-red-150 text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-wider">EST-BILL</span>
                                         </div>
-                                    </div>
 
-                                    {/* Action button at bottom of left column */}
-                                    <div className="pt-3 flex justify-start">
-                                        <a 
-                                            href="/ekyc" 
-                                            onClick={() => {
-                                                localStorage.setItem("kycFormData", JSON.stringify(formData));
-                                                localStorage.setItem("kycSource", "scrap");
-                                            }}
-                                            className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center bg-gradient-to-r from-[#E31E24] via-red-500 to-[#E31E24] text-white rounded-xl shadow-[0_0_20px_rgba(227,30,36,0.45)] hover:shadow-[0_0_30px_rgba(227,30,36,0.65)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group overflow-hidden relative border border-red-400/30"
-                                        >
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                                            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 relative z-10">
-                                                Get More Precise Valution
-                                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                        {/* Dotted Divider */}
+                                        <div className="border-t border-dashed border-slate-350 my-4" />
+
+                                        {/* Row: SCRAP VEHICLE */}
+                                        <div className="flex justify-between items-start gap-4 text-xs">
+                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">SCRAP VEHICLE</span>
+                                            <span className="text-slate-900 font-black text-right uppercase max-w-[200px] leading-tight">
+                                                {formData.brand || "HYUNDAI MOTOR INDIA LTD"} {formData.model || "SANTRO XG"} ({formData.year || "2005"})
                                             </span>
-                                        </a>
+                                        </div>
+
+                                        {/* Row: UNLADEN WEIGHT */}
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">UNLADEN WEIGHT</span>
+                                            <span className="text-slate-900 font-black">{weightNum} kg</span>
+                                        </div>
+
+                                        {/* Row: BASE RATE / KG */}
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">BASE RATE / KG</span>
+                                            <span className="text-slate-900 font-black">₹{ratePerKg} / kg</span>
+                                        </div>
+
+                                        {/* Solid Divider */}
+                                        <div className="border-t border-slate-200 my-4" />
+
+                                        {/* Itemized Rows */}
+                                        <div className="space-y-3.5">
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="text-slate-600 font-medium">Scrap Value Estimate (Average)</span>
+                                                <span className="text-slate-900 font-extrabold">₹{formatCurrency(averageScrapValue)}</span>
+                                            </div>
+
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="text-emerald-600 font-bold">CD Certificate Advantage</span>
+                                                <span className="text-emerald-600 font-extrabold">+ ₹{formatCurrency(potentialCDDiscount)}</span>
+                                            </div>
+
+                                            <div className="flex justify-between items-center text-xs text-slate-400">
+                                                <span className="flex items-center gap-1.5 italic">
+                                                    Dealer OEM Discount
+                                                    <span className="bg-amber-100 text-amber-800 text-[6px] font-black px-1.5 py-0.2 rounded uppercase tracking-wider not-italic">SOON</span>
+                                                </span>
+                                                <span className="font-bold italic">+ ₹{formatCurrency(dealerOemDiscount)}</span>
+                                            </div>
+
+                                            <div className="flex justify-between items-center text-xs text-slate-400">
+                                                <span className="flex items-center gap-1.5 italic">
+                                                    Green Finance Savings
+                                                    <span className="bg-amber-100 text-amber-800 text-[6px] font-black px-1.5 py-0.2 rounded uppercase tracking-wider not-italic">SOON</span>
+                                                </span>
+                                                <span className="font-bold italic">+ ₹{formatCurrency(greenFinanceSavings)}</span>
+                                            </div>
+
+                                            <div className="flex justify-between items-center text-xs text-slate-400">
+                                                <span className="flex items-center gap-1.5 italic">
+                                                    Green Insurance Savings
+                                                    <span className="bg-amber-100 text-amber-800 text-[6px] font-black px-1.5 py-0.2 rounded uppercase tracking-wider not-italic">SOON</span>
+                                                </span>
+                                                <span className="font-bold italic">+ ₹{formatCurrency(greenInsuranceSavings)}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Dashed Divider */}
+                                        <div className="border-t border-dashed border-slate-350 my-4" />
+
+                                        {/* Grand Total Benefit Card */}
+                                        <div className="bg-[#0f172a] rounded-[1.25rem] p-4 text-white flex items-center justify-between shadow-md border border-slate-800">
+                                            <div>
+                                                <p className="text-[9px] font-black text-emerald-400 uppercase tracking-wider mb-0.5">GRAND TOTAL BENEFIT</p>
+                                                <p className="text-[10px] text-slate-300 font-medium">Scrap + CD + Partner Savings</p>
+                                            </div>
+                                            <span className="text-2xl font-black text-white">₹{formatCurrency(grandTotalBenefit)}</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Right Section: Benefits & Actions (5 cols) */}
-                                <div className="lg:col-span-5">
-                                    <motion.div 
-                                        initial={{ opacity: 0, x: 20 }} 
-                                        animate={{ opacity: 1, x: 0 }} 
-                                        transition={{ delay: 0.2 }} 
-                                        className="bg-slate-50 border border-slate-200 rounded-[1.25rem] p-6 shadow-xl relative overflow-hidden h-full flex flex-col justify-between"
-                                    >
-                                        {/* Bill / Invoice Header */}
-                                        <div>
-                                            <div className="flex justify-between items-center pb-3 border-b border-dashed border-slate-300 mb-4">
-                                                <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Est. Invoice</p>
-                                                    <h4 className="text-slate-800 font-black text-xs uppercase tracking-wider">Benefit Summary Receipt</h4>
-                                                </div>
-                                                <div className="px-2 py-0.5 bg-[#E31E24]/10 border border-[#E31E24]/20 rounded text-[8px] font-bold text-[#E31E24]">
-                                                    EST-BILL
-                                                </div>
-                                            </div>
-
-                                            {/* Bill Details */}
-                                            <div className="space-y-3.5 text-[11px]">
-                                                {/* Vehicle Detail Row */}
-                                                <div className="flex justify-between items-start gap-2">
-                                                    <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider shrink-0">Scrap Vehicle</span>
-                                                    <span className="text-slate-800 font-black text-right">
-                                                        {formData.brand || "HYUNDAI MOTOR INDIA LTD"} {formData.model || "SANTRO XG"} ({formData.year || "2005"})
-                                                    </span>
-                                                </div>
-
-                                                {/* Unladen Weight Row */}
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">Unladen Weight</span>
-                                                    <span className="text-slate-800 font-black">{scrapWeight || 854} kg</span>
-                                                </div>
-
-                                                {/* Scrap Rate Base Row */}
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-slate-500 font-bold uppercase text-[9px] tracking-wider">Base Rate / KG</span>
-                                                    <span className="text-slate-800 font-black">₹{baseScrapRate} / kg</span>
-                                                </div>
-
-                                                {/* Divider */}
-                                                <div className="border-t border-slate-200 my-2"></div>
-
-                                                {/* Itemized Calculations */}
-                                                <div className="space-y-2">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-slate-600 font-medium">Scrap Value Estimate (Average)</span>
-                                                        <span className="text-slate-800 font-bold">₹{((scrapWeight || 854) * baseScrapRate).toLocaleString('en-IN')}</span>
-                                                    </div>
-                                                    
-                                                    <div className="flex justify-between items-center text-emerald-600">
-                                                        <span className="font-bold flex items-center gap-1">
-                                                            CD Certificate Advantage
-                                                        </span>
-                                                        <span className="font-black">+ ₹{potentialCDDiscount.toLocaleString('en-IN')}</span>
-                                                    </div>
-
-                                                    <div className="flex justify-between items-center text-slate-500 italic">
-                                                        <span className="font-medium flex items-center gap-1">
-                                                            Dealer OEM Discount <span className="text-[7px] font-black tracking-wider uppercase px-1 bg-amber-500 text-white rounded">Soon</span>
-                                                        </span>
-                                                        <span className="font-bold">+ ₹10,000</span>
-                                                    </div>
-
-                                                    <div className="flex justify-between items-center text-slate-500 italic">
-                                                        <span className="font-medium flex items-center gap-1">
-                                                            Green Finance Savings <span className="text-[7px] font-black tracking-wider uppercase px-1 bg-amber-500 text-white rounded">Soon</span>
-                                                        </span>
-                                                        <span className="font-bold">+ ₹15,000</span>
-                                                    </div>
-
-                                                    <div className="flex justify-between items-center text-slate-500 italic">
-                                                        <span className="font-medium flex items-center gap-1">
-                                                            Green Insurance Savings <span className="text-[7px] font-black tracking-wider uppercase px-1 bg-amber-500 text-white rounded">Soon</span>
-                                                        </span>
-                                                        <span className="font-bold">+ ₹8,000</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Dashed Total Divider */}
-                                                <div className="border-t border-dashed border-slate-300 my-3"></div>
-
-                                                {/* Total Combined Worth */}
-                                                <div className="bg-slate-900 rounded-xl p-4 text-white">
-                                                    <div className="flex justify-between items-center">
-                                                        <div>
-                                                            <p className="text-[8px] text-emerald-400 font-black uppercase tracking-widest">Grand Total Benefit</p>
-                                                            <p className="text-xs text-slate-300 font-medium leading-none mt-0.5">Scrap + CD + Partner Savings</p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <span className="text-xl font-black text-white tracking-tight">
-                                                                ₹{(((scrapWeight || 854) * baseScrapRate) + potentialCDDiscount + 10000 + 15000 + 8000).toLocaleString('en-IN')}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Note footer */}
-                                        <div className="pt-4 mt-4 border-t border-dashed border-slate-200">
-                                            <p className="text-[9px] text-slate-400 leading-normal text-center italic">
-                                                *Our team will assist you for getting best value of your CD Certificate.
-                                            </p>
-                                        </div>
-                                    </motion.div>
+                                    {/* Footer Disclaimer */}
+                                    <p className="text-slate-400 text-[10px] italic mt-6 text-center leading-normal">
+                                        *Our team will assist you for getting best value of your CD Certificate.
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+
+                        {/* eKYC / Precise Valuation Action Button */}
+                        <div className="flex items-center justify-start mt-8 pt-4 border-t border-slate-100">
+                            <a 
+                                href="/ekyc" 
+                                onClick={() => {
+                                    localStorage.setItem("kycFormData", JSON.stringify(formData));
+                                    localStorage.setItem("kycSource", "scrap");
+                                }}
+                                className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#E31E24] to-red-500 hover:to-red-600 text-white font-extrabold rounded-xl shadow-lg shadow-red-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all uppercase tracking-wider text-xs group"
+                            >
+                                GET MORE PRECISE VALUATION 
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </a>
+                        </div>
+                    </div>
+                </motion.div>
                 </div>
             </>
         )
@@ -737,19 +1089,17 @@ export default function ValuationWizardCard() {
                                         <p className="text-amber-700 text-[10px] font-medium">Complete your eKYC now to get instant approval and faster pickup scheduling.</p>
                                     </div>
 
-                                    <div className="flex justify-start w-full">
-                                        <a 
-                                            href="/ekyc" 
-                                            onClick={() => {
-                                                localStorage.setItem("kycFormData", JSON.stringify(formData));
-                                                localStorage.setItem("kycSource", serviceType);
-                                            }}
-                                            className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center gap-2 bg-gradient-to-r from-[#E31E24] via-red-500 to-[#E31E24] text-white font-black rounded-xl shadow-[0_0_20px_rgba(227,30,36,0.45)] hover:shadow-[0_0_30px_rgba(227,30,36,0.65)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 uppercase tracking-widest text-[10px] md:text-[11px] group border border-red-400/30"
-                                        >
-                                            Get More Precise Valution
-                                            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                                        </a>
-                                    </div>
+                                    <a 
+                                        href="/ekyc" 
+                                        onClick={() => {
+                                            localStorage.setItem("kycFormData", JSON.stringify(formData));
+                                            localStorage.setItem("kycSource", serviceType);
+                                        }}
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-[#E31E24] text-white font-black rounded-xl shadow-lg shadow-red-500/25 hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] group"
+                                    >
+                                        Complete eKYC
+                                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                    </a>
                                 </>
                             )}
                             
@@ -776,7 +1126,7 @@ export default function ValuationWizardCard() {
     return (
         <>
             <div id="wizard-recaptcha-container"></div>
-            <div className={`w-full ${serviceType === "scrap" && step === 7 ? "max-w-3xl" : "max-w-2xl"} mx-auto px-4 transition-all duration-500`}>
+            <div className="w-full max-w-2xl mx-auto px-4">
             <div className="bg-white border border-slate-200 rounded-[1rem] overflow-hidden shadow-2xl">
                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <button onClick={prevStep} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#E31E24] transition-all"><ArrowLeft className="w-3.5 h-3.5" /></button>
@@ -902,6 +1252,14 @@ export default function ValuationWizardCard() {
                                                         placeholder="10-digit number" 
                                                         value={formData.phone} 
                                                         onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                if (formData.phone.length === 10 && !isSendingOtp) {
+                                                                    handleSendOtp();
+                                                                }
+                                                            }
+                                                        }}
                                                         className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-lg font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
                                                         maxLength={10} 
                                                     />
@@ -914,6 +1272,14 @@ export default function ValuationWizardCard() {
                                                             placeholder={isSandboxMode ? "Use: 000000" : "••••••"} 
                                                             value={formData.otp} 
                                                             onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    e.preventDefault();
+                                                                    if ((formData.otp.length === 6 || formData.otp.length === 4) && !isVerifying) {
+                                                                        handleVerifyOtp();
+                                                                    }
+                                                                }
+                                                            }}
                                                             className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-2xl text-center font-black tracking-[0.4em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
                                                             maxLength={6} 
                                                             autoFocus 
@@ -1097,7 +1463,38 @@ export default function ValuationWizardCard() {
                                         <div className="space-y-4 text-center">
                                             <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1"><MapPin className="w-7 h-7 text-[#E31E24]" /></div>
                                             <h3 className="text-xl font-bold text-slate-900">Vehicle Location</h3>
+                                            
+                                            <button
+                                                type="button"
+                                                onClick={handleFetchLocation}
+                                                disabled={isDetectingLocation}
+                                                className="flex items-center justify-center gap-2 mx-auto px-4 py-2 border border-dashed border-red-200 hover:border-[#E31E24] bg-red-50/30 hover:bg-red-50 text-[#E31E24] hover:text-red-700 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all shadow-sm max-w-xs hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                                            >
+                                                {isDetectingLocation ? (
+                                                    <>
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                        Detecting location...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <MapPin className="w-3.5 h-3.5" />
+                                                        Auto-detect Location
+                                                    </>
+                                                )}
+                                            </button>
+                                            <p className="text-[9px] text-slate-400 -mt-2">*(Wi-Fi/ISP location on PC may vary. Enter Pincode for 100% accuracy)</p>
+
                                             <div className="space-y-3 max-w-md mx-auto">
+                                                <div className="space-y-1 text-left">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
+                                                    <input 
+                                                        type="tel" 
+                                                        placeholder="6-digit Pincode (e.g. 110001)" 
+                                                        value={formData.pincode} 
+                                                        onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} 
+                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
+                                                    />
+                                                 </div>
                                                 <div className="space-y-1 text-left">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">State</label>
                                                     <select value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value, city: ""})} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
@@ -1112,151 +1509,86 @@ export default function ValuationWizardCard() {
                                                         {formData.state && (indiaData[formData.state] || []).map((c: string) => <option key={c} value={c}>{c}</option>)}
                                                     </select>
                                                 </div>
-                                                <div className="space-y-1 text-left">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
-                                                    <input 
-                                                        type="tel" 
-                                                        placeholder="6-digit Pincode" 
-                                                        value={formData.pincode} 
-                                                        onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} 
-                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
-                                                    />
-                                                 </div>
                                             </div>
                                             <button disabled={!formData.state || !formData.city || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
                                         </div>
                                     )}
 
-                                    {step === 7 && (
-                                        <div className="space-y-4">
-                                            <div className="text-center mb-2">
-                                                <h3 className="text-xl font-bold text-slate-900 leading-tight">Your Scrap Valuation is Ready! 🎉</h3>
+                                    {step === 7 && (() => {
+                                        // Calculate scrap value estimates for pre-auth display
+                                        const weightNum7 = parseInt(String(formData.weight).replace(/\D/g, '')) || 1200;
+                                        const ratePerKg7 = baseScrapRate || 25;
+                                        const minScrap7 = Math.round((weightNum7 * Math.max(1, ratePerKg7 - 5)) / 100) * 100;
+                                        const maxScrap7 = Math.round((weightNum7 * (ratePerKg7 + 5)) / 100) * 100;
+                                        const formatCurr = (n: number) => n.toLocaleString('en-IN');
+
+                                        return (
+                                        <div className="space-y-5">
+                                            {/* Heading */}
+                                            <div className="text-center space-y-1">
+                                                <h3 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">Your Scrap Valuation is Ready! 🎉</h3>
                                                 <p className="text-slate-500 text-[11px] font-medium">Verify your mobile number to unlock Certificate of Deposit (CD) and other green benefits.</p>
                                             </div>
 
-                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-stretch max-w-3xl mx-auto">
-                                                {/* Left Panel: Anonymous Valuation Card (Tier 1) */}
-                                                <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
-                                                     <div className="bg-gradient-to-br from-slate-900 via-[#0f172a] to-slate-900 rounded-xl py-2 px-3 text-white relative overflow-hidden shadow-lg border border-slate-800 flex-1 flex flex-col justify-center">
-                                                         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px]"></div>
-                                                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 rounded-full blur-[30px]"></div>
-                                                         
-                                                         <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-0.5 block">
-                                                             ⚡ Tier 1 — Anonymous Estimate
-                                                         </span>
-                                                         <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
-                                                             {formData.brand && formData.model ? `${formData.brand} ${formData.model}` : "Your Vehicle's"} Scrap Worth
-                                                         </h4>
-                                                         <div className="text-xl font-black tracking-tight text-white mb-0.5">
-                                                             ₹{minScrapValue.toLocaleString('en-IN')} – ₹{maxScrapValue.toLocaleString('en-IN')}
-                                                         </div>
-                                                         <p className="text-[8px] text-slate-400 italic leading-snug">
-                                                             *Honest ±20% scrap pricing based on {scrapWeight ? `${scrapWeight}kg unladen weight` : "market averages"} and global scrap metal indices. No single inflated numbers.
-                                                         </p>
-                                                     </div>
-
-                                                    {/* Locked Benefits Grid */}
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        {/* CD Certificate Card (Locked) */}
-                                                        <div className="relative border border-slate-100 rounded-xl p-2 bg-slate-50 overflow-hidden group">
-                                                            <div className="filter blur-[4px] select-none pointer-events-none transition-all duration-300">
-                                                                <p className="text-[7.5px] text-slate-400 font-black uppercase tracking-wider mb-0.5">CD Value Range</p>
-                                                                <p className="text-xs font-black text-slate-800">₹15,000 – ₹25,000</p>
-                                                                <p className="text-[7.5px] text-slate-400">Save on new car tax</p>
-                                                            </div>
-                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] transition-all">
-                                                                <Lock className="w-3.5 h-3.5 text-[#E31E24] mb-0.5" />
-                                                                <span className="text-[7.5px] font-black text-slate-800 uppercase tracking-widest text-center px-1">Unlock CD Benefits</span>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        {/* Dealer OEM Discount Card (Locked) */}
-                                                        <div className="relative border border-slate-100 rounded-xl p-2 bg-slate-50 overflow-hidden group">
-                                                            <div className="filter blur-[4px] select-none pointer-events-none transition-all duration-300">
-                                                                <p className="text-[7.5px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Dealer Discount</p>
-                                                                <p className="text-xs font-black text-slate-800">Up to ₹10,000</p>
-                                                                <p className="text-[7.5px] text-slate-400">OEM Exchange Bonus</p>
-                                                            </div>
-                                                            <div className="absolute top-1 right-1 px-1 bg-slate-900 text-white rounded text-[5px] font-black tracking-widest uppercase z-20">Coming Soon</div>
-                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] transition-all">
-                                                                <Lock className="w-3.5 h-3.5 text-[#E31E24] mb-0.5" />
-                                                                <span className="text-[7.5px] font-black text-slate-800 uppercase tracking-widest text-center px-1">Verify to Unlock</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Green Finance Savings Card (Locked) */}
-                                                        <div className="relative border border-slate-100 rounded-xl p-2 bg-slate-50 overflow-hidden group">
-                                                            <div className="filter blur-[4px] select-none pointer-events-none transition-all duration-300">
-                                                                <p className="text-[7.5px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Green Finance</p>
-                                                                <p className="text-xs font-black text-slate-800">Up to ₹15,000</p>
-                                                                <p className="text-[7.5px] text-slate-400">Special EV Loan Rates</p>
-                                                            </div>
-                                                            <div className="absolute top-1 right-1 px-1 bg-slate-900 text-white rounded text-[5px] font-black tracking-widest uppercase z-20">Coming Soon</div>
-                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] transition-all">
-                                                                <Lock className="w-3.5 h-3.5 text-[#E31E24] mb-0.5" />
-                                                                <span className="text-[7.5px] font-black text-slate-800 uppercase tracking-widest text-center px-1">Verify to Unlock</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Green Insurance Savings Card (Locked) */}
-                                                        <div className="relative border border-slate-100 rounded-xl p-2 bg-slate-50 overflow-hidden group">
-                                                            <div className="filter blur-[4px] select-none pointer-events-none transition-all duration-300">
-                                                                <p className="text-[7.5px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Green Insurance</p>
-                                                                <p className="text-xs font-black text-slate-800">Up to ₹8,000</p>
-                                                                <p className="text-[7.5px] text-slate-400">Eco Insurance Rebate</p>
-                                                            </div>
-                                                            <div className="absolute top-1 right-1 px-1 bg-slate-900 text-white rounded text-[5px] font-black tracking-widest uppercase z-20">Coming Soon</div>
-                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] transition-all">
-                                                                <Lock className="w-3.5 h-3.5 text-[#E31E24] mb-0.5" />
-                                                                <span className="text-[7.5px] font-black text-slate-800 uppercase tracking-widest text-center px-1">Verify to Unlock</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                            {/* Two-Column Grid: Estimate + Unlock */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {/* LEFT: Tier 1 Estimate Card */}
+                                                <div className="bg-gradient-to-br from-[#122333] to-[#0c1622] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg border border-slate-800">
+                                                    <p className="text-[9px] font-black text-amber-400 uppercase tracking-[0.15em] mb-2 flex items-center gap-1.5">
+                                                        <Zap className="w-3 h-3 fill-amber-400 text-amber-400" /> TIER 1 — ANONYMOUS ESTIMATE
+                                                    </p>
+                                                    <p className="text-[11px] font-bold text-slate-300 uppercase tracking-wide leading-tight mb-3">
+                                                        {formData.brand || "VEHICLE"} {formData.model || ""} SCRAP WORTH
+                                                    </p>
+                                                    <h4 className="text-2xl md:text-3xl font-black text-white leading-none tracking-tight mb-3">
+                                                        ₹{formatCurr(minScrap7)} – ₹{formatCurr(maxScrap7)}
+                                                    </h4>
+                                                    <p className="text-slate-400 text-[8px] leading-normal italic">
+                                                        *Honest ±20% scrap pricing based on {weightNum7}kg unladen weight and global scrap metal indices. No single inflated numbers.
+                                                    </p>
                                                 </div>
 
-                                                {/* Right Panel: Phone & OTP verification Form */}
-                                                <div className="lg:col-span-5 flex flex-col justify-center bg-slate-50 border border-slate-100 rounded-2xl p-5 shadow-sm">
-                                                    <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                                                {/* RIGHT: Unlock Benefits Card */}
+                                                <div className="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-sm">
+                                                    <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mb-3 border border-red-100">
                                                         {otpSent ? <Lock className="w-6 h-6 text-[#E31E24]" /> : <Smartphone className="w-6 h-6 text-[#E31E24]" />}
                                                     </div>
-                                                    <h4 className="text-center font-black text-slate-900 uppercase tracking-wider text-[11px] mb-1">
-                                                        {otpSent ? "Verify Code" : "Unlock Benefits"}
-                                                    </h4>
-                                                    <p className="text-center text-slate-500 text-[10px] mb-4 leading-normal">
-                                                        {otpSent ? "Enter the 6-digit SMS verification code" : "Enter your phone number to unlock your CD certificate and partner benefits."}
+                                                    <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-1">{otpSent ? "VERIFY OTP" : "UNLOCK BENEFITS"}</h4>
+                                                    <p className="text-[10px] text-slate-500 font-medium mb-4 leading-relaxed">
+                                                        {otpSent ? "Enter the OTP sent to your phone." : "Enter your phone number to unlock your CD certificate and partner benefits."}
                                                     </p>
 
-                                                    <div className="space-y-3">
+                                                    <div className="w-full space-y-3">
                                                         <div className="relative">
-                                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-xs">+91</span>
+                                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
                                                             <input 
                                                                 type="tel" 
                                                                 disabled={otpSent}
                                                                 placeholder="10-digit number" 
                                                                 value={formData.phone} 
                                                                 onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
-                                                                className="w-full pl-11 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-60 disabled:bg-slate-100 transition-all text-center" 
+                                                                className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] disabled:opacity-50" 
                                                                 maxLength={10} 
                                                             />
                                                         </div>
 
                                                         {otpSent && (
-                                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2.5">
+                                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
                                                                 <input 
                                                                     type="tel" 
                                                                     placeholder={isSandboxMode ? "Use: 000000" : "••••••"} 
                                                                     value={formData.otp} 
                                                                     onChange={(e) => setFormData({...formData, otp: e.target.value.slice(0, 6)})} 
-                                                                    className="w-full px-3 py-2 bg-white border border-[#E31E24]/30 rounded-xl text-lg text-center font-black tracking-[0.3em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
+                                                                    className="w-full px-4 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-xl text-xl text-center font-black tracking-[0.3em] text-slate-900 focus:outline-none focus:border-[#E31E24]" 
                                                                     maxLength={6} 
                                                                     autoFocus 
                                                                 />
                                                                 {isSandboxMode && (
-                                                                    <p className="text-[9px] text-amber-600 font-bold text-center">⚡ Sandbox mode — enter 000000</p>
+                                                                    <p className="text-[10px] text-amber-600 font-bold">⚡ Sandbox mode — enter 000000</p>
                                                                 )}
                                                                 <button 
                                                                     onClick={() => { setOtpSent(false); setFormData({...formData, otp: ""}); setIsSandboxMode(false); }}
-                                                                    className="text-[9px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors w-full text-center"
+                                                                    className="text-[9px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
                                                                 >
                                                                     Change Number
                                                                 </button>
@@ -1266,15 +1598,58 @@ export default function ValuationWizardCard() {
                                                         <button 
                                                             disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying} 
                                                             onClick={otpSent ? handleVerifyOtp : handleSendOtp} 
-                                                            className="w-full py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[9px] tracking-widest flex items-center justify-center gap-1.5"
+                                                            className="w-full py-3 bg-[#E31E24] text-white font-black rounded-xl shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all uppercase text-[11px] tracking-widest flex items-center justify-center gap-2"
                                                         >
-                                                            {isSendingOtp || isVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (otpSent ? "Verify & Unlock" : "Get OTP")}
+                                                            {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "VERIFY & GET VALUATION" : "GET OTP")}
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            {/* Locked Benefit Cards Grid */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {/* Card 1: CD Benefits - unlockable */}
+                                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 relative overflow-hidden">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-red-400/60 blur-[2px] text-lg font-black">₹55,000</span>
+                                                        <Lock className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                                                    </div>
+                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-wider">UNLOCK CD BENEFITS</p>
+                                                </div>
+
+                                                {/* Card 2: Dealer Discount */}
+                                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 relative overflow-hidden">
+                                                    <span className="absolute top-2.5 right-2.5 bg-amber-100 text-amber-800 text-[6px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">COMING SOON</span>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-red-400/60 blur-[2px] text-lg font-black">₹10,000</span>
+                                                        <Lock className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                                                    </div>
+                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-wider">VERIFY TO UNLOCK</p>
+                                                </div>
+
+                                                {/* Card 3: Green Finance */}
+                                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 relative overflow-hidden">
+                                                    <span className="absolute top-2.5 right-2.5 bg-amber-100 text-amber-800 text-[6px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">COMING SOON</span>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-red-400/60 blur-[2px] text-lg font-black">₹15,000</span>
+                                                        <Lock className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                                                    </div>
+                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-wider">VERIFY TO UNLOCK</p>
+                                                </div>
+
+                                                {/* Card 4: Green Insurance */}
+                                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 relative overflow-hidden">
+                                                    <span className="absolute top-2.5 right-2.5 bg-amber-100 text-amber-800 text-[6px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">COMING SOON</span>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-red-400/60 blur-[2px] text-lg font-black">₹8,000</span>
+                                                        <Lock className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                                                    </div>
+                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-wider">VERIFY TO UNLOCK</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    )}
+                                        );
+                                    })()}
                                 </>
                             )}
 

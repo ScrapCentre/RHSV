@@ -3,8 +3,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -28,16 +26,13 @@ export default async function SubcontractingPage() {
 
         // We want all requests that have been approved to RVSF
         const excludeFilter = { status: "approved_to_rvsf" }
-        const quoteExcludeFilter = { status: "approved_to_rvsf" }
 
         // Mongoose Queries for approved RVSF leads
         const [
-            latestQuotes,
             latestExchanges,
             latestBuys,
             latestWizards
         ] = await Promise.all([
-            Valuation.find(quoteExcludeFilter).sort({ createdAt: -1 }).lean(),
             ExchangeVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             BuyVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             WizardLead.find(excludeFilter).sort({ createdAt: -1 }).lean(),
@@ -45,17 +40,6 @@ export default async function SubcontractingPage() {
 
         // Parse and combine the feed similarly to the main dashboard
         subcontractingFeed = [
-            ...latestQuotes.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                return {
-                    ...plainItem,
-                    type: 'quote',
-                    customerName: item.contact?.name || "N/A",
-                    customerPhone: item.contact?.phone || "N/A",
-                    vehicleInfo: `${item.year} ${item.brand} ${item.model} (${item.vehicleType})`,
-                    location: `${item.address?.city || 'N/A'}, ${item.address?.state || 'N/A'}`
-                };
-            }),
 
             ...latestExchanges.map((item: any) => {
                 const plainItem = JSON.parse(JSON.stringify(item));

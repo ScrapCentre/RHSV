@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
+import WizardLead from "@/models/WizardLead"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 
 export async function GET(req: NextRequest) {
@@ -24,8 +23,8 @@ export async function GET(req: NextRequest) {
         await connectToDatabase()
 
         // Search across all vehicle models
-        const models = [Valuation, ExchangeVehicle]
-        const fields = ["aadharFile", "rcFile", "carPhoto"]
+        const models = [WizardLead, ExchangeVehicle]
+        const fields = ["aadharFile", "rcFile", "carPhoto", "photoFront", "photoBack", "photoLeft", "photoRight"]
 
         for (const Model of models) {
             for (const field of fields) {

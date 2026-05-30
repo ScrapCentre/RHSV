@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
 
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -84,30 +83,13 @@ export async function PATCH(req: NextRequest) {
             if (state) customFieldsToSet.state = state
             if (city) customFieldsToSet.city = city
             if (pincode) customFieldsToSet.pincode = pincode
-        } else if (["scrap", "buy"].includes(source)) {
-            const isWizard = await WizardLead.findById(valuationId)
-            if (isWizard) {
-                Model = WizardLead
-                updateStatus = "reviewed"
-                if (fullAddress) customFieldsToSet.address = fullAddress
-                if (state) customFieldsToSet.state = state
-                if (city) customFieldsToSet.city = city
-                if (pincode) customFieldsToSet.pincode = pincode
-            } else {
-                Model = Valuation
-                updateStatus = "reviewed"
-                if (state) customFieldsToSet["address.state"] = state
-                if (city) customFieldsToSet["address.city"] = city
-                if (pincode) customFieldsToSet["address.pincode"] = pincode
-                if (fullAddress) customFieldsToSet["address.fullAddress"] = fullAddress
-            }
         } else {
-            Model = Valuation
+            Model = WizardLead
             updateStatus = "reviewed"
-            if (state) customFieldsToSet["address.state"] = state
-            if (city) customFieldsToSet["address.city"] = city
-            if (pincode) customFieldsToSet["address.pincode"] = pincode
-            if (fullAddress) customFieldsToSet["address.fullAddress"] = fullAddress
+            if (fullAddress) customFieldsToSet.address = fullAddress
+            if (state) customFieldsToSet.state = state
+            if (city) customFieldsToSet.city = city
+            if (pincode) customFieldsToSet.pincode = pincode
         }
 
         const updatedRecord = await Model.findByIdAndUpdate(

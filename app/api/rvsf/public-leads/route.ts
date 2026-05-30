@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -95,15 +93,12 @@ export async function GET(request: Request) {
         await connectToDatabase()
 
         const excludeFilter = { status: "approved_to_rvsf" }
-        const quoteExcludeFilter = { status: "approved_to_rvsf" }
 
         const [
-            latestQuotes,
             latestExchanges,
             latestBuys,
             latestWizards
         ] = await Promise.all([
-            Valuation.find(quoteExcludeFilter).sort({ createdAt: -1 }).lean(),
             ExchangeVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             BuyVehicle.find(excludeFilter).sort({ createdAt: -1 }).lean(),
             WizardLead.find(excludeFilter).sort({ createdAt: -1 }).lean(),
@@ -111,8 +106,6 @@ export async function GET(request: Request) {
 
         // Group into a single structure
         const allLeads = [
-            ...latestQuotes.map((item: any) => ({ ...item, type: 'quote' })),
-
             ...latestExchanges.map((item: any) => ({ ...item, type: 'exchange' })),
             ...latestBuys.map((item: any) => ({ ...item, type: 'buy' })),
             ...latestWizards.map((item: any) => ({ ...item, type: item.serviceType || 'wizard' }))

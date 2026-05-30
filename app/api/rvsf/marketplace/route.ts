@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
@@ -261,8 +260,7 @@ export async function GET(request: NextRequest) {
         // Same filter as /admin/subcontracting
         const filter = { status: "approved_to_rvsf" }
 
-        const [valuations, exchanges, buys, wizards] = await Promise.all([
-            Valuation.find(filter).sort({ createdAt: -1 }).lean(),
+        const [exchanges, buys, wizards] = await Promise.all([
             ExchangeVehicle.find(filter).sort({ createdAt: -1 }).lean(),
             BuyVehicle.find(filter).sort({ createdAt: -1 }).lean(),
             WizardLead.find(filter).sort({ createdAt: -1 }).lean(),
@@ -270,24 +268,6 @@ export async function GET(request: NextRequest) {
 
         // ── 4. Normalize all leads ─────────────────────────────
         const allLeads: any[] = [
-            ...valuations.map((item: any) => ({
-                _id: item._id.toString(),
-                type: "quote",
-                source: "Valuation",
-                customerName: item.contact?.name || "N/A",
-                vehicleInfo: `${item.year || ""} ${item.brand || ""} ${item.model || ""} (${item.vehicleType || ""})`.trim(),
-                location: `${item.address?.city || "N/A"}, ${item.address?.state || "N/A"}`,
-                city: item.address?.city || "",
-                state: item.address?.state || "",
-                pincode: item.address?.pincode || "",
-                createdAt: item.createdAt,
-                estimatedValue: item.estimatedValue,
-                carPhoto: item.carPhoto,
-                vehicleWeight: item.vehicleWeight,
-                year: item.year,
-                brand: item.brand,
-                model: item.model,
-            })),
             ...exchanges.map((item: any) => ({
                 _id: item._id.toString(),
                 type: "exchange",
@@ -346,7 +326,7 @@ export async function GET(request: NextRequest) {
             }),
         ]
 
-        console.log(`[Marketplace] Total leads found: ${allLeads.length} (V:${valuations.length} E:${exchanges.length} B:${buys.length} W:${wizards.length})`)
+        console.log(`[Marketplace] Total leads found: ${allLeads.length} (E:${exchanges.length} B:${buys.length} W:${wizards.length})`)
         console.log(`[Marketplace] CCs found: ${ccs.length}`, ccs.map(c => `${c.name} (${c.city}, ${c.state} — ${c.catchmentRadius}km)`))
         console.log(`[Marketplace] RVSF location: ${rvsfUser.city}, ${rvsfUser.state} ${rvsfUser.pincode}`)
 

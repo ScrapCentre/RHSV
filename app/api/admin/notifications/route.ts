@@ -2,8 +2,6 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
-
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import Contact from "@/models/Contact"
@@ -24,7 +22,6 @@ export async function GET() {
 
         // Fetch latest new/pending requests from relevant models, including the stepper WizardLeads
         const [
-            valuations,
             exchangeRequests,
             buyRequests,
             contactRequests,
@@ -32,7 +29,6 @@ export async function GET() {
             bulkOutsourcing,
             wizardLeads
         ] = await Promise.all([
-            Valuation.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             ExchangeVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             BuyVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             Contact.find({ status: "new" }).sort({ createdAt: -1 }).limit(10).lean(),
@@ -43,14 +39,6 @@ export async function GET() {
 
         // Format and combine notifications
         const notifications: any[] = [
-            ...valuations.map((v: any) => ({
-                id: v._id,
-                type: "valuation",
-                title: "New Quote Request",
-                description: `${v.brand} ${v.model} (${v.year})`,
-                createdAt: v.createdAt,
-                href: `/admin/valuations/quote/${v._id}?highlight=true`
-            })),
 
             ...exchangeRequests.map((e: any) => ({
                 id: e._id,

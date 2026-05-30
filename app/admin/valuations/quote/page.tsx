@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
-import Valuation from "@/models/Valuation"
 import WizardLead from "@/models/WizardLead"
 import { Clock, Calendar, CheckCircle, Recycle } from "lucide-react"
 import Link from "next/link"
@@ -18,25 +17,9 @@ export default async function QuoteValuationsPage() {
 
     await connectToDatabase()
 
-    const [valuations, wizardLeads] = await Promise.all([
-        Valuation.find({ status: { $ne: "approved" } }).sort({ createdAt: -1 }).lean(),
-        WizardLead.find({ serviceType: "scrap", category: "scrap_only", status: { $ne: "approved" } }).sort({ createdAt: -1 }).lean()
-    ])
+    const wizardLeads = await WizardLead.find({ serviceType: "scrap", category: "scrap_only", status: { $ne: "approved" } }).sort({ createdAt: -1 }).lean()
 
     const allRequests: any[] = [
-        ...valuations.map((v: any) => ({
-            _id: v._id.toString(),
-            name: v.contact?.name || "N/A",
-            phone: v.contact?.phone || "N/A",
-            brand: v.brand || "N/A",
-            model: v.model || "N/A",
-            year: v.year || "N/A",
-            regNo: v.vehicleNumber || "N/A",
-            pincode: v.address?.pincode || "N/A",
-            status: v.status || "pending",
-            createdAt: v.createdAt,
-            viewHref: `/admin/valuations/quote/${v._id}`
-        })),
         ...wizardLeads.map((w: any) => ({
             _id: w._id.toString(),
             name: w.name || "N/A",
