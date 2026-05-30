@@ -78,71 +78,7 @@ export default function AboutPage() {
 
   if (!mounted) return null
 
-  const stats = [
-    { label: "Years Experience", value: 10, suffix: "+" },
-    { label: "Happy Clients", value: 500, suffix: "+" },
-    { label: "Projects Done", value: 1.2, suffix: "k+" }, // decimal for 1.2k
-    { label: "Team Members", value: 50, suffix: "+" },
-  ]
 
-  const Counter = ({ value, suffix, decimals = 0 }: { value: number, suffix: string, decimals?: number }) => {
-    const { scrollYProgress } = useScroll() // Just to hook into framer motion context if needed, but essentially we want InView
-    const [count, setCount] = useState(0)
-
-    useEffect(() => {
-      // Simple counter effect
-      let start = 0;
-      const end = value;
-      const duration = 2000;
-      const increment = end / (duration / 16); // 60fps
-
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= end) {
-          setCount(end);
-          clearInterval(timer);
-        } else {
-          setCount(start);
-        }
-      }, 16);
-
-      return () => clearInterval(timer);
-    }, [value]);
-
-    // Using framer-motion for smooth counting would be better
-    // Let's use a simpler approach compatible with the existing imports.
-    return (
-      <span>
-        {count.toFixed(decimals)}
-        {suffix}
-      </span>
-    )
-  }
-
-  // Re-implementing Counter properly using framer-motion useSpring for smoothness
-  function NumberCounter({ value, suffix, decimals = 0 }: { value: number, suffix: string, decimals?: number }) {
-    const { scrollYProgress } = useScroll(); // Dummy usage
-    const spring = useSpring(0, { bounce: 0, duration: 2000 });
-    const opacity = useTransform(spring, [0, value], [0.5, 1]); // Subtle opacity effect
-    const [displayValue, setDisplayValue] = useState(0);
-
-    useEffect(() => {
-      spring.set(value);
-    }, [spring, value]);
-
-    useEffect(() => {
-      return spring.on("change", (latest) => {
-        setDisplayValue(latest);
-      });
-    }, [spring]);
-
-    return (
-      <motion.span style={{ opacity }}>
-        {displayValue.toFixed(decimals)}
-        {suffix}
-      </motion.span>
-    )
-  }
 
   const features = [
     {
@@ -184,7 +120,7 @@ export default function AboutPage() {
           <img
             src="/about/abouthero.png"
             alt="About ScrapCentre Background"
-            className="w-full h-full object-cover object-right"
+            className="w-full h-full object-cover object-[right_35%]"
           />
         </div>
 
@@ -251,18 +187,18 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mt-14 sm:mt-16 bg-white shadow-2xl shadow-slate-200/80 border border-slate-100 rounded-[2.5rem] p-6 sm:p-8 translate-y-2 relative z-30"
+            className="mt-24 sm:mt-28 bg-white shadow-2xl shadow-slate-200/80 border border-slate-100 rounded-[2.5rem] p-4 sm:py-5 sm:px-6 translate-y-10 relative z-30"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 sm:gap-8 md:gap-2 divide-y sm:divide-y-0 md:divide-x divide-slate-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 sm:gap-5 md:gap-1 divide-y sm:divide-y-0 md:divide-x divide-slate-100">
               
               {/* Item 1 */}
               <motion.div 
-                whileHover={{ scale: 1.05, y: -8 }}
+                whileHover={{ scale: 1.05, y: -6 }}
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                className="flex flex-col items-center text-center p-4 sm:p-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+                className="flex flex-col items-center text-center p-3 sm:py-2 sm:px-1 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
               >
-                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
-                  <Coins className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-3 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <Coins className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
                   Best Value for <br className="hidden sm:block" /> Your Vehicle
@@ -271,12 +207,12 @@ export default function AboutPage() {
 
               {/* Item 2 */}
               <motion.div 
-                whileHover={{ scale: 1.05, y: -8 }}
+                whileHover={{ scale: 1.05, y: -6 }}
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                className="flex flex-col items-center text-center p-4 sm:p-2 pt-6 sm:pt-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+                className="flex flex-col items-center text-center p-3 sm:py-2 sm:px-1 pt-4 sm:pt-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
               >
-                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
-                  <FileText className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-3 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <FileText className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
                   Instant COD <br className="hidden sm:block" /> Issuance
@@ -285,12 +221,12 @@ export default function AboutPage() {
 
               {/* Item 3 */}
               <motion.div 
-                whileHover={{ scale: 1.05, y: -8 }}
+                whileHover={{ scale: 1.05, y: -6 }}
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                className="flex flex-col items-center text-center p-4 sm:p-2 pt-6 sm:pt-2 md:pl-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+                className="flex flex-col items-center text-center p-3 sm:py-2 sm:px-1 pt-4 sm:pt-2 md:pl-1 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
               >
-                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
-                  <ShieldCheck className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-3 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <ShieldCheck className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
                   Trusted by Thousands <br className="hidden sm:block" /> Across India
@@ -299,12 +235,12 @@ export default function AboutPage() {
 
               {/* Item 4 */}
               <motion.div 
-                whileHover={{ scale: 1.05, y: -8 }}
+                whileHover={{ scale: 1.05, y: -6 }}
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                className="flex flex-col items-center text-center p-4 sm:p-2 pt-6 sm:pt-2 md:pl-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+                className="flex flex-col items-center text-center p-3 sm:py-2 sm:px-1 pt-4 sm:pt-2 md:pl-1 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
               >
-                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
-                  <Award className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-3 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <Award className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
                   Best Discounts on <br className="hidden sm:block" /> Insurance & Finance
@@ -313,12 +249,12 @@ export default function AboutPage() {
 
               {/* Item 5 */}
               <motion.div 
-                whileHover={{ scale: 1.05, y: -8 }}
+                whileHover={{ scale: 1.05, y: -6 }}
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                className="flex flex-col items-center text-center p-4 sm:p-2 pt-6 sm:pt-2 md:pl-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+                className="flex flex-col items-center text-center p-3 sm:py-2 sm:px-1 pt-4 sm:pt-2 md:pl-1 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
               >
-                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
-                  <Leaf className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-3 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <Leaf className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
                   Driving a Greener <br className="hidden sm:block" /> Tomorrow
@@ -491,7 +427,7 @@ export default function AboutPage() {
         </div>
 
         {/* CSS Animation for Gradient */}
-        <style jsx>{`
+        <style dangerouslySetInnerHTML={{ __html: `
           @keyframes gradient-move {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -500,10 +436,10 @@ export default function AboutPage() {
           .animate-gradient-move {
             animation: gradient-move 15s ease infinite;
           }
-           .perspective-1000 {
+          .perspective-1000 {
             perspective: 1000px;
           }
-        `}</style>
+        ` }} />
       </section>
 
       {/* Values/Features */}
