@@ -29,9 +29,9 @@ export default function Navbar() {
   }, [pathname])
 
   const navItems = [
+    { name: "About", href: "/about" },
     { name: "Free Valuation", href: "#services" },
     { name: "RVSF", href: "/rvsf/apply" },
-    { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ]
 

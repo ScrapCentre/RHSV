@@ -56,10 +56,20 @@ const sidebarContainerVariants = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession()
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isValuationsOpen, setIsValuationsOpen] = useState(true)
     const pathname = usePathname()
     const router = useRouter()
+
+    // Auto open sidebar only on large desktop screens
+    useEffect(() => {
+        const checkWidth = () => {
+            setIsSidebarOpen(window.innerWidth >= 1280)
+        }
+        checkWidth()
+        window.addEventListener('resize', checkWidth)
+        return () => window.removeEventListener('resize', checkWidth)
+    }, [])
 
     // Helper to check if a link is active
     const isActive = (path: string) => pathname === path || pathname?.startsWith(path)
@@ -354,19 +364,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </motion.aside>
 
             {/* Main Content Area */}
-            <div className={`flex-1 flex flex-col min-h-screen overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'lg:pl-72' : ''}`}>
-                {/* Desktop/Mobile Header Toggle */}
+            <div className={`flex-1 flex flex-col min-h-screen overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'xl:pl-72' : ''}`}>
+                {/* Header */}
                 <header className="h-16 bg-white dark:bg-[#0E192D] border-b border-gray-200 dark:border-slate-800 flex items-center px-4 justify-between z-30 sticky top-0 transition-colors duration-300">
-                    <div className="flex items-center">
-                        {!isSidebarOpen && (
-                            <button
-                                onClick={() => setIsSidebarOpen(true)}
-                                className="p-2 -ml-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-all"
-                            >
-                                <Menu className="w-6 h-6" />
-                            </button>
-                        )}
-                        <span className={`ml-3 text-lg font-bold text-gray-900 dark:text-white ${isSidebarOpen ? 'lg:invisible' : ''}`}>Admin Panel</span>
+                    <div className="flex items-center gap-3">
+                        {/* Hamburger — always visible on mobile, shows when sidebar is closed on desktop */}
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="p-2 -ml-1 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-all"
+                        >
+                            {isSidebarOpen ? <X className="w-5 h-5 hidden xl:block" /> : <Menu className="w-5 h-5" />}
+                        </button>
+                        <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Admin Panel</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
                         <NotificationBox />
@@ -378,7 +387,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-slate-950 p-4 lg:p-8 transition-colors duration-300">
+                <main className="flex-1 overflow-x-auto overflow-y-auto bg-gray-50 dark:bg-slate-950 p-3 sm:p-4 lg:p-6 xl:p-8 transition-colors duration-300">
                     {children}
                 </main>
             </div>

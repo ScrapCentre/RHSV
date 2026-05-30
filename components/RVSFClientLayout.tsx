@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Building2, Store, User, LogOut, Home, Menu, X, MessageSquare } from "lucide-react"
@@ -18,8 +18,18 @@ const sidebarContainerVariants = {
 
 export default function RVSFClientLayout({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession()
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const pathname = usePathname()
+
+    // Auto open sidebar only on xl+ screens
+    useEffect(() => {
+        const checkWidth = () => {
+            setIsSidebarOpen(window.innerWidth >= 1280)
+        }
+        checkWidth()
+        window.addEventListener('resize', checkWidth)
+        return () => window.removeEventListener('resize', checkWidth)
+    }, [])
 
     const isActive = (path: string) => pathname === path || pathname?.startsWith(path + "/")
 
@@ -68,7 +78,8 @@ export default function RVSFClientLayout({ children }: { children: React.ReactNo
                             </div>
                             <span className="text-lg font-black text-white tracking-tight">RVSF Portal</span>
                         </div>
-                        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        {/* Close button — desktop & mobile */}
+                        <button onClick={() => setIsSidebarOpen(false)}
                             className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
                             <X className="w-5 h-5" />
                         </button>
@@ -122,29 +133,27 @@ export default function RVSFClientLayout({ children }: { children: React.ReactNo
             </motion.aside>
 
             {/* Main content */}
-            <div className={`flex-1 flex flex-col min-h-screen overflow-hidden transition-all duration-300 ${isSidebarOpen ? "lg:pl-72" : ""}`}>
+            <div className={`flex-1 flex flex-col min-h-screen overflow-hidden transition-all duration-300 ${isSidebarOpen ? "xl:pl-72" : ""}`}>
                 {/* Top header */}
                 <header className="h-16 bg-white dark:bg-[#0E192D] border-b border-gray-200 dark:border-slate-800 flex items-center px-4 justify-between z-30 sticky top-0">
-                    <div className="flex items-center">
-                        {!isSidebarOpen && (
-                            <button onClick={() => setIsSidebarOpen(true)}
-                                className="p-2 -ml-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-all">
-                                <Menu className="w-6 h-6" />
-                            </button>
-                        )}
-                        <span className={`ml-3 text-lg font-bold text-gray-900 dark:text-white ${isSidebarOpen ? "lg:invisible" : ""}`}>RVSF Portal</span>
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="p-2 -ml-1 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-all">
+                            <Menu className="w-5 h-5" />
+                        </button>
+                        <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">RVSF Portal</span>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="hidden sm:flex flex-col items-end">
                             <span className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">RVSF</span>
-                            <span className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[180px]">{companyName}</span>
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[140px] sm:max-w-[180px]">{companyName}</span>
                         </div>
                         <div className="w-9 h-9 rounded-full bg-[#E31E24]/10 border border-[#E31E24]/30 flex items-center justify-center">
                             <span className="text-[#E31E24] font-bold text-sm">{companyName[0]}</span>
                         </div>
                     </div>
                 </header>
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-slate-950 p-4 lg:p-8">
+                <main className="flex-1 overflow-x-auto overflow-y-auto bg-gray-50 dark:bg-slate-950 p-3 sm:p-4 lg:p-6 xl:p-8">
                     {children}
                 </main>
             </div>

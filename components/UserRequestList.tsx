@@ -26,6 +26,7 @@ import {
     Recycle,
     Sparkles,
     MessageSquare,
+    Shield,
     ArrowRight
 } from "lucide-react"
 
@@ -47,6 +48,26 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
     useEffect(() => {
         setMounted(true)
     }, [])
+
+    const handleEkycClick = (e: React.MouseEvent, req: any) => {
+        e.stopPropagation()
+        // Pre-fill and prep localStorage for eKYC wizard
+        localStorage.setItem("kycValuationId", req._id)
+        localStorage.setItem("kycSource", req.type)
+        localStorage.setItem("kycFormData", JSON.stringify({
+            name: req.name || req.customerName || req.contact?.name || "",
+            phone: req.phone || req.customerPhone || req.contact?.phone || "",
+            state: req.state || "",
+            city: req.city || "",
+            pincode: req.pincode || "",
+            brand: req.brand || req.oldVehicleBrand || req.vehicleBrand || "",
+            model: req.model || req.oldVehicleModel || req.vehicleModel || "",
+            year: req.year || req.oldVehicleYear || req.registrationYear || "",
+            registrationNumber: req.regNo || req.oldVehicleRegistration || req.registrationNumber || ""
+        }))
+        // Redirect to standard ekyc verification wizard
+        window.location.href = "/ekyc"
+    }
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -209,18 +230,6 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 </div>
                                 <div className="flex flex-col items-end gap-3">
                                     {getStatusBadge(req.status)}
-                                    {req.chatThreadId && (
-                                        <Link
-                                            href={`/profile/chat/${req.chatThreadId}`}
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider bg-[#E31E24] hover:bg-red-700 text-white transition-all shadow-md active:scale-[0.97]"
-                                        >
-                                            <MessageSquare className="w-3.5 h-3.5 animate-pulse" /> Chat & Negotiate
-                                        </Link>
-                                    )}
-                                    <div className={`flex items-center gap-1 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity ${colors.text}`}>
-                                        View Details <ChevronRight className="w-4 h-4" />
-                                    </div>
                                     {req.type === 'valuation' && req.estimatedValue != null && (
                                         <div className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-900/20 px-2.5 py-1.5 rounded-lg border border-emerald-900/30">
                                             ₹{(req.estimatedValue * 0.8).toLocaleString('en-IN')} - ₹{(req.estimatedValue * 1.2).toLocaleString('en-IN')}
@@ -228,6 +237,63 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Action Buttons Section directly on the request card */}
+                            <div className="mt-5 pt-4 border-t border-slate-800/60 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                                <p className="text-[11px] text-gray-400 font-medium">
+                                    {req.ekycStatus === "verified" ? (
+                                        <span className="text-emerald-400 flex items-center gap-1 font-bold">
+                                            <CheckCircle className="w-3.5 h-3.5" /> eKYC Completed & Verified
+                                        </span>
+                                    ) : req.ekycStatus === "reviewing" || req.ekycStatus === "submitted" ? (
+                                        <span className="text-blue-400 flex items-center gap-1 font-bold animate-pulse">
+                                            <Clock className="w-3.5 h-3.5" /> eKYC Documents Under Review
+                                        </span>
+                                    ) : (
+                                        <span className="text-gray-400">Complete verification to unlock benefits</span>
+                                    )}
+                                </p>
+                                <div className="flex items-center gap-2.5 w-full sm:w-auto mt-2 sm:mt-0">
+                                    {/* Button 1: Complete eKYC */}
+                                    {req.ekycStatus === "verified" ? (
+                                        <button
+                                            disabled
+                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-emerald-950/40 text-emerald-400 border border-emerald-900/30 rounded-xl flex items-center gap-1.5 cursor-not-allowed opacity-80"
+                                        >
+                                            <CheckCircle className="w-3.5 h-3.5" /> Verified
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => handleEkycClick(e, req)}
+                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-red-600 to-[#E31E24] hover:from-red-500 hover:to-red-600 text-white rounded-xl flex items-center gap-1.5 shadow-md shadow-red-600/10 active:scale-[0.97] transition-all whitespace-nowrap"
+                                        >
+                                            <Shield className="w-3.5 h-3.5 animate-pulse" /> Complete eKYC
+                                        </button>
+                                    )}
+
+                                    {/* Button 2: Chat & Negotiate / View Details */}
+                                    {req.chatThreadId ? (
+                                        <Link
+                                            href={`/profile/chat/${req.chatThreadId}`}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-[#0E192D] border border-slate-700 hover:bg-slate-800 text-white rounded-xl flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all whitespace-nowrap"
+                                        >
+                                            <MessageSquare className="w-3.5 h-3.5 text-red-500 animate-pulse" /> Chat & Negotiate
+                                        </Link>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setSelectedRequest(req)
+                                            }}
+                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-[#0E192D] border border-slate-700 hover:bg-slate-800 text-white rounded-xl flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all whitespace-nowrap"
+                                        >
+                                            <FileText className="w-3.5 h-3.5" /> Details
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
                         </motion.div>
                     )
                 })}

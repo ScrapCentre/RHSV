@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion"
+import { Plus_Jakarta_Sans } from "next/font/google"
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+})
 import {
   Target,
   Users,
@@ -22,15 +28,19 @@ import {
   Headphones,
   ShieldCheck,
   FileText,
-  ChevronRight
+  ChevronRight,
+  Leaf,
+  ThumbsUp,
+  Shield,
+  Coins
 } from "lucide-react"
 import Link from "next/link"
 import GrowWithUs from "@/components/GrowWithUs"
-
-
+import LoadingScreen from "@/components/LoadingScreen"
 
 export default function AboutPage() {
   const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [ctaHovered, setCtaHovered] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const { scrollYProgress } = useScroll()
@@ -61,6 +71,10 @@ export default function AboutPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  if (loading) {
+    return <LoadingScreen onComplete={() => setLoading(false)} />
+  }
 
   if (!mounted) return null
 
@@ -160,140 +174,176 @@ export default function AboutPage() {
 
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-red-500/30 selection:text-red-200 overflow-x-hidden">
+    <div className={`min-h-screen bg-slate-950 text-white selection:bg-red-500/30 selection:text-red-200 overflow-x-hidden ${plusJakartaSans.className}`}>
 
 
-      <div className="flex flex-col min-h-screen">
-        {/* Hero Section */}
-        <section className="relative flex-grow flex items-center justify-center overflow-hidden pb-10">
-          {/* Background Image & Overlay */}
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-slate-950/90 z-10"></div> {/* Enhanced Gradient Overlay */}
-            <img
-              src="/about/aboutmain.png"
-              alt="About Background"
-              className="w-full h-full object-cover"
-            />
-          </div>
+      {/* Hero Section */}
+      <section className={`relative w-full bg-white text-slate-950 overflow-hidden mt-16 md:mt-20 pt-16 pb-12 min-h-[500px] md:min-h-[550px] flex items-center ${plusJakartaSans.className}`}>
+        {/* Full-bleed Background Image */}
+        <div className="absolute inset-0 w-full h-full z-0">
+          <img
+            src="/about/abouthero.png"
+            alt="About ScrapCentre Background"
+            className="w-full h-full object-cover object-right"
+          />
+        </div>
 
-          {/* Floating Particles */}
-          <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute bg-emerald-400/30 rounded-full"
-                initial={{
-                  x: Math.random() * 100 + "vw",
-                  y: Math.random() * 100 + "vh",
-                  scale: Math.random() * 0.5 + 0.5,
-                  opacity: Math.random() * 0.5 + 0.2
-                }}
-                animate={{
-                  y: [null, Math.random() * -100],
-                  opacity: [null, 0]
-                }}
-                transition={{
-                  duration: Math.random() * 10 + 10,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-                style={{
-                  width: Math.random() * 4 + 2 + "px",
-                  height: Math.random() * 4 + 2 + "px",
-                }}
-              />
-            ))}
-          </div>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Left Column (Content) - Beautiful responsive widths */}
+            <div className="lg:col-span-8 space-y-6 md:space-y-8">
+              <div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-tight tracking-tight">
+                  Why Choose <br className="hidden sm:block" />
+                  <span className="text-[#E31E24]">Scrap</span>
+                  <span className="text-slate-900">Centre</span>
+                  <span className="text-slate-500">.com?</span>
+                </h1>
+              </div>
 
-          <div className="absolute inset-0 pointer-events-none z-10">
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-900/20 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
-            <div className="absolute -bottom-32 left-20 w-[600px] h-[600px] bg-red-900/20 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-          </div>
+              <p className="text-slate-500 text-sm md:text-base max-w-2xl font-medium leading-relaxed">
+                We bring you exclusive benefits that make your experience simple, valuable and rewarding.
+              </p>
 
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-20 pt-20">
-            <motion.div
-              style={{ opacity, scale }}
-              className="text-center max-w-4xl mx-auto"
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0E192D]/50 border border-slate-700 text-red-400 font-medium text-sm mb-8 mt-16 backdrop-blur-sm"
-              >
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                Join the Future of Recycling
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-                className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-8"
-              >
-                Revolutionizing <br className="hidden md:block" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-white to-red-400 bg-[length:200%_auto] animate-shimmer">
-                  Car Scrapping
-                </span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-                className="text-xl md:text-2xl text-slate-300 leading-relaxed mb-12 max-w-2xl mx-auto"
-              >
-                We transform end-of-life vehicles into valuable resources, powering a greener tomorrow through innovation and integrity.
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-                className="flex flex-col sm:flex-row gap-4 justify-center"
-              >
-                <Link href="/quote" className="px-10 py-4 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-lg transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2 hover:scale-105 active:scale-95">
-                  Get Free Valuation
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-        <section id="learn-more" className="py-6 bg-white border-y border-gray-100 mt-auto">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="text-3xl md:text-4xl font-bold text-red-600 mb-1 flex justify-center items-center">
-                    <NumberCounter value={stat.value} suffix={stat.suffix} decimals={stat.label.includes("Projects") ? 1 : 0} />
+              {/* Responsive Stats Row - Clean Grid on Mobile, Flex on Desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 max-w-2xl">
+                {/* Stat 1 */}
+                <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm sm:bg-transparent p-3 sm:p-0 rounded-2xl border border-white/20 sm:border-0 shadow-sm sm:shadow-none">
+                  <div className="w-12 h-12 rounded-full border border-red-100 bg-white flex items-center justify-center text-red-600 shadow-sm shrink-0">
+                    <ThumbsUp className="w-6 h-6" />
                   </div>
-                  <div className="text-xs md:text-sm text-gray-600 font-medium uppercase tracking-wide">{stat.label}</div>
-                </motion.div>
-              ))}
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-red-600 leading-none">500+</div>
+                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">Happy Clients</div>
+                  </div>
+                </div>
+
+                {/* Stat 2 */}
+                <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm sm:bg-transparent p-3 sm:p-0 rounded-2xl border border-white/20 sm:border-0 shadow-sm sm:shadow-none">
+                  <div className="w-12 h-12 rounded-full border border-red-100 bg-white flex items-center justify-center text-red-600 shadow-sm shrink-0">
+                    <Shield className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-red-600 leading-none">10+</div>
+                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">Years Experience</div>
+                  </div>
+                </div>
+
+                {/* Stat 3 */}
+                <div className="flex items-center gap-3 bg-white/40 backdrop-blur-sm sm:bg-transparent p-3 sm:p-0 rounded-2xl border border-white/20 sm:border-0 shadow-sm sm:shadow-none">
+                  <div className="w-12 h-12 rounded-full border border-red-100 bg-white flex items-center justify-center text-red-600 shadow-sm shrink-0">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-red-600 leading-none">1.2k+</div>
+                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">Projects Done</div>
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
-        </section>
-      </div>
+
+          {/* Bottom Floating Panel (5 items) - Fully Responsive Grid & Dividers with premium hover animations */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="mt-14 sm:mt-16 bg-white shadow-2xl shadow-slate-200/80 border border-slate-100 rounded-[2.5rem] p-6 sm:p-8 translate-y-2 relative z-30"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 sm:gap-8 md:gap-2 divide-y sm:divide-y-0 md:divide-x divide-slate-100">
+              
+              {/* Item 1 */}
+              <motion.div 
+                whileHover={{ scale: 1.05, y: -8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                className="flex flex-col items-center text-center p-4 sm:p-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+              >
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <Coins className="w-7 h-7" />
+                </div>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
+                  Best Value for <br className="hidden sm:block" /> Your Vehicle
+                </h3>
+              </motion.div>
+
+              {/* Item 2 */}
+              <motion.div 
+                whileHover={{ scale: 1.05, y: -8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                className="flex flex-col items-center text-center p-4 sm:p-2 pt-6 sm:pt-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+              >
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <FileText className="w-7 h-7" />
+                </div>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
+                  Instant COD <br className="hidden sm:block" /> Issuance
+                </h3>
+              </motion.div>
+
+              {/* Item 3 */}
+              <motion.div 
+                whileHover={{ scale: 1.05, y: -8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                className="flex flex-col items-center text-center p-4 sm:p-2 pt-6 sm:pt-2 md:pl-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+              >
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <ShieldCheck className="w-7 h-7" />
+                </div>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
+                  Trusted by Thousands <br className="hidden sm:block" /> Across India
+                </h3>
+              </motion.div>
+
+              {/* Item 4 */}
+              <motion.div 
+                whileHover={{ scale: 1.05, y: -8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                className="flex flex-col items-center text-center p-4 sm:p-2 pt-6 sm:pt-2 md:pl-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+              >
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <Award className="w-7 h-7" />
+                </div>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
+                  Best Discounts on <br className="hidden sm:block" /> Insurance & Finance
+                </h3>
+              </motion.div>
+
+              {/* Item 5 */}
+              <motion.div 
+                whileHover={{ scale: 1.05, y: -8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                className="flex flex-col items-center text-center p-4 sm:p-2 pt-6 sm:pt-2 md:pl-2 group/card rounded-2xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+              >
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                  <Leaf className="w-7 h-7" />
+                </div>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
+                  Driving a Greener <br className="hidden sm:block" /> Tomorrow
+                </h3>
+              </motion.div>
+
+            </div>
+          </motion.div>
+
+        </div>
+      </section>
 
       {/* Intro/Story Section */}
       {/* Intro/Story Section */}
       {/* Intro/Story Section */}
-      <section className="py-20 md:py-32 relative overflow-hidden bg-[#020617] text-white">
-        {/* Decorative Background Elements - Green Shine Effect */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[100px] -z-10 translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-red-500/5 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2 animate-pulse delay-700"></div>
+      {/* Intro/Story Section */}
+      {/* Intro/Story Section */}
+      {/* Intro/Story Section */}
+      <section className={`py-20 md:py-32 relative overflow-hidden bg-white text-slate-800 border-y border-slate-100 ${plusJakartaSans.className}`}>
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-500/5 rounded-full blur-[120px] -z-10 translate-x-1/2 -translate-y-1/2 opacity-50"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-red-500/3 rounded-full blur-[120px] -z-10 -translate-x-1/2 translate-y-1/2 opacity-30"></div>
 
         {/* Texture Overlay */}
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] mix-blend-overlay pointer-events-none"></div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 md:gap-20 items-center">
@@ -307,9 +357,9 @@ export default function AboutPage() {
               className="relative perspective-1000 order-2 lg:order-1"
             >
               {/* Image Container with Glow */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#E31E24]/20 to-transparent rounded-3xl transform rotate-3 scale-105 blur-lg"></div>
-              <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-red-900/20 group">
-                <div className="absolute inset-0 bg-[#E31E24]/10 mix-blend-overlay group-hover:bg-transparent transition-all duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#E31E24]/10 to-transparent rounded-3xl transform rotate-3 scale-105 blur-lg"></div>
+              <div className="relative rounded-3xl overflow-hidden border border-slate-200/80 shadow-xl group">
+                <div className="absolute inset-0 bg-[#E31E24]/5 mix-blend-overlay group-hover:bg-transparent transition-all duration-500"></div>
                 <img
                   src="/about-team.png"
                   alt="Team Meeting"
@@ -322,18 +372,18 @@ export default function AboutPage() {
                 initial={{ opacity: 0, scale: 0.8, y: 20 }}
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
-                className="absolute -bottom-6 -right-6 md:-bottom-10 md:-right-10 bg-black/90 p-5 rounded-2xl shadow-2xl border border-white/10 max-w-[280px] hidden sm:block"
+                className="absolute -bottom-6 -right-6 md:-bottom-10 md:-right-10 bg-white p-5 rounded-2xl shadow-xl border border-slate-200/80 max-w-[280px] hidden sm:block"
               >
                 <div className="flex items-center gap-4 mb-3">
-                  <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center shrink-0">
                     <Award className="w-5 h-5 text-red-500" />
                   </div>
                   <div>
-                    <div className="font-bold text-white leading-tight">Govt. Authorized</div>
-                    <div className="text-xs text-red-500/80">RVSF Facility</div>
+                    <div className="font-bold text-slate-800 leading-tight">Govt. Authorized</div>
+                    <div className="text-xs text-red-500/90 font-semibold">RVSF Facility</div>
                   </div>
                 </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed font-semibold">
                   Fully compliant with Vehicle Scrappage Policy 2021. Certificate of Deposit (CD) issued instantly.
                 </p>
               </motion.div>
@@ -353,7 +403,7 @@ export default function AboutPage() {
               }}
               className="relative order-1 lg:order-2"
             >
-              <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-900/30 border border-red-500/30 text-red-400 text-xs font-semibold mb-6 tracking-wide uppercase">
+              <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-150 text-[#E31E24] text-xs font-bold mb-6 tracking-wide uppercase">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
@@ -363,13 +413,13 @@ export default function AboutPage() {
 
               <motion.h2
                 variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-                className="text-3xl md:text-5xl lg:text-5xl font-bold text-white mb-6 leading-tight tracking-tight"
+                className="text-3xl md:text-5xl lg:text-5xl font-black text-slate-900 mb-6 leading-tight tracking-tight animate-gradient-move"
               >
                 Refining the <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-white to-red-500">Scrapping Experience</span>
+                <span className="text-[#E31E24]">Scrapping Experience</span>
               </motion.h2>
 
-              <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="space-y-6 text-xl text-slate-400 leading-relaxed mb-10">
+              <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="space-y-6 text-sm sm:text-base text-slate-600 leading-relaxed mb-10 font-semibold">
                 <p>
                   We’re not just a scrapyard; we’re a technology-driven recycling hub. We transform the complex, unorganized process of vehicle scrapping into a seamless, transparent, and rewarding experience for every car owner.
                 </p>
@@ -384,53 +434,53 @@ export default function AboutPage() {
                 className="grid grid-cols-1 sm:grid-cols-2 gap-4"
               >
                 {/* Feature 1 */}
-                <div className="group p-4 bg-white/5 border border-white/5 rounded-xl hover:bg-white hover:border-red-500/30 hover:shadow-lg transition-all duration-300">
+                <div className="group p-4 bg-slate-50 border border-slate-150/80 rounded-xl hover:bg-white hover:border-red-500/30 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform group-hover:bg-red-50">
-                      <CheckCircle2 className="w-4 h-4 text-red-500 group-hover:text-red-600" />
+                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform group-hover:bg-red-50">
+                      <CheckCircle2 className="w-4 h-4 text-red-500 group-hover:text-red-650" />
                     </div>
                     <div>
-                      <h4 className="text-white font-semibold mb-1 text-base group-hover:text-slate-900">Legal Assurance</h4>
-                      <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-600">Guaranteed de-registration and legal immunity.</p>
+                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">Legal Assurance</h4>
+                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">Guaranteed de-registration and legal immunity.</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Feature 2 */}
-                <div className="group p-4 bg-white/5 border border-white/5 rounded-xl hover:bg-white hover:border-red-500/30 hover:shadow-lg transition-all duration-300">
+                <div className="group p-4 bg-slate-50 border border-slate-150/80 rounded-xl hover:bg-white hover:border-red-500/30 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform group-hover:bg-red-50">
-                      <Banknote className="w-4 h-4 text-red-500 group-hover:text-red-600" />
+                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform group-hover:bg-red-50">
+                      <Banknote className="w-4 h-4 text-red-500 group-hover:text-red-650" />
                     </div>
                     <div>
-                      <h4 className="text-white font-semibold mb-1 text-base group-hover:text-slate-900">Best Value</h4>
-                      <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-600">Algorithmic pricing based on metal index.</p>
+                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">Best Value</h4>
+                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">Algorithmic pricing based on metal index.</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Feature 3 */}
-                <div className="group p-4 bg-white/5 border border-white/5 rounded-xl hover:bg-white hover:border-red-500/30 hover:shadow-lg transition-all duration-300">
+                <div className="group p-4 bg-slate-50 border border-slate-150/80 rounded-xl hover:bg-white hover:border-red-500/30 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform group-hover:bg-red-50">
-                      <Recycle className="w-4 h-4 text-red-500 group-hover:text-red-600" />
+                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform group-hover:bg-red-50">
+                      <Recycle className="w-4 h-4 text-red-500 group-hover:text-red-650" />
                     </div>
                     <div>
-                      <h4 className="text-white font-semibold mb-1 text-base group-hover:text-slate-900">0% Waste Policy</h4>
-                      <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-600">Every component is recycled or reused.</p>
+                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">0% Waste Policy</h4>
+                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">Every component is recycled or reused.</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Feature 4 */}
-                <div className="group p-4 bg-white/5 border border-white/5 rounded-xl hover:bg-white hover:border-red-500/30 hover:shadow-lg transition-all duration-300">
+                <div className="group p-4 bg-slate-50 border border-slate-150/80 rounded-xl hover:bg-white hover:border-red-500/30 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform group-hover:bg-red-50">
-                      <TrendingUp className="w-4 h-4 text-red-500 group-hover:text-red-600" />
+                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform group-hover:bg-red-50">
+                      <TrendingUp className="w-4 h-4 text-red-500 group-hover:text-red-650" />
                     </div>
                     <div>
-                      <h4 className="text-white font-semibold mb-1 text-base group-hover:text-slate-900">Tax Benefits</h4>
-                      <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-600">Get road tax rebates on your next vehicle.</p>
+                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">Tax Benefits</h4>
+                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">Get road tax rebates on your next vehicle.</p>
                     </div>
                   </div>
                 </div>

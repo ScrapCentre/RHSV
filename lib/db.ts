@@ -29,6 +29,10 @@ async function connectToDatabase() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
+            maxPoolSize: 10,
+            minPoolSize: 2,
+            socketTimeoutMS: 30000,
+            heartbeatFrequencyMS: 10000,
         }
 
         console.log("[DB] Connecting to MongoDB...");

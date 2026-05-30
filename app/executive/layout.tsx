@@ -51,13 +51,23 @@ const sidebarContainerVariants = {
 
 export default function ExecutiveLayout({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession()
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isValuationsOpen, setIsValuationsOpen] = useState(true)
     const [notifications, setNotifications] = useState<any[]>([])
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
     const pathname = usePathname()
     const router = useRouter()
+
+    // Auto open sidebar only on xl+ screens
+    useEffect(() => {
+        const checkWidth = () => {
+            setIsSidebarOpen(window.innerWidth >= 1280)
+        }
+        checkWidth()
+        window.addEventListener('resize', checkWidth)
+        return () => window.removeEventListener('resize', checkWidth)
+    }, [])
 
     // Helper to check if a link is active
     const isActive = (path: string) => pathname === path || pathname?.startsWith(path)
@@ -267,21 +277,19 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
             </motion.aside>
 
             {/* Main Content Area */}
-            <div className={`flex-1 flex flex-col min-h-screen overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'lg:pl-72' : ''}`}>
+            <div className={`flex-1 flex flex-col min-h-screen overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'xl:pl-72' : ''}`}>
                 {/* Desktop/Mobile Header */}
                 <header className="h-16 bg-white dark:bg-black border-b border-gray-200 dark:border-white/10 flex items-center px-4 justify-between z-30 sticky top-0 transition-colors duration-300">
-                    <div className="flex items-center">
-                        {!isSidebarOpen && (
-                            <button
-                                onClick={() => setIsSidebarOpen(true)}
-                                className="p-2 -ml-2 rounded-md text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all"
-                            >
-                                <Menu className="w-6 h-6" />
-                            </button>
-                        )}
-                        <div className="ml-3 flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="p-2 -ml-1 rounded-md text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all"
+                        >
+                            <Menu className="w-5 h-5" />
+                        </button>
+                        <div className="flex items-center gap-2">
                              <div className="w-2 h-2 rounded-full bg-white animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)] hidden dark:block" />
-                             <span className={`text-sm font-black uppercase tracking-[0.2em] text-gray-900 dark:text-white ${isSidebarOpen ? 'lg:invisible' : ''}`}>Executive Terminal</span>
+                             <span className="text-sm font-black uppercase tracking-[0.2em] text-gray-900 dark:text-white">Executive Terminal</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
@@ -303,7 +311,7 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                         transition={{ duration: 0.2 }}
-                                        className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-white/5 shadow-xl overflow-hidden z-50"
+                                        className="absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-white/5 shadow-xl overflow-hidden z-50"
                                     >
                                         <div className="px-4 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-black/20 flex justify-between items-center">
                                             <h3 className="text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white">Recent Requests</h3>
@@ -352,7 +360,7 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-[#050505] p-4 lg:p-8 transition-colors duration-300">
+                <main className="flex-1 overflow-x-auto overflow-y-auto bg-gray-50 dark:bg-[#050505] p-3 sm:p-4 lg:p-6 xl:p-8 transition-colors duration-300">
                     {children}
                 </main>
             </div>
