@@ -98,9 +98,9 @@ export default async function ApprovedRequestsPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <CheckCircle className="w-6 h-6 text-emerald-600" />
-                        Approved Requests
+                        Personal Leads
                     </h1>
-                    <p className="text-gray-500 dark:text-slate-400 mt-1">All approved requests from all categories.</p>
+                    <p className="text-gray-500 dark:text-slate-400 mt-1">All personal leads from all categories.</p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                     <span className="font-semibold text-gray-900 dark:text-white">{allRequests.length}</span>

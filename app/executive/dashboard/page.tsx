@@ -5,7 +5,6 @@ import connectToDatabase from "@/lib/db"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
-import BulkOutsourcing from "@/models/BulkOutsourcing"
 import B2BRegistration from "@/models/B2BRegistration"
 import ExecutiveDashboardOverview from "@/components/executive/ExecutiveDashboardOverview"
 
@@ -20,11 +19,9 @@ export default async function ExecutiveDashboardPage() {
     }
 
     let marketFeed: any[] = []
-    let outsourcingFeed: any[] = []
     let timelineItems: any[] = []
     const stats = {
         totalApproved: 0,
-        totalOutsourcing: 0,
         totalLeadVolume: 0
     }
 
@@ -86,50 +83,38 @@ export default async function ExecutiveDashboardPage() {
             })
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 15)
 
-        // 2. Fetch Outsourcing Feed
-        const outsourcingRes = await BulkOutsourcing.find().sort({ createdAt: -1 }).limit(10).lean()
-        outsourcingFeed = JSON.parse(JSON.stringify(outsourcingRes))
 
-        // 3. Stats
+
+        // 2. Stats
         const [
             countExchanges,
             countBuys,
-            countWizard,
-            countOutsourcing
+            countWizard
         ] = await Promise.all([
             ExchangeVehicle.countDocuments({ status: 'approved' }),
             BuyVehicle.countDocuments({ status: 'approved' }),
             WizardLead.countDocuments({ status: 'approved' }),
-            BulkOutsourcing.countDocuments()
         ])
 
         stats.totalApproved = countExchanges + countBuys + countWizard
-        stats.totalOutsourcing = countOutsourcing
         stats.totalLeadVolume = await Promise.all([
             ExchangeVehicle.countDocuments(),
             BuyVehicle.countDocuments(),
             WizardLead.countDocuments()
         ]).then(counts => counts.reduce((a, b) => a + b, 0))
 
-        // 4. Activity Timeline
+        // 3. Activity Timeline
         // Combine recent submissions and status changes
         const [
-            recentB2B,
-            recentOutsourcing
+            recentB2B
         ] = await Promise.all([
-            B2BRegistration.find().sort({ createdAt: -1 }).limit(5).lean(),
-            BulkOutsourcing.find().sort({ createdAt: -1 }).limit(5).lean()
+            B2BRegistration.find().sort({ createdAt: -1 }).limit(5).lean()
         ])
 
         timelineItems = [
             ...recentB2B.map((item: any) => ({
                 action: "Partner Registration",
                 description: `${item.businessName} applied for B2B partnership.`,
-                timestamp: item.createdAt
-            })),
-            ...recentOutsourcing.map((item: any) => ({
-                action: "Bulk Outsourcing",
-                description: `${item.partnerName} submitted a bulk data set of ${item.entries?.length || 0} vehicles.`,
                 timestamp: item.createdAt
             }))
         ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 15)
@@ -145,7 +130,6 @@ export default async function ExecutiveDashboardPage() {
     return (
         <ExecutiveDashboardOverview
             marketFeed={marketFeed}
-            outsourcingFeed={outsourcingFeed}
             timelineItems={timelineItems}
             stats={stats}
         />

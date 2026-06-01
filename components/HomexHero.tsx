@@ -200,7 +200,7 @@ export default function HomexHero() {
                                     className="c-button--gooey h-14 sm:h-16 lg:h-12 xl:h-14 2xl:h-16 px-8 sm:px-12 lg:px-6 xl:px-8 2xl:px-12 bg-[#E31E24] text-white font-bold text-sm rounded-xl sm:rounded-[1.25rem] lg:rounded-xl xl:rounded-[1.25rem] transition-all flex items-center justify-center gap-3 sm:gap-4 group shrink-0 shadow-xl shadow-red-500/20 disabled:opacity-70"
                                 >
                                     <span className="relative z-10 flex items-center gap-3 sm:gap-4 lg:gap-2 xl:gap-3">
-                                        {isFetching ? "Fetching..." : "FETCH DATA"}
+                                        {isFetching ? "Fetching..." : "GET VALUATION"}
                                         {!isFetching && <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 group-hover:translate-x-1 transition-transform" />}
                                     </span>
                                     <div className="c-button__blobs">

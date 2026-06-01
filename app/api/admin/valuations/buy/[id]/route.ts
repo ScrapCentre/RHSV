@@ -56,6 +56,8 @@ export async function GET(
                     customerPhone: wizardLead.phone,
                     customerEmail: "N/A",
                     pincode: wizardLead.pincode,
+                    city: wizardLead.city,
+                    state: wizardLead.state,
                     createdAt: wizardLead.createdAt,
                     updatedAt: wizardLead.updatedAt
                 } as any

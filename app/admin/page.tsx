@@ -69,8 +69,8 @@ export default async function AdminPage() {
         wizardLeadsAll.forEach((lead: any) => {
             if (lead.serviceType === 'scrap') {
                 if (lead.category === 'scrap_and_buy') {
-                    // This is a special case, count as Scrap (Free Quote)
-                    quoteCount++
+                    // This is Scrap & Buy, count under exchangeCount (Scrap & Buy)
+                    exchangeCount++
                 } else {
                     quoteCount++
                 }

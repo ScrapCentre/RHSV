@@ -8,7 +8,8 @@ import { authOptions } from "@/lib/auth"
 export async function GET() {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || (session.user as any).role !== "admin") {
+        const role = (session?.user as any)?.role
+        if (!session || (role !== "admin" && role !== "executive")) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
@@ -23,7 +24,8 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || (session.user as any).role !== "admin") {
+        const role = (session?.user as any)?.role
+        if (!session || (role !== "admin" && role !== "executive")) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
@@ -56,6 +58,35 @@ export async function POST(req: Request) {
         })
 
         return NextResponse.json(newUser, { status: 201 })
+    } catch (error) {
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 })
+    }
+}
+
+// DELETE scrap-center-user
+export async function DELETE(req: Request) {
+    try {
+        const session = await getServerSession(authOptions)
+        const role = (session?.user as any)?.role
+        if (!session || (role !== "admin" && role !== "executive")) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+        }
+
+        const { searchParams } = new URL(req.url)
+        const id = searchParams.get("id")
+
+        if (!id) {
+            return NextResponse.json({ message: "ID parameter is required" }, { status: 400 })
+        }
+
+        await connectToDatabase()
+        const deletedUser = await ScrapCentreUser.findByIdAndDelete(id)
+
+        if (!deletedUser) {
+            return NextResponse.json({ message: "ScrapCentre operator not found" }, { status: 404 })
+        }
+
+        return NextResponse.json({ message: "ScrapCentre operator access revoked successfully" }, { status: 200 })
     } catch (error) {
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 })
     }

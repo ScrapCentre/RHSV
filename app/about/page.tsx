@@ -10,9 +10,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
 })
 import {
-  Target,
   Users,
-  Lightbulb,
   TrendingUp,
   Award,
   Globe,
@@ -32,7 +30,11 @@ import {
   Leaf,
   ThumbsUp,
   Shield,
-  Coins
+  Coins,
+  Settings,
+  Gift,
+  RefreshCw,
+  Percent
 } from "lucide-react"
 import Link from "next/link"
 import GrowWithUs from "@/components/GrowWithUs"
@@ -77,36 +79,6 @@ export default function AboutPage() {
   }
 
   if (!mounted) return null
-
-
-
-  const features = [
-    {
-      icon: Target,
-      title: "Our Mission",
-      description: "To revolutionize the scraping industry with transparent, efficient, and eco-friendly solutions.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Our Vision",
-      description: "Becoming the global standard for sustainable vehicle recycling and material recovery.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Our Growth",
-      description: "Consistently expanding our network to serve more regions and businesses every year.",
-    },
-    {
-      icon: Globe, // Added extra feature for balance
-      title: "Global Reach",
-      description: "Connecting markets and resources across borders for a seamless recycling ecosystem.",
-    },
-  ]
-
-  // Use only first 3 for grid if needed, or adjust grid to 4. Keeping 3 as per original design or updating to 4?
-  // Original had 3. Let's stick to 3 or make it a grid of 2x2. The original code had 3.
-  // I will keep the original 3 features to avoid layout issues, but update styles.
-  const displayFeatures = features.slice(0, 3);
 
 
   return (
@@ -442,66 +414,217 @@ export default function AboutPage() {
         ` }} />
       </section>
 
-      {/* Values/Features */}
-      <section className="py-16 bg-white relative overflow-hidden border-t border-slate-100">
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-50 rounded-full blur-[120px]"></div>
+      {/* Values/Features Redesign */}
+      <section className="py-20 md:py-28 bg-[#FAFAFA] text-slate-900 relative overflow-hidden border-t border-slate-100">
+        {/* Core Values Background Image Backdrop - Only visible on desktop to avoid vertical scaling distortion on stacked mobile layouts */}
+        <div className="absolute inset-0 w-full h-full z-0 pointer-events-none select-none hidden lg:block">
+          <img
+            src="/about/core.png"
+            alt="Core Values Background"
+            className="w-full h-full object-cover object-center opacity-80 md:opacity-[0.88] transition-opacity duration-300"
+          />
         </div>
+        {/* Decorative Grid Lines Background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#E2E8F0_1px,transparent_1px),linear-gradient(to_bottom,#E2E8F0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35 pointer-events-none" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 border border-red-200 text-red-700 text-xs font-bold mb-4 tracking-wide uppercase">
-              <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              Ethos
+          
+          {/* Header section styled exactly like the provided image */}
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-50 border border-red-200 text-[#E31E24] text-xs font-bold tracking-wider uppercase shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E31E24] animate-pulse"></span>
+              Ethos &amp; Values
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900">
-              Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400">Core Values</span>
+            
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
+              Why Choose <span className="text-[#E31E24]">ScrapCentre.com?</span>
             </h2>
-            <p className="text-slate-600 text-lg">Principles that drive our every action and decision.</p>
+            
+            <p className="text-slate-600 text-xs md:text-sm font-extrabold tracking-widest uppercase">
+              Smart Choices. Better Value. Greener Tomorrow.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Our Mission",
-                description: "To revolutionize the scraping industry with transparent, efficient, and eco-friendly solutions.",
-                icon: Target
-              },
-              {
-                title: "Our Vision",
-                description: "Becoming the global standard for sustainable vehicle recycling and material recovery.",
-                icon: Globe
-              },
-              {
-                title: "Our Growth",
-                description: "Consistently expanding our network to serve more regions and businesses every year.",
-                icon: TrendingUp
-              }
-            ].map((feature, index) => (
+          {/* Main Values Circular Layout Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center max-w-6xl mx-auto relative z-10">
+            
+            {/* Left Column: 2 Cards (lg:col-span-4) */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Card 1 */}
               <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
-                whileHover={{ y: -10, scale: 1.02 }}
-                className="group relative bg-[#020617] border border-slate-800 p-8 rounded-3xl shadow-lg shadow-black/50 hover:bg-white hover:shadow-2xl hover:shadow-red-500/10 transition-all duration-500 overflow-hidden"
+                whileHover={{ scale: 1.03, y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="bg-white border border-slate-100 hover:border-red-500/20 p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex items-start gap-4 md:gap-5"
               >
-                {/* Gradient Border Hover Effect - Adjusted for white bg */}
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-
-                <div className="relative z-10">
-                  <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-red-500 group-hover:rotate-6 transition-all duration-300">
-                    <feature.icon className="w-8 h-8 text-red-500 group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-4 text-white group-hover:text-slate-900 transition-colors">{feature.title}</h3>
-                  <p className="text-slate-400 leading-relaxed group-hover:text-slate-600 transition-colors">
-                    {feature.description}
-                  </p>
+                <div className="absolute top-0 right-0 h-full w-1 bg-[#E31E24] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center shrink-0 shadow-sm transition-all group-hover:bg-[#E31E24] group-hover:text-white group-hover:rotate-6">
+                  <Percent className="w-5.5 h-5.5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Best Value for Your Vehicle</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">Get the maximum value with fast and secure payments.</p>
                 </div>
               </motion.div>
-            ))}
+
+              {/* Card 2 */}
+              <motion.div
+                whileHover={{ scale: 1.03, y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="bg-white border border-slate-100 hover:border-red-500/20 p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex items-start gap-4 md:gap-5"
+              >
+                <div className="absolute top-0 right-0 h-full w-1 bg-[#E31E24] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center shrink-0 shadow-sm transition-all group-hover:bg-[#E31E24] group-hover:text-white group-hover:rotate-6">
+                  <FileText className="w-5.5 h-5.5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Instant COD Issuance</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">Get your Certificate of Deposit instantly, hassle-free.</p>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Center Column: Centerpiece illustration on mobile, clean spacer on desktop (lg:col-span-4) */}
+            <div className="lg:col-span-4 flex items-center justify-center py-6 lg:py-0 relative">
+              {/* Foreground graphic visible only on mobile/tablet screens */}
+              <div className="w-full max-w-[280px] sm:max-w-[320px] aspect-square flex items-center justify-center lg:hidden relative z-10 pointer-events-none">
+                <img
+                  src="/about/core.png"
+                  alt="ScrapCentre Core Showcase"
+                  className="w-full h-full object-contain drop-shadow-[0_15px_30px_rgba(227,30,36,0.12)]"
+                />
+              </div>
+              {/* Clean spacer on desktop so the background image backdrop shows through perfectly */}
+              <div className="hidden lg:block w-full min-h-[360px] pointer-events-none" />
+            </div>
+
+            {/* Right Column: 2 Cards (lg:col-span-4) */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Card 3 */}
+              <motion.div
+                whileHover={{ scale: 1.03, y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="bg-white border border-slate-100 hover:border-red-500/20 p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex items-start gap-4 md:gap-5"
+              >
+                <div className="absolute top-0 left-0 h-full w-1 bg-[#E31E24] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center shrink-0 shadow-sm transition-all group-hover:bg-[#E31E24] group-hover:text-white group-hover:rotate-6">
+                  <ShieldCheck className="w-5.5 h-5.5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Trusted &amp; Reliable</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">OEM benefits, insurance discounts and more assured advantages.</p>
+                </div>
+              </motion.div>
+
+              {/* Card 4 */}
+              <motion.div
+                whileHover={{ scale: 1.03, y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="bg-white border border-slate-100 hover:border-red-500/20 p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex items-start gap-4 md:gap-5"
+              >
+                <div className="absolute top-0 left-0 h-full w-1 bg-[#E31E24] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center shrink-0 shadow-sm transition-all group-hover:bg-[#E31E24] group-hover:text-white group-hover:rotate-6">
+                  <Coins className="w-5.5 h-5.5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Smart Savings Everywhere</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">Special discounts on finance (Green Loans), insurance &amp; more.</p>
+                </div>
+              </motion.div>
+            </div>
+            
           </div>
+
+          {/* Bottom Grid: 5 Items in Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.8 }}
+            className="mt-16 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2rem] p-6 sm:p-8 max-w-6xl mx-auto"
+          >
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+              
+              {/* Item 1 */}
+              <div className="flex flex-col items-center text-center p-2 group cursor-default">
+                <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
+                  <Car className="w-5 h-5" />
+                </div>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Discounts on New Car</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Extra benefits at partner dealerships.</p>
+              </div>
+
+              {/* Item 2 */}
+              <div className="flex flex-col items-center text-center p-2 pt-4 md:pt-2 group cursor-default">
+                <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
+                  <Settings className="w-5 h-5" />
+                </div>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Quality Spare Parts</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Refurbished &amp; new spare parts at low prices.</p>
+              </div>
+
+              {/* Item 3 */}
+              <div className="flex flex-col items-center text-center p-2 pt-4 md:pt-2 group cursor-default">
+                <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
+                  <Gift className="w-5 h-5" />
+                </div>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Exciting Gifts</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Attractive &amp; assured complimentary gifts.</p>
+              </div>
+
+              {/* Item 4 */}
+              <div className="flex flex-col items-center text-center p-2 pt-4 md:pt-2 group cursor-default">
+                <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
+                  <RefreshCw className="w-5 h-5" />
+                </div>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Buy &amp; Sell Confidence</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Vehicle buying &amp; selling facility with COD.</p>
+              </div>
+
+              {/* Item 5 */}
+              <div className="flex flex-col items-center text-center p-2 pt-4 md:pt-2 group cursor-default">
+                <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
+                  <Leaf className="w-5 h-5" />
+                </div>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Go Green EV</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Convert your vehicle into EV at affordable cost.</p>
+              </div>
+
+            </div>
+          </motion.div>
+
+          {/* Premium Call to Action Bottom Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-10 bg-gradient-to-r from-[#E31E24] via-red-600 to-rose-600 rounded-[1.75rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-red-500/10 max-w-6xl mx-auto"
+          >
+            <div className="flex items-center gap-4 text-white text-center md:text-left">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-inner hidden sm:flex">
+                <ShieldCheck className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-base md:text-lg font-black uppercase tracking-tight leading-tight mb-1">
+                  More Value. More Benefits. Better for You &amp; the Planet.
+                </h3>
+                <p className="text-[11px] md:text-xs text-white/80 font-medium max-w-2xl leading-relaxed">
+                  Join thousands of smart vehicle owners who trust ScrapCentre.com for best value, benefits and a greener future.
+                </p>
+              </div>
+            </div>
+            
+            <Link href="/#services" className="shrink-0">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-6 py-3.5 bg-white text-[#E31E24] font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg flex items-center gap-2 group/btn"
+              >
+                Get Started Today
+                <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+              </motion.button>
+            </Link>
+          </motion.div>
+
         </div>
       </section>
 
@@ -564,7 +687,7 @@ export default function AboutPage() {
 
             {/* Right Action */}
             <div className="md:shrink-0 text-center relative z-10">
-              <Link href="/quote">
+              <Link href="/#services">
                 <button className="c-button--gooey group/btn relative inline-flex items-center justify-center px-8 py-3.5 text-base font-black text-white transition-all duration-300 bg-red-600 rounded-xl hover:bg-red-700 hover:scale-105 active:scale-95 shadow-lg shadow-red-600/30 overflow-hidden">
                   <span className="relative z-10 flex items-center gap-2">
                     Check For Free

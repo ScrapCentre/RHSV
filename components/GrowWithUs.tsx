@@ -72,11 +72,11 @@ export default function GrowWithUs() {
                                 {/* Button */}
                                 <div className="flex flex-col sm:flex-row items-center gap-4">
                                     <Link
-                                        href={session ? "/partner-register" : "/login"}
+                                        href="/rvsf/apply"
                                         className="c-button--gooey group/btn relative inline-flex items-center gap-3 px-8 md:px-10 py-3 md:py-4 bg-red-600 text-white rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-lg shadow-red-500/30 transition-all duration-300"
                                     >
                                         <span className="relative z-10 flex items-center gap-3">
-                                            {session ? ((session.user as any)?.role === 'partner' ? "View Credentials" : "Apply For Partner") : "Apply For Partner"}
+                                            Apply For Partner
                                             <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover/btn:translate-x-1 transition-transform" />
                                         </span>
                                         <div className="c-button__blobs">
@@ -86,12 +86,6 @@ export default function GrowWithUs() {
                                         </div>
                                     </Link>
                                 </div>
-
-                                {!session && (
-                                    <p className="text-[10px] text-slate-400 mt-4 font-bold uppercase tracking-tighter italic">
-                                        * Login required for partner registration
-                                    </p>
-                                )}
                             </motion.div>
                         </div>
 

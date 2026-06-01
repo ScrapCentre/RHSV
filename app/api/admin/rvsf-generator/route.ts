@@ -10,8 +10,9 @@ export const dynamic = "force-dynamic"
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
+        const role = (session?.user as any)?.role
         const isDev = process.env.NODE_ENV === "development"
-        if (!isDev && (!session || (session.user as any).role !== "admin")) {
+        if (!isDev && (!session || (role !== "admin" && role !== "executive"))) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
@@ -65,8 +66,9 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions)
+        const role = (session?.user as any)?.role
         const isDev = process.env.NODE_ENV === "development"
-        if (!isDev && (!session || (session.user as any).role !== "admin")) {
+        if (!isDev && (!session || (role !== "admin" && role !== "executive"))) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
@@ -78,5 +80,35 @@ export async function GET(req: Request) {
             { message: "Failed to fetch RVSF users" },
             { status: 500 }
         )
+    }
+}
+
+// DELETE RVSF partner
+export async function DELETE(req: Request) {
+    try {
+        const session = await getServerSession(authOptions)
+        const role = (session?.user as any)?.role
+        const isDev = process.env.NODE_ENV === "development"
+        if (!isDev && (!session || (role !== "admin" && role !== "executive"))) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+        }
+
+        const { searchParams } = new URL(req.url)
+        const id = searchParams.get("id")
+
+        if (!id) {
+            return NextResponse.json({ message: "ID parameter is required" }, { status: 400 })
+        }
+
+        await connectToDatabase()
+        const deletedRvsf = await RVSFUser.findByIdAndDelete(id)
+
+        if (!deletedRvsf) {
+            return NextResponse.json({ message: "RVSF partner not found" }, { status: 404 })
+        }
+
+        return NextResponse.json({ message: "RVSF partner access revoked successfully" }, { status: 200 })
+    } catch (error: any) {
+        return NextResponse.json({ message: "Failed to revoke RVSF access", error: error.message }, { status: 500 })
     }
 }

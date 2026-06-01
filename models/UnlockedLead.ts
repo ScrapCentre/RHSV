@@ -13,8 +13,12 @@ export interface IUnlockedLead extends Document {
     razorpayOrderId?: string
     amount: number
     unlockedAt: Date
-    status: "pending_decision" | "accepted" | "rejected"
+    status: string
     rejectionReason?: string
+    assignedCcId?: string
+    assignedCcName?: string
+    assignedAt?: Date
+    pickupStatus?: string
     createdAt: Date
     updatedAt: Date
 }
@@ -33,9 +37,12 @@ const UnlockedLeadSchema: Schema = new Schema(
         razorpayOrderId: { type: String },
         amount: { type: Number, required: true },
         unlockedAt: { type: Date, default: Date.now },
+        assignedCcId: { type: String },
+        assignedCcName: { type: String },
+        assignedAt: { type: Date },
+        pickupStatus: { type: String },
         status: {
             type: String,
-            enum: ["pending_decision", "accepted", "rejected"],
             default: "pending_decision",
         },
         rejectionReason: { type: String },
@@ -49,4 +56,8 @@ const UnlockedLeadSchema: Schema = new Schema(
 // Compound index: one RVSF can only unlock a lead once
 UnlockedLeadSchema.index({ leadId: 1, rvsfId: 1 }, { unique: true })
 
-export default mongoose.models.UnlockedLead || mongoose.model<IUnlockedLead>("UnlockedLead", UnlockedLeadSchema)
+if (mongoose.models.UnlockedLead) {
+    delete (mongoose.models as any).UnlockedLead;
+}
+
+export default mongoose.model<IUnlockedLead>("UnlockedLead", UnlockedLeadSchema)

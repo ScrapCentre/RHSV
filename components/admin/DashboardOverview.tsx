@@ -30,18 +30,18 @@ const containerVariants = {
     visible: {
         opacity: 1,
         transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.1
+            staggerChildren: 0.05,
+            delayChildren: 0.05
         }
     }
 }
 
 const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.6, ease: [0.215, 0.61, 0.355, 1] as any }
+        transition: { duration: 0.4, ease: [0.215, 0.61, 0.355, 1] as any }
     }
 }
 
@@ -61,74 +61,74 @@ export default function DashboardOverview({
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8 max-w-7xl mx-auto"
+            className="space-y-5 max-w-7xl mx-auto text-slate-800"
         >
             {/* Header */}
-            <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-2">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight">
-                        <Shield className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                    <h1 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 tracking-tight">
+                        <Shield className="w-5 h-5 text-[#E31E24]" />
                         Admin Dashboard
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Overview of platform performance.</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">Overview of platform performance.</p>
                 </div>
             </motion.div>
 
             {/* Color Legend */}
-            <motion.div variants={itemVariants} className="bg-white dark:bg-[#0E192D] px-4 py-3 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
-                <h3 className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">Data Type Legend</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
-                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-blue-700 dark:text-blue-400">Scrap</span>
+            <motion.div variants={itemVariants} className="bg-white dark:bg-[#0E192D] px-4 py-2.5 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
+                <h3 className="text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Data Type Legend</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-200 dark:shadow-none shrink-0"></div>
+                        <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400">Scrap</span>
                     </div>
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
-                        <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-purple-700 dark:text-purple-400">Scrap &amp; Buy</span>
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
+                        <div className="w-2 h-2 rounded-full bg-purple-500 shadow-sm shadow-purple-200 dark:shadow-none shrink-0"></div>
+                        <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400">Scrap &amp; Buy</span>
                     </div>
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/30">
-                        <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-200 dark:shadow-none"></div>
-                        <span className="text-xs font-bold text-orange-700 dark:text-orange-400">Buy New</span>
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/30">
+                        <div className="w-2 h-2 rounded-full bg-orange-500 shadow-sm shadow-orange-200 dark:shadow-none shrink-0"></div>
+                        <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">Buy New</span>
                     </div>
                 </div>
             </motion.div>
 
             {/* Summary Data Cards */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total Requests */}
-                <div className="bg-white dark:bg-[#0E192D] p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-2 hover:translate-y-[-4px] transition-transform duration-300 cursor-default">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl mb-2">
-                        <FileText className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                <div className="bg-white dark:bg-[#0E192D] p-4 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-1.5 hover:translate-y-[-2px] transition-transform duration-300 cursor-default">
+                    <div className="p-2 bg-red-50 rounded-lg mb-1">
+                        <FileText className="w-4.5 h-4.5 text-[#E31E24]" />
                     </div>
-                    <h3 className="text-3xl font-black text-gray-900 dark:text-white">{totalRequests}</h3>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Requests</p>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-none">{totalRequests}</h3>
+                    <p className="text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Total Requests</p>
                 </div>
 
                 {/* Total Tons */}
-                <div className="bg-white dark:bg-[#0E192D] p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-2 hover:translate-y-[-4px] transition-transform duration-300 cursor-default">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl mb-2">
-                        <UploadCloud className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                <div className="bg-white dark:bg-[#0E192D] p-4 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-1.5 hover:translate-y-[-2px] transition-transform duration-300 cursor-default">
+                    <div className="p-2 bg-red-50 rounded-lg mb-1">
+                        <UploadCloud className="w-4.5 h-4.5 text-[#E31E24]" />
                     </div>
-                    <h3 className="text-3xl font-black text-gray-900 dark:text-white">{formattedTotalTons} <span className="text-lg text-gray-400 font-bold">tons</span></h3>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Business Done</p>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-none">{formattedTotalTons} <span className="text-xs text-gray-400 font-bold">tons</span></h3>
+                    <p className="text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Business Done</p>
                 </div>
 
                 {/* Total Partners */}
-                <div className="bg-white dark:bg-[#0E192D] p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-2 hover:translate-y-[-4px] transition-transform duration-300 cursor-default">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl mb-2">
-                        <Users className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                <div className="bg-white dark:bg-[#0E192D] p-4 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-1.5 hover:translate-y-[-2px] transition-transform duration-300 cursor-default">
+                    <div className="p-2 bg-red-50 rounded-lg mb-1">
+                        <Users className="w-4.5 h-4.5 text-[#E31E24]" />
                     </div>
-                    <h3 className="text-3xl font-black text-gray-900 dark:text-white">{b2bTotal}</h3>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Partners</p>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-none">{b2bTotal}</h3>
+                    <p className="text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Total Partners</p>
                 </div>
 
                 {/* Total Approved */}
-                <div className="bg-white dark:bg-[#0E192D] p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-2 hover:translate-y-[-4px] transition-transform duration-300 cursor-default">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl mb-2">
-                        <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                <div className="bg-white dark:bg-[#0E192D] p-4 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col items-center text-center gap-1.5 hover:translate-y-[-2px] transition-transform duration-300 cursor-default">
+                    <div className="p-2 bg-red-50 rounded-lg mb-1">
+                        <CheckCircle className="w-4.5 h-4.5 text-[#E31E24]" />
                     </div>
-                    <h3 className="text-3xl font-black text-gray-900 dark:text-white">{totalApproved}</h3>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Approved Requests</p>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-none">{totalApproved}</h3>
+                    <p className="text-[9px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">Approved Requests</p>
                 </div>
             </motion.div>
 
@@ -143,98 +143,98 @@ export default function DashboardOverview({
             </motion.div>
 
             {/* Market Feed Section */}
-            <motion.div variants={itemVariants} className="mt-8 bg-white dark:bg-[#0E192D] rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-900/50">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-blue-600 dark:text-blue-500" />
+            <motion.div variants={itemVariants} className="mt-4 bg-white dark:bg-[#0E192D] rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-900/30">
+                    <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-650" />
                         Market Feed
                     </h2>
-                    <span className="text-xs font-medium px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 tracking-wider uppercase">
                         Latest Activities
                     </span>
                 </div>
 
                 {/* Desktop View (Table) */}
                 <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-900/50 text-gray-500 dark:text-slate-400 font-medium border-b border-gray-200 dark:border-slate-800">
+                    <table className="w-full text-left text-xs border-collapse">
+                        <thead className="bg-gray-50 dark:bg-slate-900/30 text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider border-b border-gray-100 dark:border-slate-800">
                             <tr>
-                                <th className="px-6 py-3">Type</th>
-                                <th className="px-6 py-3">Customer</th>
-                                <th className="px-6 py-3">Vehicle Details</th>
-                                <th className="px-6 py-3">Date</th>
-                                <th className="px-6 py-3">Status</th>
-                                <th className="px-6 py-3 text-right">Action</th>
+                                <th className="px-4 py-2">Type</th>
+                                <th className="px-4 py-2">Customer</th>
+                                <th className="px-4 py-2">Vehicle Details</th>
+                                <th className="px-4 py-2">Date</th>
+                                <th className="px-4 py-2">Status</th>
+                                <th className="px-4 py-2 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                             {marketFeed.map((item: any, index: number) => (
-                                <tr key={item._id} onClick={() => window.location.href = `/admin/valuations/${item.type}/${item._id}`} className={`transition-all duration-300 group hover:scale-[1.01] hover:shadow-lg relative z-0 hover:z-10 cursor-pointer ${index % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50 dark:bg-slate-800/40'} hover:bg-gray-100 dark:hover:bg-slate-800/70`}>
-                                    <td className="px-6 py-4">
+                                <tr key={item._id} onClick={() => window.location.href = `/admin/valuations/${item.type}/${item._id}`} className={`transition-all duration-350 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} hover:bg-slate-100/50`}>
+                                    <td className="px-4 py-3">
                                         {item.type === 'quote' && (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800/30 leading-none">
                                                 Scrap
                                             </span>
                                         )}
                                         {item.type === 'scrap-buy' && (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border border-purple-100 dark:border-purple-800/30 leading-none">
                                                 Scrap &amp; Buy
                                             </span>
                                         )}
                                         {item.type === 'buy' && (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border border-orange-100 dark:border-orange-800/30 leading-none">
                                                 Buy Vehicle
                                             </span>
                                         )}
                                         {item.type === 'exchange' && (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/30 leading-none">
                                                 Exchange
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                    <td className="px-4 py-3 font-semibold text-slate-800 dark:text-white">
                                         {item.customerName || "N/A"}
-                                        <div className="text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">{item.customerPhone}</div>
+                                        <div className="text-[10px] text-slate-400 font-normal mt-0.5">{item.customerPhone}</div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                                    <td className="px-4 py-3 text-slate-600 dark:text-gray-300 font-medium truncate max-w-xs">
                                         {item.vehicleInfo}
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500 dark:text-slate-400">
+                                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                                         {new Date(item.createdAt).toLocaleDateString()}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-3">
                                         {item.status === 'pickup_scheduled' ? (
-                                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-blue-50 text-blue-600 border border-blue-100 leading-none">
                                                 Pickup Scheduled
                                             </span>
                                         ) : item.status === 'reached_collection_centre' ? (
-                                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
-                                                Picked Up Successfully
+                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-purple-50 text-purple-600 border border-purple-100 leading-none">
+                                                Picked Up
                                             </span>
                                         ) : item.status === 'car_scrapped' ? (
-                                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-                                                Vehicle Scrapped
+                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-red-50 text-[#E31E24] border border-red-100 leading-none">
+                                                Scrapped
                                             </span>
                                         ) : item.status === 'approved' ? (
-                                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-100 leading-none">
                                                 Approved
                                             </span>
                                         ) : item.status === 'reviewing' ? (
-                                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-blue-50 text-blue-500 border border-blue-100 leading-none">
                                                 Reviewing
                                             </span>
                                         ) : (
-                                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-yellow-50 text-yellow-700 border border-yellow-100 leading-none">
                                                 {item.status || 'Pending'}
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-4 py-3 text-right">
                                         <Link
                                             href={`/admin/valuations/${item.type}/${item._id}`}
-                                            className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                                            className="inline-flex items-center justify-center p-1.5 text-slate-400 hover:text-[#E31E24] hover:bg-slate-50 rounded-lg transition-all"
                                         >
-                                            <ChevronRight className="w-5 h-5" />
+                                            <ChevronRight className="w-4 h-4" />
                                         </Link>
                                     </td>
                                 </tr>
@@ -244,82 +244,82 @@ export default function DashboardOverview({
                 </div>
 
                 {/* Mobile View (Cards) */}
-                <div className="md:hidden p-4 space-y-4 bg-gray-50/30 dark:bg-slate-900/20">
+                <div className="md:hidden p-3 space-y-3 bg-gray-50/30">
                     {marketFeed.length === 0 ? (
-                        <div className="px-6 py-8 text-center text-gray-500 dark:text-slate-500 text-sm bg-white dark:bg-[#0E192D] rounded-xl border border-gray-200 dark:border-slate-800">
+                        <div className="px-4 py-6 text-center text-slate-400 text-xs bg-white rounded-xl border border-gray-100">
                             No recent activity found.
                         </div>
                     ) : (
                         marketFeed.map((item: any, index: number) => (
                             <Link key={item._id} href={`/admin/valuations/${item.type}/${item._id}`} className="block">
-                                <div className={`rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:hover:border-slate-700 active:scale-[0.98] ${index % 2 === 0 ? 'bg-white dark:bg-[#0E192D]' : 'bg-gray-50 dark:bg-slate-800/40'}`}>
-                                    <div className="p-4 space-y-3">
+                                <div className={`rounded-xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow active:scale-[0.98] ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                                    <div className="p-3.5 space-y-2.5">
                                         <div className="flex justify-between items-start">
                                             {item.type === 'quote' && (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">
                                                     Scrap
                                                 </span>
                                             )}
                                             {item.type === 'scrap-buy' && (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 border border-purple-200 dark:border-purple-800/50">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-100">
                                                     Scrap &amp; Buy
                                                 </span>
                                             )}
                                             {item.type === 'buy' && (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-orange-50 text-orange-700 border border-orange-100">
                                                     Buy Vehicle
                                                 </span>
                                             )}
                                             {item.type === 'exchange' && (
-                                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-750 border border-indigo-100">
                                                     Exchange
                                                 </span>
                                             )}
-                                            <p className="text-[11px] text-gray-400 dark:text-slate-500 font-medium">
+                                            <p className="text-[10px] text-slate-400 font-medium">
                                                 {new Date(item.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
 
-                                        <div className="space-y-1">
-                                            <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider">Request Details</p>
-                                            <p className="text-sm font-bold text-gray-900 dark:text-white leading-snug line-clamp-2">
+                                        <div className="space-y-0.5">
+                                            <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Request Details</p>
+                                            <p className="text-xs font-bold text-slate-800 leading-snug line-clamp-2">
                                                 {item.vehicleInfo}
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center justify-between pt-2 border-t border-gray-50 dark:border-slate-800/50">
+                                        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                                             <div className="flex flex-col">
-                                                <p className="text-[13px] font-bold text-gray-900 dark:text-white">{item.customerName || "N/A"}</p>
-                                                <p className="text-[10px] font-mono text-gray-500 dark:text-slate-400">{item.customerPhone}</p>
+                                                <p className="text-xs font-bold text-slate-800">{item.customerName || "N/A"}</p>
+                                                <p className="text-[9px] font-mono text-slate-400 mt-0.5">{item.customerPhone}</p>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1.5">
                                                 {item.status === 'pickup_scheduled' ? (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                                                        Pickup Scheduled
+                                                    <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase bg-blue-50 text-blue-600 border border-blue-100">
+                                                        Scheduled
                                                     </span>
                                                 ) : item.status === 'reached_collection_centre' ? (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
-                                                        Picked Up Successfully
+                                                    <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase bg-purple-50 text-purple-600 border border-purple-100">
+                                                        Picked Up
                                                     </span>
                                                 ) : item.status === 'car_scrapped' ? (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
-                                                        Vehicle Scrapped
+                                                    <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase bg-red-50 text-[#E31E24] border border-red-100">
+                                                        Scrapped
                                                     </span>
                                                 ) : item.status === 'approved' ? (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+                                                    <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
                                                         Approved
                                                     </span>
                                                 ) : item.status === 'reviewing' ? (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                                    <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase bg-blue-50 text-blue-500 border border-blue-100">
                                                         Reviewing
                                                     </span>
                                                 ) : (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400">
+                                                    <span className="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase bg-yellow-50 text-yellow-600 border border-yellow-100">
                                                         {item.status || 'Pending'}
                                                     </span>
                                                 )}
-                                                <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-slate-800 flex items-center justify-center text-gray-400 border border-gray-100 dark:border-slate-700">
-                                                    <ChevronRight className="w-4 h-4" />
+                                                <div className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                                                    <ChevronRight className="w-3.5 h-3.5" />
                                                 </div>
                                             </div>
                                         </div>

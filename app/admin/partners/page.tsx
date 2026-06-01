@@ -142,7 +142,7 @@ export default function B2BPartnersPage() {
             pincode: reg.pincode,
             originalUserId: reg.userId || ""
         })
-        router.push(`/admin/b2b-generator?${params.toString()}`)
+        router.push(`/admin/access-generator?${params.toString()}`)
     }
 
     return (

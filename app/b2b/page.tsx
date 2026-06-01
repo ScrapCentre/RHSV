@@ -14,12 +14,21 @@ import {
 import { useRouter } from "next/navigation"
 
 export default function B2BLoginPage() {
+    const [mounted, setMounted] = useState(false)
     const [userId, setUserId] = useState("")
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
+
+    React.useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return <div className="min-h-screen bg-white" />
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

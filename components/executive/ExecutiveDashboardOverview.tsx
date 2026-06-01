@@ -18,11 +18,9 @@ import { format } from "date-fns"
 
 interface ExecutiveDashboardOverviewProps {
     marketFeed: any[]
-    outsourcingFeed: any[]
     timelineItems: any[]
     stats: {
         totalApproved: number
-        totalOutsourcing: number
         totalLeadVolume: number
     }
 }
@@ -60,7 +58,6 @@ const getTypeColor = (type: string) => {
 
 export default function ExecutiveDashboardOverview({
     marketFeed,
-    outsourcingFeed,
     timelineItems,
     stats
 }: ExecutiveDashboardOverviewProps) {
@@ -81,23 +78,23 @@ export default function ExecutiveDashboardOverview({
             <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight uppercase">
-                        <Shield className="w-8 h-8 text-blue-600 dark:text-blue-500" />
+                        <Shield className="w-8 h-8 text-[#E31E24]" />
                         Executive Terminal
                     </h1>
                     <p className="text-gray-500 dark:text-white/40 mt-2 font-medium">Real-time analytical oversight & operational intelligence.</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Live Monitoring Active</span>
+                <div className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl">
+                    <div className="w-2 h-2 rounded-full bg-[#E31E24] animate-pulse" />
+                    <span className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">Live Monitoring Active</span>
                 </div>
             </motion.div>
 
             {/* Metrics */}
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-4 hover:border-emerald-500/50 transition-colors cursor-default group">
+                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-4 hover:border-red-500/30 transition-colors cursor-default group">
                     <div className="flex justify-between items-start">
-                        <div className="p-3 bg-emerald-500/10 rounded-xl">
-                            <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-500" />
+                        <div className="p-3 bg-red-50 rounded-xl">
+                            <CheckCircle className="w-6 h-6 text-[#E31E24]" />
                         </div>
                         <span className="text-[10px] font-black text-gray-400 dark:text-white/20 uppercase tracking-widest">Approved Leads</span>
                     </div>
@@ -108,10 +105,10 @@ export default function ExecutiveDashboardOverview({
                 </div>
 
 
-                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-4 hover:border-blue-500/50 transition-colors cursor-default group">
+                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex flex-col gap-4 hover:border-red-500/30 transition-colors cursor-default group">
                     <div className="flex justify-between items-start">
-                        <div className="p-3 bg-blue-500/10 rounded-xl">
-                            <Activity className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+                        <div className="p-3 bg-red-50 rounded-xl">
+                            <Activity className="w-6 h-6 text-[#E31E24]" />
                         </div>
                         <span className="text-[10px] font-black text-gray-400 dark:text-white/20 uppercase tracking-widest">Total Volume</span>
                     </div>
@@ -129,7 +126,7 @@ export default function ExecutiveDashboardOverview({
                     <motion.div variants={itemVariants} className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden shadow-sm">
                         <div className="px-6 py-5 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
                             <h2 className="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-blue-500" />
+                                <FileText className="w-4 h-4 text-[#E31E24]" />
                                 Market Feed
                             </h2>
                         </div>
@@ -143,9 +140,6 @@ export default function ExecutiveDashboardOverview({
                                 </span>
                                 <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
                                     <span className="w-2 h-2 rounded-full bg-purple-500"></span> Scrap &amp; Buy New
-                                </span>
-                                <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Sell Old Vehicle
                                 </span>
                                 <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-gray-900 dark:text-white whitespace-nowrap">
                                     <span className="w-2 h-2 rounded-full bg-orange-500"></span> Buy New Vehicle
@@ -214,7 +208,7 @@ export default function ExecutiveDashboardOverview({
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <Link href={`/executive/valuations/${item.type}/${item._id}`} className="p-2 inline-flex items-center justify-center rounded-lg hover:bg-black dark:hover:bg-white text-gray-400 hover:text-white dark:hover:text-black transition-all">
+                                                <Link href={`/executive/valuations/${item.type}/${item._id}`} className="p-2 inline-flex items-center justify-center rounded-lg hover:bg-[#E31E24]/10 text-slate-400 hover:text-[#E31E24] transition-all">
                                                     <ChevronRight className="w-4 h-4" />
                                                 </Link>
                                             </td>

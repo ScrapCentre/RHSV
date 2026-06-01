@@ -7,7 +7,8 @@ import { authOptions } from "@/lib/auth"
 export async function DELETE(req: Request, { params }: any) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || (session.user as any).role !== "admin") {
+        const role = (session?.user as any)?.role
+        if (!session || (role !== "admin" && role !== "executive")) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 

@@ -97,6 +97,7 @@ function LoginContent() {
         try {
             const result = await signIn("firebase-otp", {
                 idToken,
+                name: name || `User ${phone.slice(-4)}`,
                 redirect: false,
             });
 
@@ -397,29 +398,7 @@ function LoginContent() {
                             </p>
                         </div>
 
-                        {/* Custom Tabs */}
-                        <div className="flex p-1 bg-gray-100 border border-gray-200 rounded-xl">
-                            <button
-                                onClick={() => setActiveTab("standard")}
-                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300 ${activeTab === "standard"
-                                    ? "bg-white text-[#E31E24] shadow-md"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-white/50"
-                                    }`}
-                            >
-                                <User className="w-3.5 h-3.5" />
-                                User
-                            </button>
-                            <button
-                                onClick={() => setActiveTab("b2b")}
-                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-300 ${activeTab === "b2b"
-                                    ? "bg-white text-[#E31E24] shadow-md"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-white/50"
-                                    }`}
-                            >
-                                <Building2 className="w-3.5 h-3.5" />
-                                B2B Partner
-                            </button>
-                        </div>
+                        {/* Custom Tabs Toggle Removed (User only) */}
 
                         <AnimatePresence mode="wait">
                             {activeTab === "standard" ? (
@@ -431,175 +410,82 @@ function LoginContent() {
                                     transition={{ duration: 0.2 }}
                                     className="space-y-3"
                                 >
-                                    {/* Login Method Toggle */}
-                                    <div className="flex gap-1.5 p-1 bg-gray-100 border border-gray-200 rounded-lg">
-                                        <button
-                                            onClick={() => { setLoginMethod("phone"); setOtpSent(false); setOtp(""); }}
-                                            className={`flex-1 py-1.5 text-[9px] font-bold rounded-md transition-all uppercase tracking-wider ${loginMethod === "phone" ? "bg-[#E31E24] text-white" : "text-gray-500 hover:text-gray-900 hover:bg-white/50"}`}
-                                        >
-                                            Phone OTP
-                                        </button>
-                                        <button
-                                            onClick={() => setLoginMethod("email")}
-                                            className={`flex-1 py-1.5 text-[9px] font-bold rounded-md transition-all uppercase tracking-wider ${loginMethod === "email" ? "bg-[#E31E24] text-white" : "text-gray-500 hover:text-gray-900 hover:bg-white/50"}`}
-                                        >
-                                            Email / Pass
-                                        </button>
-                                    </div>
-
-                                    {loginMethod === "phone" ? (
-                                        <div className="space-y-2">
-                                            <div id="recaptcha-container"></div>
-                                            <form onSubmit={handlePhoneAuth} className="space-y-2">
-                                                <div className="space-y-1.5">
-                                                    <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Phone Number</label>
-                                                    <div className="relative group">
-                                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                            <Phone className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
-                                                        </div>
-                                                        <input
-                                                            type="tel"
-                                                            required
-                                                            disabled={otpSent}
-                                                            value={phone}
-                                                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                                            placeholder="Enter 10-digit number"
-                                                            className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 disabled:opacity-50 font-bold"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                {otpSent && (
-                                                    <motion.div 
-                                                        initial={{ opacity: 0, height: 0 }}
-                                                        animate={{ opacity: 1, height: "auto" }}
-                                                        className="space-y-2"
-                                                    >
-                                                        {/* Name field for account creation */}
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Your Name</label>
-                                                            <div className="relative group">
-                                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                                    <User className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
-                                                                </div>
-                                                                <input
-                                                                    type="text"
-                                                                    value={name}
-                                                                    onChange={(e) => setName(e.target.value)}
-                                                                    placeholder="Enter your full name"
-                                                                    className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Verification Code</label>
-                                                            <div className="relative group">
-                                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                                    <ShieldCheck className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
-                                                                </div>
-                                                                <input
-                                                                    type="text"
-                                                                    required
-                                                                    value={otp}
-                                                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                                                    placeholder={isSandboxMode ? "Use: 000000" : "Enter 6-digit OTP"}
-                                                                    className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-[#E31E24]/30 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold tracking-[0.3em]"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex justify-between items-center px-1 pt-1">
-                                                            <p className="text-[10px] text-emerald-600 font-bold italic">
-                                                                {isSandboxMode ? "⚡ Sandbox — use code 000000" : `Code sent to +91 ${phone}`}
-                                                            </p>
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => { setOtpSent(false); setOtp(""); setName(""); }}
-                                                                className="text-[10px] text-gray-600 hover:text-gray-900 underline font-bold uppercase tracking-wider"
-                                                            >
-                                                                Change Number
-                                                            </button>
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-
-                                                <button
-                                                    type="submit"
-                                                    disabled={isLoading}
-                                                className="w-full bg-[#E31E24] hover:bg-[#c1191e] text-white font-black py-2.5 rounded-xl shadow-lg shadow-red-950/40 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-widest mt-1"
-                                                >
-                                                    {isLoading ? (
-                                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                                    ) : (
-                                                        <>
-                                                            {otpSent ? "Verify & Sign In" : "Get OTP"}
-                                                            <ArrowRight className="w-4 h-4" />
-                                                        </>
-                                                    )}
-                                                </button>
-                                            </form>
-                                        </div>
-                                    ) : (
-                                        <form onSubmit={handleAuth} className="space-y-2">
-                                            {!isLogin && (
-                                                <div className="space-y-1.5">
-                                                    <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Full Name</label>
-                                                    <div className="relative group">
-                                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                            <User className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
-                                                        </div>
-                                                        <input
-                                                            type="text"
-                                                            required
-                                                            value={name}
-                                                            onChange={(e) => setName(e.target.value)}
-                                                            placeholder="John Doe"
-                                                            className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )}
-
+                                    {/* Phone OTP Login Only */}
+                                    <div className="space-y-2">
+                                        <div id="recaptcha-container"></div>
+                                        <form onSubmit={handlePhoneAuth} className="space-y-2">
+                                            {/* Your Name field - always visible */}
                                             <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Email or ID</label>
+                                                <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Your Name</label>
                                                 <div className="relative group">
                                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                        <Mail className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
+                                                        <User className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
                                                     </div>
                                                     <input
                                                         type="text"
                                                         required
-                                                        value={email}
-                                                        onChange={(e) => setEmail(e.target.value)}
-                                                        placeholder="email@example.com"
+                                                        value={name}
+                                                        onChange={(e) => setName(e.target.value)}
+                                                        placeholder="Enter your full name"
                                                         className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
                                                     />
                                                 </div>
                                             </div>
 
                                             <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Password</label>
+                                                <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Phone Number</label>
                                                 <div className="relative group">
                                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                        <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
+                                                        <Phone className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
                                                     </div>
                                                     <input
-                                                        type={showPassword ? "text" : "password"}
+                                                        type="tel"
                                                         required
-                                                        value={password}
-                                                        onChange={(e) => setPassword(e.target.value)}
-                                                        placeholder="••••••••"
-                                                        className="block w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold"
+                                                        disabled={otpSent}
+                                                        value={phone}
+                                                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                                        placeholder="Enter 10-digit number"
+                                                        className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 disabled:opacity-50 font-bold"
                                                     />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-[#E31E24] transition-colors"
-                                                    >
-                                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                    </button>
                                                 </div>
                                             </div>
+
+                                            {otpSent && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: "auto" }}
+                                                    className="space-y-2"
+                                                >
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs font-bold text-gray-800 ml-1 uppercase tracking-wider">Verification Code</label>
+                                                        <div className="relative group">
+                                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                                <ShieldCheck className="h-4 w-4 text-gray-400 group-focus-within:text-[#E31E24] transition-colors" />
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                required
+                                                                value={otp}
+                                                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                                placeholder={isSandboxMode ? "Use: 000000" : "Enter 6-digit OTP"}
+                                                                className="block w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-[#E31E24]/30 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#E31E24] focus:ring-2 focus:ring-[#E31E24]/10 outline-none transition-all duration-300 font-bold tracking-[0.3em]"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between items-center px-1 pt-1">
+                                                        <p className="text-[10px] text-emerald-600 font-bold italic">
+                                                            {isSandboxMode ? "⚡ Sandbox — use code 000000" : `Code sent to +91 ${phone}`}
+                                                        </p>
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => { setOtpSent(false); setOtp(""); }}
+                                                            className="text-[10px] text-gray-600 hover:text-gray-900 underline font-bold uppercase tracking-wider"
+                                                        >
+                                                            Change Number
+                                                        </button>
+                                                    </div>
+                                                </motion.div>
+                                            )}
 
                                             <button
                                                 type="submit"
@@ -610,48 +496,17 @@ function LoginContent() {
                                                     <Loader2 className="w-5 h-5 animate-spin" />
                                                 ) : (
                                                     <>
-                                                        {isLogin ? "Sign In" : "Create Account"}
+                                                        {otpSent ? "Verify & Sign In" : "Get OTP"}
                                                         <ArrowRight className="w-4 h-4" />
                                                     </>
                                                 )}
                                             </button>
                                         </form>
-                                    )}
+                                    </div>
 
-                                    {isLogin && (
-                                        <div className="space-y-2">
-                                            <div className="relative py-1">
-                                                <div className="absolute inset-0 flex items-center">
-                                                    <div className="w-full border-t border-gray-200"></div>
-                                                </div>
-                                                <div className="relative flex justify-center text-xs">
-                                                    <span className="px-3 bg-white text-gray-500 font-bold uppercase tracking-widest text-[9px]">Or</span>
-                                                </div>
-                                            </div>
 
-                                            <button
-                                                onClick={() => handleGoogleLogin(searchParams.get("callbackUrl") || "/")}
-                                                className="w-full bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 font-bold uppercase tracking-wider py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 group"
-                                            >
-                                                <img
-                                                    src="https://www.svgrepo.com/show/475656/google-color.svg"
-                                                    alt="Google"
-                                                    className="w-4 h-4 group-hover:scale-110 transition-transform"
-                                                />
-                                                <span className="text-xs">Continue with Google</span>
-                                            </button>
-                                        </div>
-                                    )}
 
-                                    <p className="text-center text-[10px] text-gray-600 font-bold uppercase tracking-wider">
-                                        {isLogin ? "New to ScrapCenter?" : "Already have an account?"}
-                                        <button
-                                            onClick={() => setIsLogin(!isLogin)}
-                                            className="font-bold text-[#E31E24] hover:text-red-700 ml-1.5 underline transition-colors"
-                                        >
-                                            {isLogin ? "Create account" : "Sign in"}
-                                        </button>
-                                    </p>
+
                                 </motion.div>
                             ) : (
                                 <motion.div

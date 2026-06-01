@@ -262,17 +262,7 @@ export default function B2BDashboard() {
                             <Database className="w-5 h-5 text-purple-500" />
                             Quick Actions
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-                            <Link href="/b2b/enter-data" className="flex items-center gap-4 p-4 bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-purple-500 dark:hover:border-purple-500 transition-colors shadow-sm group">
-                                <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                    <Database className="w-5 h-5 text-purple-500" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">Enter Data</h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Submit new vehicle entries</p>
-                                </div>
-                            </Link>
-
+                        <div className="flex flex-col gap-3">
                             <Link href="/b2b/pickups" className="flex items-center gap-4 p-4 bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors shadow-sm group">
                                 <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                                     <CheckCircle className="w-5 h-5 text-emerald-500" />

@@ -10,7 +10,8 @@ export async function DELETE(
 ) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || (session.user as any).role !== "admin") {
+        const role = (session?.user as any)?.role
+        if (!session || (role !== "admin" && role !== "executive")) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
         }
 

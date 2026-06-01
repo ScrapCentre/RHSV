@@ -201,7 +201,7 @@ export default function RVSFPortalPage() {
                     </div>
                     
                     <Link
-                        href="/rvsf"
+                        href="/rvsf/login"
                         className="inline-flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-sm font-bold transition-all shadow-md"
                     >
                         <Key className="w-4 h-4 text-[#E31E24]" />
@@ -606,7 +606,7 @@ export default function RVSFPortalPage() {
                                 </div>
 
                                 <Link
-                                    href="/rvsf"
+                                    href="/rvsf/login"
                                     className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-3 rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-950/20 flex items-center justify-center gap-2 mt-4"
                                 >
                                     Proceed to RVSF Login

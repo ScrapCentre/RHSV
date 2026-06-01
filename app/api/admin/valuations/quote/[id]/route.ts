@@ -51,7 +51,9 @@ export async function GET(
                     phone: wizardLead.phone
                 },
                 address: {
-                    pincode: wizardLead.pincode
+                    pincode: wizardLead.pincode,
+                    city: wizardLead.city,
+                    state: wizardLead.state
                 },
                 createdAt: wizardLead.createdAt,
                 updatedAt: wizardLead.updatedAt

@@ -105,7 +105,7 @@ export default async function SubcontractingPage() {
             <div className="bg-white dark:bg-[#0E192D] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-slate-800">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">RVSF's</h1>
+                        <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">RVSF's Authorized</h1>
                         <p className="text-[13px] sm:text-sm text-gray-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
                             Live market feed for all leads successfully approved to RVSF's.
                         </p>

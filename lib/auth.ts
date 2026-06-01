@@ -11,6 +11,7 @@ import ScrapCentreUser from "@/models/ScrapCentreUser"
 import B2BPartner from "@/models/B2BPartner"
 import Executive from "@/models/Executive"
 import RVSFUser from "@/models/RVSFUser"
+import CCOperator from "@/models/CCOperator"
 
 import { adminAuth } from "@/lib/firebase-admin"
 
@@ -258,6 +259,42 @@ export const authOptions: NextAuthOptions = {
             }
         }),
         CredentialsProvider({
+            id: "cc-operator-credentials",
+            name: "CC Operator Portal",
+            credentials: {
+                email: { label: "Email", type: "text" },
+                password: { label: "Password", type: "password" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.email || !credentials?.password) return null;
+                try {
+                    await connectToDatabase();
+                    const bcrypt = (await import("bcryptjs")).default;
+                    const op = await CCOperator.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
+                    
+                    if (!op) return null;
+                    const storedPw = (op as any).password;
+                    const isMatch = await bcrypt.compare(credentials.password, storedPw);
+                    
+                    if (!isMatch) return null;
+                    return {
+                        id: (op as any)._id.toString(),
+                        name: (op as any).name,
+                        email: (op as any).email,
+                        role: "cc_operator",
+                        ccId: (op as any).ccId,
+                        rvsfId: (op as any).rvsfId
+                    }
+                } catch (err: any) {
+                    console.error("[CC Operator Auth] Error:", err);
+                    if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
+                        throw new Error("DATABASE_CONNECTION_ERROR");
+                    }
+                    throw new Error("AUTHENTICATION_FAILED");
+                }
+            }
+        }),
+        CredentialsProvider({
             id: "phone-otp",
             name: "Phone Number",
             credentials: {
@@ -429,6 +466,7 @@ export const authOptions: NextAuthOptions = {
                     token.role = (user as any).role || "client";
                     token.id = user.id;
                     if ((user as any).rvsfId) token.rvsfId = (user as any).rvsfId;
+                    if ((user as any).ccId) token.ccId = (user as any).ccId;
                 }
             }
             return token
@@ -438,6 +476,7 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).role = token.role;
                 (session.user as any).id = token.id;
                 if (token.rvsfId) (session.user as any).rvsfId = token.rvsfId;
+                if (token.ccId) (session.user as any).ccId = token.ccId;
             }
             return session
         },

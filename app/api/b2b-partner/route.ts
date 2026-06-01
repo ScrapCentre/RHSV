@@ -2,9 +2,17 @@ import { NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
 import B2BPartner from "@/models/B2BPartner"
 import B2BRegistration from "@/models/B2BRegistration"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
 export async function POST(req: Request) {
     try {
+        const session = await getServerSession(authOptions)
+        const role = (session?.user as any)?.role
+        if (!session || (role !== "admin" && role !== "executive")) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+        }
+
         await connectToDatabase()
         const body = await req.json()
 
@@ -62,6 +70,12 @@ export async function POST(req: Request) {
 
 export async function GET() {
     try {
+        const session = await getServerSession(authOptions)
+        const role = (session?.user as any)?.role
+        if (!session || (role !== "admin" && role !== "executive")) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+        }
+
         await connectToDatabase()
         const partners = await B2BPartner.find().sort({ createdAt: -1 })
 
@@ -77,6 +91,38 @@ export async function GET() {
         )
     } catch (error: any) {
         console.error("B2B Partner Fetch Error:", error)
+        return NextResponse.json(
+            { message: error.message || "Internal Server Error" },
+            { status: 500 }
+        )
+    }
+}
+
+export async function DELETE(req: Request) {
+    try {
+        const session = await getServerSession(authOptions)
+        const role = (session?.user as any)?.role
+        if (!session || (role !== "admin" && role !== "executive")) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+        }
+
+        const { searchParams } = new URL(req.url)
+        const id = searchParams.get("id")
+
+        if (!id) {
+            return NextResponse.json({ message: "ID parameter is required" }, { status: 400 })
+        }
+
+        await connectToDatabase()
+        const deletedPartner = await B2BPartner.findByIdAndDelete(id)
+
+        if (!deletedPartner) {
+            return NextResponse.json({ message: "B2B Partner not found" }, { status: 404 })
+        }
+
+        return NextResponse.json({ message: "B2B Partner access revoked successfully" }, { status: 200 })
+    } catch (error: any) {
+        console.error("B2B Partner Deletion Error:", error)
         return NextResponse.json(
             { message: error.message || "Internal Server Error" },
             { status: 500 }

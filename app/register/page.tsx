@@ -129,12 +129,6 @@ export default function RegisterPage() {
                     </button>
                 </form>
 
-                <p className="text-center text-sm text-gray-500 mt-8">
-                    Already have an account?
-                    <Link href="/login" className="font-bold text-gray-900 hover:text-orange-600 ml-1 transition-colors">
-                        Sign in
-                    </Link>
-                </p>
             </motion.div>
         </div>
     )

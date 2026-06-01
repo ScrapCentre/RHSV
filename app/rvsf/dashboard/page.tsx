@@ -6,10 +6,16 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
-    Building2, ArrowRight, Loader2, Calendar, Check, X, 
+    Building2, Loader2, Calendar, Check, X, 
     MessageSquare, AlertCircle, Sparkles, ShieldCheck, Mail, Phone, 
     Car, Trash2, Clock, Landmark
 } from "lucide-react"
+import { Plus_Jakarta_Sans } from "next/font/google"
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800"],
+})
 
 interface UnlockedLead {
     _id: string
@@ -24,8 +30,11 @@ interface UnlockedLead {
     unlockPaymentId: string
     amount: number
     unlockedAt: string
-    status: "pending_decision" | "accepted" | "rejected"
+    status: string
     chatThreadId?: string | null
+    assignedCcId?: string
+    assignedCcName?: string
+    pickupStatus?: string
 }
 
 export default function RVSFDashboardPage() {
@@ -43,6 +52,64 @@ export default function RVSFDashboardPage() {
 
     // Main error state
     const [dashboardError, setDashboardError] = useState<string | null>(null)
+
+    // CC Assignment Modal State
+    const [assigningLead, setAssigningLead] = useState<any | null>(null)
+    const [ccsList, setCcsList] = useState<any[] | null>(null)
+    const [ccsLoading, setCcsLoading] = useState(false)
+    const [selectedCcId, setSelectedCcId] = useState("")
+    const [isAssigningSubmit, setIsAssigningSubmit] = useState(false)
+
+    const openAssignModal = async (lead: any) => {
+        setAssigningLead(lead)
+        setSelectedCcId("")
+        setCcsLoading(true)
+        try {
+            const res = await fetch(`/api/rvsf/unlocked-leads/${lead._id}/ccs-with-distance`)
+            if (res.ok) {
+                const data = await res.json()
+                setCcsList(data.ccs || [])
+                if (data.ccs?.length > 0) {
+                    setSelectedCcId(data.ccs[0]._id)
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching CCs with distance:", err)
+        } finally {
+            setCcsLoading(false)
+        }
+    }
+
+    const handleAssignConfirm = async () => {
+        if (!assigningLead || !selectedCcId) return
+        setIsAssigningSubmit(true)
+        setDashboardError(null)
+        try {
+            const res = await fetch(`/api/rvsf/unlocked-leads/${assigningLead._id}/assign`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ccId: selectedCcId })
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.message || "Failed to assign lead")
+            
+            setUnlockedLeads(prev => 
+                prev.map(l => l._id === assigningLead._id ? { 
+                    ...l, 
+                    status: "assigned_to_cc", 
+                    assignedCcId: data.assignedCcId, 
+                    assignedCcName: data.assignedCcName,
+                    pickupStatus: "Awaiting Pickup"
+                } : l)
+            )
+            setAssigningLead(null)
+        } catch (err: any) {
+            console.error("Assignment error:", err)
+            setDashboardError(err.message || "An error occurred while assigning lead")
+        } finally {
+            setIsAssigningSubmit(false)
+        }
+    }
 
     useEffect(() => {
         if (status === "unauthenticated") router.push("/rvsf/login")
@@ -145,31 +212,35 @@ export default function RVSFDashboardPage() {
 
     if (status === "loading" || loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-[#E31E24]" />
+            <div className={`${plusJakartaSans.className} flex items-center justify-center h-48`}>
+                <Loader2 className="w-6 h-6 animate-spin text-[#E31E24]" />
             </div>
         )
     }
 
     const pendingLeads = unlockedLeads.filter(l => l.status === "pending_decision")
-    const activeLeads = unlockedLeads.filter(l => l.status === "accepted")
+    const activeLeads = unlockedLeads.filter(l => l.status === "accepted" || l.status === "assigned_to_cc")
 
     return (
-        <div className="space-y-8 max-w-6xl">
+        <div className={`${plusJakartaSans.className} space-y-6 max-w-6xl text-slate-800`}>
             {/* Welcome banner */}
             <motion.div 
-                initial={{ opacity: 0, y: -10 }} 
+                initial={{ opacity: 0, y: -5 }} 
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-[#E31E24]/10 to-slate-900/50 border border-[#E31E24]/20 rounded-2xl p-6 relative overflow-hidden"
+                className="bg-white border border-slate-100 rounded-xl p-4 sm:p-5 relative overflow-hidden shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             >
-                <div className="absolute right-4 top-4 opacity-10">
-                    <Sparkles className="w-24 h-24 text-white" />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none hidden sm:block">
+                    <Sparkles className="w-20 h-20 text-slate-900" />
                 </div>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Welcome back</p>
-                <h1 className="text-3xl font-extrabold text-white">{stats?.name || session?.user?.name}</h1>
-                <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">RVSF ID:</span>
-                    <span className="text-sm font-mono font-bold text-[#E31E24] bg-[#E31E24]/10 px-3 py-0.5 rounded-full border border-[#E31E24]/20">
+                
+                <div className="space-y-1">
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Welcome back</p>
+                    <h1 className="text-lg font-bold text-slate-800 leading-tight">{stats?.name || session?.user?.name}</h1>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">RVSF ID:</span>
+                    <span className="text-[10px] font-mono font-bold text-[#E31E24] bg-[#E31E24]/5 px-2.5 py-0.5 rounded border border-[#E31E24]/10">
                         {stats?.rvsfId || (session?.user as any)?.rvsfId || "—"}
                     </span>
                 </div>
@@ -177,97 +248,87 @@ export default function RVSFDashboardPage() {
 
             {/* Error Message */}
             {dashboardError && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-200 p-4 rounded-xl flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                    <p className="text-sm font-medium">{dashboardError}</p>
+                <div className="bg-red-50 border border-red-100 text-red-700 py-2.5 px-4 rounded-xl flex items-center gap-3">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <p className="text-xs font-semibold">{dashboardError}</p>
                 </div>
             )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <motion.div 
-                    initial={{ opacity: 0, y: 10 }} 
+                    initial={{ opacity: 0, y: 5 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: 0.05 }}
+                    className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:border-[#E31E24]/15 hover:shadow transition-all duration-300 flex items-center gap-4"
+                >
+                    <div className="w-8 h-8 rounded-lg bg-[#E31E24]/5 border border-[#E31E24]/10 flex items-center justify-center shrink-0">
+                        <Building2 className="w-4.5 h-4.5 text-[#E31E24]" />
+                    </div>
+                    <div className="space-y-0.5">
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Centers</span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-xl font-bold text-slate-800 leading-none">{stats?.totalCCs ?? "0"}</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Active Collection Centers</span>
+                        </div>
+                    </div>
+                </motion.div>
+
+                <motion.div 
+                    initial={{ opacity: 0, y: 5 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     transition={{ delay: 0.1 }}
-                    className="bg-[#0E192D]/60 backdrop-blur border border-slate-800 rounded-2xl p-6"
+                    className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:border-[#E31E24]/15 hover:shadow transition-all duration-300 flex items-center gap-4"
                 >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                            <Building2 className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Centers</span>
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/5 border border-amber-500/10 flex items-center justify-center shrink-0">
+                        <Clock className="w-4.5 h-4.5 text-amber-500" />
                     </div>
-                    <p className="text-4xl font-extrabold text-white">{stats?.totalCCs ?? "0"}</p>
-                    <p className="text-sm text-slate-400 mt-1 font-medium">Collection Centers</p>
+                    <div className="space-y-0.5">
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Unresolved</span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-xl font-bold text-slate-800 leading-none">{pendingLeads.length}</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Leads Awaiting Decision</span>
+                        </div>
+                    </div>
                 </motion.div>
 
                 <motion.div 
-                    initial={{ opacity: 0, y: 10 }} 
+                    initial={{ opacity: 0, y: 5 }} 
                     animate={{ opacity: 1, y: 0 }} 
                     transition={{ delay: 0.15 }}
-                    className="bg-[#0E192D]/60 backdrop-blur border border-slate-800 rounded-2xl p-6"
+                    className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:border-[#E31E24]/15 hover:shadow transition-all duration-300 flex items-center gap-4"
                 >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
-                            <Clock className="w-5 h-5 text-yellow-400" />
-                        </div>
-                        <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Unresolved</span>
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-4.5 h-4.5 text-emerald-500" />
                     </div>
-                    <p className="text-4xl font-extrabold text-white">{pendingLeads.length}</p>
-                    <p className="text-sm text-slate-400 mt-1 font-medium">Leads Awaiting Decision</p>
-                </motion.div>
-
-                <motion.div 
-                    initial={{ opacity: 0, y: 10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    transition={{ delay: 0.2 }}
-                    className="bg-[#0E192D]/60 backdrop-blur border border-slate-800 rounded-2xl p-6"
-                >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                            <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                    <div className="space-y-0.5">
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Active</span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-xl font-bold text-slate-800 leading-none">{activeLeads.length}</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Scraping Operations</span>
                         </div>
-                        <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Active</span>
                     </div>
-                    <p className="text-4xl font-extrabold text-white">{activeLeads.length}</p>
-                    <p className="text-sm text-slate-400 mt-1 font-medium">Active Leads Under Scraping</p>
                 </motion.div>
             </div>
 
-            {/* Quick Actions / Link */}
-            <div className="flex flex-wrap gap-4">
-                <Link href="/rvsf/ccs">
-                    <button className="flex items-center gap-3 px-6 py-3.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:text-blue-300 rounded-2xl font-bold transition-all group">
-                        <Building2 className="w-5 h-5" />
-                        Manage Collection Centers
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                </Link>
-                <Link href="/rvsf/marketplace">
-                    <button className="flex items-center gap-3 px-6 py-3.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:text-purple-300 rounded-2xl font-bold transition-all group">
-                        <Sparkles className="w-5 h-5" />
-                        Explore Lead Marketplace
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                </Link>
-            </div>
 
-            <hr className="border-slate-800" />
+
+            <hr className="border-slate-100" />
 
             {/* ── SECTION 1: MY UNLOCKED LEADS ───────────────────────── */}
-            <div className="space-y-4">
+            <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                    <h2 className="text-xl font-bold text-white tracking-tight">My Unlocked Leads</h2>
-                    <span className="text-xs font-bold text-yellow-500 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-full">
-                        {pendingLeads.length} Awaiting Decision
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    <h2 className="text-sm font-bold text-slate-800 tracking-tight">My Unlocked Leads</h2>
+                    <span className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full leading-none">
+                        {pendingLeads.length} Pending
                     </span>
                 </div>
 
                 {pendingLeads.length === 0 ? (
-                    <div className="bg-[#0E192D]/20 border border-slate-800/80 border-dashed rounded-2xl p-8 text-center">
-                        <p className="text-slate-400 font-medium">No unlocked leads awaiting your decision.</p>
-                        <p className="text-xs text-slate-500 mt-1">Unlock hot leads within your coverage radius via the Marketplace!</p>
+                    <div className="bg-white border border-slate-100 border-dashed rounded-xl p-8 text-center">
+                        <p className="text-slate-400 font-bold text-xs">No unlocked leads awaiting decision</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Unlock leads within your coverage radius via the Marketplace!</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -275,47 +336,47 @@ export default function RVSFDashboardPage() {
                             <motion.div 
                                 key={lead._id}
                                 layout
-                                className="bg-[#0E192D]/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between"
+                                className="bg-white border border-slate-100 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300"
                             >
                                 <div className="space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-white text-base group-hover:text-purple-400 transition-colors">
+                                    <div className="flex justify-between items-start gap-2">
+                                        <h3 className="font-bold text-slate-800 text-xs leading-normal">
                                             {lead.vehicleInfo || "Vehicle Details"}
                                         </h3>
-                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 uppercase">
+                                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-slate-50 text-slate-500 uppercase tracking-wider shrink-0">
                                             {lead.leadSource}
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                                        <Clock className="w-3.5 h-3.5 text-slate-500" />
-                                        <span>Unlocked: {new Date(lead.unlockedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                                        <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                                        <span className="font-medium">Unlocked: {new Date(lead.unlockedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                                     </div>
 
                                     {/* Obfuscated contact or locked indicator */}
-                                    <div className="bg-slate-900/50 border border-slate-800/40 rounded-xl p-3 space-y-1.5 text-xs text-slate-400">
-                                        <div className="flex items-center gap-2">
-                                            <Mail className="w-3.5 h-3.5 text-slate-500" />
-                                            <span className="filter blur-[3px]">xxxx@xxxx.com</span>
+                                    <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1 text-[10px] text-slate-500">
+                                        <div className="flex items-center gap-1.5">
+                                            <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                            <span className="filter blur-[4px] select-none font-medium">xxxx@xxxx.com</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Phone className="w-3.5 h-3.5 text-slate-500" />
-                                            <span className="filter blur-[3px]">+91 xxxxxxxxxx</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                                            <span className="filter blur-[4px] select-none font-medium font-mono">+91 xxxxxxxxxx</span>
                                         </div>
-                                        <div className="mt-1 pt-1.5 border-t border-slate-800/50 text-[10px] text-yellow-500/80 font-medium">
-                                            *Accept the lead to reveal customer contact info and open chat thread.
+                                        <div className="mt-1 pt-1 border-t border-slate-200/50 text-[9px] text-amber-600 font-bold">
+                                            *Accept the lead to reveal customer details and begin chats.
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 mt-4 pt-3 border-t border-slate-800/40">
+                                <div className="flex gap-2.5 mt-3 pt-3 border-t border-slate-100">
                                     <button 
                                         onClick={() => handleAccept(lead._id)}
                                         disabled={actionLoadingId === lead._id}
-                                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-wait"
+                                        className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-wait shadow-sm shadow-emerald-600/5"
                                     >
                                         {actionLoadingId === lead._id ? (
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            <Loader2 className="w-3 h-3 animate-spin" />
                                         ) : (
                                             <Check className="w-3.5 h-3.5" />
                                         )}
@@ -324,10 +385,10 @@ export default function RVSFDashboardPage() {
                                     <button 
                                         onClick={() => openRejectModal(lead)}
                                         disabled={actionLoadingId === lead._id}
-                                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 text-red-400 hover:text-red-300 font-bold text-xs rounded-xl active:scale-[0.98] transition-all disabled:opacity-50"
+                                        className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-red-50 hover:bg-red-100 border border-red-100 text-[#E31E24] font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50"
                                     >
-                                        <X className="w-3.5 h-3.5" />
-                                        Reject / Refund
+                                        <X className="w-3 h-3" />
+                                        Reject & Refund
                                     </button>
                                 </div>
                             </motion.div>
@@ -337,19 +398,19 @@ export default function RVSFDashboardPage() {
             </div>
 
             {/* ── SECTION 2: ACTIVE LEADS ────────────────────────────── */}
-            <div className="space-y-4 pt-4">
+            <div className="space-y-3 pt-2">
                 <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    <h2 className="text-xl font-bold text-white tracking-tight">Active Leads</h2>
-                    <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                        {activeLeads.length} Scrap Operations
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <h2 className="text-sm font-bold text-slate-800 tracking-tight">Active Leads</h2>
+                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full leading-none">
+                        {activeLeads.length} Running
                     </span>
                 </div>
 
                 {activeLeads.length === 0 ? (
-                    <div className="bg-[#0E192D]/20 border border-slate-800/80 border-dashed rounded-2xl p-8 text-center">
-                        <p className="text-slate-400 font-medium">No active leads under operation.</p>
-                        <p className="text-xs text-slate-500 mt-1">Accept unlocked leads above to initiate direct chats and tow pickups!</p>
+                    <div className="bg-white border border-slate-100 border-dashed rounded-xl p-8 text-center">
+                        <p className="text-slate-400 font-bold text-xs">No active scrap operations</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Accept unlocked leads above to initiate direct chats!</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -357,47 +418,73 @@ export default function RVSFDashboardPage() {
                             <motion.div 
                                 key={lead._id}
                                 layout
-                                className="bg-[#0E192D]/60 border border-slate-800 hover:border-emerald-500/20 rounded-2xl p-5 flex flex-col justify-between transition-all"
+                                className="bg-white border border-slate-100 hover:border-emerald-500/15 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow transition-all duration-300"
                             >
                                 <div className="space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-white text-base">
+                                    <div className="flex justify-between items-start gap-2">
+                                        <h3 className="font-bold text-slate-800 text-xs leading-normal">
                                             {lead.vehicleInfo || "Vehicle Details"}
                                         </h3>
-                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
+                                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase tracking-wider shrink-0">
                                             Active
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                                        <span>Accepted Lead</span>
+                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                                        <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                                        <span className="font-semibold">Assigned Scrap Operations</span>
                                     </div>
 
                                     {/* Unveiled Contact details */}
-                                    <div className="bg-slate-900/40 border border-emerald-500/10 rounded-xl p-3.5 space-y-2 text-xs text-slate-300">
-                                        <p className="font-semibold text-slate-200 pb-1.5 border-b border-slate-800 flex items-center gap-1.5">
-                                            <Car className="w-4 h-4 text-emerald-400" />
+                                    <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5 text-[10px] text-slate-600">
+                                        <p className="font-bold text-slate-800 pb-1 border-b border-slate-200/50 flex items-center gap-1">
+                                            <Car className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
                                             {lead.customerName || "Customer Details"}
                                         </p>
-                                        <div className="flex items-center gap-2">
-                                            <Mail className="w-3.5 h-3.5 text-slate-500" />
-                                            <span>{lead.customerEmail || "No Email Provided"}</span>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                            <span className="font-medium select-all">{lead.customerEmail || "No Email Provided"}</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Phone className="w-3.5 h-3.5 text-slate-500" />
-                                            <span>{lead.customerPhone || "No Phone Provided"}</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                            <span className="font-medium font-mono select-all">{lead.customerPhone || "No Phone Provided"}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 mt-4 pt-3 border-t border-slate-800/40">
-                                    <Link href={lead.chatThreadId ? `/rvsf/chat/${lead.chatThreadId}` : "/rvsf/chats"} className="w-full">
-                                        <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl active:scale-[0.98] transition-all">
-                                            <MessageSquare className="w-4 h-4" />
-                                            Open Chat
+                                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+                                    <Link href={lead.chatThreadId ? `/rvsf/chat/${lead.chatThreadId}` : "/rvsf/chats"} className="flex-1">
+                                        <button className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all shadow-sm shadow-red-600/5 h-full">
+                                            <MessageSquare className="w-3.5 h-3.5" />
+                                            Open Chat Thread
                                         </button>
                                     </Link>
+                                    <div className="flex-1">
+                                        {lead.assignedCcId ? (
+                                            <button 
+                                                onClick={() => openAssignModal(lead)}
+                                                className="w-full flex flex-col items-center justify-center py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-850 font-bold text-[9px] rounded-lg active:scale-[0.98] transition-all h-full"
+                                            >
+                                                <span className="flex items-center gap-1">
+                                                    <Building2 className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
+                                                    Assigned: {lead.assignedCcName || "CC"}
+                                                </span>
+                                                {lead.pickupStatus && (
+                                                    <span className="text-[7.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-100 mt-0.5 uppercase tracking-wider">
+                                                        {lead.pickupStatus}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                onClick={() => openAssignModal(lead)}
+                                                className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all h-full"
+                                            >
+                                                <Building2 className="w-3.5 h-3.5 text-[#E31E24]" />
+                                                Assign to CC
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}
@@ -415,7 +502,7 @@ export default function RVSFDashboardPage() {
                             animate={{ opacity: 1 }} 
                             exit={{ opacity: 0 }}
                             onClick={() => setRejectingLead(null)}
-                            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                         />
 
                         {/* Modal Box */}
@@ -423,72 +510,176 @@ export default function RVSFDashboardPage() {
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-[#0E192D] border border-slate-800 w-full max-w-md rounded-2xl p-6 relative z-10 shadow-2xl space-y-4"
+                            className="bg-white border border-slate-100 w-full max-w-sm rounded-xl p-5 relative z-10 shadow-2xl space-y-3.5"
                         >
-                            <div className="flex justify-between items-start">
+                            <div className="flex justify-between items-start gap-2">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
-                                        <AlertCircle className="w-5 h-5" />
+                                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-[#E31E24] shrink-0">
+                                        <AlertCircle className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <h3 className="font-extrabold text-white text-base">Reject & Refund Lead</h3>
-                                        <p className="text-[11px] text-slate-400 font-medium">Lead: {rejectingLead.vehicleInfo}</p>
+                                        <h3 className="font-bold text-slate-800 text-xs">Reject & Refund Lead</h3>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5 leading-none">Lead: {rejectingLead.vehicleInfo}</p>
                                     </div>
                                 </div>
                                 <button 
                                     onClick={() => setRejectingLead(null)}
-                                    className="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800/50 transition-all"
+                                    className="p-1 rounded text-slate-400 hover:text-slate-650 hover:bg-slate-50 transition-all shrink-0"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3.5 h-3.5" />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleRejectSubmit} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            <form onSubmit={handleRejectSubmit} className="space-y-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">
                                         Why are you rejecting this lead?
                                     </label>
                                     <textarea 
                                         value={rejectionReason}
                                         onChange={(e) => setRejectionReason(e.target.value)}
-                                        rows={4}
-                                        placeholder="Please provide a clear and detailed reason for rejection. This is required for refund processing."
-                                        className="w-full bg-slate-900 border border-slate-800 focus:border-red-500 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500 transition-all placeholder:text-slate-600"
+                                        rows={3}
+                                        placeholder="Detailed reason is required for refund validation."
+                                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#E31E24] rounded-lg p-2.5 text-[11px] text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#E31E24] transition-all placeholder:text-slate-400"
                                     />
-                                    <p className="text-[10px] text-slate-500 leading-normal">
-                                        *Upon submission, this lead status reverts back to the marketplace. A refund request of <strong>₹{rejectingLead.amount}</strong> will be submitted to the ScrapCentre admin for validation.
+                                    <p className="text-[9px] text-slate-400 leading-normal">
+                                        *Lead returns to marketplace and a refund request of <strong>₹{rejectingLead.amount}</strong> will be submitted to the ScrapCentre admin.
                                     </p>
                                 </div>
 
                                 {rejectError && (
-                                    <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-lg flex items-center gap-2">
-                                        <AlertCircle className="w-4 h-4 shrink-0" />
-                                        <span>{rejectError}</span>
+                                    <div className="bg-red-50 border border-red-100 text-red-600 text-[10px] p-2 rounded-lg flex items-center gap-1.5">
+                                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                        <span className="font-semibold">{rejectError}</span>
                                     </div>
                                 )}
 
-                                <div className="flex gap-2.5 pt-2">
+                                <div className="flex gap-2.5 pt-1">
                                     <button 
                                         type="button"
                                         onClick={() => setRejectingLead(null)}
-                                        className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 font-bold text-xs rounded-xl active:scale-[0.98] transition-all"
+                                        className="flex-1 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all"
                                     >
                                         Cancel
                                     </button>
                                     <button 
                                         type="submit"
                                         disabled={actionLoadingId === rejectingLead._id}
-                                        className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-1.5"
+                                        className="flex-1 py-1.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-1 shadow-sm shadow-red-600/5"
                                     >
                                         {actionLoadingId === rejectingLead._id ? (
                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                         ) : (
                                             <Trash2 className="w-3.5 h-3.5" />
                                         )}
-                                        Confirm Rejection
+                                        Confirm
                                     </button>
                                 </div>
                             </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ── CC OPERATOR ASSIGNMENT MODAL ─────────────────────── */}
+            <AnimatePresence>
+                {assigningLead && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            onClick={() => setAssigningLead(null)}
+                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        />
+
+                        {/* Modal Box */}
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white border border-slate-100 w-full max-w-md rounded-xl p-5 relative z-10 shadow-2xl space-y-3.5"
+                        >
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-lg bg-[#E31E24]/5 border border-[#E31E24]/10 flex items-center justify-center text-[#E31E24] shrink-0">
+                                        <Building2 className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 text-xs">Assign Lead to Collection Center</h3>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5 leading-none">Vehicle: {assigningLead.vehicleInfo}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setAssigningLead(null)}
+                                    className="p-1 rounded text-slate-400 hover:text-slate-650 hover:bg-slate-50 transition-all shrink-0"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+
+                            {ccsLoading ? (
+                                <div className="flex flex-col items-center justify-center py-8 gap-2">
+                                    <Loader2 className="w-6 h-6 animate-spin text-[#E31E24]" />
+                                    <p className="text-[10px] text-slate-450 uppercase font-black tracking-wider">Calculating distances...</p>
+                                </div>
+                            ) : !ccsList || ccsList.length === 0 ? (
+                                <div className="text-center py-6">
+                                    <p className="text-xs font-bold text-slate-400">No Collection Centers registered.</p>
+                                    <p className="text-[9px] text-slate-400 mt-1">Please add a Collection Center from the sidebar first.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">
+                                            Select Nearest Collection Center
+                                        </label>
+                                        <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1 scrollbar-hide">
+                                            {ccsList.map((cc) => (
+                                                <div 
+                                                    key={cc._id}
+                                                    onClick={() => setSelectedCcId(cc._id)}
+                                                    className={`border rounded-xl p-3 flex justify-between items-center cursor-pointer transition-all duration-200 ${selectedCcId === cc._id ? 'border-[#E31E24] bg-[#E31E24]/5' : 'border-slate-100 hover:border-slate-300'}`}
+                                                >
+                                                    <div className="space-y-0.5">
+                                                        <p className="font-bold text-xs text-slate-800">{cc.name}</p>
+                                                        <p className="text-[10px] font-medium text-slate-405">{cc.city}, {cc.state} ({cc.pincode})</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                            {cc.distanceKm !== null ? `${cc.distanceKm} km` : "N/A"}
+                                                        </span>
+                                                        <p className="text-[8px] font-bold text-slate-400 mt-0.5">Radius: {cc.catchmentRadius}km</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2.5 pt-1">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setAssigningLead(null)}
+                                            className="flex-1 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            onClick={handleAssignConfirm}
+                                            disabled={isAssigningSubmit || !selectedCcId}
+                                            className="flex-1 py-1.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 shadow-sm shadow-red-600/5"
+                                        >
+                                            {isAssigningSubmit ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <Building2 className="w-3.5 h-3.5" />
+                                            )}
+                                            Confirm Assignment
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </motion.div>
                     </div>
                 )}

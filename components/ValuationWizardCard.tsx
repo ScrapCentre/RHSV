@@ -872,9 +872,43 @@ export default function ValuationWizardCard() {
                                             localStorage.setItem("kycFormData", JSON.stringify(formData));
                                             localStorage.setItem("kycSource", "scrap");
                                         }}
-                                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[#E31E24] via-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-black rounded-xl shadow-lg border border-red-600/30 transition-all duration-200 ease-out uppercase tracking-widest text-sm sm:text-base relative overflow-hidden group hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.95] active:brightness-95 hover:ring-4 hover:ring-red-500/20"
+                                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[#E31E24] via-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-black rounded-xl border border-red-600/30 hover:border-white/60 transition-all duration-200 ease-out uppercase tracking-widest text-sm sm:text-base relative overflow-hidden group hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.95] active:brightness-95 shadow-[inset_0_1.5px_0_rgba(255,255,255,0.45),_inset_0_-4px_0_rgba(0,0,0,0.2),_0_8px_16px_rgba(227,30,36,0.3)] active:shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_inset_0_-2px_0_rgba(0,0,0,0.2),_0_4px_8px_rgba(227,30,36,0.2)]"
                                     >
-                                        GET MORE PRECISE VALUATION 
+                                        {/* Upward Floating Bubbles Animation */}
+                                        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                                            {[...Array(6)].map((_, i) => {
+                                                const sizes = [12, 16, 20, 14, 18, 22];
+                                                const xPositions = ["12%", "28%", "45%", "62%", "78%", "90%"];
+                                                const delays = [0, 0.7, 1.5, 2.2, 3.0, 3.7];
+                                                const durations = [3.2, 4.0, 3.5, 4.5, 3.8, 4.2];
+                                                return (
+                                                    <motion.span
+                                                        key={i}
+                                                        className="absolute rounded-full bg-white/35"
+                                                        style={{
+                                                            width: sizes[i % sizes.length],
+                                                            height: sizes[i % sizes.length],
+                                                            left: xPositions[i % xPositions.length],
+                                                            bottom: "-25px",
+                                                        }}
+                                                        animate={{
+                                                            y: [0, -95],
+                                                            opacity: [0, 0.65, 0.65, 0],
+                                                            scale: [0.8, 1.2, 0.8],
+                                                        }}
+                                                        transition={{
+                                                            duration: durations[i % durations.length],
+                                                            repeat: Infinity,
+                                                            delay: delays[i % delays.length],
+                                                            ease: "linear",
+                                                        }}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                        <span className="relative z-10">
+                                            GET MORE PRECISE VALUATION
+                                        </span>
                                     </a>
                                 </div>
 
@@ -1527,7 +1561,7 @@ export default function ValuationWizardCard() {
                                                     <div>
                                                         <div className="flex items-center justify-between mb-2">
                                                             <p className="text-[8px] sm:text-[9px] font-black text-amber-400 uppercase tracking-[0.15em] flex items-center gap-1">
-                                                                <Zap className="w-3 h-3 fill-amber-400 text-amber-400 animate-pulse" /> TIER 1 — ANONYMOUS ESTIMATE
+                                                                <Zap className="w-3 h-3 fill-amber-400 text-amber-400 animate-pulse" />
                                                             </p>
                                                             {formData.regNo && (
                                                                 <span className="bg-white/10 px-2 py-0.5 rounded-full text-[8px] font-mono tracking-widest text-slate-300 border border-white/5 uppercase">
