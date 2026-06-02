@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/toaster"
 import AuthProvider from "@/components/AuthProvider"
 import AdminAwareLayout from "@/components/AdminAwareLayout"
 import GoogleAnalytics from "@/components/GoogleAnalytics"
+import GoogleTag from "@/components/GoogleTag"
+
 
 const inter = Inter({ subsets: ["latin"] })
 const bebasNeue = Bebas_Neue({ 
@@ -95,6 +97,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <GoogleAnalytics />
+        <GoogleTag />
       </head>
       <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
