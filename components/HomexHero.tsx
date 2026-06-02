@@ -2,8 +2,15 @@
 
 import React, { useState } from "react"
 import { motion } from "framer-motion"
-import { ChevronRight, Star, ShieldCheck, Zap, Award, Smartphone, Car, ArrowRight } from "lucide-react"
+import { ChevronRight, Star, ShieldCheck, Zap, Award, Smartphone, Car, ArrowRight, Percent, FileCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { Plus_Jakarta_Sans } from "next/font/google"
+import { Lens } from "@/components/ui/lens"
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800"],
+})
 
 const normalizeFuelType = (fuel?: string): string => {
     if (!fuel) return "";
@@ -85,23 +92,23 @@ export default function HomexHero() {
 
     const features = [
         { 
-            title: "Best Value", 
-            text: "Get the maximum value for your vehicle", 
-            icon: Award,
+            text: "Discount on registration fees for new vehicles.", 
+            icon: Percent,
         },
         { 
-            title: "OEM Benefits", 
-            text: "Genuine & trusted OEM partnerships", 
+            text: "Instant Certificate of Deposit (COD) issuance.", 
+            icon: FileCheck,
+        },
+        { 
+            text: "Exclusive OEM (Original Equipment Manufacturer) benefits.", 
             icon: ShieldCheck,
         },
         { 
-            title: "COD Support", 
-            text: "Dedicated support at every step", 
-            icon: Smartphone,
+            text: "Best-value vehicle buying & selling with COD support.", 
+            icon: Car,
         },
         { 
-            title: "Fast Process", 
-            text: "Quick & hassle-free scrapping process", 
+            text: "Affordable facility to convert your vehicle to an EV.", 
             icon: Zap,
         }
     ]
@@ -173,41 +180,35 @@ export default function HomexHero() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.6 }}
-                        className="w-full max-w-2xl lg:max-w-[30rem] xl:max-w-[34rem] 2xl:max-w-[38rem]"
+                        className={`${plusJakartaSans.className} w-full max-w-[28rem]`}
                     >
-                        <div className="bg-white p-3 sm:p-4 lg:p-2.5 xl:p-3 2xl:p-4 rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[1.75rem] 2xl:rounded-[2rem] border-2 border-[#E31E24]/40 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)]">
-                            <form onSubmit={handleFetchData} className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 lg:gap-3 xl:gap-5">
-                                <div className="flex-1 flex items-center px-2 sm:px-4 gap-3 sm:gap-5 lg:gap-3 xl:gap-4">
-                                    <div className="w-14 h-14 sm:w-20 sm:h-20 lg:w-12 lg:h-12 xl:w-16 xl:h-16 2xl:w-20 2xl:h-20 flex items-center justify-center rounded-xl sm:rounded-2xl shrink-0">
-                                        <img src="/herologo.png" className="w-12 h-12 sm:w-18 sm:h-18 lg:w-10 lg:h-10 xl:w-14 xl:h-14 2xl:w-18 2xl:h-18 object-contain" alt="Registration Logo" />
+                        <div className="bg-white/95 p-2 sm:p-2.5 rounded-xl border border-[#E31E24]/20 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:border-[#E31E24]/40 hover:shadow-[0_15px_40px_rgba(227,30,36,0.08)] transition-all duration-300">
+                            <form onSubmit={handleFetchData} className="relative flex flex-row items-center gap-2">
+                                <div className="flex-1 flex items-center pl-2 pr-1 gap-2.5">
+                                    <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-slate-50 shrink-0 border border-slate-100">
+                                        <img src="/herologo.png" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" alt="Registration Logo" />
                                     </div>
                                     <div className="flex flex-col items-start overflow-hidden w-full">
-                                        <span className="text-[10px] sm:text-xs lg:text-[9px] xl:text-[11px] 2xl:text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5 sm:mb-1">Enter Registration Number</span>
+                                        <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Enter Registration Number</span>
                                         <input
                                             type="text"
                                             placeholder="E.g. DL1CAB1234"
                                             value={vehicleNumber}
                                             onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
-                                            className="w-full bg-transparent text-[#1A1A1A] font-bold text-lg sm:text-2xl lg:text-base xl:text-xl 2xl:text-2xl focus:outline-none uppercase tracking-[0.1em] sm:tracking-[0.15em] placeholder:text-sm sm:placeholder:text-base placeholder:text-slate-300 placeholder:font-medium"
+                                            className="w-full bg-transparent text-slate-800 font-bold text-sm sm:text-base focus:outline-none uppercase tracking-[0.08em] placeholder:text-xs sm:placeholder:text-sm placeholder:text-slate-300 placeholder:font-medium"
                                             required
                                         />
                                     </div>
                                 </div>
-                                <div className="hidden sm:block w-px h-12 lg:h-8 xl:h-10 bg-slate-100 mx-2" />
                                 <button
                                     type="submit"
                                     disabled={isFetching}
-                                    className="c-button--gooey h-14 sm:h-16 lg:h-12 xl:h-14 2xl:h-16 px-8 sm:px-12 lg:px-6 xl:px-8 2xl:px-12 bg-[#E31E24] text-white font-bold text-sm rounded-xl sm:rounded-[1.25rem] lg:rounded-xl xl:rounded-[1.25rem] transition-all flex items-center justify-center gap-3 sm:gap-4 group shrink-0 shadow-xl shadow-red-500/20 disabled:opacity-70"
+                                    className="h-9 sm:h-10 px-4 sm:px-5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-xs sm:text-sm rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-red-500/10 active:scale-[0.98] disabled:opacity-70"
                                 >
-                                    <span className="relative z-10 flex items-center gap-3 sm:gap-4 lg:gap-2 xl:gap-3">
+                                    <span className="relative z-10 flex items-center gap-1.5">
                                         {isFetching ? "Fetching..." : "GET VALUATION"}
-                                        {!isFetching && <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 group-hover:translate-x-1 transition-transform" />}
+                                        {!isFetching && <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />}
                                     </span>
-                                    <div className="c-button__blobs">
-                                        <div />
-                                        <div />
-                                        <div />
-                                    </div>
                                 </button>
                             </form>
                         </div>
@@ -216,45 +217,34 @@ export default function HomexHero() {
             </div>
 
             {/* Bottom Benefits Bar */}
-            <div className="relative z-20 w-full max-w-[1450px] mx-auto px-4 sm:px-6 pb-4 sm:pb-6 lg:pb-10 mt-auto">
-                <div className="bg-white/95 backdrop-blur-xl rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 lg:p-6 xl:p-8 2xl:p-10 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.12)] border-2 border-[#E31E24]/40">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row items-center justify-between gap-4 sm:gap-6 lg:gap-0">
-                        {features.map((feature, idx) => (
-                            <React.Fragment key={idx}>
-                                <div className="flex items-center gap-3 sm:gap-4 lg:gap-4 xl:gap-6 group flex-1 justify-start lg:px-4 xl:px-6 2xl:px-8">
-                                    <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 lg:w-14 lg:h-14 xl:w-16 xl:h-16 2xl:w-[72px] 2xl:h-[72px] flex items-center justify-center rounded-xl sm:rounded-2xl bg-slate-50 text-[#E31E24] transition-all duration-300 group-hover:bg-[#E31E24] group-hover:text-white group-hover:scale-110 shadow-sm border border-slate-100">
-                                        <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-6 lg:h-6 xl:w-7 xl:h-7 2xl:w-8 2xl:h-8" />
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className={`${plusJakartaSans.className} relative z-30 w-full max-w-[1400px] mx-auto px-6 mt-4 sm:mt-8 mb-8 sm:mb-12 lg:mb-16`}
+            >
+                <Lens zoomFactor={1.2} lensSize={150} isStatic={false} ariaLabel="Zoom Benefits">
+                    <div className="bg-white shadow-xl shadow-slate-200/60 border border-slate-100/90 rounded-[2rem] p-3.5 sm:py-4 sm:px-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6 md:gap-1 divide-y sm:divide-y-0 md:divide-x divide-slate-100">
+                            {features.map((feature, idx) => (
+                                <motion.div 
+                                    key={idx}
+                                    whileHover={{ scale: 1.05, y: -6 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                                    className="flex flex-col items-center text-center p-3 sm:py-2.5 sm:px-1.5 group/card rounded-xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
+                                >
+                                    <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center text-[#E31E24] mb-2 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                                        <feature.icon className="w-5 h-5" />
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[#1A1A1A] font-bold text-xs sm:text-sm lg:text-[14px] xl:text-[15px] 2xl:text-[17px] uppercase tracking-widest mb-0.5 sm:mb-1">
-                                            {feature.title}
-                                        </span>
-                                        <span className="text-slate-500 text-[10px] sm:text-xs lg:text-[11px] xl:text-xs 2xl:text-[14px] font-medium leading-relaxed max-w-[220px]">
-                                            {feature.text}
-                                        </span>
-                                    </div>
-                                </div>
-                                {idx !== features.length - 1 && (
-                                    <div className="hidden lg:block w-px h-10 bg-slate-200/60" />
-                                )}
-                            </React.Fragment>
-                        ))}
+                                    <p className="text-xs sm:text-[13px] font-bold text-slate-700 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300 max-w-[190px]">
+                                        {feature.text}
+                                    </p>
+                                </motion.div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            {/* SVG Filter for Gooey Effect */}
-            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={{ display: 'none' }}>
-                <defs>
-                    <filter id="goo">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
-                        <feBlend in="SourceGraphic" in2="goo" />
-                    </filter>
-                </defs>
-            </svg>
-
-
+                </Lens>
+            </motion.div>
         </div>
     )
 }

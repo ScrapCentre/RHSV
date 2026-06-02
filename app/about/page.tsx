@@ -540,7 +540,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.8 }}
-            className="mt-16 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2rem] p-6 sm:p-8 max-w-6xl mx-auto"
+            className="mt-8 sm:mt-12 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16 relative z-20 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2rem] p-6 sm:p-8 max-w-6xl mx-auto"
           >
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
               
@@ -597,7 +597,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-10 bg-gradient-to-r from-[#E31E24] via-red-600 to-rose-600 rounded-[1.75rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-red-500/10 max-w-6xl mx-auto"
+            className="mt-4 sm:mt-6 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16 relative z-20 bg-gradient-to-r from-[#E31E24] via-red-600 to-rose-600 rounded-[1.75rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-red-500/10 max-w-6xl mx-auto"
           >
             <div className="flex items-center gap-4 text-white text-center md:text-left">
               <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-inner hidden sm:flex">

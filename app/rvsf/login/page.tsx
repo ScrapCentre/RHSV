@@ -112,16 +112,6 @@ function RVSFLoginContent() {
                     <div className="absolute -inset-0.5 bg-gradient-to-b from-[#E31E24]/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-1000" />
                     
                     <div className="relative bg-white/90 backdrop-blur-xl border border-white/20 p-6 sm:p-8 lg:p-10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)]">
-                        {/* Premium Header */}
-                        <div className="flex flex-col items-center text-center mb-6 sm:mb-8">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#E31E24]/10 border border-[#E31E24]/20 flex items-center justify-center mb-3 sm:mb-4 shadow-inner">
-                                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#E31E24]" />
-                            </div>
-                            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">RVSF Partner</h2>
-                            <p className="text-xs text-slate-500 mt-1 sm:mt-1.5 max-w-[280px]">
-                                Registered Vehicle Scrapping Facility
-                            </p>
-                        </div>
 
                         <form onSubmit={handleRVSFLogin} className="space-y-4 sm:space-y-5 lg:space-y-6">
                             <AnimatePresence>
