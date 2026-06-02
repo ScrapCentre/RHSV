@@ -249,7 +249,7 @@ export default function ScrapCentreUsersAdmin() {
                                             <input 
                                                 required
                                                 type="email" 
-                                                placeholder="user@scrapcenter.in"
+                                                placeholder="user@scrapcentre.com"
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                                                 className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-11 py-3.5 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all dark:text-white font-medium text-sm"

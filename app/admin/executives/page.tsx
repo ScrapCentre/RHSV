@@ -178,7 +178,7 @@ export default function AdminExecutivesPage() {
                                     required
                                     value={formData.email}
                                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                    placeholder="exec@scrapcenter.in"
+                                    placeholder="exec@scrapcentre.com"
                                     className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl pl-11 pr-4 py-3 font-medium text-blue-600 dark:text-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                 />
                             </div>
