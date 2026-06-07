@@ -51,43 +51,58 @@ export default function ServicesSection() {
       <div className="container mx-auto px-6 relative z-10">
 
         {/* ── Section Header ── */}
-        <div className="max-w-4xl mb-10 lg:mb-12">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-            transition={{ duration: 0.6 }}
-            className="flex items-center gap-3 mb-4"
-          >
-            <div className="relative w-10 h-1 bg-[#E31E24] overflow-hidden">
-              <motion.div 
-                animate={{ x: ["-100%", "100%"] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-              />
-            </div>
-            <span className="text-[#E31E24] font-bold text-[10px] uppercase tracking-[0.3em]">Our Services</span>
-          </motion.div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10 lg:mb-12">
+          <div className="lg:col-span-7 max-w-2xl lg:pl-6">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+              transition={{ duration: 0.6 }}
+              className="flex items-center gap-3 mb-4"
+            >
+              <div className="relative w-10 h-1 bg-[#E31E24] overflow-hidden">
+                <motion.div 
+                  animate={{ x: ["-100%", "100%"] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                />
+              </div>
+              <span className="text-[#E31E24] font-bold text-[10px] uppercase tracking-[0.3em]">Our Services</span>
+            </motion.div>
 
-          <motion.h2
-            className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-4 tracking-tight leading-tight"
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            <motion.h2
+              className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-4 tracking-tight leading-tight"
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              Tell us about your{" "}
+              <span className="text-[#E31E24]">
+                Situation
+              </span>
+            </motion.h2>
+            
+            <motion.p
+              className="text-slate-500 text-sm md:text-base max-w-xl font-medium leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Choose the option that <span className="text-blue-500 font-semibold">best describes</span> what you&apos;re looking for today. Our AI-powered platform ensures you get the most professional service.
+            </motion.p>
+          </div>
+
+          <motion.div
+            className="lg:col-span-5 w-full max-w-[450px] lg:max-w-none justify-self-center lg:justify-self-end"
+            initial={{ opacity: 0, x: 20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
           >
-            Tell us about your{" "}
-            <span className="text-[#E31E24]">
-              Situation
-            </span>
-          </motion.h2>
-          
-          <motion.p
-            className="text-slate-500 text-sm md:text-base max-w-2xl font-medium leading-relaxed"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            Choose the option that best describes what you&apos;re looking for today. Our AI-powered platform ensures you get the most professional service.
-          </motion.p>
+            <img 
+              src="/frontpage/hd.png" 
+              alt="Situation illustrations" 
+              className="w-full h-auto object-contain mx-auto"
+            />
+          </motion.div>
         </div>
 
         {/* ── Main Component ── */}

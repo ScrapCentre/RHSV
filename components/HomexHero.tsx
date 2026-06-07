@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { ChevronRight, Star, ShieldCheck, Zap, Award, Smartphone, Car, ArrowRight, Percent, FileCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Plus_Jakarta_Sans } from "next/font/google"
-import { Lens } from "@/components/ui/lens"
+
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
@@ -28,6 +28,14 @@ export default function HomexHero() {
     const router = useRouter()
 
     const [isFetching, setIsFetching] = useState(false)
+    const [isRed, setIsRed] = useState(false)
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setIsRed(prev => !prev)
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [])
 
     const handleFetchData = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -115,6 +123,16 @@ export default function HomexHero() {
 
     return (
         <div className="relative w-full min-h-screen overflow-x-hidden flex flex-col">
+            {/* SVG Gooey Filter */}
+            <svg className="absolute" style={{ width: 0, height: 0 }}>
+                <defs>
+                    <filter id="goo-hero">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                        <feBlend in="SourceGraphic" in2="goo" />
+                    </filter>
+                </defs>
+            </svg>
             {/* Full Screen Background Image */}
             <div className="absolute inset-0 z-0 bg-white">
                 {/* Mobile BG */}
@@ -183,8 +201,8 @@ export default function HomexHero() {
                         className={`${plusJakartaSans.className} w-full max-w-[28rem]`}
                     >
                         <div className="bg-white/95 p-2 sm:p-2.5 rounded-xl border border-[#E31E24]/20 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:border-[#E31E24]/40 hover:shadow-[0_15px_40px_rgba(227,30,36,0.08)] transition-all duration-300">
-                            <form onSubmit={handleFetchData} className="relative flex flex-row items-center gap-2">
-                                <div className="flex-1 flex items-center pl-2 pr-1 gap-2.5">
+                            <form onSubmit={handleFetchData} className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                <div className="w-full sm:flex-1 flex items-center pl-2 pr-1 gap-2.5 py-1 sm:py-0">
                                     <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-slate-50 shrink-0 border border-slate-100">
                                         <img src="/herologo.png" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" alt="Registration Logo" />
                                     </div>
@@ -203,15 +221,37 @@ export default function HomexHero() {
                                 <button
                                     type="submit"
                                     disabled={isFetching}
-                                    className="h-9 sm:h-10 px-4 sm:px-5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-xs sm:text-sm rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-red-500/10 active:scale-[0.98] disabled:opacity-70"
+                                    className="c-button--gooey w-full sm:w-auto h-10 px-4 sm:px-5 bg-[#E31E24] text-white font-bold text-xs sm:text-sm rounded-lg flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-red-500/10 active:scale-[0.98] disabled:opacity-70"
+                                    style={{ filter: 'none' }}
                                 >
                                     <span className="relative z-10 flex items-center gap-1.5">
                                         {isFetching ? "Fetching..." : "GET VALUATION"}
-                                        {!isFetching && <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />}
+                                        {!isFetching && <ArrowRight className="w-3.5 h-3.5 transition-transform" />}
                                     </span>
+                                    <div className="c-button__blobs" style={{ filter: 'url(#goo-hero)' }}>
+                                        <div />
+                                        <div />
+                                        <div />
+                                    </div>
                                 </button>
                             </form>
                         </div>
+
+                        {/* Buy a new vehicle link */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                window.dispatchEvent(new CustomEvent('hero-buy-click'))
+                                const servicesEl = document.getElementById('services')
+                                if (servicesEl) servicesEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                            }}
+                            className="mt-3 w-full flex items-center justify-center lg:justify-start gap-1 pl-0 lg:pl-8 group"
+                        >
+                            <span className={`text-[12px] font-semibold transition-colors duration-500 underline underline-offset-2 group-hover:text-[#E31E24] ${isRed ? 'text-[#E31E24]' : 'text-slate-500'}`}>
+                                Want to buy a new vehicle?
+                            </span>
+                            <ChevronRight className={`w-3.5 h-3.5 transition-all duration-500 group-hover:translate-x-0.5 group-hover:text-[#E31E24] ${isRed ? 'text-[#E31E24]' : 'text-slate-300'}`} />
+                        </button>
                     </motion.div>
                 </div>
             </div>
@@ -221,29 +261,27 @@ export default function HomexHero() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className={`${plusJakartaSans.className} relative z-30 w-full max-w-[1400px] mx-auto px-6 mt-4 sm:mt-8 mb-8 sm:mb-12 lg:mb-16`}
+                className={`${plusJakartaSans.className} relative z-30 w-full max-w-[1400px] mx-auto px-4 sm:px-6 mt-4 sm:mt-6 lg:mt-8 mb-6 sm:mb-10 lg:mb-12`}
             >
-                <Lens zoomFactor={1.2} lensSize={150} isStatic={false} ariaLabel="Zoom Benefits">
-                    <div className="bg-white shadow-xl shadow-slate-200/60 border border-slate-100/90 rounded-[2rem] p-3.5 sm:py-4 sm:px-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6 md:gap-1 divide-y sm:divide-y-0 md:divide-x divide-slate-100">
-                            {features.map((feature, idx) => (
-                                <motion.div 
-                                    key={idx}
-                                    whileHover={{ scale: 1.05, y: -6 }}
-                                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                                    className="flex flex-col items-center text-center p-3 sm:py-2.5 sm:px-1.5 group/card rounded-xl transition-all duration-300 hover:bg-gradient-to-b hover:from-white hover:to-red-50/20 hover:shadow-xl hover:shadow-red-500/5 cursor-pointer"
-                                >
-                                    <div className="w-11 h-11 rounded-full bg-red-50 flex items-center justify-center text-[#E31E24] mb-2 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
-                                        <feature.icon className="w-5 h-5" />
-                                    </div>
-                                    <p className="text-xs sm:text-[13px] font-bold text-slate-700 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300 max-w-[190px]">
-                                        {feature.text}
-                                    </p>
-                                </motion.div>
-                            ))}
-                        </div>
+                <div className="bg-white shadow-xl shadow-slate-200/60 border border-slate-100/90 rounded-[2rem] py-4 px-4 sm:py-5 sm:px-6 lg:py-6 lg:px-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-2">
+                        {features.map((feature, idx) => (
+                            <motion.div 
+                                key={idx}
+                                whileHover={{ scale: 1.05, y: -4 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                                className="flex flex-col items-center text-center px-2 py-3 sm:py-4 group/card rounded-2xl transition-all duration-300 hover:bg-red-50/30 cursor-pointer"
+                            >
+                                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-red-50 flex items-center justify-center text-[#E31E24] mb-2.5 border border-red-100 shadow-sm group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50 transition-all duration-300">
+                                    <feature.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                </div>
+                                <p className="text-[11px] sm:text-xs lg:text-[13px] font-semibold text-slate-700 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300 max-w-[160px]">
+                                    {feature.text}
+                                </p>
+                            </motion.div>
+                        ))}
                     </div>
-                </Lens>
+                </div>
             </motion.div>
         </div>
     )

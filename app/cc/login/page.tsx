@@ -89,13 +89,15 @@ function CCLoginContent() {
     }
 
     return (
-        <div className={`${plusJakartaSans.className} min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-zinc-900 to-black selection:bg-[#E31E24] selection:text-white`}>
-            {/* Visual background decorations */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-                <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-red-600 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#E31E24] rounded-full blur-[100px] translate-x-1/2 translate-y-1/2" />
-            </div>
-
+        <div 
+            className={`${plusJakartaSans.className} min-h-screen flex items-center justify-center lg:justify-end p-4 sm:p-6 lg:pr-16 xl:pr-24 2xl:pr-44 selection:bg-[#E31E24] selection:text-white transition-all duration-500 bg-slate-950`}
+            style={{ 
+                backgroundImage: "url('/cclogin.png')", 
+                backgroundSize: "cover", 
+                backgroundPosition: "center", 
+                backgroundRepeat: "no-repeat" 
+            }}
+        >
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -104,25 +106,25 @@ function CCLoginContent() {
             >
                 <div className="relative group">
                     {/* Glow effect */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-[#E31E24]/20 to-red-500/10 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000" />
+                    <div className="absolute -inset-0.5 bg-gradient-to-b from-[#E31E24]/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-700" />
                     
-                    <div className="relative bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 p-8 sm:p-10 rounded-2xl shadow-2xl">
-                        <div className="flex flex-col items-center mb-6 text-center">
-                            <div className="w-12 h-12 rounded-xl bg-[#E31E24]/10 border border-[#E31E24]/20 flex items-center justify-center text-[#E31E24] mb-3">
+                    <div className="relative bg-white/90 backdrop-blur-xl border border-white/20 p-8 sm:p-10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)]">
+                        <div className="flex flex-col items-center mb-8 text-center">
+                            <div className="w-12 h-12 rounded-2xl bg-[#E31E24]/10 border border-[#E31E24]/20 flex items-center justify-center text-[#E31E24] mb-4">
                                 <Shield className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl font-extrabold text-white uppercase tracking-wider">CC Operator Terminal</h2>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1.5">Collection Center Authorization Required</p>
+                            <h2 className="text-2xl font-extrabold text-slate-900 tracking-wider">CC OPERATOR PORTAL</h2>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">Collection Center Authorization Required</p>
                         </div>
 
-                        <form onSubmit={handleCCLogin} className="space-y-5">
+                        <form onSubmit={handleCCLogin} className="space-y-6">
                             <AnimatePresence>
                                 {error && (
                                     <motion.div 
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: "auto" }}
                                         exit={{ opacity: 0, height: 0 }}
-                                        className="bg-red-950/50 border border-red-800/60 text-red-400 text-xs py-3 px-4 rounded-xl font-semibold text-center"
+                                        className="bg-red-50 border border-red-200 text-red-600 text-xs py-3 px-4 rounded-xl font-medium text-center"
                                     >
                                         {error}
                                     </motion.div>
@@ -130,36 +132,36 @@ function CCLoginContent() {
                             </AnimatePresence>
 
                             <div className="space-y-2">
-                                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Operator Email</label>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Operator Email</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input 
                                         type="email" 
                                         required
                                         placeholder="operator@scrapcentre.com"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-[#E31E24]/80 text-white rounded-xl px-11 py-3.5 text-sm outline-none transition-all placeholder:text-zinc-650"
+                                        className="w-full bg-slate-50/50 border border-slate-200 focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 focus:bg-white rounded-xl px-11 py-3.5 text-slate-900 outline-none transition-all placeholder:text-slate-450 font-medium"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Access Passcode</label>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Access Passcode</label>
                                 <div className="relative">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input 
                                         type={showPassword ? "text" : "password"} 
                                         required
                                         placeholder="••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-zinc-900/50 border border-zinc-800 focus:border-[#E31E24]/80 text-white rounded-xl px-11 py-3.5 text-sm outline-none transition-all placeholder:text-zinc-650"
+                                        className="w-full bg-slate-50/50 border border-slate-200 focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 focus:bg-white rounded-xl px-11 py-3.5 text-slate-900 outline-none transition-all placeholder:text-slate-450 font-medium"
                                     />
                                     <button 
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                     >
                                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
