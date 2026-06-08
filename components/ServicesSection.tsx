@@ -48,11 +48,11 @@ export default function ServicesSection() {
         <div className="absolute top-0 left-1/2 w-2 h-2 bg-red-500 rounded-full -translate-x-1/2" />
       </motion.div>
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-0 sm:px-6 relative z-10">
 
         {/* ── Section Header ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10 lg:mb-12">
-          <div className="lg:col-span-7 max-w-2xl lg:pl-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10 lg:mb-12 px-5 sm:px-0">
+          <div className="lg:col-span-7 max-w-2xl">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
@@ -119,7 +119,7 @@ export default function ServicesSection() {
 
         {/* ── Bottom Assistance ── */}
         <motion.div
-          className="mt-20 pt-10 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6"
+          className="mt-20 pt-10 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6 px-5 sm:px-0"
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}

@@ -919,21 +919,21 @@ export default function ValuationWizardCard() {
         return (
             <>
                 <div id="wizard-recaptcha-container"></div>
-                <div className="w-full max-w-5xl mx-auto px-4 py-4 sm:py-6 lg:py-8">
+                <div className="w-full max-w-5xl mx-auto px-0 sm:px-4 py-3 sm:py-6 lg:py-8">
                     <motion.div
                         initial={{ scale: 0.98, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white border border-slate-100 rounded-[1.25rem] sm:rounded-[1.5rem] p-4 sm:p-5 lg:p-6 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] relative overflow-hidden"
+                        className="bg-white border-x-0 sm:border-x border-y border-slate-100 sm:rounded-[1.25rem] lg:rounded-[1.5rem] p-3 sm:p-5 lg:p-6 shadow-none sm:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] relative overflow-hidden"
                     >
                         {/* Accent top line */}
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 via-[#E31E24] to-amber-500" />
 
                         <div className="relative z-10">
                             {/* Header Row */}
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 sm:mb-5 pb-4 border-b border-slate-100">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5 pb-4 border-b border-slate-100">
                                 <div className="flex items-start sm:items-center gap-3">
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-50 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
-                                        <Recycle className="w-5.5 h-5.5 text-green-600" />
+                                        <Recycle className="w-5 h-5 text-green-600" />
                                     </div>
                                     <div>
                                         <p className="text-[9px] sm:text-[10px] font-black text-green-600 uppercase tracking-[0.2em] mb-0.5 flex items-center gap-1.5">
@@ -942,13 +942,13 @@ export default function ValuationWizardCard() {
                                         <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight">Your Vehicle's Scrap Worth</h2>
                                     </div>
                                 </div>
-                                <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-slate-950 rounded-full shadow-md border border-slate-800 flex items-center self-start md:self-auto">
+                                <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-slate-950 rounded-full shadow-md border border-slate-800 flex items-center self-start sm:self-auto">
                                     <p className="text-[8px] sm:text-[9px] font-black text-white uppercase tracking-widest">QUOTE ID: {quoteId || "SC-XXXXXX"}</p>
                                 </div>
                             </div>
 
-                            {/* Main Grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8">
+                            {/* Main Grid — single col on mobile, 12-col on lg */}
+                            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
                                 {/* Left Column: Potential Benefit & Cards (7 cols) */}
                                 <div className="lg:col-span-7 space-y-3 sm:space-y-4">
                                     {/* Total Potential Benefit Box */}
@@ -987,8 +987,8 @@ export default function ValuationWizardCard() {
                                         </div>
                                     </div>
 
-                                    {/* eKYC / Precise Valuation Action Button */}
-                                    <div className="pt-1 relative z-10">
+                                    {/* eKYC / Precise Valuation Action Button — desktop only (hidden on mobile, shown after bill) */}
+                                    <div className="hidden lg:block pt-1 relative z-10">
                                         {/* Pulsing Light Glow Backdrop (Behind Button) */}
                                         <div className="absolute inset-x-0 bottom-0 top-1 bg-[#E31E24]/20 blur-md rounded-xl animate-[pulse_2.5s_infinite] -z-10 pointer-events-none" />
                                         <a
@@ -1162,6 +1162,52 @@ export default function ValuationWizardCard() {
                                 </div>
                             </div>
 
+                            {/* eKYC button — mobile only, shown after bill */}
+                            <div className="lg:hidden pt-2 relative z-10">
+                                <div className="absolute inset-x-0 bottom-0 top-1 bg-[#E31E24]/20 blur-md rounded-xl animate-[pulse_2.5s_infinite] -z-10 pointer-events-none" />
+                                <a
+                                    href="/ekyc"
+                                    onClick={() => {
+                                        localStorage.setItem("kycFormData", JSON.stringify(formData));
+                                        localStorage.setItem("kycSource", "scrap");
+                                    }}
+                                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[#E31E24] via-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-black rounded-xl border border-red-600/30 hover:border-white/60 transition-all duration-200 ease-out uppercase tracking-widest text-sm relative overflow-hidden group active:scale-[0.95] active:brightness-95 shadow-[inset_0_1.5px_0_rgba(255,255,255,0.45),_inset_0_-4px_0_rgba(0,0,0,0.2),_0_8px_16px_rgba(227,30,36,0.3)]"
+                                >
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                                        {[...Array(6)].map((_, i) => {
+                                            const sizes = [12, 16, 20, 14, 18, 22];
+                                            const xPositions = ["12%", "28%", "45%", "62%", "78%", "90%"];
+                                            const delays = [0, 0.7, 1.5, 2.2, 3.0, 3.7];
+                                            const durations = [3.2, 4.0, 3.5, 4.5, 3.8, 4.2];
+                                            return (
+                                                <motion.span
+                                                    key={i}
+                                                    className="absolute rounded-full bg-white/35"
+                                                    style={{
+                                                        width: sizes[i % sizes.length],
+                                                        height: sizes[i % sizes.length],
+                                                        left: xPositions[i % xPositions.length],
+                                                        bottom: "-25px",
+                                                    }}
+                                                    animate={{
+                                                        y: [0, -95],
+                                                        opacity: [0, 0.65, 0.65, 0],
+                                                        scale: [0.8, 1.2, 0.8],
+                                                    }}
+                                                    transition={{
+                                                        duration: durations[i % durations.length],
+                                                        repeat: Infinity,
+                                                        delay: delays[i % delays.length],
+                                                        ease: "linear",
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                    <span className="relative z-10">GET MORE PRECISE VALUATION</span>
+                                </a>
+                            </div>
+
                         </div>
                     </motion.div>
                 </div>
@@ -1273,8 +1319,8 @@ export default function ValuationWizardCard() {
     return (
         <>
             <div id="wizard-recaptcha-container"></div>
-            <div className={`w-full ${(serviceType === "scrap" && step === 7) ? "max-w-4xl" : "max-w-2xl"} mx-auto px-4 transition-all duration-300`}>
-                <div className="bg-white border border-slate-200 rounded-[1rem] overflow-hidden shadow-2xl">
+            <div className={`w-full ${(serviceType === "scrap" && step === 7) ? "max-w-4xl" : "max-w-2xl"} mx-auto px-0 sm:px-4 transition-all duration-300`}>
+                <div className="bg-white border-x-0 sm:border-x border-y border-slate-200 sm:rounded-[1rem] overflow-hidden shadow-none sm:shadow-2xl">
                     <div className="bg-slate-50 px-4 sm:px-6 py-2.5 sm:py-3 border-b border-slate-100 flex items-center justify-between">
                         <button onClick={prevStep} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#E31E24] transition-all"><ArrowLeft className="w-3.5 h-3.5" /></button>
                         <div className="flex flex-col items-center">
@@ -1288,7 +1334,7 @@ export default function ValuationWizardCard() {
                         <motion.div initial={{ width: 0 }} animate={{ width: `${((currentStepDisplay()) / totalSteps) * 100}%` }} className="h-full bg-[#E31E24]" />
                     </div>
 
-                    <div className="relative p-3.5 sm:p-4 lg:p-5 min-h-[300px] flex flex-col justify-center">
+                    <div className="relative p-3.5 sm:p-5 lg:p-6 min-h-[360px] sm:min-h-[300px] flex flex-col justify-center">
                         <AnimatePresence initial={false} custom={direction} mode="wait">
                             <motion.div key={serviceType ? `${serviceType}-${step}` : "selection"} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }} className="w-full">
 
@@ -2120,15 +2166,15 @@ export default function ValuationWizardCard() {
                                                         <span className="bg-red-50 text-red-600 border border-red-100 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                                                             Step 8 of 8 — scrap Service 100%
                                                         </span>
-                                                        <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight mt-1">Your Scrap Valuation is Ready! 🎉</h3>
+                                                        <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight mt-1">Your Scrap Valuation is Ready! 🎉</h3>
                                                         <p className="text-slate-500 text-[10px] sm:text-[11px] font-semibold max-w-lg mx-auto">Verify your mobile number to unlock Certificate of Deposit (CD) and other green benefits.</p>
                                                     </div>
 
-                                                    {/* Two-Column Grid: Estimate + Unlock */}
-                                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch mb-2">
+                                                    {/* Stack on mobile, side-by-side on md+ */}
+                                                    <div className="flex flex-col md:grid md:grid-cols-12 gap-3 items-stretch mb-2">
 
                                                         {/* LEFT: Unlock Benefits Card */}
-                                                        <div className="md:col-span-7 bg-white border border-slate-200/80 rounded-[1rem] p-3 flex flex-col justify-between shadow-sm relative overflow-hidden space-y-2.5">
+                                                        <div className="md:col-span-7 bg-white border border-slate-200/80 rounded-[1rem] p-3 sm:p-4 flex flex-col justify-between shadow-sm relative overflow-hidden space-y-3">
 
                                                             {/* Top Section: Current Estimated Valuation */}
                                                             <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
@@ -2141,7 +2187,7 @@ export default function ValuationWizardCard() {
                                                             </div>
 
                                                             {/* Middle Section: Phone Verification / OTP */}
-                                                            <div className="flex flex-col items-center text-center space-y-2">
+                                                            <div className="flex flex-col items-center text-center space-y-2.5">
                                                                 <div>
                                                                     <h4 className="text-xs sm:text-sm font-black text-[#E31E24] uppercase tracking-wider mb-1">{otpSent ? "VERIFY IDENTITY" : "UNLOCK CD BENEFITS"}</h4>
                                                                     <p className="text-[10px] sm:text-[11px] text-slate-500 font-semibold leading-relaxed max-w-xs">
@@ -2149,7 +2195,7 @@ export default function ValuationWizardCard() {
                                                                     </p>
                                                                 </div>
 
-                                                                <div className="w-full space-y-2 max-w-xs">
+                                                                <div className="w-full space-y-2 max-w-xs sm:max-w-sm">
                                                                     <div className="relative">
                                                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
                                                                         <input
@@ -2158,19 +2204,19 @@ export default function ValuationWizardCard() {
                                                                             placeholder="10-digit number"
                                                                             value={formData.phone}
                                                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                                                                            className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-[#E31E24]/60 focus:bg-white rounded-lg text-sm font-bold text-slate-900 focus:outline-none transition-all disabled:opacity-50"
+                                                                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-[#E31E24]/60 focus:bg-white rounded-lg text-base font-bold text-slate-900 focus:outline-none transition-all disabled:opacity-50"
                                                                             maxLength={10}
                                                                         />
                                                                     </div>
 
                                                                     {otpSent && (
-                                                                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
+                                                                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1.5">
                                                                             <input
                                                                                 type="tel"
                                                                                 placeholder={isSandboxMode ? "Use: 000000" : "••••••"}
                                                                                 value={formData.otp}
                                                                                 onChange={(e) => setFormData({ ...formData, otp: e.target.value.slice(0, 6) })}
-                                                                                className="w-full px-3 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-lg text-lg text-center font-black tracking-[0.35em] text-slate-900 focus:outline-none focus:border-[#E31E24]"
+                                                                                className="w-full px-3 py-3 bg-slate-50 border border-[#E31E24]/30 rounded-lg text-xl text-center font-black tracking-[0.35em] text-slate-900 focus:outline-none focus:border-[#E31E24]"
                                                                                 maxLength={6}
                                                                                 autoFocus
                                                                             />
@@ -2190,19 +2236,17 @@ export default function ValuationWizardCard() {
                                                                     <button
                                                                         disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying}
                                                                         onClick={otpSent ? handleVerifyOtp : handleSendOtp}
-                                                                        className="w-full py-2.5 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-lg shadow-md shadow-red-500/25 transition-all uppercase text-[10.5px] sm:text-xs tracking-widest flex items-center justify-center gap-1.5"
+                                                                        className="w-full py-3 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-lg shadow-md shadow-red-500/25 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-1.5"
                                                                     >
-                                                                        {isSendingOtp || isVerifying ? <Loader2 className="w-3 animate-spin" /> : (otpSent ? "VERIFY & GET VALUATION" : "GET OTP")}
+                                                                        {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "VERIFY & GET VALUATION" : "GET OTP")}
                                                                     </button>
                                                                 </div>
                                                             </div>
 
                                                             {/* Bottom Section: Grand Total Benefit */}
-                                                            <div className="w-full bg-gradient-to-br from-[#122333] to-[#0c1622] border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-1.5 relative overflow-hidden shadow-lg">
-                                                                {/* Glowing backdrop circle */}
+                                                            <div className="w-full bg-gradient-to-br from-[#122333] to-[#0c1622] border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center text-center space-y-1.5 relative overflow-hidden shadow-lg">
                                                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-                                                                
-                                                                <span className="text-[8.5px] sm:text-[9.5px] font-black text-emerald-400 uppercase tracking-[0.2em] relative z-10">
+                                                                <span className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] relative z-10">
                                                                     GRAND TOTAL BENEFIT
                                                                 </span>
                                                                 <div className="relative z-10 flex items-center gap-1.5 animate-[pulse_2s_infinite]">
@@ -2219,9 +2263,8 @@ export default function ValuationWizardCard() {
                                                             </div>
                                                         </div>
 
-                                                        {/* RIGHT: Benefit Summary Receipt — white color theme values locked */}
-                                                        <div className="md:col-span-5 bg-[#f8fafc] border border-slate-200/80 rounded-[1rem] p-3 flex flex-col justify-between min-h-[250px] shadow-inner text-slate-800 relative overflow-hidden">
-                                                            {/* Decorative Watermark */}
+                                                        {/* RIGHT: Benefit Summary Receipt */}
+                                                        <div className="md:col-span-5 bg-[#f8fafc] border border-slate-200/80 rounded-[1rem] p-3 sm:p-4 flex flex-col justify-between shadow-inner text-slate-800 relative overflow-hidden">
                                                             <div className="absolute top-0 right-0 w-24 h-24 bg-slate-200/[0.1] rounded-full blur-2xl pointer-events-none"></div>
 
                                                             <div className="space-y-2 relative">
@@ -2241,84 +2284,60 @@ export default function ValuationWizardCard() {
                                                                     </div>
                                                                 </div>
 
-                                                                {/* Dotted Divider */}
                                                                 <div className="border-t border-dashed border-slate-350 my-2" />
 
-                                                                {/* Row: SCRAP VEHICLE */}
-                                                                <div className="flex justify-between items-start gap-4 text-[10px]">
-                                                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">SCRAP VEHICLE</span>
-                                                                    <span className="text-slate-900 font-black text-right uppercase max-w-[150px] leading-tight text-[9px] sm:text-[10px]">
-                                                                        {formData.brand || "HYUNDAI MOTOR INDIA LTD"} {formData.model || "SANTRO XG"} ({formData.year || "2005"})
+                                                                <div className="flex justify-between items-start gap-2 text-[10px]">
+                                                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px] shrink-0">SCRAP VEHICLE</span>
+                                                                    <span className="text-slate-900 font-black text-right uppercase leading-tight text-[9px] sm:text-[10px]">
+                                                                        {formData.brand || "HYUNDAI"} {formData.model || "SANTRO XG"} ({formData.year || "2005"})
                                                                     </span>
                                                                 </div>
 
-                                                                {/* Row: UNLADEN WEIGHT */}
                                                                 <div className="flex justify-between items-center text-[10px]">
                                                                     <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">UNLADEN WEIGHT</span>
                                                                     <span className="text-slate-900 font-black text-[9px] sm:text-[10px]">{weightNum} kg</span>
                                                                 </div>
 
-                                                                {/* Row: BASE RATE / KG */}
                                                                 <div className="flex justify-between items-center text-[10px]">
                                                                     <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">BASE RATE / KG</span>
                                                                     <span className="text-slate-900 font-black text-[9px] sm:text-[10px]">₹{ratePerKg} / kg</span>
                                                                 </div>
 
-                                                                {/* Solid Divider */}
                                                                 <div className="border-t border-slate-200 my-2" />
 
-                                                                {/* Items Container */}
                                                                 <div className="space-y-1.5">
-                                                                    {/* Itemized Rows */}
-                                                                    <div className="space-y-1">
-                                                                        <div className="flex justify-between items-center text-[10px]">
-                                                                            <span className="text-slate-600 font-medium text-[9px] sm:text-[10px]">Scrap Value Estimate (Average)</span>
-                                                                            <span className="text-slate-900 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">₹{formatCurrency(averageScrapValue)}</span>
-                                                                        </div>
-
-                                                                        <div className="flex justify-between items-center text-[10px]">
-                                                                            <span className="text-emerald-600 font-bold text-[9px] sm:text-[10px]">CD Certificate Advantage</span>
-                                                                            <span className="text-emerald-600 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">+ ₹{formatCurrency(potentialCDDiscount)}</span>
-                                                                        </div>
-
-                                                                        <div className="flex justify-between items-center text-[10px]">
-                                                                            <span className="text-slate-600 font-medium text-[9px] sm:text-[10px]">Dealer OEM Discount</span>
-                                                                            <span className="text-slate-900 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">+ ₹{formatCurrency(dealerOemDiscount)}</span>
-                                                                        </div>
-
-                                                                        <div className="flex justify-between items-center text-[10px]">
-                                                                            <span className="text-slate-600 font-medium text-[9px] sm:text-[10px]">Green Finance Savings</span>
-                                                                            <span className="text-slate-900 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">+ ₹{formatCurrency(greenFinanceSavings)}</span>
-                                                                        </div>
-
-                                                                        <div className="flex justify-between items-center text-[10px]">
-                                                                            <span className="text-slate-600 font-medium text-[9px] sm:text-[10px]">Green Insurance Savings</span>
-                                                                            <span className="text-slate-900 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">+ ₹{formatCurrency(greenInsuranceSavings)}</span>
-                                                                        </div>
+                                                                    <div className="space-y-1.5">
+                                                                        {[
+                                                                            { label: "Scrap Value Estimate (Average)", value: `₹${formatCurrency(averageScrapValue)}`, cls: "text-slate-600" },
+                                                                            { label: "CD Certificate Advantage", value: `+ ₹${formatCurrency(potentialCDDiscount)}`, cls: "text-emerald-600" },
+                                                                            { label: "Dealer OEM Discount", value: `+ ₹${formatCurrency(dealerOemDiscount)}`, cls: "text-slate-600" },
+                                                                            { label: "Green Finance Savings", value: `+ ₹${formatCurrency(greenFinanceSavings)}`, cls: "text-slate-600" },
+                                                                            { label: "Green Insurance Savings", value: `+ ₹${formatCurrency(greenInsuranceSavings)}`, cls: "text-slate-600" },
+                                                                        ].map(({ label, value, cls }) => (
+                                                                            <div key={label} className="flex justify-between items-center gap-2">
+                                                                                <span className={`${cls} font-medium text-[9px] sm:text-[10px] leading-tight`}>{label}</span>
+                                                                                <span className={`${cls} font-extrabold text-[9px] sm:text-[10px] shrink-0 filter blur-[5px] select-none pointer-events-none`}>{value}</span>
+                                                                            </div>
+                                                                        ))}
                                                                     </div>
 
-                                                                    {/* Dashed Divider */}
-                                                                    <div className="border-t border-dashed border-slate-350 my-2" />
+                                                                    <div className="border-t border-dashed border-slate-300 my-2" />
 
-                                                                    {/* Grand Total Benefit Card */}
-                                                                    <div className="bg-[#0f172a] rounded-lg p-2.5 text-white flex items-center justify-between border border-slate-800">
+                                                                    <div className="bg-[#0f172a] rounded-lg p-2.5 sm:p-3 text-white flex items-center justify-between border border-slate-800">
                                                                         <div>
-                                                                            <p className="text-[7px] font-black text-emerald-400 uppercase tracking-wider mb-0.5">GRAND TOTAL BENEFIT</p>
-                                                                            <p className="text-[7.5px] text-slate-300 font-medium">Scrap + CD + Partner Savings</p>
+                                                                            <p className="text-[7px] sm:text-[8px] font-black text-emerald-400 uppercase tracking-wider mb-0.5">GRAND TOTAL BENEFIT</p>
+                                                                            <p className="text-[7.5px] sm:text-[8.5px] text-slate-300 font-medium">Scrap + CD + Partner Savings</p>
                                                                         </div>
-                                                                        <span className="text-sm font-black text-white">₹{formatCurrency(grandTotalBenefit)}</span>
+                                                                        <span className="text-sm sm:text-base font-black text-white">₹{formatCurrency(grandTotalBenefit)}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
 
-                                                            {/* Footer Disclaimer */}
                                                             <p className="text-slate-400 text-[7.5px] sm:text-[8px] leading-normal italic border-t border-slate-200/80 pt-2 mt-2">
                                                                 *Honest pricing based on unladen weight and global indices. Our team will assist in redeeming maximum CD certificate value.
                                                             </p>
                                                         </div>
                                                     </div>
-
-
                                                 </div>
                                             );
                                         })()}
