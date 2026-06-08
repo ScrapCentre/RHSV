@@ -13,6 +13,7 @@ import { auth } from "@/lib/firebase"
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth"
 import { signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
+import confetti from "canvas-confetti"
 
 import { indiaData, states as STATES } from "@/lib/india-data"
 
@@ -169,6 +170,29 @@ const matchCityByName = (state: string, detectedCity: string): string => {
     return "";
 };
 
+const triggerConfetti = (durationSeconds: number) => {
+    if (typeof window === "undefined") return;
+    const duration = durationSeconds * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+    const randomInRange = (min: number, max: number) => {
+        return Math.random() * (max - min) + min;
+    };
+
+    const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+    }, 250);
+};
+
 // ─── Wizard Component ─────────────────────────────────────────────────────────
 
 export default function ValuationWizardCard() {
@@ -190,6 +214,12 @@ export default function ValuationWizardCard() {
     useEffect(() => {
         setQuoteId("SC-" + Math.random().toString(36).substr(2, 6).toUpperCase())
     }, [])
+
+    useEffect(() => {
+        if (serviceType === "scrap" && step === 7) {
+            triggerConfetti(2);
+        }
+    }, [step, serviceType]);
 
     // Form Data
     const [formData, setFormData] = useState({
@@ -408,7 +438,7 @@ export default function ValuationWizardCard() {
     }, []);
 
     useEffect(() => {
-        if (mode === "scrap-valuation" && formData.buyNew === "yes" && formData.desiredCompany && formData.desiredModel && !cdDiscount && !isFetchingPrice) {
+        if (formData.buyNew === "yes" && formData.desiredCompany && formData.desiredModel && !cdDiscount && !isFetchingPrice) {
             setIsFetchingPrice(true)
             fetch('/api/car-price', {
                 method: 'POST',
@@ -429,7 +459,28 @@ export default function ValuationWizardCard() {
                 })
                 .finally(() => setIsFetchingPrice(false))
         }
-    }, [mode, formData, cdDiscount, isFetchingPrice])
+    }, [formData.buyNew, formData.desiredCompany, formData.desiredModel, cdDiscount, isFetchingPrice])
+
+    // Scrap valuation calculations (shared between step 7 pre-auth and final page)
+    const weightNum = parseInt(String(formData.weight).replace(/\D/g, '')) || 1200;
+    const ratePerKg = baseScrapRate || 25;
+
+    // Scrap value estimates
+    const averageScrapValue = weightNum * ratePerKg;
+    const minScrapValue = Math.round((weightNum * Math.max(1, ratePerKg - 5)) / 100) * 100;
+    const maxScrapValue = Math.round((weightNum * (ratePerKg + 5)) / 100) * 100;
+
+    // CD certificate value
+    const potentialCDDiscount = cdDiscount !== null ? cdDiscount : 55000;
+
+    // Totals
+    const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
+    const dealerOemDiscount = 10000;
+    const greenFinanceSavings = 15000;
+    const greenInsuranceSavings = 8000;
+
+    const grandTotalBenefit = averageScrapValue + potentialCDDiscount + dealerOemDiscount + greenFinanceSavings + greenInsuranceSavings;
+    const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
 
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
     const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null)
@@ -836,6 +887,7 @@ export default function ValuationWizardCard() {
             await submitLeadData()
 
             toast({ title: "✅ Verified!", description: "Welcome to ScrapCentre. Your request has been saved." })
+            triggerConfetti(4);
             if (serviceType === "scrap") {
                 setMode("scrap-valuation")
             } else {
@@ -864,27 +916,6 @@ export default function ValuationWizardCard() {
     const totalSteps = (!serviceType ? 1 : (serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 9 - heroOffset : 8 - heroOffset) : 4)))
 
     if (mode === "scrap-valuation") {
-        // Calculate scrap value based on weight and baseScrapRate
-        const weightNum = parseInt(String(formData.weight).replace(/\D/g, '')) || 1200;
-        const ratePerKg = baseScrapRate || 25;
-
-        // Scrap value estimates
-        const averageScrapValue = weightNum * ratePerKg;
-        const minScrapValue = Math.round((weightNum * Math.max(1, ratePerKg - 5)) / 100) * 100;
-        const maxScrapValue = Math.round((weightNum * (ratePerKg + 5)) / 100) * 100;
-
-        // CD certificate value
-        const potentialCDDiscount = cdDiscount !== null ? cdDiscount : 55000;
-
-        // Totals
-        const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
-        const dealerOemDiscount = 10000;
-        const greenFinanceSavings = 15000;
-        const greenInsuranceSavings = 8000;
-
-        const grandTotalBenefit = averageScrapValue + potentialCDDiscount + dealerOemDiscount + greenFinanceSavings + greenInsuranceSavings;
-        const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
-
         return (
             <>
                 <div id="wizard-recaptcha-container"></div>
@@ -1022,7 +1053,6 @@ export default function ValuationWizardCard() {
 
                                         {/* Card 2: Dealer OEM Discount */}
                                         <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
-                                            <span className="absolute top-3 right-3 bg-amber-100 text-amber-800 text-[5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase tracking-wider scale-[0.8] origin-top-right">COMING SOON</span>
                                             <p className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-wider">DEALER OEM DISCOUNT</p>
                                             <p className="text-base sm:text-lg font-black text-slate-800 mt-0.5">Up to ₹{formatCurrency(dealerOemDiscount)}</p>
                                             <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mt-0.5 leading-tight">Scrappage exchange benefits</p>
@@ -1030,7 +1060,6 @@ export default function ValuationWizardCard() {
 
                                         {/* Card 3: Green Finance */}
                                         <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
-                                            <span className="absolute top-3 right-3 bg-amber-100 text-amber-800 text-[5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase tracking-wider scale-[0.8] origin-top-right">COMING SOON</span>
                                             <p className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-wider">GREEN FINANCE</p>
                                             <p className="text-base sm:text-lg font-black text-slate-800 mt-0.5">Up to ₹{formatCurrency(greenFinanceSavings)}</p>
                                             <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mt-0.5 leading-tight">Lower interest green loans</p>
@@ -1038,7 +1067,6 @@ export default function ValuationWizardCard() {
 
                                         {/* Card 4: Green Insurance */}
                                         <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
-                                            <span className="absolute top-3 right-3 bg-amber-100 text-amber-800 text-[5px] sm:text-[6px] font-black px-1 py-0.2 rounded uppercase tracking-wider scale-[0.8] origin-top-right">COMING SOON</span>
                                             <p className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-wider">GREEN INSURANCE</p>
                                             <p className="text-base sm:text-lg font-black text-slate-800 mt-0.5">Up to ₹{formatCurrency(greenInsuranceSavings)}</p>
                                             <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mt-0.5 leading-tight">Eco insurance rebates</p>
@@ -1097,28 +1125,19 @@ export default function ValuationWizardCard() {
                                                     <span className="text-emerald-600 font-extrabold text-[11px] sm:text-xs">+ ₹{formatCurrency(potentialCDDiscount)}</span>
                                                 </div>
 
-                                                <div className="flex justify-between items-center text-xs text-slate-400">
-                                                    <span className="flex items-center gap-1.5 italic text-[11px] sm:text-xs">
-                                                        Dealer OEM Discount
-                                                        <span className="bg-amber-100 text-amber-800 text-[5px] sm:text-[6px] font-black px-1.5 py-0.2 rounded uppercase tracking-wider not-italic">SOON</span>
-                                                    </span>
-                                                    <span className="font-bold italic text-[11px] sm:text-xs">+ ₹{formatCurrency(dealerOemDiscount)}</span>
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-slate-600 font-medium text-[11px] sm:text-xs">Dealer OEM Discount</span>
+                                                    <span className="text-slate-900 font-extrabold text-[11px] sm:text-xs">+ ₹{formatCurrency(dealerOemDiscount)}</span>
                                                 </div>
 
-                                                <div className="flex justify-between items-center text-xs text-slate-400">
-                                                    <span className="flex items-center gap-1.5 italic text-[11px] sm:text-xs">
-                                                        Green Finance Savings
-                                                        <span className="bg-amber-100 text-amber-800 text-[5px] sm:text-[6px] font-black px-1.5 py-0.2 rounded uppercase tracking-wider not-italic">SOON</span>
-                                                    </span>
-                                                    <span className="font-bold italic text-[11px] sm:text-xs">+ ₹{formatCurrency(greenFinanceSavings)}</span>
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-slate-600 font-medium text-[11px] sm:text-xs">Green Finance Savings</span>
+                                                    <span className="text-slate-900 font-extrabold text-[11px] sm:text-xs">+ ₹{formatCurrency(greenFinanceSavings)}</span>
                                                 </div>
 
-                                                <div className="flex justify-between items-center text-xs text-slate-400">
-                                                    <span className="flex items-center gap-1.5 italic text-[11px] sm:text-xs">
-                                                        Green Insurance Savings
-                                                        <span className="bg-amber-100 text-amber-800 text-[5px] sm:text-[6px] font-black px-1.5 py-0.2 rounded uppercase tracking-wider not-italic">SOON</span>
-                                                    </span>
-                                                    <span className="font-bold italic text-[11px] sm:text-xs">+ ₹{formatCurrency(greenInsuranceSavings)}</span>
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-slate-600 font-medium text-[11px] sm:text-xs">Green Insurance Savings</span>
+                                                    <span className="text-slate-900 font-extrabold text-[11px] sm:text-xs">+ ₹{formatCurrency(greenInsuranceSavings)}</span>
                                                 </div>
                                             </div>
 
@@ -1251,14 +1270,12 @@ export default function ValuationWizardCard() {
         )
     }
 
-
-
     return (
         <>
             <div id="wizard-recaptcha-container"></div>
-            <div className={`w-full ${(serviceType === "scrap" && step === 6) ? "max-w-4xl" : "max-w-2xl"} mx-auto px-4 transition-all duration-300`}>
+            <div className={`w-full ${(serviceType === "scrap" && step === 7) ? "max-w-4xl" : "max-w-2xl"} mx-auto px-4 transition-all duration-300`}>
                 <div className="bg-white border border-slate-200 rounded-[1rem] overflow-hidden shadow-2xl">
-                    <div className="bg-slate-50 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between">
+                    <div className="bg-slate-50 px-4 sm:px-6 py-2.5 sm:py-3 border-b border-slate-100 flex items-center justify-between">
                         <button onClick={prevStep} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#E31E24] transition-all"><ArrowLeft className="w-3.5 h-3.5" /></button>
                         <div className="flex flex-col items-center">
                             <span className="text-[9px] font-bold text-[#E31E24] uppercase tracking-widest mb-0.5">Step {currentStepDisplay()} of {totalSteps}</span>
@@ -1271,7 +1288,7 @@ export default function ValuationWizardCard() {
                         <motion.div initial={{ width: 0 }} animate={{ width: `${((currentStepDisplay()) / totalSteps) * 100}%` }} className="h-full bg-[#E31E24]" />
                     </div>
 
-                    <div className="relative p-4 sm:p-5 lg:p-6 min-h-[340px] flex flex-col justify-center">
+                    <div className="relative p-3.5 sm:p-4 lg:p-5 min-h-[300px] flex flex-col justify-center">
                         <AnimatePresence initial={false} custom={direction} mode="wait">
                             <motion.div key={serviceType ? `${serviceType}-${step}` : "selection"} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }} className="w-full">
 
@@ -1351,7 +1368,13 @@ export default function ValuationWizardCard() {
                                                                     <button
                                                                         key={b}
                                                                         type="button"
-                                                                        onClick={() => setFormData({ ...formData, desiredCompany: b })}
+                                                                        onClick={() => {
+                                                                            if (b !== "Other") {
+                                                                                setFormData({ ...formData, desiredCompany: b });
+                                                                            } else {
+                                                                                setFormData({ ...formData, desiredCompany: b });
+                                                                            }
+                                                                        }}
                                                                         className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${
                                                                             formData.desiredCompany === b 
                                                                                 ? 'border-[#E31E24] bg-red-50 shadow-sm' 
@@ -2091,13 +2114,6 @@ export default function ValuationWizardCard() {
                                         )}
 
                                         {step === 7 && (() => {
-                                            // Calculate scrap value estimates for pre-auth display
-                                            const weightNum7 = parseInt(String(formData.weight).replace(/\D/g, '')) || 1200;
-                                            const ratePerKg7 = baseScrapRate || 25;
-                                            const minScrap7 = Math.round((weightNum7 * Math.max(1, ratePerKg7 - 5)) / 100) * 100;
-                                            const maxScrap7 = Math.round((weightNum7 * (ratePerKg7 + 5)) / 100) * 100;
-                                            const formatCurr = (n: number) => n.toLocaleString('en-IN');
-
                                             return (
                                                 <div className="space-y-3">
                                                     <div className="text-center space-y-1 mb-2">
@@ -2109,157 +2125,200 @@ export default function ValuationWizardCard() {
                                                     </div>
 
                                                     {/* Two-Column Grid: Estimate + Unlock */}
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch mb-3">
+                                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch mb-2">
 
-                                                        {/* LEFT: Tier 1 Estimate Card */}
-                                                        <div className="bg-gradient-to-br from-[#122333] to-[#0c1622] rounded-[1rem] p-3.5 sm:p-4 text-white relative overflow-hidden shadow-lg border border-slate-800 flex flex-col justify-between min-h-[140px] md:min-h-0">
-                                                            {/* Decorative Watermark */}
-                                                            <div className="absolute top-0 right-0 w-24 h-24 bg-white/[0.02] rounded-full blur-2xl pointer-events-none"></div>
+                                                        {/* LEFT: Unlock Benefits Card */}
+                                                        <div className="md:col-span-7 bg-white border border-slate-200/80 rounded-[1rem] p-3 flex flex-col justify-between shadow-sm relative overflow-hidden space-y-2.5">
 
-                                                            <div>
-                                                                <div className="flex items-center justify-between mb-2">
-                                                                    <p className="text-[8px] sm:text-[9px] font-black text-amber-400 uppercase tracking-[0.15em] flex items-center gap-1">
-                                                                        <Zap className="w-3 h-3 fill-amber-400 text-amber-400 animate-pulse" />
-                                                                    </p>
-                                                                    {formData.regNo && (
-                                                                        <span className="bg-white/10 px-2 py-0.5 rounded-full text-[8px] font-mono tracking-widest text-slate-300 border border-white/5 uppercase">
-                                                                            {formData.regNo}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-
-                                                                <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-                                                                    {formData.brand || "HYUNDAI MOTOR"} {formData.model || "SANTRO"} SCRAP WORTH
-                                                                </p>
-
-                                                                <h4 className="text-xl sm:text-2xl font-black text-white leading-none tracking-tight my-1.5">
-                                                                    ₹{formatCurr(minScrap7)} – ₹{formatCurr(maxScrap7)}
+                                                            {/* Top Section: Current Estimated Valuation */}
+                                                            <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
+                                                                <span className="text-[7.5px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                                                    Your Current Estimated Valuation
+                                                                </span>
+                                                                <h4 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-none">
+                                                                    ₹{formatCurrency(minScrapValue)} – ₹{formatCurrency(maxScrapValue)}
                                                                 </h4>
                                                             </div>
 
-                                                            <p className="text-slate-400 text-[8px] leading-normal italic border-t border-white/10 pt-2 mt-1">
-                                                                *Honest ±20% scrap pricing based on {weightNum7}kg unladen weight and global scrap metal indices. No single inflated numbers.
-                                                            </p>
-                                                        </div>
-
-                                                        {/* RIGHT: Unlock Benefits Card */}
-                                                        <div className="bg-white border border-slate-200/80 rounded-[1rem] p-3.5 sm:p-4 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden">
-
-                                                            <h4 className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest mb-0.5">{otpSent ? "VERIFY IDENTITY" : "UNLOCK CD BENEFITS"}</h4>
-                                                            <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mb-2 leading-tight max-w-xs">
-                                                                {otpSent ? "Enter the OTP sent to your phone." : "Enter your phone number to unlock your CD certificate and partner benefits."}
-                                                            </p>
-
-                                                            <div className="w-full space-y-1.5 max-w-xs">
-                                                                <div className="relative">
-                                                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">+91</span>
-                                                                    <input
-                                                                        type="tel"
-                                                                        disabled={otpSent}
-                                                                        placeholder="10-digit number"
-                                                                        value={formData.phone}
-                                                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                                                                        className="w-full pl-11 pr-3 py-1.5 bg-slate-50 border border-slate-200 focus:border-[#E31E24]/60 focus:bg-white rounded-lg text-xs font-bold text-slate-900 focus:outline-none transition-all disabled:opacity-50"
-                                                                        maxLength={10}
-                                                                    />
+                                                            {/* Middle Section: Phone Verification / OTP */}
+                                                            <div className="flex flex-col items-center text-center space-y-2">
+                                                                <div>
+                                                                    <h4 className="text-xs sm:text-sm font-black text-[#E31E24] uppercase tracking-wider mb-1">{otpSent ? "VERIFY IDENTITY" : "UNLOCK CD BENEFITS"}</h4>
+                                                                    <p className="text-[10px] sm:text-[11px] text-slate-500 font-semibold leading-relaxed max-w-xs">
+                                                                        {otpSent ? "Enter the OTP sent to your phone." : "Enter your phone number to unlock your CD certificate and partner benefits."}
+                                                                    </p>
                                                                 </div>
 
-                                                                {otpSent && (
-                                                                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
+                                                                <div className="w-full space-y-2 max-w-xs">
+                                                                    <div className="relative">
+                                                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
                                                                         <input
                                                                             type="tel"
-                                                                            placeholder={isSandboxMode ? "Use: 000000" : "••••••"}
-                                                                            value={formData.otp}
-                                                                            onChange={(e) => setFormData({ ...formData, otp: e.target.value.slice(0, 6) })}
-                                                                            className="w-full px-3 py-1.5 bg-slate-50 border border-[#E31E24]/30 rounded-lg text-base text-center font-black tracking-[0.35em] text-slate-900 focus:outline-none focus:border-[#E31E24]"
-                                                                            maxLength={6}
-                                                                            autoFocus
+                                                                            disabled={otpSent}
+                                                                            placeholder="10-digit number"
+                                                                            value={formData.phone}
+                                                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                                                                            className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-[#E31E24]/60 focus:bg-white rounded-lg text-sm font-bold text-slate-900 focus:outline-none transition-all disabled:opacity-50"
+                                                                            maxLength={10}
                                                                         />
-                                                                        {isSandboxMode && (
-                                                                            <p className="text-[8px] text-amber-600 font-bold">⚡ Sandbox mode — enter 000000</p>
+                                                                    </div>
+
+                                                                    {otpSent && (
+                                                                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1">
+                                                                            <input
+                                                                                type="tel"
+                                                                                placeholder={isSandboxMode ? "Use: 000000" : "••••••"}
+                                                                                value={formData.otp}
+                                                                                onChange={(e) => setFormData({ ...formData, otp: e.target.value.slice(0, 6) })}
+                                                                                className="w-full px-3 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-lg text-lg text-center font-black tracking-[0.35em] text-slate-900 focus:outline-none focus:border-[#E31E24]"
+                                                                                maxLength={6}
+                                                                                autoFocus
+                                                                            />
+                                                                            {isSandboxMode && (
+                                                                                <p className="text-[8px] text-amber-600 font-bold">⚡ Sandbox mode — enter 000000</p>
+                                                                            )}
+                                                                            <button
+                                                                                onClick={() => { setOtpSent(false); setFormData({ ...formData, otp: "" }); setIsSandboxMode(false); }}
+                                                                                className="text-[9px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
+                                                                                type="button"
+                                                                            >
+                                                                                Change Number
+                                                                            </button>
+                                                                        </motion.div>
+                                                                    )}
+
+                                                                    <button
+                                                                        disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying}
+                                                                        onClick={otpSent ? handleVerifyOtp : handleSendOtp}
+                                                                        className="w-full py-2.5 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-lg shadow-md shadow-red-500/25 transition-all uppercase text-[10.5px] sm:text-xs tracking-widest flex items-center justify-center gap-1.5"
+                                                                    >
+                                                                        {isSendingOtp || isVerifying ? <Loader2 className="w-3 animate-spin" /> : (otpSent ? "VERIFY & GET VALUATION" : "GET OTP")}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Bottom Section: Grand Total Benefit */}
+                                                            <div className="w-full bg-gradient-to-br from-[#122333] to-[#0c1622] border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center text-center space-y-1.5 relative overflow-hidden shadow-lg">
+                                                                {/* Glowing backdrop circle */}
+                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                                                                
+                                                                <span className="text-[8.5px] sm:text-[9.5px] font-black text-emerald-400 uppercase tracking-[0.2em] relative z-10">
+                                                                    GRAND TOTAL BENEFIT
+                                                                </span>
+                                                                <div className="relative z-10 flex items-center gap-1.5 animate-[pulse_2s_infinite]">
+                                                                    <span className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-sm">
+                                                                        ₹{formatCurrency(grandTotalBenefit)}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full shadow-inner">
+                                                                    <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                                                    <span className="text-[9px] sm:text-[10px] font-extrabold text-amber-300 uppercase tracking-wider leading-none">
+                                                                        To unlock this value verify your number
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* RIGHT: Benefit Summary Receipt — white color theme values locked */}
+                                                        <div className="md:col-span-5 bg-[#f8fafc] border border-slate-200/80 rounded-[1rem] p-3 flex flex-col justify-between min-h-[250px] shadow-inner text-slate-800 relative overflow-hidden">
+                                                            {/* Decorative Watermark */}
+                                                            <div className="absolute top-0 right-0 w-24 h-24 bg-slate-200/[0.1] rounded-full blur-2xl pointer-events-none"></div>
+
+                                                            <div className="space-y-2 relative">
+                                                                {/* Receipt Header */}
+                                                                <div className="flex items-start justify-between">
+                                                                    <div>
+                                                                        <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">EST. INVOICE</p>
+                                                                        <h4 className="text-slate-900 font-black text-xs sm:text-sm leading-tight uppercase tracking-tight">BENEFIT SUMMARY RECEIPT</h4>
+                                                                    </div>
+                                                                    <div className="flex flex-col items-end gap-1">
+                                                                        <span className="bg-red-50 text-red-500 border border-red-150 text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">EST-BILL</span>
+                                                                        {formData.regNo && (
+                                                                            <span className="bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded text-[7px] font-mono tracking-widest uppercase">
+                                                                                {formData.regNo}
+                                                                            </span>
                                                                         )}
-                                                                        <button
-                                                                            onClick={() => { setOtpSent(false); setFormData({ ...formData, otp: "" }); setIsSandboxMode(false); }}
-                                                                            className="text-[8px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
-                                                                        >
-                                                                            Change Number
-                                                                        </button>
-                                                                    </motion.div>
-                                                                )}
+                                                                    </div>
+                                                                </div>
 
-                                                                <button
-                                                                    disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying}
-                                                                    onClick={otpSent ? handleVerifyOtp : handleSendOtp}
-                                                                    className="w-full py-2 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-lg shadow-md shadow-red-500/25 transition-all uppercase text-[9px] tracking-widest flex items-center justify-center gap-1.5"
-                                                                >
-                                                                    {isSendingOtp || isVerifying ? <Loader2 className="w-3 animate-spin" /> : (otpSent ? "VERIFY & GET VALUATION" : "GET OTP")}
-                                                                </button>
+                                                                {/* Dotted Divider */}
+                                                                <div className="border-t border-dashed border-slate-350 my-2" />
+
+                                                                {/* Row: SCRAP VEHICLE */}
+                                                                <div className="flex justify-between items-start gap-4 text-[10px]">
+                                                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">SCRAP VEHICLE</span>
+                                                                    <span className="text-slate-900 font-black text-right uppercase max-w-[150px] leading-tight text-[9px] sm:text-[10px]">
+                                                                        {formData.brand || "HYUNDAI MOTOR INDIA LTD"} {formData.model || "SANTRO XG"} ({formData.year || "2005"})
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Row: UNLADEN WEIGHT */}
+                                                                <div className="flex justify-between items-center text-[10px]">
+                                                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">UNLADEN WEIGHT</span>
+                                                                    <span className="text-slate-900 font-black text-[9px] sm:text-[10px]">{weightNum} kg</span>
+                                                                </div>
+
+                                                                {/* Row: BASE RATE / KG */}
+                                                                <div className="flex justify-between items-center text-[10px]">
+                                                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">BASE RATE / KG</span>
+                                                                    <span className="text-slate-900 font-black text-[9px] sm:text-[10px]">₹{ratePerKg} / kg</span>
+                                                                </div>
+
+                                                                {/* Solid Divider */}
+                                                                <div className="border-t border-slate-200 my-2" />
+
+                                                                {/* Items Container */}
+                                                                <div className="space-y-1.5">
+                                                                    {/* Itemized Rows */}
+                                                                    <div className="space-y-1">
+                                                                        <div className="flex justify-between items-center text-[10px]">
+                                                                            <span className="text-slate-600 font-medium text-[9px] sm:text-[10px]">Scrap Value Estimate (Average)</span>
+                                                                            <span className="text-slate-900 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">₹{formatCurrency(averageScrapValue)}</span>
+                                                                        </div>
+
+                                                                        <div className="flex justify-between items-center text-[10px]">
+                                                                            <span className="text-emerald-600 font-bold text-[9px] sm:text-[10px]">CD Certificate Advantage</span>
+                                                                            <span className="text-emerald-600 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">+ ₹{formatCurrency(potentialCDDiscount)}</span>
+                                                                        </div>
+
+                                                                        <div className="flex justify-between items-center text-[10px]">
+                                                                            <span className="text-slate-600 font-medium text-[9px] sm:text-[10px]">Dealer OEM Discount</span>
+                                                                            <span className="text-slate-900 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">+ ₹{formatCurrency(dealerOemDiscount)}</span>
+                                                                        </div>
+
+                                                                        <div className="flex justify-between items-center text-[10px]">
+                                                                            <span className="text-slate-600 font-medium text-[9px] sm:text-[10px]">Green Finance Savings</span>
+                                                                            <span className="text-slate-900 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">+ ₹{formatCurrency(greenFinanceSavings)}</span>
+                                                                        </div>
+
+                                                                        <div className="flex justify-between items-center text-[10px]">
+                                                                            <span className="text-slate-600 font-medium text-[9px] sm:text-[10px]">Green Insurance Savings</span>
+                                                                            <span className="text-slate-900 font-extrabold text-[9px] sm:text-[10px] filter blur-[5px] select-none pointer-events-none">+ ₹{formatCurrency(greenInsuranceSavings)}</span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Dashed Divider */}
+                                                                    <div className="border-t border-dashed border-slate-350 my-2" />
+
+                                                                    {/* Grand Total Benefit Card */}
+                                                                    <div className="bg-[#0f172a] rounded-lg p-2.5 text-white flex items-center justify-between border border-slate-800">
+                                                                        <div>
+                                                                            <p className="text-[7px] font-black text-emerald-400 uppercase tracking-wider mb-0.5">GRAND TOTAL BENEFIT</p>
+                                                                            <p className="text-[7.5px] text-slate-300 font-medium">Scrap + CD + Partner Savings</p>
+                                                                        </div>
+                                                                        <span className="text-sm font-black text-white">₹{formatCurrency(grandTotalBenefit)}</span>
+                                                                    </div>
+                                                                </div>
                                                             </div>
+
+                                                            {/* Footer Disclaimer */}
+                                                            <p className="text-slate-400 text-[7.5px] sm:text-[8px] leading-normal italic border-t border-slate-200/80 pt-2 mt-2">
+                                                                *Honest pricing based on unladen weight and global indices. Our team will assist in redeeming maximum CD certificate value.
+                                                            </p>
                                                         </div>
                                                     </div>
 
-                                                    {/* Locked Benefit Cards Grid - 4 Columns on Desktop for a wide professional layout */}
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2.5 border-t border-slate-100">
-                                                        {/* Card 1: CD Benefits */}
-                                                        <div className="bg-[#fcfdfd]/60 border border-slate-200/80 rounded-lg p-2 relative overflow-hidden shadow-sm flex flex-col justify-center select-none cursor-not-allowed group/benefit">
-                                                            <div className="filter blur-[3.5px] transition-all">
-                                                                <div className="flex items-center justify-between mb-0.5">
-                                                                    <span className="text-[#E31E24]/80 text-[13px] sm:text-sm font-black tracking-tight">₹55,000</span>
-                                                                    <Lock className="w-3 h-3 text-slate-400 shrink-0" />
-                                                                </div>
-                                                                <p className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">UNLOCK CD BENEFITS</p>
-                                                            </div>
-                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[1px] transition-colors group-hover/benefit:bg-white/20">
-                                                                <Lock className="w-4 h-4 text-[#E31E24]/95 drop-shadow-sm" />
-                                                                <span className="text-[6.5px] font-black text-[#E31E24] mt-0.5 tracking-widest uppercase">VERIFY TO UNLOCK</span>
-                                                            </div>
-                                                        </div>
 
-                                                        {/* Card 2: Dealer Discount */}
-                                                        <div className="bg-[#fcfdfd]/60 border border-slate-200/80 rounded-lg p-2 relative overflow-hidden shadow-sm flex flex-col justify-center select-none cursor-not-allowed group/benefit">
-                                                            <div className="filter blur-[3.5px] transition-all">
-                                                                <div className="flex items-center justify-between mb-0.5">
-                                                                    <span className="text-[#E31E24]/80 text-[13px] sm:text-sm font-black tracking-tight">₹10,000</span>
-                                                                    <Lock className="w-3 h-3 text-slate-400 shrink-0" />
-                                                                </div>
-                                                                <p className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">VERIFY TO UNLOCK</p>
-                                                            </div>
-                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[1px] transition-colors group-hover/benefit:bg-white/20">
-                                                                <Lock className="w-4 h-4 text-[#E31E24]/95 drop-shadow-sm" />
-                                                                <span className="text-[6.5px] font-black text-[#E31E24] mt-0.5 tracking-widest uppercase">VERIFY TO UNLOCK</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Card 3: Green Finance */}
-                                                        <div className="bg-[#fcfdfd]/60 border border-slate-200/80 rounded-lg p-2 relative overflow-hidden shadow-sm flex flex-col justify-center select-none cursor-not-allowed group/benefit">
-                                                            <div className="filter blur-[3.5px] transition-all">
-                                                                <div className="flex items-center justify-between mb-0.5">
-                                                                    <span className="text-[#E31E24]/80 text-[13px] sm:text-sm font-black tracking-tight">₹15,000</span>
-                                                                    <Lock className="w-3 h-3 text-slate-400 shrink-0" />
-                                                                </div>
-                                                                <p className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">VERIFY TO UNLOCK</p>
-                                                            </div>
-                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[1px] transition-colors group-hover/benefit:bg-white/20">
-                                                                <Lock className="w-4 h-4 text-[#E31E24]/95 drop-shadow-sm" />
-                                                                <span className="text-[6.5px] font-black text-[#E31E24] mt-0.5 tracking-widest uppercase">VERIFY TO UNLOCK</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Card 4: Green Insurance */}
-                                                        <div className="bg-[#fcfdfd]/60 border border-slate-200/80 rounded-lg p-2 relative overflow-hidden shadow-sm flex flex-col justify-center select-none cursor-not-allowed group/benefit">
-                                                            <div className="filter blur-[3.5px] transition-all">
-                                                                <div className="flex items-center justify-between mb-0.5">
-                                                                    <span className="text-[#E31E24]/80 text-[13px] sm:text-sm font-black tracking-tight">₹8,000</span>
-                                                                    <Lock className="w-3 h-3 text-slate-400 shrink-0" />
-                                                                </div>
-                                                                <p className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">VERIFY TO UNLOCK</p>
-                                                            </div>
-                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[1px] transition-colors group-hover/benefit:bg-white/20">
-                                                                <Lock className="w-4 h-4 text-[#E31E24]/95 drop-shadow-sm" />
-                                                                <span className="text-[6.5px] font-black text-[#E31E24] mt-0.5 tracking-widest uppercase">VERIFY TO UNLOCK</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
                                                 </div>
                                             );
                                         })()}
