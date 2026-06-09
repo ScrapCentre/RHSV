@@ -1,0 +1,721 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+    Building2, Loader2, Calendar, Check, X, 
+    MessageSquare, AlertCircle, Sparkles, ShieldCheck, Mail, Phone, 
+    Car, Trash2, Clock, CheckCircle
+} from "lucide-react"
+import { Plus_Jakarta_Sans } from "next/font/google"
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800"],
+})
+
+interface UnlockedLead {
+    _id: string
+    leadId: string
+    leadSource: string
+    partnerId: string
+    customerId?: string
+    customerName?: string
+    customerEmail?: string
+    customerPhone?: string
+    vehicleInfo?: string
+    unlockedAt: string
+    status: string
+    chatThreadId?: string | null
+    assignedCcId?: string
+    assignedCcName?: string
+    pickupStatus?: string
+    amount?: number
+}
+
+function getCategoryBadge(lead: UnlockedLead) {
+    const source = lead.leadSource
+    if (source === "ExchangeVehicle") {
+        return { label: "Exchange Vehicle", color: "text-purple-700 bg-purple-50 border-purple-100" }
+    } else if (source === "BuyVehicle") {
+        return { label: "Buy New Vehicle", color: "text-orange-700 bg-orange-50 border-orange-100" }
+    } else if (source === "WizardLead") {
+        return { label: "Scrap Vehicle", color: "text-blue-700 bg-blue-50 border-blue-100" }
+    } else {
+        // Valuation or anything else → Scrap Vehicle
+        return { label: "Scrap Vehicle", color: "text-blue-700 bg-blue-50 border-blue-100" }
+    }
+}
+
+function getStatusBadge(status: string) {
+    switch (status) {
+        case "pending_decision":
+            return { label: "Pending Decision", color: "text-amber-700 bg-amber-50 border-amber-100" }
+        case "accepted":
+            return { label: "Accepted", color: "text-blue-700 bg-blue-50 border-blue-100" }
+        case "assigned_to_cc":
+            return { label: "Assigned to CC", color: "text-emerald-700 bg-emerald-50 border-emerald-105" }
+        default:
+            return { label: status, color: "text-slate-700 bg-slate-50 border-slate-100" }
+    }
+}
+
+export default function PersonalDashboardPage() {
+    const { data: session, status } = useSession()
+    const router = useRouter()
+    const [stats, setStats] = useState<{ totalCCs: number, rvsfId?: string, partnerId?: string, name: string } | null>(null)
+    const [unlockedLeads, setUnlockedLeads] = useState<UnlockedLead[]>([])
+    const [loading, setLoading] = useState(true)
+    const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+    const [activeTab, setActiveTab] = useState<"all" | "pending" | "active">("all")
+    
+    // Rejection Modal State
+    const [rejectingLead, setRejectingLead] = useState<UnlockedLead | null>(null)
+    const [rejectionReason, setRejectionReason] = useState("")
+    const [rejectError, setRejectError] = useState<string | null>(null)
+
+    // Main error state
+    const [dashboardError, setDashboardError] = useState<string | null>(null)
+
+    // CC Assignment Modal State
+    const [assigningLead, setAssigningLead] = useState<any | null>(null)
+    const [ccsList, setCcsList] = useState<any[] | null>(null)
+    const [ccsLoading, setCcsLoading] = useState(false)
+    const [selectedCcId, setSelectedCcId] = useState("")
+    const [isAssigningSubmit, setIsAssigningSubmit] = useState(false)
+
+    const openAssignModal = async (lead: any) => {
+        setAssigningLead(lead)
+        setSelectedCcId("")
+        setCcsLoading(true)
+        try {
+            const res = await fetch(`/api/personal/unlocked-leads/${lead._id}/ccs-with-distance`)
+            if (res.ok) {
+                const data = await res.json()
+                setCcsList(data.ccs || [])
+                if (data.ccs?.length > 0) {
+                    setSelectedCcId(data.ccs[0]._id)
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching CCs with distance:", err)
+        } finally {
+            setCcsLoading(false)
+        }
+    }
+
+    const handleAssignConfirm = async () => {
+        if (!assigningLead || !selectedCcId) return
+        setIsAssigningSubmit(true)
+        setDashboardError(null)
+        try {
+            const res = await fetch(`/api/personal/unlocked-leads/${assigningLead._id}/assign`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ccId: selectedCcId })
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.message || "Failed to assign lead")
+            
+            setUnlockedLeads(prev => 
+                prev.map(l => l._id === assigningLead._id ? { 
+                    ...l, 
+                    status: "assigned_to_cc", 
+                    assignedCcId: data.assignedCcId, 
+                    assignedCcName: data.assignedCcName,
+                    pickupStatus: "Awaiting Pickup"
+                } : l)
+            )
+            setAssigningLead(null)
+        } catch (err: any) {
+            console.error("Assignment error:", err)
+            setDashboardError(err.message || "An error occurred while assigning lead")
+        } finally {
+            setIsAssigningSubmit(false)
+        }
+    }
+
+    useEffect(() => {
+        if (status === "unauthenticated") router.push("/personal")
+        if (status === "authenticated" && (session?.user as any)?.role !== "partner") router.push("/personal")
+    }, [session, status, router])
+
+    const fetchDashboardData = async () => {
+        if (status !== "authenticated") return
+        try {
+            setLoading(true)
+            const [statsRes, leadsRes] = await Promise.all([
+                fetch("/api/personal/stats"),
+                fetch("/api/personal/unlocked-leads")
+            ])
+            
+            if (statsRes.ok) {
+                const statsData = await statsRes.json()
+                setStats(statsData)
+            }
+            
+            if (leadsRes.ok) {
+                const leadsData = await leadsRes.json()
+                setUnlockedLeads(leadsData.leads || [])
+            }
+        } catch (error) {
+            console.error("Error loading dashboard data:", error)
+            setDashboardError("Failed to fetch dashboard data. Please try again.")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchDashboardData()
+    }, [status])
+
+    // Accept Handler
+    const handleAccept = async (leadId: string) => {
+        setActionLoadingId(leadId)
+        setDashboardError(null)
+        try {
+            const res = await fetch(`/api/personal/unlocked-leads/${leadId}/accept`, {
+                method: "POST"
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.message || "Failed to accept lead")
+            
+            // Update local state atomically
+            setUnlockedLeads(prev => 
+                prev.map(l => l._id === leadId ? { ...l, status: "accepted" } : l)
+            )
+        } catch (error: any) {
+            console.error(error)
+            setDashboardError(error.message || "An error occurred while accepting lead")
+        } finally {
+            setActionLoadingId(null)
+        }
+    }
+
+    // Open Rejection Dialog
+    const openRejectModal = (lead: UnlockedLead) => {
+        setRejectingLead(lead)
+        setRejectionReason("")
+        setRejectError(null)
+    }
+
+    // Submit Rejection
+    const handleRejectSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!rejectingLead) return
+        if (!rejectionReason.trim()) {
+            setRejectError("Rejection reason is required")
+            return
+        }
+
+        setActionLoadingId(rejectingLead._id)
+        setRejectError(null)
+
+        try {
+            const res = await fetch(`/api/personal/unlocked-leads/${rejectingLead._id}/reject`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ rejectionReason })
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.message || "Failed to reject lead")
+
+            // Remove/update locally
+            setUnlockedLeads(prev => 
+                prev.filter(l => l._id !== rejectingLead._id)
+            )
+            setRejectingLead(null)
+        } catch (error: any) {
+            console.error(error)
+            setRejectError(error.message || "An error occurred while rejecting lead")
+        } finally {
+            setActionLoadingId(null)
+        }
+    }
+
+    if (status === "loading" || loading) {
+        return (
+            <div className={`${plusJakartaSans.className} flex items-center justify-center h-48`}>
+                <Loader2 className="w-6 h-6 animate-spin text-[#E31E24]" />
+            </div>
+        )
+    }
+
+    const pendingLeads = unlockedLeads.filter(l => l.status === "pending_decision")
+    const activeLeads = unlockedLeads.filter(l => l.status === "accepted" || l.status === "assigned_to_cc")
+
+    const filteredLeads = unlockedLeads.filter(l => {
+        if (activeTab === "pending") return l.status === "pending_decision"
+        if (activeTab === "active") return l.status === "accepted" || l.status === "assigned_to_cc"
+        return true
+    })
+
+    return (
+        <div className={`${plusJakartaSans.className} space-y-6 max-w-6xl text-slate-800`}>
+            {/* Header banner */}
+            <motion.div 
+                initial={{ opacity: 0, y: -5 }} 
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white border border-slate-100 rounded-xl p-5 relative overflow-hidden shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+            >
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none hidden sm:block">
+                    <Sparkles className="w-20 h-20 text-slate-900" />
+                </div>
+                
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                        <CheckCircle className="w-5 h-5 text-emerald-600" />
+                        <h1 className="text-xl font-black text-slate-800 tracking-tight leading-none uppercase">Personal Leads</h1>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium">All personal leads from all categories.</p>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Partner ID:</span>
+                    <span className="text-[10px] font-mono font-bold text-[#E31E24] bg-[#E31E24]/5 px-2.5 py-0.5 rounded border border-[#E31E24]/10">
+                        {stats?.partnerId || stats?.rvsfId || (session?.user as any)?.partnerId || "—"}
+                    </span>
+                </div>
+            </motion.div>
+
+            {/* Error Message */}
+            {dashboardError && (
+                <div className="bg-red-50 border border-red-100 text-red-700 py-2.5 px-4 rounded-xl flex items-center gap-3">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <p className="text-xs font-semibold">{dashboardError}</p>
+                </div>
+            )}
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <motion.div 
+                    initial={{ opacity: 0, y: 5 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: 0.05 }}
+                    className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:border-[#E31E24]/15 hover:shadow transition-all duration-300 flex items-center gap-4"
+                >
+                    <div className="w-8 h-8 rounded-lg bg-[#E31E24]/5 border border-[#E31E24]/10 flex items-center justify-center shrink-0">
+                        <Building2 className="w-4.5 h-4.5 text-[#E31E24]" />
+                    </div>
+                    <div className="space-y-0.5">
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Centers</span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-xl font-bold text-slate-800 leading-none">{stats?.totalCCs ?? "0"}</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Active Collection Centers</span>
+                        </div>
+                    </div>
+                </motion.div>
+
+                <motion.div 
+                    initial={{ opacity: 0, y: 5 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: 0.1 }}
+                    className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:border-[#E31E24]/15 hover:shadow transition-all duration-300 flex items-center gap-4"
+                >
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/5 border border-amber-500/10 flex items-center justify-center shrink-0">
+                        <Clock className="w-4.5 h-4.5 text-amber-500" />
+                    </div>
+                    <div className="space-y-0.5">
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Unresolved</span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-xl font-bold text-slate-800 leading-none">{pendingLeads.length}</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Leads Awaiting Decision</span>
+                        </div>
+                    </div>
+                </motion.div>
+
+                <motion.div 
+                    initial={{ opacity: 0, y: 5 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: 0.15 }}
+                    className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:border-[#E31E24]/15 hover:shadow transition-all duration-300 flex items-center gap-4"
+                >
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-4.5 h-4.5 text-emerald-500" />
+                    </div>
+                    <div className="space-y-0.5">
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Active</span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-xl font-bold text-slate-800 leading-none">{activeLeads.length}</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Scraping Operations</span>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+
+            <hr className="border-slate-100" />
+
+            {/* Tab Switched Header Row */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex bg-slate-100 dark:bg-slate-900 rounded-xl p-1 border border-slate-200/50 self-start">
+                    <button
+                        onClick={() => setActiveTab("all")}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                            activeTab === "all"
+                                ? "bg-[#E31E24] text-white shadow-sm"
+                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                        }`}
+                    >
+                        All Categories ({unlockedLeads.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("pending")}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                            activeTab === "pending"
+                                ? "bg-[#E31E24] text-white shadow-sm"
+                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                        }`}
+                    >
+                        Pending Decision ({pendingLeads.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("active")}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                            activeTab === "active"
+                                ? "bg-[#E31E24] text-white shadow-sm"
+                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                        }`}
+                    >
+                        Active Operations ({activeLeads.length})
+                    </button>
+                </div>
+            </div>
+
+            {/* Leads Listing */}
+            {filteredLeads.length === 0 ? (
+                <div className="bg-white border border-slate-150 border-dashed rounded-2xl p-12 text-center shadow-sm">
+                    <p className="text-slate-400 font-bold text-sm">No leads in this view</p>
+                    <p className="text-xs text-slate-400 mt-1 font-medium">Browse and claim leads from the Market Feed to get started!</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredLeads.map(lead => {
+                        const cat = getCategoryBadge(lead)
+                        const stat = getStatusBadge(lead.status)
+                        const isPending = lead.status === "pending_decision"
+
+                        return (
+                            <motion.div 
+                                key={lead._id}
+                                layout
+                                className="bg-white border border-slate-100 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300"
+                            >
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center gap-2">
+                                        <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full border ${cat.color}`}>
+                                            {cat.label}
+                                        </span>
+                                        <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full border ${stat.color}`}>
+                                            {stat.label}
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 text-xs leading-normal">
+                                            {lead.vehicleInfo || "Vehicle Details"}
+                                        </h3>
+                                        <div className="flex items-center gap-1.5 text-[10px] text-slate-450 mt-1.5">
+                                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                            <span className="font-medium">Claimed: {new Date(lead.unlockedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Obfuscated contact or details based on status */}
+                                    {isPending ? (
+                                        <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1 text-[10px] text-slate-500">
+                                            <div className="flex items-center gap-1.5">
+                                                <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                                <span className="filter blur-[4px] select-none font-medium">xxxx@xxxx.com</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                                                <span className="filter blur-[4px] select-none font-medium font-mono">+91 xxxxxxxxxx</span>
+                                            </div>
+                                            <div className="mt-1 pt-1 border-t border-slate-200/50 text-[9px] text-amber-600 font-bold">
+                                                *Accept the lead to reveal customer details and begin chats.
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5 text-[10px] text-slate-650">
+                                            <p className="font-bold text-slate-800 pb-1 border-b border-slate-200/50 flex items-center gap-1">
+                                                <Car className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
+                                                {lead.customerName || "Customer Details"}
+                                            </p>
+                                            <div className="flex items-center gap-1.5 mt-1">
+                                                <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                                <span className="font-medium select-all">{lead.customerEmail || "No Email Provided"}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                                <span className="font-medium font-mono select-all">{lead.customerPhone || "No Phone Provided"}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex gap-2.5 mt-4 pt-4 border-t border-slate-100">
+                                    {isPending ? (
+                                        <>
+                                            <button 
+                                                onClick={() => handleAccept(lead._id)}
+                                                disabled={actionLoadingId === lead._id}
+                                                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-wait shadow-sm shadow-emerald-600/5"
+                                            >
+                                                {actionLoadingId === lead._id ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : (
+                                                    <Check className="w-3.5 h-3.5" />
+                                                )}
+                                                Accept Lead
+                                            </button>
+                                            <button 
+                                                onClick={() => openRejectModal(lead)}
+                                                disabled={actionLoadingId === lead._id}
+                                                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-red-50 hover:bg-red-100 border border-red-100 text-[#E31E24] font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                                            >
+                                                <X className="w-3 h-3" />
+                                                Reject Lead
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Link href={lead.chatThreadId ? `/personal/chat/${lead.chatThreadId}` : "/personal/chats"} className="flex-1">
+                                                <button className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all shadow-sm shadow-red-600/5 h-full">
+                                                    <MessageSquare className="w-3.5 h-3.5" />
+                                                    Open Chat Thread
+                                                </button>
+                                            </Link>
+                                            <div className="flex-1">
+                                                {lead.assignedCcId ? (
+                                                    <button 
+                                                        onClick={() => openAssignModal(lead)}
+                                                        className="w-full flex flex-col items-center justify-center py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-900 font-bold text-[9px] rounded-lg active:scale-[0.98] transition-all h-full"
+                                                    >
+                                                        <span className="flex items-center gap-1">
+                                                            <Building2 className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
+                                                            Assigned: {lead.assignedCcName || "CC"}
+                                                        </span>
+                                                        {lead.pickupStatus && (
+                                                            <span className="text-[7.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-100 mt-0.5 uppercase tracking-wider">
+                                                                {lead.pickupStatus}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                ) : (
+                                                    <button 
+                                                        onClick={() => openAssignModal(lead)}
+                                                        className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all h-full"
+                                                    >
+                                                        <Building2 className="w-3.5 h-3.5 text-[#E31E24]" />
+                                                        Assign CC
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )
+                    })}
+                </div>
+            )}
+
+            {/* ── REJECTION / REFUND REASON MODAL ─────────────────────── */}
+            <AnimatePresence>
+                {rejectingLead && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            onClick={() => setRejectingLead(null)}
+                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        />
+
+                        {/* Modal Box */}
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white border border-slate-100 w-full max-w-sm rounded-xl p-5 relative z-10 shadow-2xl space-y-3.5"
+                        >
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-[#E31E24] shrink-0">
+                                        <AlertCircle className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 text-xs">Reject Lead</h3>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5 leading-none">Lead: {rejectingLead.vehicleInfo}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setRejectingLead(null)}
+                                    className="p-1 rounded text-slate-400 hover:text-slate-650 hover:bg-slate-50 transition-all shrink-0"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleRejectSubmit} className="space-y-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">
+                                        Why are you rejecting this lead?
+                                    </label>
+                                    <textarea 
+                                        value={rejectionReason}
+                                        onChange={(e) => setRejectionReason(e.target.value)}
+                                        rows={3}
+                                        placeholder="Detailed reason for rejection."
+                                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#E31E24] rounded-lg p-2.5 text-[11px] text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#E31E24] transition-all placeholder:text-slate-400"
+                                    />
+                                    <p className="text-[9px] text-slate-400 leading-normal">
+                                        *The lead will be returned to the marketplace and will no longer appear on your dashboard.
+                                    </p>
+                                </div>
+
+                                {rejectError && (
+                                    <div className="bg-red-50 border border-red-100 text-red-650 text-[10px] p-2 rounded-lg flex items-center gap-1.5">
+                                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                        <span className="font-semibold">{rejectError}</span>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-2.5 pt-1">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setRejectingLead(null)}
+                                        className="flex-1 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="submit"
+                                        disabled={actionLoadingId === rejectingLead._id}
+                                        className="flex-1 py-1.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-1 shadow-sm shadow-red-600/5"
+                                    >
+                                        {actionLoadingId === rejectingLead._id ? (
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        ) : (
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        )}
+                                        Confirm Rejection
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ── CC OPERATOR ASSIGNMENT MODAL ─────────────────────── */}
+            <AnimatePresence>
+                {assigningLead && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            onClick={() => setAssigningLead(null)}
+                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        />
+
+                        {/* Modal Box */}
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white border border-slate-100 w-full max-w-md rounded-xl p-5 relative z-10 shadow-2xl space-y-3.5"
+                        >
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-lg bg-[#E31E24]/5 border border-[#E31E24]/10 flex items-center justify-center text-[#E31E24] shrink-0">
+                                        <Building2 className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 text-xs">Assign Lead to Collection Center</h3>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5 leading-none">Vehicle: {assigningLead.vehicleInfo}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setAssigningLead(null)}
+                                    className="p-1 rounded text-slate-400 hover:text-slate-650 hover:bg-slate-50 transition-all shrink-0"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+
+                            {ccsLoading ? (
+                                <div className="flex flex-col items-center justify-center py-8 gap-2">
+                                    <Loader2 className="w-6 h-6 animate-spin text-[#E31E24]" />
+                                    <p className="text-[10px] text-slate-500 uppercase font-black tracking-wider">Calculating distances...</p>
+                                </div>
+                            ) : !ccsList || ccsList.length === 0 ? (
+                                <div className="text-center py-6">
+                                    <p className="text-xs font-bold text-slate-400">No Collection Centers registered.</p>
+                                    <p className="text-[9px] text-slate-400 mt-1">Please add a Collection Center from the sidebar first.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">
+                                            Select Nearest Collection Center
+                                        </label>
+                                        <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1 scrollbar-hide">
+                                            {ccsList.map((cc) => (
+                                                <div 
+                                                    key={cc._id}
+                                                    onClick={() => setSelectedCcId(cc._id)}
+                                                    className={`border rounded-xl p-3 flex justify-between items-center cursor-pointer transition-all duration-200 ${selectedCcId === cc._id ? 'border-[#E31E24] bg-[#E31E24]/5' : 'border-slate-100 hover:border-slate-300'}`}
+                                                >
+                                                    <div className="space-y-0.5">
+                                                        <p className="font-bold text-xs text-slate-800">{cc.name}</p>
+                                                        <p className="text-[10px] font-medium text-slate-500">{cc.city}, {cc.state} ({cc.pincode})</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-[10px] font-black text-slate-500 bg-slate-105 border border-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                            {cc.distanceKm !== null ? `${cc.distanceKm} km` : "N/A"}
+                                                        </span>
+                                                        <p className="text-[8px] font-bold text-slate-400 mt-0.5">Radius: {cc.catchmentRadius}km</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2.5 pt-1">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setAssigningLead(null)}
+                                            className="flex-1 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            onClick={handleAssignConfirm}
+                                            disabled={isAssigningSubmit || !selectedCcId}
+                                            className="flex-1 py-1.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 shadow-sm shadow-red-600/5"
+                                        >
+                                            {isAssigningSubmit ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <Building2 className="w-3.5 h-3.5" />
+                                            )}
+                                            Confirm Assignment
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </div>
+    )
+}

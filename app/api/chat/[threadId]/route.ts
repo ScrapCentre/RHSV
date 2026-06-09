@@ -18,18 +18,26 @@ export async function GET(
         const { threadId } = await params
         await connectToDatabase()
 
-        const thread = await ChatThread.findById(threadId)
+        let thread = await ChatThread.findById(threadId)
+        let isPersonal = false
+        if (!thread) {
+            const PersonalChatThread = (await import("@/models/PersonalChatThread")).default
+            thread = await PersonalChatThread.findById(threadId) as any
+            isPersonal = true
+        }
         if (!thread) {
             return NextResponse.json({ message: "Chat thread not found" }, { status: 404 })
         }
 
         const rvsfId = (session.user as any)?.rvsfId
+        const partnerId = (session.user as any)?.partnerId
         const userId = (session.user as any)?.id
 
-        const isRvsfOwner = rvsfId && thread.rvsfId === rvsfId
+        const isRvsfOwner = !isPersonal && rvsfId && thread.rvsfId === rvsfId
+        const isPartnerOwner = isPersonal && partnerId && (thread as any).partnerId === partnerId
         const isCustomerOwner = userId && thread.customerId === userId
 
-        if (!isRvsfOwner && !isCustomerOwner) {
+        if (!isRvsfOwner && !isPartnerOwner && !isCustomerOwner) {
             return NextResponse.json({ message: "Forbidden" }, { status: 403 })
         }
 
@@ -82,9 +90,9 @@ export async function GET(
             success: true,
             thread,
             currentUser: {
-                id: isRvsfOwner ? rvsfId : userId,
+                id: isRvsfOwner ? rvsfId : (isPartnerOwner ? partnerId : userId),
                 name: session.user.name,
-                role: isRvsfOwner ? "rvsf" : "customer",
+                role: isRvsfOwner ? "rvsf" : (isPartnerOwner ? "partner" : "customer"),
             }
         })
 

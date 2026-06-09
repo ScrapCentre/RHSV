@@ -21,13 +21,13 @@ import PusherClient from "pusher-js"
 
 interface ChatMessage {
     _id?: string
-    sender: "system" | "rvsf" | "customer"
+    sender: "system" | "rvsf" | "customer" | "partner"
     message: string
     isSystemMessage: boolean
     createdAt: string
     senderId?: string
     senderName?: string
-    senderRole?: "system" | "rvsf" | "customer"
+    senderRole?: "system" | "rvsf" | "customer" | "partner"
     content?: string
     type?: "text" | "image" | "offer" | "system"
     offerAmount?: number
@@ -46,7 +46,7 @@ interface ChatThread {
 }
 
 interface ChatContainerProps {
-    role: "rvsf" | "customer"
+    role: "rvsf" | "customer" | "partner"
     threadId: string
 }
 
@@ -77,7 +77,8 @@ export default function ChatContainer({ role, threadId }: ChatContainerProps) {
     const fetchChatThread = async () => {
         try {
             setLoading(true)
-            const res = await fetch(`/api/chat/${threadId}`)
+            const endpoint = role === "partner" ? `/api/personal/chat/${threadId}` : `/api/chat/${threadId}`
+            const res = await fetch(endpoint)
             const data = await res.json()
             if (res.ok && data.success) {
                 setThread(data.thread)
@@ -148,7 +149,8 @@ export default function ChatContainer({ role, threadId }: ChatContainerProps) {
         }
         setIsSubmittingMessage(true)
         try {
-            const res = await fetch(`/api/chat/${threadId}/message`, {
+            const endpoint = role === "partner" ? `/api/personal/chat/${threadId}/message` : `/api/chat/${threadId}/message`
+            const res = await fetch(endpoint, {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ type, content: finalContent, offerAmount: amountVal }),
             })
@@ -188,7 +190,8 @@ export default function ChatContainer({ role, threadId }: ChatContainerProps) {
         if (isSubmittingMessage) return
         setIsSubmittingMessage(true)
         try {
-            const res = await fetch(`/api/chat/${threadId}/offer`, {
+            const endpoint = role === "partner" ? `/api/personal/chat/${threadId}/offer` : `/api/chat/${threadId}/offer`
+            const res = await fetch(endpoint, {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action, counterAmount: counterPrice }),
             })
@@ -278,13 +281,13 @@ export default function ChatContainer({ role, threadId }: ChatContainerProps) {
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
                         <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center font-extrabold text-white text-sm border border-white/30">
-                            {role === "rvsf" ? "C" : "P"}
+                            {(role === "rvsf" || role === "partner") ? "C" : "P"}
                         </div>
                         <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-[#E31E24]" />
                     </div>
                     <div className="min-w-0">
                         <h3 className="font-extrabold text-white text-sm sm:text-base leading-tight truncate">
-                            {role === "rvsf" ? "Customer Lead Chat" : "RVSF Partner Desk"}
+                            {(role === "rvsf" || role === "partner") ? "Customer Lead Chat" : ((thread as any)?.partnerId ? "Partner Desk" : "RVSF Partner Desk")}
                         </h3>
                         <p className="text-[10px] text-red-200 font-mono tracking-tight mt-0.5">
                             Thread #{threadId.slice(-8).toUpperCase()}

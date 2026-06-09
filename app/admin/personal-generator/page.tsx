@@ -45,7 +45,7 @@ function B2BGeneratorContent() {
 
         setIsLoading(true)
         try {
-            const res = await fetch("/api/b2b-partner", {
+            const res = await fetch("/api/personal-partner", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),

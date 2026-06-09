@@ -51,17 +51,20 @@ export default function FeaturesSection() {
   ]
 
   return (
-    <section
-      className="py-10 relative overflow-hidden text-slate-900"
-      style={{
-        backgroundColor: "#ffffff",
-        backgroundImage: `url('/features.png')`,
-        backgroundSize: "100% auto",
-        backgroundPosition: "left center",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "scroll"
-      }}
-    >
+    <section className="py-10 relative overflow-hidden text-slate-900 bg-white features-section">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .features-section {
+          background-image: none;
+        }
+        @media (min-width: 1024px) {
+          .features-section {
+            background-image: url('/features.png');
+            background-size: 45% auto;
+            background-position: left center;
+            background-repeat: no-repeat;
+          }
+        }
+      ` }} />
       {/* Background Pattern Removed */}
       
       {/* Animated Elements Removed */}
@@ -177,7 +180,7 @@ export default function FeaturesSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           {/* Red Stats Banner */}
-          <div className="flex-1 w-full bg-[#E31E24] rounded-xl md:rounded-2xl p-6 md:py-9 md:px-8 flex flex-wrap md:flex-nowrap justify-between items-center gap-4 md:gap-6 relative overflow-hidden shadow-2xl shadow-red-500/20">
+          <div className="flex-1 w-full bg-[#E31E24] rounded-xl md:rounded-2xl p-6 md:py-9 md:px-8 grid grid-cols-2 md:flex md:flex-row justify-between items-center gap-y-6 gap-x-4 md:gap-6 relative overflow-hidden shadow-2xl shadow-red-500/20">
             {/* Decorative Pattern Overlay */}
             <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1.5px 1.5px, white 1px, transparent 0)', backgroundSize: '20px 20px' }}></div>
             
@@ -239,7 +242,7 @@ export default function FeaturesSection() {
           <div className="flex flex-col items-center lg:items-start gap-4 shrink-0">
             <div className="relative group">
               {/* Handwritten Indicator */}
-              <div className="absolute -top-9 -left-4 lg:-left-10 flex flex-col items-center -rotate-6 pointer-events-none">
+              <div className="hidden sm:flex absolute -top-9 -left-4 lg:-left-10 flex-col items-center -rotate-6 pointer-events-none">
                 <span className="text-[#E31E24] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap italic opacity-80" style={{ fontFamily: 'var(--font-geist-sans)' }}>See how it works</span>
                 <svg width="30" height="15" viewBox="0 0 40 20" fill="none" className="text-[#E31E24] opacity-60">
                   <path d="M5 5C10 15 30 15 35 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

@@ -69,7 +69,7 @@ export default function PartnerRegistrationPage() {
         const checkStatus = async () => {
             if (session?.user) {
                 try {
-                    const res = await fetch(`/api/b2b-register?userId=${(session.user as any).id}&email=${session.user?.email}`)
+                    const res = await fetch(`/api/personal-register?userId=${(session.user as any).id}&email=${session.user?.email}`)
                     const data = await res.json()
                     if (data.data) {
                         setExistingApplication(data.data)
@@ -123,7 +123,7 @@ export default function PartnerRegistrationPage() {
         setIsLoading(true)
 
         try {
-            const res = await fetch("/api/b2b-register", {
+            const res = await fetch("/api/personal-register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

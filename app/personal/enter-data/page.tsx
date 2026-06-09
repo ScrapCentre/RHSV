@@ -56,7 +56,7 @@ export default function EnterDataPage() {
                         <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Only verified B2B partners can access the marketplace. Please sign in with your partner credentials.</p>
                     </div>
                     <button
-                        onClick={() => router.push("/b2b")}
+                        onClick={() => router.push("/personal")}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5"
                     >
                         Go to Partner Login
@@ -118,7 +118,7 @@ export default function EnterDataPage() {
             // Clean up the temporary ID before sending to backend
             const payload = entries.map(({ id, ...rest }) => rest)
 
-            const res = await fetch("/api/b2b/bulk-outsourcing", {
+            const res = await fetch("/api/personal/bulk-outsourcing", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -165,7 +165,7 @@ export default function EnterDataPage() {
                 </div>
 
                 <Link
-                    href="/b2b/enter-data/logs"
+                    href="/personal/enter-data/logs"
                     className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl font-bold transition-all shadow-sm shrink-0"
                 >
                     <Database className="w-4 h-4" />

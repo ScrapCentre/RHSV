@@ -12,7 +12,9 @@ import {
     X,
     Shield,
     Database,
-    Truck
+    Truck,
+    Building2,
+    MessageSquare
 } from "lucide-react"
 
 import { signOut, useSession } from "next-auth/react"
@@ -62,10 +64,10 @@ export default function PartnerClientLayout({ children }: { children: React.Reac
     }, [])
 
     // Helper to check if a link is active
-    const isActive = (path: string) => pathname === path || (pathname?.startsWith(path + "/") && path !== "/b2b/marketplace")
+    const isActive = (path: string) => pathname === path || (pathname?.startsWith(path + "/") && path !== "/personal/marketplace")
 
-    // Check if we are on the login page (/b2b)
-    const isLoginPage = pathname === "/b2b"
+    // Check if we are on the login page (/personal)
+    const isLoginPage = pathname === "/personal"
 
     // If on login page OR not authenticated/not a partner, don't show sidebar/header
     const hideLayout = isLoginPage || status === "unauthenticated" || (session?.user as any)?.role !== "partner"
@@ -129,34 +131,55 @@ export default function PartnerClientLayout({ children }: { children: React.Reac
                 >
                     {/* Dashboard */}
                     <motion.div variants={sidebarLinkVariants}>
-                        <Link href="/b2b/dashboard" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${pathname === '/b2b/dashboard' ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
-                            {pathname === '/b2b/dashboard' && (
+                        <Link href="/personal/dashboard" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${pathname === '/personal/dashboard' ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                            {pathname === '/personal/dashboard' && (
                                 <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
                             )}
-                            <Home className={`w-5 h-5 mr-3.5 transition-colors ${pathname === '/b2b/dashboard' ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                            <Home className={`w-5 h-5 mr-3.5 transition-colors ${pathname === '/personal/dashboard' ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
                             <span className="font-semibold">Dashboard</span>
+                        </Link>
+                    </motion.div>
+
+                    {/* Collection Centers */}
+                    <motion.div variants={sidebarLinkVariants}>
+                        <Link href="/personal/ccs" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/personal/ccs') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                            {isActive('/personal/ccs') && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
+                            )}
+                            <Building2 className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/personal/ccs') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                            <span className="font-semibold">Collection Centers</span>
                         </Link>
                     </motion.div>
 
                     {/* Market Feed */}
                     <motion.div variants={sidebarLinkVariants}>
-                        <Link href="/b2b/marketplace" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${pathname === '/b2b/marketplace' ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
-                            {pathname === '/b2b/marketplace' && (
+                        <Link href="/personal/marketplace" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${pathname === '/personal/marketplace' ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                            {pathname === '/personal/marketplace' && (
                                 <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
                             )}
-                            <Activity className={`w-5 h-5 mr-3.5 transition-colors ${pathname === '/b2b/marketplace' ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                            <Activity className={`w-5 h-5 mr-3.5 transition-colors ${pathname === '/personal/marketplace' ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
                             <span className="font-semibold">Market Feed</span>
                         </Link>
                     </motion.div>
 
+                    {/* My Chats */}
+                    <motion.div variants={sidebarLinkVariants}>
+                        <Link href="/personal/chats" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/personal/chats') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                            {isActive('/personal/chats') && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
+                            )}
+                            <MessageSquare className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/personal/chats') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                            <span className="font-semibold">My Chats</span>
+                        </Link>
+                    </motion.div>
 
                     {/* Pickups */}
                     <motion.div variants={sidebarLinkVariants}>
-                        <Link href="/b2b/pickups" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/b2b/pickups') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
-                            {isActive('/b2b/pickups') && (
+                        <Link href="/personal/pickups" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/personal/pickups') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                            {isActive('/personal/pickups') && (
                                 <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
                             )}
-                            <Truck className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/b2b/pickups') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                            <Truck className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/personal/pickups') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
                             <span className="font-semibold">Pickups</span>
                         </Link>
                     </motion.div>

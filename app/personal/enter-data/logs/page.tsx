@@ -88,7 +88,7 @@ export default function PartnerLogsPage() {
 
     const fetchLogs = async () => {
         try {
-            const res = await fetch("/api/b2b/bulk-outsourcing")
+            const res = await fetch("/api/personal/bulk-outsourcing")
             const data = await res.json()
             if (data.success) {
                 setSubmissions(data.data)
@@ -121,7 +121,7 @@ export default function PartnerLogsPage() {
                         <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Only verified B2B partners can access the marketplace. Please sign in with your partner credentials.</p>
                     </div>
                     <button
-                        onClick={() => router.push("/b2b")}
+                        onClick={() => router.push("/personal")}
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 hover:-translate-y-0.5"
                     >
                         Go to Partner Login
@@ -144,7 +144,7 @@ export default function PartnerLogsPage() {
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <Link href="/b2b/enter-data" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold flex items-center gap-2 mb-2 transition-colors">
+                    <Link href="/personal/enter-data" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold flex items-center gap-2 mb-2 transition-colors">
                         ← Back to Data Entry
                     </Link>
                     <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight">
@@ -161,7 +161,7 @@ export default function PartnerLogsPage() {
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No Submissions Yet</h2>
                     <p className="text-gray-500 dark:text-slate-400 mb-6 font-medium">You haven&apos;t submitted any bulk vehicle data yet.</p>
                     <Link
-                        href="/b2b/enter-data"
+                        href="/personal/enter-data"
                         className="inline-flex items-center justify-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-purple-600/20"
                     >
                         Create Your First Entry

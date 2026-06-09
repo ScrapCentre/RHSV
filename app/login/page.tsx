@@ -210,7 +210,7 @@ function LoginContent() {
                 } else if (role === "admin") {
                     window.location.href = "/admin/dashboard"
                 } else if (role === "partner") {
-                    window.location.href = "/b2b/marketplace"
+                    window.location.href = "/personal/marketplace"
                 } else if (role === "executive") {
                     window.location.href = "/executive/dashboard"
                 } else if (role === "scrapcentre") {
@@ -341,7 +341,7 @@ function LoginContent() {
                 if (callbackUrl) {
                     window.location.href = callbackUrl
                 } else {
-                    window.location.href = "/b2b/marketplace"
+                    window.location.href = "/personal/marketplace"
                 }
             }
         } catch (error) {

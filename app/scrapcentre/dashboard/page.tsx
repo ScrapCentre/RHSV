@@ -2,10 +2,12 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
+import mongoose from "mongoose"
 import B2BPickup from "@/models/B2BPickup"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
+import PersonalUnlockedLead from "@/models/PersonalUnlockedLead"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import { 
     Home, 
@@ -41,21 +43,28 @@ export default async function ScrapCentreDashboard() {
 
     await connectToDatabase()
 
-    // 1. Fetch all B2B Pickups
-    const pickups = await B2BPickup.find().sort({ createdAt: -1 }).lean()
+    // Fetch all claimed personal leads to get their leadIds
+    const claimedPersonalLeads = await PersonalUnlockedLead.find().select("leadId").lean()
+    const claimedLeadIds = claimedPersonalLeads.map((l: any) => l.leadId)
+    const claimedLeadObjectIds = claimedLeadIds
+        .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
+        .map((id: string) => new mongoose.Types.ObjectId(id))
+
+    // 1. Fetch B2B Pickups corresponding only to personal claimed leads
+    const pickups = await B2BPickup.find({ leadId: { $in: claimedLeadIds } }).sort({ createdAt: -1 }).lean()
 
     const activePickups = pickups.filter(p => p.status === 'accepted' || p.status === 'scheduled' || p.status === 'picked_up')
     const completedPickups = pickups.filter(p => p.status === 'completed' || p.status === 'car_scrapped')
 
-    // 2. Fetch approved requests from all collections
+    // 2. Fetch approved requests from all collections corresponding only to personal claimed leads
     const [
         approvedExchanges,
         approvedBuys,
         approvedWizards
     ] = await Promise.all([
-        ExchangeVehicle.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
-        BuyVehicle.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
-        WizardLead.find({ status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
+        ExchangeVehicle.find({ _id: { $in: claimedLeadObjectIds }, status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
+        BuyVehicle.find({ _id: { $in: claimedLeadObjectIds }, status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
+        WizardLead.find({ _id: { $in: claimedLeadObjectIds }, status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
     ])
 
     const allApproved = [

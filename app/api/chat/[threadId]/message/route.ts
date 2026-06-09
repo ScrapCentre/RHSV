@@ -30,24 +30,32 @@ export async function POST(
         await connectToDatabase()
 
         // 1. Fetch thread and verify access
-        const thread = await ChatThread.findById(threadId)
+        let thread = await ChatThread.findById(threadId)
+        let isPersonal = false
+        if (!thread) {
+            const PersonalChatThread = (await import("@/models/PersonalChatThread")).default
+            thread = await PersonalChatThread.findById(threadId) as any
+            isPersonal = true
+        }
         if (!thread) {
             return NextResponse.json({ message: "Chat thread not found" }, { status: 404 })
         }
 
         const rvsfId = (session.user as any)?.rvsfId
+        const partnerId = (session.user as any)?.partnerId
         const userId = (session.user as any)?.id
 
-        const isRvsfOwner = rvsfId && thread.rvsfId === rvsfId
+        const isRvsfOwner = !isPersonal && rvsfId && thread.rvsfId === rvsfId
+        const isPartnerOwner = isPersonal && partnerId && (thread as any).partnerId === partnerId
         const isCustomerOwner = userId && thread.customerId === userId
 
-        if (!isRvsfOwner && !isCustomerOwner) {
+        if (!isRvsfOwner && !isPartnerOwner && !isCustomerOwner) {
             return NextResponse.json({ message: "Forbidden" }, { status: 403 })
         }
 
-        const senderRole = isRvsfOwner ? "rvsf" : "customer"
-        const senderName = session.user.name || (isRvsfOwner ? "RVSF Partner" : "Customer")
-        const senderId = isRvsfOwner ? rvsfId : userId
+        const senderRole = isRvsfOwner ? "rvsf" : (isPartnerOwner ? "partner" : "customer")
+        const senderName = session.user.name || (isRvsfOwner ? "RVSF Partner" : (isPartnerOwner ? "Partner" : "Customer"))
+        const senderId = isRvsfOwner ? rvsfId : (isPartnerOwner ? partnerId : userId)
 
         const now = new Date()
 

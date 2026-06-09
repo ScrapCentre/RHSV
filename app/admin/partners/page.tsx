@@ -58,8 +58,8 @@ export default function B2BPartnersPage() {
             setIsLoading(true)
             try {
                 const [regRes, partnerRes] = await Promise.all([
-                    fetch("/api/b2b-register"),
-                    fetch("/api/b2b-partner")
+                    fetch("/api/personal-register"),
+                    fetch("/api/personal-partner")
                 ])
 
                 const regData = await regRes.json()
@@ -70,7 +70,7 @@ export default function B2BPartnersPage() {
                     const pendingToUpdate = regData.data.filter((r: any) => r.status === 'pending')
                     for (const req of pendingToUpdate) {
                         try {
-                            await fetch(`/api/b2b-register?id=${req._id}`, {
+                            await fetch(`/api/personal-register?id=${req._id}`, {
                                 method: "PATCH",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ status: 'reviewing' })
@@ -100,7 +100,7 @@ export default function B2BPartnersPage() {
     // Handlers
     const handleReject = async (id: string) => {
         try {
-            const res = await fetch(`/api/b2b-register?id=${id}`, {
+            const res = await fetch(`/api/personal-register?id=${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: 'rejected' })

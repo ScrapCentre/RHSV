@@ -22,7 +22,7 @@ export default function GoogleTag() {
             pathname.startsWith("/executive") ||
             pathname.startsWith("/rvsf") ||
             pathname.startsWith("/cc") ||
-            pathname.startsWith("/b2b")
+            pathname.startsWith("/personal")
         ) {
             return
         }
@@ -43,7 +43,7 @@ export default function GoogleTag() {
         pathname.startsWith("/executive") ||
         pathname.startsWith("/rvsf") ||
         pathname.startsWith("/cc") ||
-        pathname.startsWith("/b2b")
+        pathname.startsWith("/personal")
 
     // Return null if on an excluded route to prevent script loading
     if (isExcludedRoute) return null

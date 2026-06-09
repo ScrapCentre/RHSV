@@ -12,6 +12,7 @@ import B2BPartner from "@/models/B2BPartner"
 import Executive from "@/models/Executive"
 import RVSFUser from "@/models/RVSFUser"
 import CCOperator from "@/models/CCOperator"
+import PersonalCCOperator from "@/models/PersonalCCOperator"
 
 import { adminAuth } from "@/lib/firebase-admin"
 
@@ -172,7 +173,7 @@ export const authOptions: NextAuthOptions = {
                     
                     if (!isMatch) return null;
  
-                    return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
+                    return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner", partnerId: (partner as any).userId }
                 } catch (err: any) {
                     console.error("[B2B Auth] Error:", err);
                     if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
@@ -270,7 +271,12 @@ export const authOptions: NextAuthOptions = {
                 try {
                     await connectToDatabase();
                     const bcrypt = (await import("bcryptjs")).default;
-                    const op = await CCOperator.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
+                    let op = await CCOperator.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
+                    let isPersonal = false;
+                    if (!op) {
+                        op = await PersonalCCOperator.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
+                        isPersonal = true;
+                    }
                     
                     if (!op) return null;
                     const storedPw = (op as any).password;
@@ -283,7 +289,7 @@ export const authOptions: NextAuthOptions = {
                         email: (op as any).email,
                         role: "cc_operator",
                         ccId: (op as any).ccId,
-                        rvsfId: (op as any).rvsfId
+                        ...(isPersonal ? { partnerId: (op as any).partnerId } : { rvsfId: (op as any).rvsfId })
                     }
                 } catch (err: any) {
                     console.error("[CC Operator Auth] Error:", err);
@@ -467,6 +473,7 @@ export const authOptions: NextAuthOptions = {
                     token.id = user.id;
                     if ((user as any).rvsfId) token.rvsfId = (user as any).rvsfId;
                     if ((user as any).ccId) token.ccId = (user as any).ccId;
+                    if ((user as any).partnerId) token.partnerId = (user as any).partnerId;
                 }
             }
             return token
@@ -477,6 +484,7 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).id = token.id;
                 if (token.rvsfId) (session.user as any).rvsfId = token.rvsfId;
                 if (token.ccId) (session.user as any).ccId = token.ccId;
+                if (token.partnerId) (session.user as any).partnerId = token.partnerId;
             }
             return session
         },

@@ -33,7 +33,11 @@ export async function POST(
         await connectToDatabase()
 
         // Find the lead assigned to this CC operator
-        const lead = await UnlockedLead.findOne({ _id: leadId, assignedCcId: ccId })
+        let lead = await UnlockedLead.findOne({ _id: leadId, assignedCcId: ccId })
+        if (!lead) {
+            const PersonalUnlockedLead = (await import("@/models/PersonalUnlockedLead")).default
+            lead = await PersonalUnlockedLead.findOne({ _id: leadId, assignedCcId: ccId }) as any
+        }
         if (!lead) {
             return NextResponse.json({ message: "Lead not found or not assigned to your Collection Center" }, { status: 404 })
         }

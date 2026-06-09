@@ -8,6 +8,16 @@ import Image from "next/image"
 export default function ReviewSection() {
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
 
   const faqs = [
     {
@@ -127,7 +137,7 @@ export default function ReviewSection() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                {/* Star Rating Card */}
                <div className="bg-white border border-slate-100 p-4 px-8 rounded-2xl shadow-xl shadow-slate-200/40 flex items-center gap-5">
                   <div className="w-12 h-12 rounded-full border-2 border-[#E31E24] flex items-center justify-center text-[#E31E24]">
@@ -159,13 +169,13 @@ export default function ReviewSection() {
             {/* Navigation Arrows - Side Aligned */}
             <button 
               onClick={prevReview} 
-              className="absolute left-0 top-1/2 -translate-x-4 md:-translate-x-12 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-slate-100 shadow-xl flex items-center justify-center text-slate-400 hover:text-[#E31E24] hover:border-[#E31E24] transition-all z-20"
+              className="hidden md:flex absolute left-0 top-1/2 -translate-x-4 md:-translate-x-12 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-slate-100 shadow-xl items-center justify-center text-slate-400 hover:text-[#E31E24] hover:border-[#E31E24] transition-all z-20"
             >
               <ChevronRight size={24} className="rotate-180" />
             </button>
             <button 
               onClick={nextReview} 
-              className="absolute right-0 top-1/2 translate-x-4 md:translate-x-12 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-slate-100 shadow-xl flex items-center justify-center text-slate-400 hover:text-[#E31E24] hover:border-[#E31E24] transition-all z-20"
+              className="hidden md:flex absolute right-0 top-1/2 translate-x-4 md:translate-x-12 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-slate-100 shadow-xl items-center justify-center text-slate-400 hover:text-[#E31E24] hover:border-[#E31E24] transition-all z-20"
             >
               <ChevronRight size={24} />
             </button>
@@ -176,14 +186,15 @@ export default function ReviewSection() {
                   const reviewIdx = (activeIndex + idx) % reviews.length
                   const review = reviews[reviewIdx]
                   const isCenter = idx === 1
+                  const showActive = isMobile ? (idx === 0) : isCenter
 
                   return (
                     <motion.div
                       key={idx} // Use a stable key for the position to prevent re-mounting/blinking
                       layout
                       animate={{ 
-                        opacity: isCenter ? 1 : 0.4, 
-                        scale: isCenter ? 1.05 : 0.9,
+                        opacity: showActive ? 1 : 0.4, 
+                        scale: showActive ? (isMobile ? 1 : 1.05) : 0.9,
                       }}
                       transition={{ 
                         duration: 0.6, 
@@ -191,8 +202,7 @@ export default function ReviewSection() {
                       }}
                       className={`bg-white p-8 md:p-10 rounded-[2.5rem] border-2 flex flex-col h-full relative group transition-all duration-500
                         ${idx > 0 ? 'hidden md:flex' : 'flex'}
-                        ${isCenter ? 'md:shadow-[0_20px_50px_rgba(227,30,36,0.12)] md:border-[#E31E24]/10 md:z-10' : 'md:shadow-sm md:border-slate-100 md:z-0'}
-                        ${idx === 0 ? 'shadow-[0_20px_50px_rgba(227,30,36,0.12)] border-[#E31E24]/10 md:shadow-none md:border-slate-100' : ''}`}
+                        ${isCenter ? 'md:shadow-[0_20px_50px_rgba(227,30,36,0.12)] md:border-[#E31E24]/10 md:z-10' : 'shadow-sm border-slate-100 z-0'}`}
                     >
                       {/* Big Quote Icon */}
                       <div className={`${isCenter ? 'text-[#E31E24]' : 'text-slate-200'} mb-4 transition-colors duration-300`}>

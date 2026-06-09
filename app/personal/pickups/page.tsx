@@ -80,7 +80,7 @@ export default function B2BPickupsPage() {
         setIsLoading(true)
         setError(null)
         try {
-            const res = await fetch("/api/b2b/pickups")
+            const res = await fetch("/api/personal/pickups")
             const data = await res.json()
             if (!res.ok) throw new Error(data.message || "Failed to fetch pickups")
             setPickups(data.data || [])
@@ -94,7 +94,7 @@ export default function B2BPickupsPage() {
 
     const handleStatusUpdate = async (pickupId: string, newStatus: string) => {
         try {
-            const res = await fetch(`/api/b2b/pickups/${pickupId}/status`, {
+            const res = await fetch(`/api/personal/pickups/${pickupId}/status`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: newStatus }),
@@ -127,7 +127,7 @@ export default function B2BPickupsPage() {
                 <div className="max-w-md w-full text-center space-y-6 bg-white dark:bg-[#0E192D] p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800">
                     <AlertCircle className="w-10 h-10 text-red-500 mx-auto" />
                     <h1 className="text-2xl font-black text-gray-900 dark:text-white">Access Denied</h1>
-                    <button onClick={() => router.push("/b2b")} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all">
+                    <button onClick={() => router.push("/personal")} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all">
                         Go to Partner Login
                     </button>
                 </div>
@@ -209,7 +209,7 @@ export default function B2BPickupsPage() {
                             Head to the Market Feed and accept leads to see them here.
                         </p>
                         <button
-                            onClick={() => router.push("/b2b/marketplace")}
+                            onClick={() => router.push("/personal/marketplace")}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
                         >
                             Browse Market Feed

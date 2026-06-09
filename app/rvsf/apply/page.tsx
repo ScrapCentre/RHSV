@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react"
 import { INDIA_STATES, getCitiesForState } from "@/lib/india-geo"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import Footer from "@/components/Footer"
+import Navbar from "@/components/Navbar"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
@@ -174,26 +175,9 @@ export default function RVSFApplyPage() {
     if (alreadyApplied) {
         return (
             <div className={`min-h-screen bg-slate-50 flex flex-col justify-between font-sans ${plusJakartaSans.className}`}>
-                {/* Custom Light Navbar */}
-                <div className="w-full bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
-                    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2 cursor-pointer">
-                            <img src="/logo.png" alt="ScrapCentre Logo" className="h-14 w-auto object-contain" />
-                            <div className="flex flex-col">
-                                <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-baseline leading-none">
-                                    <span className="text-[#E31E24]">Scrap</span>
-                                    <span className="text-slate-900 font-black">Centre</span>
-                                    <sup className="text-[10px] sm:text-xs font-bold text-slate-400 align-super -ml-0.5">®</sup>
-                                </h1>
-                            </div>
-                        </Link>
-                        <Link href="/">
-                            <span className="text-sm font-bold text-[#E31E24] hover:underline cursor-pointer">Back to Home</span>
-                        </Link>
-                    </div>
-                </div>
+                <Navbar />
 
-                <div className="flex-1 flex items-center justify-center px-4 py-16">
+                <div className="flex-1 flex items-center justify-center px-4 pt-28 pb-16">
                     <div className="w-full max-w-xl">
                         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
                             <div className="w-16 h-16 rounded-full bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center mx-auto mb-5">
@@ -244,26 +228,9 @@ export default function RVSFApplyPage() {
     if (isSubmitted) {
         return (
             <div className={`min-h-screen bg-slate-50 flex flex-col justify-between font-sans ${plusJakartaSans.className}`}>
-                {/* Custom Light Navbar */}
-                <div className="w-full bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
-                    <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2 cursor-pointer">
-                            <img src="/logo.png" alt="ScrapCentre Logo" className="h-14 w-auto object-contain" />
-                            <div className="flex flex-col">
-                                <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-baseline leading-none">
-                                    <span className="text-[#E31E24]">Scrap</span>
-                                    <span className="text-slate-900 font-black">Centre</span>
-                                    <sup className="text-[10px] sm:text-xs font-bold text-slate-400 align-super -ml-0.5">®</sup>
-                                </h1>
-                            </div>
-                        </Link>
-                        <Link href="/">
-                            <span className="text-sm font-bold text-[#E31E24] hover:underline cursor-pointer">Back to Home</span>
-                        </Link>
-                    </div>
-                </div>
+                <Navbar />
 
-                <div className="flex-1 flex items-center justify-center px-4 py-16">
+                <div className="flex-1 flex items-center justify-center px-4 pt-28 pb-16">
                     <div className="w-full max-w-xl">
                         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
                             <div className="w-16 h-16 rounded-full bg-green-500/10 border-2 border-green-500/30 flex items-center justify-center mx-auto mb-5">
@@ -315,32 +282,10 @@ export default function RVSFApplyPage() {
 
     return (
         <div className={`min-h-screen bg-[#FDFDFD] relative flex flex-col justify-between ${plusJakartaSans.className}`}>
+            <Navbar />
             
             {/* Inner Content Wrapper with Background Illustration */}
-            <div className="flex-1 w-full pb-24" style={{ backgroundImage: "url('/rvsfapply.png')", backgroundSize: "100% auto", backgroundPosition: "bottom", backgroundRepeat: "no-repeat" }}>
-                {/* Custom Light Navbar from Screenshot */}
-                <div className="w-full bg-white/40 backdrop-blur-sm sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 cursor-pointer">
-                        <img src="/logo.png" alt="ScrapCentre Logo" className="h-14 w-auto object-contain" />
-                        <div className="flex flex-col">
-                            <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-baseline leading-none">
-                                <span className="text-[#E31E24]">Scrap</span>
-                                <span className="text-slate-900 font-black">Centre</span>
-                                <sup className="text-[10px] sm:text-xs font-bold text-slate-400 align-super -ml-0.5">®</sup>
-                            </h1>
-                        </div>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <span className="text-xs text-slate-500 font-bold hidden sm:inline">Already have an account?</span>
-                        <Link href="/rvsf/login">
-                            <button className="border border-red-500 rounded-xl px-4 py-1.5 text-xs text-[#E31E24] hover:bg-red-50 transition-all font-black uppercase tracking-wider">
-                                Login
-                            </button>
-                        </Link>
-                    </div>
-                </div>
-            </div>
+            <div className="flex-1 w-full pt-20 md:pt-24 pb-24" style={{ backgroundImage: "url('/rvsfapply.png')", backgroundSize: "100% auto", backgroundPosition: "bottom", backgroundRepeat: "no-repeat" }}>
 
             {/* Page Header */}
             <div className="text-center mt-12 mb-8 px-4">
@@ -355,10 +300,10 @@ export default function RVSFApplyPage() {
             </div>
 
             {/* Steps Navigation / Step Indicators */}
-            <div className="max-w-3xl w-full mx-auto px-6 mb-12">
+            <div className="max-w-5xl w-full mx-auto px-6 mb-12">
                 <div className="flex items-start justify-between relative">
                     {/* Progress Bar Track */}
-                    <div className="absolute top-[22px] left-[5%] right-[5%] h-0.5 bg-slate-100 z-0">
+                    <div className="absolute top-[22px] h-0.5 bg-slate-100 z-0" style={{ left: "16.67%", right: "16.67%" }}>
                         <motion.div className="h-full bg-[#E31E24]" animate={{ width: `${progress}%` }} transition={{ duration: 0.4 }} />
                     </div>
 

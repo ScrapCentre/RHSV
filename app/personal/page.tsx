@@ -50,7 +50,7 @@ export default function B2BLoginPage() {
                 }
                 setError(errorMsg)
             } else {
-                router.push("/b2b/dashboard")
+                router.push("/personal/dashboard")
             }
         } catch (err) {
             setIsLoading(false)
@@ -62,7 +62,7 @@ export default function B2BLoginPage() {
         <div 
             className="min-h-screen flex items-end lg:items-end justify-center lg:justify-end pb-10 lg:pb-28 xl:pb-36 p-4 lg:pr-32 xl:pr-44 font-sans selection:bg-[#E31E24] selection:text-white transition-all duration-500"
             style={{ 
-                backgroundImage: "url('/b2blogin.png')", 
+                backgroundImage: "url('/personallogin.png')", 
                 backgroundSize: '100% 100%', 
                 backgroundPosition: 'center', 
                 backgroundRepeat: 'no-repeat' 

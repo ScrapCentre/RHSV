@@ -116,7 +116,7 @@ function AccessGeneratorContent() {
         setIsLoadingProfiles(true)
         try {
             const [b2bRes, execRes, scRes, rvsfRes] = await Promise.all([
-                fetch("/api/b2b-partner"),
+                fetch("/api/personal-partner"),
                 fetch("/api/admin/executives"),
                 fetch("/api/admin/scrap-center-users"),
                 fetch("/api/admin/rvsf-generator")
@@ -198,7 +198,7 @@ function AccessGeneratorContent() {
         setIsDeleting(true)
         try {
             let apiEndpoint = ""
-            if (deletingProfile.type === "b2b") apiEndpoint = `/api/b2b-partner?id=${deletingProfile.id}`
+            if (deletingProfile.type === "b2b") apiEndpoint = `/api/personal-partner?id=${deletingProfile.id}`
             else if (deletingProfile.type === "executive") apiEndpoint = `/api/admin/executives?id=${deletingProfile.id}`
             else if (deletingProfile.type === "scrapcentre") apiEndpoint = `/api/admin/scrap-center-users?id=${deletingProfile.id}`
             else if (deletingProfile.type === "rvsf") apiEndpoint = `/api/admin/rvsf-generator?id=${deletingProfile.id}`
@@ -247,7 +247,7 @@ function AccessGeneratorContent() {
             let payload: any = {}
 
             if (selectedUserType === "b2b") {
-                apiEndpoint = "/api/b2b-partner"
+                apiEndpoint = "/api/personal-partner"
                 payload = {
                     businessName: formData.name,
                     email: formData.email,

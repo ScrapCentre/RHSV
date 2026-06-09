@@ -10,6 +10,7 @@ import Setting from "@/models/Setting"
 import WizardLead from "@/models/WizardLead"
 import User from "@/models/User"
 import ChatThread from "@/models/ChatThread"
+import PersonalChatThread from "@/models/PersonalChatThread"
 import RVSFUser from "@/models/RVSFUser"
 import { User as UserIcon, Package, Clock, Calendar, CheckCircle, Car, Building2, AlertCircle, RefreshCw, ShoppingCart, Tag, MessageSquare, ArrowRight, DollarSign } from "lucide-react"
 import Link from "next/link"
@@ -27,7 +28,7 @@ export default async function ProfilePage() {
 
     // Check for Partner Role
     if ((session.user as any).role === "partner") {
-        redirect("/b2b/marketplace") // Redirect partners to their dedicated marketplace
+        redirect("/personal/marketplace") // Redirect partners to their dedicated marketplace
     }
 
     // Standard User Logic
@@ -87,8 +88,16 @@ export default async function ProfilePage() {
             }),
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-        // 4. Fetch associated Chat Threads
+        // 4. Fetch associated Chat Threads (RVSF)
         const chatThreads = await ChatThread.find({
+            $or: [
+                { customerId: userId },
+                { leadId: { $in: allRequests.map(r => r._id.toString()) } }
+            ]
+        }).sort({ updatedAt: -1 }).lean()
+
+        // Fetch associated Chat Threads (Personal)
+        const personalChatThreads = await PersonalChatThread.find({
             $or: [
                 { customerId: userId },
                 { leadId: { $in: allRequests.map(r => r._id.toString()) } }
@@ -103,6 +112,14 @@ export default async function ProfilePage() {
             rvsfNameMap[ru.rvsfId] = ru.name || "RVSF Partner"
         }
 
+        // Fetch associated Personal Partner names
+        const partnerIds = personalChatThreads.map(ct => ct.partnerId)
+        const partners = await B2BPartner.find({ userId: { $in: partnerIds } }).lean()
+        const partnerNameMap: Record<string, string> = {}
+        for (const pt of partners) {
+            partnerNameMap[pt.userId] = pt.businessName || "Personal Partner"
+        }
+
         // Helper function for getting title
         const getRequestTitleForServer = (req: any) => {
             if (req.type === 'buy') return `${req.vehicleBrand} ${req.vehicleModel}`
@@ -114,18 +131,14 @@ export default async function ProfilePage() {
             return "Vehicle"
         }
 
-        // Map Chat Threads with extra details
-        enrichedChatThreads = chatThreads.map(ct => {
+        const rvsfEnriched = chatThreads.map(ct => {
             const lastMessage = ct.messages && ct.messages.length > 0 
                 ? ct.messages[ct.messages.length - 1] 
                 : null
-            
-            // Find corresponding request to get vehicle details
             const matchedRequest = allRequests.find(r => r._id.toString() === ct.leadId)
             const vehicleInfo = matchedRequest 
                 ? getRequestTitleForServer(matchedRequest) 
                 : "Vehicle Negotiation"
-
             return {
                 _id: ct._id.toString(),
                 leadId: ct.leadId,
@@ -134,13 +147,37 @@ export default async function ProfilePage() {
                 vehicleInfo,
                 lastMessage: lastMessage ? lastMessage.message : "No messages yet",
                 lastMessageTime: lastMessage ? lastMessage.createdAt : ct.updatedAt,
+                updatedAt: ct.updatedAt,
                 agreedPrice: ct.agreedPrice || null
             }
         })
 
+        const personalEnriched = personalChatThreads.map(ct => {
+            const lastMessage = ct.messages && ct.messages.length > 0 
+                ? ct.messages[ct.messages.length - 1] 
+                : null
+            const matchedRequest = allRequests.find(r => r._id.toString() === ct.leadId)
+            const vehicleInfo = matchedRequest 
+                ? getRequestTitleForServer(matchedRequest) 
+                : "Vehicle Negotiation"
+            return {
+                _id: ct._id.toString(),
+                leadId: ct.leadId,
+                rvsfId: ct.partnerId,
+                rvsfName: partnerNameMap[ct.partnerId] || "Personal Partner",
+                vehicleInfo,
+                lastMessage: lastMessage ? lastMessage.message : "No messages yet",
+                lastMessageTime: lastMessage ? lastMessage.createdAt : ct.updatedAt,
+                updatedAt: ct.updatedAt,
+                agreedPrice: ct.agreedPrice || null
+            }
+        })
+
+        enrichedChatThreads = [...rvsfEnriched, ...personalEnriched].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+
         // Map chatThreadId onto requests themselves for UserRequestList to show CTA
         const chatThreadMap: Record<string, string> = {}
-        for (const ct of chatThreads) {
+        for (const ct of [...chatThreads, ...personalChatThreads]) {
             chatThreadMap[ct.leadId] = ct._id.toString()
         }
 

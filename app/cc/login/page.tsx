@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Lock, ArrowRight, Loader2, Mail, Eye, EyeOff, Shield } from "lucide-react"
+import { Lock, ArrowRight, Loader2, Mail, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
 import { Plus_Jakarta_Sans } from "next/font/google"
@@ -102,20 +102,14 @@ function CCLoginContent() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="w-full max-w-[440px] relative z-10"
+                className="w-full max-w-[440px] relative z-10 translate-y-36"
             >
                 <div className="relative group">
                     {/* Glow effect */}
                     <div className="absolute -inset-0.5 bg-gradient-to-b from-[#E31E24]/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-700" />
                     
                     <div className="relative bg-white/90 backdrop-blur-xl border border-white/20 p-8 sm:p-10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)]">
-                        <div className="flex flex-col items-center mb-8 text-center">
-                            <div className="w-12 h-12 rounded-2xl bg-[#E31E24]/10 border border-[#E31E24]/20 flex items-center justify-center text-[#E31E24] mb-4">
-                                <Shield className="w-6 h-6" />
-                            </div>
-                            <h2 className="text-2xl font-extrabold text-slate-900 tracking-wider">CC OPERATOR PORTAL</h2>
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">Collection Center Authorization Required</p>
-                        </div>
+
 
                         <form onSubmit={handleCCLogin} className="space-y-6">
                             <AnimatePresence>
