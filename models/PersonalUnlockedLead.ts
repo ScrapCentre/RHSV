@@ -37,7 +37,7 @@ const PersonalUnlockedLeadSchema: Schema = new Schema(
         pickupStatus: { type: String },
         status: {
             type: String,
-            default: "pending_decision",
+            default: "locked_lead",
         },
         rejectionReason: { type: String },
     },

@@ -33,6 +33,14 @@ export async function GET(
             return NextResponse.json({ message: "Forbidden" }, { status: 403 })
         }
 
+        if (isPartnerOwner) {
+            const PersonalUnlockedLead = (await import("@/models/PersonalUnlockedLead")).default
+            await PersonalUnlockedLead.updateOne(
+                { leadId: thread.leadId, partnerId, status: "locked_lead" },
+                { $set: { status: "negotiation_phase" } }
+            )
+        }
+
         // --- Auto-expiry sweeping loop ---
         let threadUpdated = false
         const now = new Date()

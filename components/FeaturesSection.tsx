@@ -52,19 +52,14 @@ export default function FeaturesSection() {
 
   return (
     <section className="py-10 relative overflow-hidden text-slate-900 bg-white features-section">
-      <style dangerouslySetInnerHTML={{ __html: `
-        .features-section {
-          background-image: none;
-        }
-        @media (min-width: 1024px) {
-          .features-section {
-            background-image: url('/features.png');
-            background-size: 45% auto;
-            background-position: left center;
-            background-repeat: no-repeat;
-          }
-        }
-      ` }} />
+      {/* Background Image - Fitted to section and screen */}
+      <div className="absolute inset-0 pointer-events-none z-0 hidden lg:block">
+        <img 
+          src="/features.png" 
+          alt="Premium Features Background" 
+          className="w-full h-full object-cover"
+        />
+      </div>
       {/* Background Pattern Removed */}
       
       {/* Animated Elements Removed */}

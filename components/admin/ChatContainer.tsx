@@ -48,9 +48,10 @@ interface ChatThread {
 interface ChatContainerProps {
     role: "rvsf" | "customer" | "partner"
     threadId: string
+    disableNegotiation?: boolean
 }
 
-export default function ChatContainer({ role, threadId }: ChatContainerProps) {
+export default function ChatContainer({ role, threadId, disableNegotiation = false }: ChatContainerProps) {
     const { toast } = useToast()
     const [thread, setThread] = useState<ChatThread | null>(null)
     const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -410,7 +411,7 @@ export default function ChatContainer({ role, threadId }: ChatContainerProps) {
                                             )}
 
                                             {/* Action CTAs */}
-                                            {isThisOfferPending && isOfferRecipient && (
+                                            {isThisOfferPending && isOfferRecipient && !disableNegotiation && (
                                                 <div className="flex flex-wrap gap-2 pt-2 border-t border-red-50">
                                                     <button onClick={() => handleOfferAction("accept")} disabled={isSubmittingMessage}
                                                         className="flex-1 min-w-[70px] py-2 px-3 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1"
@@ -525,7 +526,7 @@ export default function ChatContainer({ role, threadId }: ChatContainerProps) {
 
             {/* ── OFFER FORM OVERLAY ───────────────────────────────────────── */}
             <AnimatePresence>
-                {showOfferForm && (
+                {showOfferForm && !disableNegotiation && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -589,23 +590,25 @@ export default function ChatContainer({ role, threadId }: ChatContainerProps) {
                 style={{ borderTop: "1.5px solid #fecaca", background: "#fff" }}
             >
                 {/* Toolbar row */}
-                <div className="flex items-center justify-between mb-2.5">
-                    <button
-                        onClick={() => setShowOfferForm(prev => !prev)}
-                        disabled={isOfferPending}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all"
-                        style={isOfferPending ? {
-                            background: "#fffbeb", border: "1px solid #fde68a", color: "#92400e", cursor: "not-allowed", opacity: 0.75
-                        } : {
-                            background: "#fff1f2", border: "1.5px solid #fecaca", color: "#E31E24",
-                        }}
-                    >
-                        <DollarSign className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">{isOfferPending ? "Offer Pending..." : "Make an Offer"}</span>
-                        <span className="sm:hidden">{isOfferPending ? "Pending..." : "Offer"}</span>
-                    </button>
-                    <span className="text-[10px] text-slate-400 italic hidden sm:inline">*Agreed deals proceed offline</span>
-                </div>
+                {!disableNegotiation && (
+                    <div className="flex items-center justify-between mb-2.5">
+                        <button
+                            onClick={() => setShowOfferForm(prev => !prev)}
+                            disabled={isOfferPending}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all"
+                            style={isOfferPending ? {
+                                background: "#fffbeb", border: "1px solid #fde68a", color: "#92400e", cursor: "not-allowed", opacity: 0.75
+                            } : {
+                                background: "#fff1f2", border: "1.5px solid #fecaca", color: "#E31E24",
+                            }}
+                        >
+                            <DollarSign className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">{isOfferPending ? "Offer Pending..." : "Make an Offer"}</span>
+                            <span className="sm:hidden">{isOfferPending ? "Pending..." : "Offer"}</span>
+                        </button>
+                        <span className="text-[10px] text-slate-400 italic hidden sm:inline">*Agreed deals proceed offline</span>
+                    </div>
+                )}
 
                 {/* Message row */}
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">

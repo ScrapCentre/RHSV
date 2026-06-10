@@ -958,7 +958,7 @@ export default function ValuationWizardCard() {
                                         </p>
                                         <div className="relative z-10">
                                             <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-none tracking-tight mb-2.5">
-                                                Up to ₹{formatCurrency(maxTotalBenefit)}*
+                                                Up to ₹{formatCurrency(grandTotalBenefit)}*
                                             </h3>
 
                                             {/* Breakdown Box */}
@@ -982,7 +982,7 @@ export default function ValuationWizardCard() {
                                             </span>
 
                                             <p className="text-slate-400 text-[7.5px] sm:text-[8px] leading-normal italic mt-0.5">
-                                                *Calculated using industrial scrap indices for {weightNum} and maximum CD Certificate redemption value.
+                                                *Calculated using industrial scrap indices for {weightNum}, maximum CD Certificate redemption value, and all partner benefits.
                                             </p>
                                         </div>
                                     </div>

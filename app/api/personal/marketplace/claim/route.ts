@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
             customerPhone: customer.phone,
             vehicleInfo: customer.vehicleInfo,
             unlockedAt: new Date(),
-            status: "pending_decision",
+            status: "locked_lead",
         })
 
         // 5. Create Chat Thread and post system message

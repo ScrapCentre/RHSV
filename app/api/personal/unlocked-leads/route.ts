@@ -4,6 +4,16 @@ import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import PersonalUnlockedLead from "@/models/PersonalUnlockedLead"
 import PersonalChatThread from "@/models/PersonalChatThread"
+import ExchangeVehicle from "@/models/ExchangeVehicle"
+import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
+
+const MODEL_MAP: Record<string, any> = {
+    ExchangeVehicle,
+    BuyVehicle,
+    WizardLead,
+    Valuation: WizardLead
+}
 
 export async function GET(request: NextRequest) {
     try {
@@ -43,12 +53,35 @@ export async function GET(request: NextRequest) {
             chatThreadMap[t.leadId] = t._id.toString()
         })
 
-        const leadsWithChat = leads.map((l: any) => ({
-            ...l,
-            chatThreadId: chatThreadMap[l.leadId] || null
+        const leadsWithChatAndDetails = await Promise.all(leads.map(async (l: any) => {
+            const chatThreadId = chatThreadMap[l.leadId] || null
+            let originalDetails: any = null
+            
+            const Model = MODEL_MAP[l.leadSource]
+            if (Model && l.leadId) {
+                try {
+                    originalDetails = await Model.findById(l.leadId).lean()
+                } catch (err) {
+                    console.error(`Error fetching original lead ${l.leadId} from ${l.leadSource}:`, err)
+                }
+            }
+
+            return {
+                ...l,
+                chatThreadId,
+                regNo: originalDetails?.regNo || null,
+                brand: originalDetails?.brand || null,
+                model: originalDetails?.model || null,
+                year: originalDetails?.year || null,
+                fuel: originalDetails?.fuel || null,
+                kms: originalDetails?.kms || null,
+                weight: originalDetails?.weight || null,
+                desiredCompany: originalDetails?.desiredCompany || null,
+                desiredModel: originalDetails?.desiredModel || null,
+            }
         }))
 
-        return NextResponse.json({ leads: leadsWithChat })
+        return NextResponse.json({ leads: leadsWithChatAndDetails })
 
     } catch (error: any) {
         console.error("[Personal Unlocked Leads GET] Error:", error)

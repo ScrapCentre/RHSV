@@ -15,6 +15,10 @@ export async function POST(
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
+        if ((session.user as any)?.role === "cc_operator") {
+            return NextResponse.json({ message: "CC operators are not allowed to negotiate." }, { status: 403 })
+        }
+
         const { threadId } = await params
         const body = await request.json()
         const { action, counterAmount } = body

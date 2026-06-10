@@ -35,6 +35,15 @@ interface UnlockedLead {
     assignedCcId?: string
     assignedCcName?: string
     pickupStatus?: string
+    regNo?: string
+    brand?: string
+    model?: string
+    year?: string
+    fuel?: string | string[]
+    kms?: string
+    weight?: string
+    desiredCompany?: string
+    desiredModel?: string
 }
 
 export default function RVSFDashboardPage() {
@@ -353,6 +362,54 @@ export default function RVSFDashboardPage() {
                                         <span className="font-medium">Unlocked: {new Date(lead.unlockedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                                     </div>
 
+                                    {/* Vehicle details (from original lead) */}
+                                    {(lead.regNo || lead.brand || lead.model || lead.year || lead.fuel || lead.kms || lead.weight || lead.desiredCompany) && (
+                                        <div className="mt-1 text-[10px] bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5">
+                                            <p className="font-bold text-slate-800 pb-1 border-b border-slate-200/50 flex items-center gap-1">
+                                                <Car className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
+                                                Vehicle Information
+                                            </p>
+                                            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-slate-600">
+                                                {lead.regNo && (
+                                                    <div className="col-span-2">
+                                                        <span className="text-slate-400 font-medium">Reg No: </span>
+                                                        <span className="font-bold font-mono">{lead.regNo}</span>
+                                                    </div>
+                                                )}
+                                                {(lead.brand || lead.model) && (
+                                                    <div className="col-span-2">
+                                                        <span className="text-slate-400 font-medium">Vehicle: </span>
+                                                        <span className="font-bold">{[lead.brand, lead.model, lead.year].filter(Boolean).join(" ")}</span>
+                                                    </div>
+                                                )}
+                                                {lead.fuel && (
+                                                    <div>
+                                                        <span className="text-slate-400 font-medium">Fuel: </span>
+                                                        <span className="font-bold">{Array.isArray(lead.fuel) ? lead.fuel.join(", ") : lead.fuel}</span>
+                                                    </div>
+                                                )}
+                                                {lead.kms && (
+                                                    <div>
+                                                        <span className="text-slate-400 font-medium">KMs: </span>
+                                                        <span className="font-bold">{lead.kms} KM</span>
+                                                    </div>
+                                                )}
+                                                {lead.weight && (
+                                                    <div>
+                                                        <span className="text-slate-400 font-medium">Weight: </span>
+                                                        <span className="font-bold">{lead.weight} kg</span>
+                                                    </div>
+                                                )}
+                                                {lead.desiredCompany && (
+                                                    <div className="col-span-2 pt-1.5 border-t border-slate-200/50 mt-1">
+                                                        <span className="text-slate-450 font-bold uppercase tracking-wider text-[8px]">Exchange For:</span>
+                                                        <p className="font-bold text-slate-800 mt-0.5">{lead.desiredCompany} {lead.desiredModel || ""}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Obfuscated contact or locked indicator */}
                                     <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1 text-[10px] text-slate-500">
                                         <div className="flex items-center gap-1.5">
@@ -434,6 +491,54 @@ export default function RVSFDashboardPage() {
                                         <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
                                         <span className="font-semibold">Assigned Scrap Operations</span>
                                     </div>
+
+                                    {/* Vehicle details (from original lead) */}
+                                    {(lead.regNo || lead.brand || lead.model || lead.year || lead.fuel || lead.kms || lead.weight || lead.desiredCompany) && (
+                                        <div className="text-[10px] bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5">
+                                            <p className="font-bold text-slate-800 pb-1 border-b border-slate-200/50 flex items-center gap-1">
+                                                <Car className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
+                                                Vehicle Information
+                                            </p>
+                                            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-slate-600">
+                                                {lead.regNo && (
+                                                    <div className="col-span-2">
+                                                        <span className="text-slate-400 font-medium">Reg No: </span>
+                                                        <span className="font-bold font-mono">{lead.regNo}</span>
+                                                    </div>
+                                                )}
+                                                {(lead.brand || lead.model) && (
+                                                    <div className="col-span-2">
+                                                        <span className="text-slate-400 font-medium">Vehicle: </span>
+                                                        <span className="font-bold">{[lead.brand, lead.model, lead.year].filter(Boolean).join(" ")}</span>
+                                                    </div>
+                                                )}
+                                                {lead.fuel && (
+                                                    <div>
+                                                        <span className="text-slate-400 font-medium">Fuel: </span>
+                                                        <span className="font-bold">{Array.isArray(lead.fuel) ? lead.fuel.join(", ") : lead.fuel}</span>
+                                                    </div>
+                                                )}
+                                                {lead.kms && (
+                                                    <div>
+                                                        <span className="text-slate-400 font-medium">KMs: </span>
+                                                        <span className="font-bold">{lead.kms} KM</span>
+                                                    </div>
+                                                )}
+                                                {lead.weight && (
+                                                    <div>
+                                                        <span className="text-slate-400 font-medium">Weight: </span>
+                                                        <span className="font-bold">{lead.weight} kg</span>
+                                                    </div>
+                                                )}
+                                                {lead.desiredCompany && (
+                                                    <div className="col-span-2 pt-1.5 border-t border-slate-200/50 mt-1">
+                                                        <span className="text-slate-450 font-bold uppercase tracking-wider text-[8px]">Exchange For:</span>
+                                                        <p className="font-bold text-slate-800 mt-0.5">{lead.desiredCompany} {lead.desiredModel || ""}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Unveiled Contact details */}
                                     <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5 text-[10px] text-slate-600">

@@ -34,9 +34,13 @@ export async function POST(
 
         // Find the lead assigned to this CC operator
         let lead = await UnlockedLead.findOne({ _id: leadId, assignedCcId: ccId })
+        let isPersonal = false
         if (!lead) {
             const PersonalUnlockedLead = (await import("@/models/PersonalUnlockedLead")).default
             lead = await PersonalUnlockedLead.findOne({ _id: leadId, assignedCcId: ccId }) as any
+            if (lead) {
+                isPersonal = true
+            }
         }
         if (!lead) {
             return NextResponse.json({ message: "Lead not found or not assigned to your Collection Center" }, { status: 404 })
@@ -44,6 +48,13 @@ export async function POST(
 
         // Update the pickup status
         lead.pickupStatus = pickupStatus
+        if (isPersonal) {
+            if (["Vehicle Picked Up", "Vehicle at CC Yard", "Weighing Done"].includes(pickupStatus)) {
+                lead.status = "vehicle_picked_up"
+            } else if (pickupStatus === "Awaiting Pickup") {
+                lead.status = "assigned_to_cc"
+            }
+        }
         await lead.save()
 
         return NextResponse.json({

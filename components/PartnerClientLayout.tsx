@@ -173,16 +173,7 @@ export default function PartnerClientLayout({ children }: { children: React.Reac
                         </Link>
                     </motion.div>
 
-                    {/* Pickups */}
-                    <motion.div variants={sidebarLinkVariants}>
-                        <Link href="/personal/pickups" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/personal/pickups') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
-                            {isActive('/personal/pickups') && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
-                            )}
-                            <Truck className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/personal/pickups') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
-                            <span className="font-semibold">Pickups</span>
-                        </Link>
-                    </motion.div>
+
 
                 </motion.nav>
 

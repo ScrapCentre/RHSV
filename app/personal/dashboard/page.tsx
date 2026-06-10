@@ -16,6 +16,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
     weight: ["400", "500", "600", "700", "800"],
 })
+import StatusPipeline from "@/components/StatusPipeline"
 
 interface UnlockedLead {
     _id: string
@@ -34,6 +35,15 @@ interface UnlockedLead {
     assignedCcName?: string
     pickupStatus?: string
     amount?: number
+    regNo?: string
+    brand?: string
+    model?: string
+    year?: string
+    fuel?: string | string[]
+    kms?: string
+    weight?: string
+    desiredCompany?: string
+    desiredModel?: string
 }
 
 function getCategoryBadge(lead: UnlockedLead) {
@@ -52,12 +62,16 @@ function getCategoryBadge(lead: UnlockedLead) {
 
 function getStatusBadge(status: string) {
     switch (status) {
-        case "pending_decision":
-            return { label: "Pending Decision", color: "text-amber-700 bg-amber-50 border-amber-100" }
-        case "accepted":
-            return { label: "Accepted", color: "text-blue-700 bg-blue-50 border-blue-100" }
+        case "locked_lead":
+            return { label: "Locked Lead", color: "text-red-750 bg-red-50 border-red-100" }
+        case "negotiation_phase":
+            return { label: "Negotiating", color: "text-amber-700 bg-amber-50 border-amber-100" }
         case "assigned_to_cc":
-            return { label: "Assigned to CC", color: "text-emerald-700 bg-emerald-50 border-emerald-105" }
+            return { label: "Assigned to CC", color: "text-blue-700 bg-blue-50 border-blue-100" }
+        case "vehicle_picked_up":
+            return { label: "Vehicle Picked Up", color: "text-purple-750 bg-purple-50 border-purple-100" }
+        case "scraped_successfully":
+            return { label: "Scraped Successfully", color: "text-emerald-700 bg-emerald-50 border-emerald-100" }
         default:
             return { label: status, color: "text-slate-700 bg-slate-50 border-slate-100" }
     }
@@ -70,7 +84,6 @@ export default function PersonalDashboardPage() {
     const [unlockedLeads, setUnlockedLeads] = useState<UnlockedLead[]>([])
     const [loading, setLoading] = useState(true)
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
-    const [activeTab, setActiveTab] = useState<"all" | "pending" | "active">("all")
     
     // Rejection Modal State
     const [rejectingLead, setRejectingLead] = useState<UnlockedLead | null>(null)
@@ -245,14 +258,9 @@ export default function PersonalDashboardPage() {
         )
     }
 
-    const pendingLeads = unlockedLeads.filter(l => l.status === "pending_decision")
-    const activeLeads = unlockedLeads.filter(l => l.status === "accepted" || l.status === "assigned_to_cc")
-
-    const filteredLeads = unlockedLeads.filter(l => {
-        if (activeTab === "pending") return l.status === "pending_decision"
-        if (activeTab === "active") return l.status === "accepted" || l.status === "assigned_to_cc"
-        return true
-    })
+    const pendingLeads: UnlockedLead[] = []
+    const activeLeads = unlockedLeads
+    const filteredLeads = unlockedLeads
 
     return (
         <div className={`${plusJakartaSans.className} space-y-6 max-w-6xl text-slate-800`}>
@@ -349,40 +357,13 @@ export default function PersonalDashboardPage() {
 
             <hr className="border-slate-100" />
 
-            {/* Tab Switched Header Row */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex bg-slate-100 dark:bg-slate-900 rounded-xl p-1 border border-slate-200/50 self-start">
-                    <button
-                        onClick={() => setActiveTab("all")}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
-                            activeTab === "all"
-                                ? "bg-[#E31E24] text-white shadow-sm"
-                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                        }`}
-                    >
-                        All Categories ({unlockedLeads.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("pending")}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
-                            activeTab === "pending"
-                                ? "bg-[#E31E24] text-white shadow-sm"
-                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                        }`}
-                    >
-                        Pending Decision ({pendingLeads.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("active")}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
-                            activeTab === "active"
-                                ? "bg-[#E31E24] text-white shadow-sm"
-                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                        }`}
-                    >
-                        Active Operations ({activeLeads.length})
-                    </button>
-                </div>
+            {/* Active Leads Header */}
+            <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <h2 className="text-sm font-bold text-slate-800 tracking-tight">Active Leads</h2>
+                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full leading-none">
+                    {unlockedLeads.length} Total
+                </span>
             </div>
 
             {/* Leads Listing */}
@@ -395,8 +376,8 @@ export default function PersonalDashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {filteredLeads.map(lead => {
                         const cat = getCategoryBadge(lead)
-                        const stat = getStatusBadge(lead.status)
-                        const isPending = lead.status === "pending_decision"
+                        const stat = getStatusBadge(lead.status === "pending_decision" ? "accepted" : lead.status)
+                        const isPending = false
 
                         return (
                             <motion.div 
@@ -405,6 +386,7 @@ export default function PersonalDashboardPage() {
                                 className="bg-white border border-slate-100 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300"
                             >
                                 <div className="space-y-3">
+                                    <StatusPipeline status={lead.status} />
                                     <div className="flex justify-between items-center gap-2">
                                         <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full border ${cat.color}`}>
                                             {cat.label}
@@ -422,6 +404,65 @@ export default function PersonalDashboardPage() {
                                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                             <span className="font-medium">Claimed: {new Date(lead.unlockedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                                         </div>
+
+                                        {(lead.regNo || lead.brand || lead.model || lead.year || lead.fuel || lead.kms || lead.weight || lead.desiredCompany) && (
+                                            <div className="mt-2.5 text-[10px] bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5">
+                                                <p className="font-bold text-slate-850 pb-1 border-b border-slate-200/50 flex items-center gap-1">
+                                                    <Car className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                                    Vehicle Information
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-slate-655">
+                                                    {lead.regNo && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Reg No: </span>
+                                                            <span className="font-bold uppercase tracking-wider">{lead.regNo}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.brand && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Brand: </span>
+                                                            <span className="font-bold">{lead.brand}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.model && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Model: </span>
+                                                            <span className="font-bold">{lead.model}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.year && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Year: </span>
+                                                            <span className="font-bold">{lead.year}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.fuel && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Fuel: </span>
+                                                            <span className="font-bold">{Array.isArray(lead.fuel) ? lead.fuel.join(', ') : lead.fuel}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.kms && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Odometer: </span>
+                                                            <span className="font-bold">{lead.kms} KM</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.weight && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Weight: </span>
+                                                            <span className="font-bold">{lead.weight} kg</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.desiredCompany && (
+                                                        <div className="col-span-2 pt-1.5 border-t border-slate-200/50 mt-1">
+                                                            <span className="text-slate-450 font-bold uppercase tracking-wider text-[8px]">Exchange For:</span>
+                                                            <p className="font-bold text-slate-800 mt-0.5">{lead.desiredCompany} {lead.desiredModel || ""}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Obfuscated contact or details based on status */}
@@ -458,65 +499,38 @@ export default function PersonalDashboardPage() {
                                 </div>
 
                                 <div className="flex gap-2.5 mt-4 pt-4 border-t border-slate-100">
-                                    {isPending ? (
-                                        <>
+                                    <Link href={lead.chatThreadId ? `/personal/chat/${lead.chatThreadId}` : "/personal/chats"} className="flex-1">
+                                        <button className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all shadow-sm shadow-red-600/5 h-full">
+                                            <MessageSquare className="w-3.5 h-3.5" />
+                                            Open Chat Thread
+                                        </button>
+                                    </Link>
+                                    <div className="flex-1">
+                                        {lead.assignedCcId ? (
                                             <button 
-                                                onClick={() => handleAccept(lead._id)}
-                                                disabled={actionLoadingId === lead._id}
-                                                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-wait shadow-sm shadow-emerald-600/5"
+                                                onClick={() => openAssignModal(lead)}
+                                                className="w-full flex flex-col items-center justify-center py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-900 font-bold text-[9px] rounded-lg active:scale-[0.98] transition-all h-full"
                                             >
-                                                {actionLoadingId === lead._id ? (
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                ) : (
-                                                    <Check className="w-3.5 h-3.5" />
+                                                <span className="flex items-center gap-1">
+                                                    <Building2 className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
+                                                    Assigned: {lead.assignedCcName || "CC"}
+                                                </span>
+                                                {lead.pickupStatus && (
+                                                    <span className="text-[7.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-100 mt-0.5 uppercase tracking-wider">
+                                                        {lead.pickupStatus}
+                                                    </span>
                                                 )}
-                                                Accept Lead
                                             </button>
+                                        ) : (
                                             <button 
-                                                onClick={() => openRejectModal(lead)}
-                                                disabled={actionLoadingId === lead._id}
-                                                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-red-50 hover:bg-red-100 border border-red-100 text-[#E31E24] font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                                                onClick={() => openAssignModal(lead)}
+                                                className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all h-full"
                                             >
-                                                <X className="w-3 h-3" />
-                                                Reject Lead
+                                                <Building2 className="w-3.5 h-3.5 text-[#E31E24]" />
+                                                Assign CC
                                             </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Link href={lead.chatThreadId ? `/personal/chat/${lead.chatThreadId}` : "/personal/chats"} className="flex-1">
-                                                <button className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all shadow-sm shadow-red-600/5 h-full">
-                                                    <MessageSquare className="w-3.5 h-3.5" />
-                                                    Open Chat Thread
-                                                </button>
-                                            </Link>
-                                            <div className="flex-1">
-                                                {lead.assignedCcId ? (
-                                                    <button 
-                                                        onClick={() => openAssignModal(lead)}
-                                                        className="w-full flex flex-col items-center justify-center py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-900 font-bold text-[9px] rounded-lg active:scale-[0.98] transition-all h-full"
-                                                    >
-                                                        <span className="flex items-center gap-1">
-                                                            <Building2 className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
-                                                            Assigned: {lead.assignedCcName || "CC"}
-                                                        </span>
-                                                        {lead.pickupStatus && (
-                                                            <span className="text-[7.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-100 mt-0.5 uppercase tracking-wider">
-                                                                {lead.pickupStatus}
-                                                            </span>
-                                                        )}
-                                                    </button>
-                                                ) : (
-                                                    <button 
-                                                        onClick={() => openAssignModal(lead)}
-                                                        className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all h-full"
-                                                    >
-                                                        <Building2 className="w-3.5 h-3.5 text-[#E31E24]" />
-                                                        Assign CC
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </motion.div>
                         )

@@ -19,10 +19,13 @@ import {
     Plus,
     X,
     ClipboardList,
-    TrendingUp
+    TrendingUp,
+    MessageSquare,
+    Mail
 } from "lucide-react"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import { useToast } from "@/hooks/use-toast"
+import Link from "next/link"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
@@ -36,9 +39,33 @@ interface AssignedLead {
     vehicleInfo: string
     customerName: string
     customerPhone: string
+    customerEmail?: string
     assignedAt: string
     pickupStatus?: string
     status: string
+    chatThreadId?: string | null
+    regNo?: string
+    brand?: string
+    model?: string
+    year?: string
+    fuel?: string | string[]
+    kms?: string
+    weight?: string
+    desiredCompany?: string
+    desiredModel?: string
+}
+
+function getCategoryBadge(lead: AssignedLead) {
+    const source = lead.leadSource
+    if (source === "ExchangeVehicle") {
+        return { label: "Exchange Vehicle", color: "text-purple-700 bg-purple-50 border-purple-100" }
+    } else if (source === "BuyVehicle") {
+        return { label: "Buy New Vehicle", color: "text-orange-700 bg-orange-50 border-orange-100" }
+    } else if (source === "WizardLead") {
+        return { label: "Scrap Vehicle", color: "text-blue-700 bg-blue-50 border-blue-100" }
+    } else {
+        return { label: "Scrap Vehicle", color: "text-blue-700 bg-blue-50 border-blue-100" }
+    }
 }
 
 export default function CCDashboardPage() {
@@ -51,11 +78,7 @@ export default function CCDashboardPage() {
     const [ccCity, setCcCity] = useState("")
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-
-    // Update Status Modal State
-    const [updatingLead, setUpdatingLead] = useState<AssignedLead | null>(null)
-    const [newStatus, setNewStatus] = useState("")
-    const [isUpdatingSubmit, setIsUpdatingSubmit] = useState(false)
+    const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -95,36 +118,25 @@ export default function CCDashboardPage() {
         fetchLeads()
     }, [status])
 
-    const openUpdateModal = (lead: AssignedLead) => {
-        setUpdatingLead(lead)
-        setNewStatus(lead.pickupStatus || "Awaiting Pickup")
-    }
-
-    const handleStatusUpdate = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!updatingLead || !newStatus) return
-
-        setIsUpdatingSubmit(true)
+    const handleDirectPickupUpdate = async (leadId: string) => {
+        setActionLoadingId(leadId)
         try {
-            const res = await fetch(`/api/cc/leads/${updatingLead._id}/status`, {
+            const res = await fetch(`/api/cc/leads/${leadId}/status`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ pickupStatus: newStatus })
+                body: JSON.stringify({ pickupStatus: "Vehicle Picked Up" })
             })
             const data = await res.json()
             if (!res.ok) throw new Error(data.message || "Failed to update status")
 
-            // Update local state instantly
             setLeads(prev => 
-                prev.map(l => l._id === updatingLead._id ? { ...l, pickupStatus: newStatus } : l)
+                prev.map(l => l._id === leadId ? { ...l, pickupStatus: "Vehicle Picked Up", status: "vehicle_picked_up" } : l)
             )
 
             toast({
                 title: "Status Updated Successfully",
-                description: `Pickup status set to: ${newStatus}`,
+                description: "Vehicle status set to Picked Up",
             })
-
-            setUpdatingLead(null)
         } catch (err: any) {
             console.error("Status update error:", err)
             toast({
@@ -133,7 +145,7 @@ export default function CCDashboardPage() {
                 variant: "destructive"
             })
         } finally {
-            setIsUpdatingSubmit(false)
+            setActionLoadingId(null)
         }
     }
 
@@ -245,9 +257,7 @@ export default function CCDashboardPage() {
                         <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
                             {leads.length} Leads Total
                         </span>
-                    </div>
-
-                    {leads.length === 0 ? (
+                    </div>                    {leads.length === 0 ? (
                         <div className="bg-white border border-slate-100 rounded-xl p-12 text-center shadow-sm">
                             <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                             <p className="text-slate-500 font-bold text-sm">No operations assigned to your station.</p>
@@ -263,20 +273,19 @@ export default function CCDashboardPage() {
                                 >
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-start gap-2">
-                                            <h3 className="font-extrabold text-slate-850 text-xs leading-normal">
-                                                {lead.vehicleInfo || "Vehicle Information"}
-                                            </h3>
-                                            <span className={`text-[8.5px] font-extrabold px-2 py-0.5 rounded border uppercase tracking-wider shrink-0 whitespace-nowrap ${
-                                                !lead.pickupStatus || lead.pickupStatus === "Awaiting Pickup" 
-                                                    ? "bg-amber-50 text-amber-600 border-amber-100" 
-                                                    : lead.pickupStatus === "Vehicle Picked Up"
-                                                    ? "bg-blue-50 text-blue-600 border-blue-100"
-                                                    : lead.pickupStatus === "Vehicle at CC Yard"
-                                                    ? "bg-purple-50 text-purple-600 border-purple-100"
-                                                    : "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                            }`}>
-                                                {lead.pickupStatus || "Awaiting Pickup"}
-                                            </span>
+                                            <div className="space-y-1">
+                                                {lead.chatThreadId !== undefined && (() => {
+                                                    const cat = getCategoryBadge(lead)
+                                                    return (
+                                                        <span className={`inline-block text-[8px] font-bold px-2 py-0.5 rounded-full border ${cat.color} mb-1`}>
+                                                            {cat.label}
+                                                        </span>
+                                                    )
+                                                })()}
+                                                <h3 className="font-extrabold text-slate-850 text-xs leading-normal">
+                                                    {lead.vehicleInfo || "Vehicle Information"}
+                                                </h3>
+                                            </div>
                                         </div>
 
                                         <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
@@ -284,27 +293,114 @@ export default function CCDashboardPage() {
                                             <span>Assigned: {new Date(lead.assignedAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                                         </div>
 
+                                        {(lead.regNo || lead.brand || lead.model || lead.year || lead.fuel || lead.kms || lead.weight || lead.desiredCompany) && (
+                                            <div className="mt-2.5 text-[10px] bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5">
+                                                <p className="font-bold text-slate-855 pb-1 border-b border-slate-200/50 flex items-center gap-1">
+                                                    <Car className="w-3.5 h-3.5 text-slate-450 shrink-0" />
+                                                    Vehicle Information
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-slate-655">
+                                                    {lead.regNo && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Reg No: </span>
+                                                            <span className="font-bold uppercase tracking-wider">{lead.regNo}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.brand && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Brand: </span>
+                                                            <span className="font-bold">{lead.brand}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.model && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Model: </span>
+                                                            <span className="font-bold">{lead.model}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.year && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Year: </span>
+                                                            <span className="font-bold">{lead.year}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.fuel && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Fuel: </span>
+                                                            <span className="font-bold">{Array.isArray(lead.fuel) ? lead.fuel.join(', ') : lead.fuel}</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.kms && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Odometer: </span>
+                                                            <span className="font-bold">{lead.kms} KM</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.weight && (
+                                                        <div>
+                                                            <span className="text-slate-400 font-medium">Weight: </span>
+                                                            <span className="font-bold">{lead.weight} kg</span>
+                                                        </div>
+                                                    )}
+                                                    {lead.desiredCompany && (
+                                                        <div className="col-span-2 pt-1.5 border-t border-slate-200/50 mt-1">
+                                                            <span className="text-slate-450 font-bold uppercase tracking-wider text-[8px]">Exchange For:</span>
+                                                            <p className="font-bold text-slate-800 mt-0.5">{lead.desiredCompany} {lead.desiredModel || ""}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* Contact & Location Details */}
                                         <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 space-y-1.5 text-[11px] text-slate-650">
                                             <p className="font-bold text-slate-800 pb-1 border-b border-slate-200/50 flex items-center gap-1.5">
                                                 <User className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
                                                 {lead.customerName || "Customer Details"}
                                             </p>
-                                            <div className="flex items-center gap-2 mt-1">
+                                            {lead.chatThreadId !== undefined && lead.customerEmail && (
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                                    <span className="font-medium select-all text-slate-800">{lead.customerEmail}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-2">
                                                 <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                                 <span className="font-mono font-bold select-all text-slate-800">{lead.customerPhone || "No Phone Number"}</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 pt-3 border-t border-slate-100">
-                                        <button 
-                                            onClick={() => openUpdateModal(lead)}
-                                            className="w-full flex items-center justify-center gap-1.5 py-2 bg-slate-900 hover:bg-black text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg active:scale-[0.98] transition-all"
-                                        >
-                                            <Clock className="w-3.5 h-3.5" />
-                                            Update Pickup Status
-                                        </button>
+                                    <div className="mt-4 pt-3 border-t border-slate-100 flex gap-2">
+                                        {(lead.pickupStatus === "Vehicle Picked Up" || lead.pickupStatus === "Vehicle at CC Yard" || lead.pickupStatus === "Weighing Done") ? (
+                                            <div className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-emerald-50 border border-emerald-100 text-emerald-700 font-extrabold text-[10px] uppercase tracking-wider rounded-lg">
+                                                <Check className="w-3.5 h-3.5" />
+                                                Vehicle Picked Up
+                                            </div>
+                                        ) : (
+                                            <button 
+                                                onClick={() => handleDirectPickupUpdate(lead._id)}
+                                                disabled={actionLoadingId === lead._id}
+                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 hover:bg-black text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                                            >
+                                                {actionLoadingId === lead._id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                )}
+                                                Vehicle Picked Up
+                                            </button>
+                                        )}
+                                        {lead.chatThreadId && (
+                                            <Link href={`/cc/chat/${lead.chatThreadId}`} className="flex-1">
+                                                <button 
+                                                    className="w-full flex items-center justify-center gap-1.5 py-2 bg-[#E31E24] hover:bg-[#c9181d] text-white font-extrabold text-[10px] uppercase tracking-wider rounded-lg active:scale-[0.98] transition-all h-full"
+                                                >
+                                                    <MessageSquare className="w-3.5 h-3.5" />
+                                                    Chat
+                                                </button>
+                                            </Link>
+                                        )}
                                     </div>
                                 </motion.div>
                             ))}
@@ -312,99 +408,6 @@ export default function CCDashboardPage() {
                     )}
                 </div>
             </main>
-
-            {/* ── UPDATE STATUS MODAL ─────────────────────── */}
-            <AnimatePresence>
-                {updatingLead && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        {/* Backdrop */}
-                        <motion.div 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }}
-                            onClick={() => setUpdatingLead(null)}
-                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                        />
-
-                        {/* Modal Box */}
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-white border border-slate-100 w-full max-w-sm rounded-xl p-5 relative z-10 shadow-2xl space-y-4"
-                        >
-                            <div className="flex justify-between items-start gap-2">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white shrink-0">
-                                        <Clock className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-850 text-xs">Update Pickup Status</h3>
-                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5 leading-none">Vehicle: {updatingLead.vehicleInfo}</p>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={() => setUpdatingLead(null)}
-                                    className="p-1 rounded text-slate-400 hover:text-slate-650 hover:bg-slate-50 transition-all shrink-0"
-                                >
-                                    <X className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleStatusUpdate} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">
-                                        Select Operational Stage
-                                    </label>
-                                    <div className="space-y-2">
-                                        {[
-                                            "Awaiting Pickup",
-                                            "Vehicle Picked Up",
-                                            "Vehicle at CC Yard",
-                                            "Weighing Done"
-                                        ].map((statusOption) => (
-                                            <div 
-                                                key={statusOption}
-                                                onClick={() => setNewStatus(statusOption)}
-                                                className={`border rounded-lg p-2.5 flex justify-between items-center cursor-pointer transition-all duration-150 ${newStatus === statusOption ? 'border-slate-900 bg-slate-900/5 font-extrabold' : 'border-slate-100 hover:border-slate-200 text-slate-600'}`}
-                                            >
-                                                <span className="text-xs">{statusOption}</span>
-                                                {newStatus === statusOption && (
-                                                    <div className="w-4 h-4 rounded-full bg-slate-900 flex items-center justify-center text-white shrink-0">
-                                                        <Check className="w-2.5 h-2.5" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-2.5 pt-1">
-                                    <button 
-                                        type="button"
-                                        onClick={() => setUpdatingLead(null)}
-                                        className="flex-1 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-650 font-bold text-[10px] rounded-lg active:scale-[0.98] transition-all"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        type="submit"
-                                        disabled={isUpdatingSubmit}
-                                        className="flex-1 py-1.5 bg-slate-900 hover:bg-black text-white font-extrabold text-[10px] rounded-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 shadow-sm shadow-slate-900/5"
-                                    >
-                                        {isUpdatingSubmit ? (
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                        ) : (
-                                            <Check className="w-3.5 h-3.5" />
-                                        )}
-                                        Save Status
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </div>
     )
 }

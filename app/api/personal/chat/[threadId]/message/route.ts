@@ -23,6 +23,10 @@ export async function POST(
             return NextResponse.json({ message: "Invalid message type." }, { status: 400 })
         }
 
+        if (type === "offer" && (session.user as any)?.role === "cc_operator") {
+            return NextResponse.json({ message: "CC operators are not allowed to make offers." }, { status: 403 })
+        }
+
         if (type !== "offer" && (!content || content.trim().length === 0)) {
             return NextResponse.json({ message: "Message content is required." }, { status: 400 })
         }

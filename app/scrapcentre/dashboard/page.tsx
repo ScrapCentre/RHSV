@@ -4,9 +4,6 @@ import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
 import mongoose from "mongoose"
 import B2BPickup from "@/models/B2BPickup"
-import ExchangeVehicle from "@/models/ExchangeVehicle"
-import BuyVehicle from "@/models/BuyVehicle"
-import WizardLead from "@/models/WizardLead"
 import PersonalUnlockedLead from "@/models/PersonalUnlockedLead"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import { 
@@ -18,7 +15,6 @@ import {
     Package, 
     AlertTriangle, 
     FileText, 
-    Sparkles, 
     ChevronRight,
     ArrowUpRight,
     User,
@@ -26,6 +22,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import ScrapCentreActionBtn from "@/components/ScrapCentreActionBtn"
+import PersonalScrapCentreActionBtn from "@/components/PersonalScrapCentreActionBtn"
+import StatusPipeline from "@/components/StatusPipeline"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
@@ -46,87 +44,15 @@ export default async function ScrapCentreDashboard() {
     // Fetch all claimed personal leads to get their leadIds
     const claimedPersonalLeads = await PersonalUnlockedLead.find().select("leadId").lean()
     const claimedLeadIds = claimedPersonalLeads.map((l: any) => l.leadId)
-    const claimedLeadObjectIds = claimedLeadIds
-        .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
-        .map((id: string) => new mongoose.Types.ObjectId(id))
-
     // 1. Fetch B2B Pickups corresponding only to personal claimed leads
     const pickups = await B2BPickup.find({ leadId: { $in: claimedLeadIds } }).sort({ createdAt: -1 }).lean()
 
+    const personalLeads = await PersonalUnlockedLead.find({
+        status: { $in: ["assigned_to_cc", "vehicle_picked_up", "scraped_successfully"] }
+    }).sort({ updatedAt: -1 }).lean() as any[]
+
     const activePickups = pickups.filter(p => p.status === 'accepted' || p.status === 'scheduled' || p.status === 'picked_up')
     const completedPickups = pickups.filter(p => p.status === 'completed' || p.status === 'car_scrapped')
-
-    // 2. Fetch approved requests from all collections corresponding only to personal claimed leads
-    const [
-        approvedExchanges,
-        approvedBuys,
-        approvedWizards
-    ] = await Promise.all([
-        ExchangeVehicle.find({ _id: { $in: claimedLeadObjectIds }, status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
-        BuyVehicle.find({ _id: { $in: claimedLeadObjectIds }, status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
-        WizardLead.find({ _id: { $in: claimedLeadObjectIds }, status: { $in: ['approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped'] } }).sort({ createdAt: -1 }).lean(),
-    ])
-
-    const allApproved = [
-        ...approvedExchanges.map((item: any) => ({
-            ...JSON.parse(JSON.stringify(item)),
-            type: 'exchange',
-            typeName: 'Exchange',
-            customerName: item.customerName || "N/A",
-            customerPhone: item.customerPhone || "N/A",
-            vehicleInfo: `Exchange: ${item.oldVehicleBrand || ''} -> ${item.newVehicleBrand || ''}`,
-            color: 'purple'
-        })),
-        ...approvedBuys.map((item: any) => ({
-            ...JSON.parse(JSON.stringify(item)),
-            type: 'buy',
-            typeName: 'Buy',
-            customerName: item.customerName || "N/A",
-            customerPhone: item.customerPhone || "N/A",
-            vehicleInfo: `Buying: ${item.vehicleBrand || ''} ${item.vehicleModel || ''}`,
-            color: 'orange'
-        })),
-        ...approvedWizards.map((item: any) => {
-            const plain = JSON.parse(JSON.stringify(item));
-            const serviceType = plain.serviceType || plain.type || "wizard";
-            let linkType = serviceType;
-            let typeName = 'Scrap';
-            let color = 'blue';
-            if (serviceType === "scrap") {
-                linkType = "quote";
-                typeName = 'Scrap';
-                color = 'blue';
-            }
-            if (serviceType === "wizard-sell" || serviceType === "sell") {
-                linkType = "sell";
-                typeName = 'Sell';
-                color = 'green';
-            }
-            if (serviceType === "wizard-buy" || serviceType === "buy") {
-                linkType = "buy";
-                typeName = 'Buy';
-                color = 'orange';
-            }
-            
-            let vehicleInfo = "N/A";
-            if (serviceType === "buy" || serviceType === "wizard-buy") {
-                vehicleInfo = `Buying: ${plain.desiredCompany || plain.vehicleBrand || ''} ${plain.desiredModel || plain.vehicleModel || ''}`;
-            } else {
-                vehicleInfo = `${plain.year || plain.registrationYear || 'N/A'} ${plain.brand || plain.desiredCompany || 'Unknown'} ${plain.model || plain.desiredModel || ''}`;
-            }
-
-            return {
-                ...plain,
-                type: linkType,
-                typeName: typeName,
-                originalType: serviceType,
-                customerName: plain.name || plain.customerName || "N/A",
-                customerPhone: plain.phone || plain.customerPhone || "N/A",
-                vehicleInfo: vehicleInfo.trim(),
-                color: color
-            }
-        })
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     return (
         <div className={`min-h-screen bg-slate-50 text-slate-900 flex flex-col ${plusJakartaSans.className}`}>
@@ -185,165 +111,7 @@ export default async function ScrapCentreDashboard() {
                     </div>
                 </div>
 
-                {/* 1. Approved Requests Feed Section */}
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm relative">
-                    <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-[#E31E24]" />
-                            Approved Requests Feed
-                        </h2>
-                    </div>
 
-                    {/* Desktop View (Table) */}
-                    <div className="hidden md:block overflow-hidden">
-                        <table className="w-full text-left text-sm table-fixed">
-                            <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200">
-                                <tr>
-                                    <th className="px-3 py-3 w-[12%]">Type</th>
-                                    <th className="px-3 py-3 w-[18%]">Principal Entity</th>
-                                    <th className="px-3 py-3 w-[25%]">Vehicle Info</th>
-                                    <th className="px-3 py-3 w-[15%]">Status</th>
-                                    <th className="px-3 py-3 w-[15%]">Approved On</th>
-                                    <th className="px-3 py-3 w-[15%] text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200">
-                                {allApproved.map((item: any, index: number) => {
-                                    const matchingPickup = pickups.find(p => p.leadId === item._id.toString())
-                                    const resolvedPickupId = matchingPickup?._id?.toString() || item.b2bPickupId?.toString()
-
-                                    return (
-                                        <tr key={`${item.type}-${item._id}`} className={`transition-all duration-300 group hover:scale-[1.01] hover:shadow-lg relative z-0 hover:z-10 cursor-default ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-slate-100`}>
-                                            <td className="px-3 py-3">
-                                                <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border bg-red-50 text-[#E31E24] border-red-100">
-                                                    {item.typeName}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-3">
-                                                <div className="flex flex-col overflow-hidden w-full">
-                                                    <span className="font-bold text-slate-900 group-hover:text-[#E31E24] transition-colors truncate">{item.customerName}</span>
-                                                    <span className="text-[10px] font-medium text-slate-400 truncate">{item.customerPhone}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-3 py-3 text-[13px] font-medium text-slate-600 truncate">
-                                                {item.vehicleInfo}
-                                            </td>
-                                            <td className="px-3 py-3">
-                                                {item.status === 'pickup_scheduled' ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 border border-blue-100">
-                                                        Pickup Scheduled
-                                                    </span>
-                                                ) : item.status === 'reached_collection_centre' ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-purple-50 text-purple-600 border border-purple-100">
-                                                        Picked Up
-                                                    </span>
-                                                ) : item.status === 'car_scrapped' ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-red-50 text-[#E31E24] border border-red-100">
-                                                        Scrapped
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                                        Approved
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-3 py-3 text-[11px] font-medium text-slate-450 truncate">
-                                                {new Date(item.updatedAt || item.createdAt).toLocaleString()}
-                                            </td>
-                                            <td className="px-3 py-3 text-right">
-                                                <div className="flex justify-end">
-                                                    {item.status === 'reached_collection_centre' && resolvedPickupId && (
-                                                        <ScrapCentreActionBtn 
-                                                            pickupId={resolvedPickupId} 
-                                                            currentStatus="picked_up" 
-                                                        />
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                                {allApproved.length === 0 && (
-                                    <tr>
-                                        <td colSpan={6} className="px-3 py-12 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
-                                            No approved requests identified
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Mobile View (Cards) */}
-                    <div className="md:hidden p-4 space-y-4 bg-slate-50">
-                        {allApproved.length === 0 ? (
-                            <div className="px-6 py-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest bg-white rounded-xl border border-slate-200">
-                                No approved requests identified
-                            </div>
-                        ) : (
-                            allApproved.map((item: any, index: number) => {
-                                const matchingPickup = pickups.find(p => p.leadId === item._id.toString())
-                                const resolvedPickupId = matchingPickup?._id?.toString() || item.b2bPickupId?.toString()
-
-                                return (
-                                    <div key={`${item.type}-${item._id}`} className={`rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:border-slate-300 active:scale-[0.98] ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
-                                        <div className="p-4 space-y-3">
-                                            <div className="flex justify-between items-start">
-                                                <span className="inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border bg-red-50 text-[#E31E24] border-red-100">
-                                                    {item.typeName}
-                                                </span>
-                                                <p className="text-[11px] text-slate-400 font-medium">
-                                                    {new Date(item.updatedAt || item.createdAt).toLocaleDateString()}
-                                                </p>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Details</p>
-                                                <p className="text-sm font-bold text-slate-800 leading-snug line-clamp-2">
-                                                    {item.vehicleInfo}
-                                                </p>
-                                            </div>
-
-                                            <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                                                <div className="flex flex-col">
-                                                    <p className="text-[13px] font-bold text-slate-800">{item.customerName}</p>
-                                                    <p className="text-[10px] font-mono text-slate-400">{item.customerPhone}</p>
-                                                </div>
-                                                <div>
-                                                    {item.status === 'pickup_scheduled' ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 border border-blue-100">
-                                                            Pickup Scheduled
-                                                        </span>
-                                                    ) : item.status === 'reached_collection_centre' ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-purple-50 text-purple-600 border border-purple-100">
-                                                            Picked Up
-                                                        </span>
-                                                    ) : item.status === 'car_scrapped' ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-red-50 text-[#E31E24] border border-red-100">
-                                                            Scrapped
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                                            Approved
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {item.status === 'reached_collection_centre' && resolvedPickupId && (
-                                                <div className="pt-2 border-t border-slate-200 flex justify-end">
-                                                    <ScrapCentreActionBtn 
-                                                        pickupId={resolvedPickupId} 
-                                                        currentStatus="picked_up" 
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )
-                            })
-                        )}
-                    </div>
-                </div>
 
                 {/* 2. Network Pickups Log Section */}
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm relative">
@@ -482,6 +250,67 @@ export default async function ScrapCentreDashboard() {
                                     </div>
                                 </div>
                             ))
+                        )}
+                    </div>
+                </div>
+
+                {/* 3. Personal Partner Leads Section */}
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm relative">
+                    <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                            <Package className="w-4 h-4 text-[#E31E24]" />
+                            Personal Partner Leads Feed
+                        </h2>
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
+                            {personalLeads.length} Leads
+                        </span>
+                    </div>
+
+                    <div className="p-6">
+                        {personalLeads.length === 0 ? (
+                            <div className="text-center py-8 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                                No personal partner leads at assignment stage yet
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {personalLeads.map((lead: any) => (
+                                    <div key={lead._id.toString()} className="border border-slate-200 hover:border-slate-350 rounded-xl p-5 flex flex-col justify-between bg-white shadow-sm hover:shadow transition-all duration-300">
+                                        <div className="space-y-4">
+                                            {/* Visual pipeline */}
+                                            <StatusPipeline status={lead.status} />
+
+                                            <div>
+                                                <h3 className="font-extrabold text-slate-800 text-sm leading-snug">
+                                                    {lead.vehicleInfo || "Vehicle Details"}
+                                                </h3>
+                                                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-2 font-medium">
+                                                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                                    <span>Claimed: {new Date(lead.unlockedAt).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Customer Details */}
+                                            <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 space-y-1.5 text-xs text-slate-650">
+                                                <p className="font-bold text-slate-800 pb-1 border-b border-slate-200/50 flex items-center gap-1.5">
+                                                    <User className="w-3.5 h-3.5 text-[#E31E24] shrink-0" />
+                                                    {lead.customerName || "Customer Info"}
+                                                </p>
+                                                <p className="font-medium truncate">Email: {lead.customerEmail || "N/A"}</p>
+                                                <p className="font-medium">Phone: <span className="font-mono">{lead.customerPhone || "N/A"}</span></p>
+                                            </div>
+
+                                            {/* Assigned CC Info */}
+                                            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">Assigned Center</span>
+                                                    <span className="text-xs font-bold text-slate-800">{lead.assignedCcName || "CC"}</span>
+                                                </div>
+                                                <PersonalScrapCentreActionBtn leadId={lead._id.toString()} currentStatus={lead.status} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>

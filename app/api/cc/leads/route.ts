@@ -4,6 +4,16 @@ import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import UnlockedLead from "@/models/UnlockedLead"
 import CollectionCenter from "@/models/CollectionCenter"
+import ExchangeVehicle from "@/models/ExchangeVehicle"
+import BuyVehicle from "@/models/BuyVehicle"
+import WizardLead from "@/models/WizardLead"
+
+const MODEL_MAP: Record<string, any> = {
+    ExchangeVehicle,
+    BuyVehicle,
+    WizardLead,
+    Valuation: WizardLead
+}
 
 async function getCCOperatorModel() {
     return (await import("@/models/CCOperator")).default
@@ -32,6 +42,7 @@ export async function GET(request: NextRequest) {
             const PersonalCCOperator = (await import("@/models/PersonalCCOperator")).default
             const PersonalCollectionCenter = (await import("@/models/PersonalCollectionCenter")).default
             const PersonalUnlockedLead = (await import("@/models/PersonalUnlockedLead")).default
+            const PersonalChatThread = (await import("@/models/PersonalChatThread")).default
 
             const operator = await PersonalCCOperator.findOne({ ccId }).lean() as any
             if (operator) {
@@ -41,7 +52,38 @@ export async function GET(request: NextRequest) {
                     ccCity = cc.city
                 }
             }
-            leads = await PersonalUnlockedLead.find({ assignedCcId: ccId }).sort({ assignedAt: -1 }).lean()
+            const rawLeads = await PersonalUnlockedLead.find({ assignedCcId: ccId }).sort({ assignedAt: -1 }).lean() as any[]
+            const leadIds = rawLeads.map(l => l.leadId)
+            const chatThreads = await PersonalChatThread.find({
+                leadId: { $in: leadIds },
+                partnerId: partnerId
+            }).lean() as any[]
+            const threadMap = new Map(chatThreads.map(t => [t.leadId, t._id.toString()]))
+            
+            leads = await Promise.all(rawLeads.map(async (l) => {
+                let originalDetails: any = null
+                const Model = MODEL_MAP[l.leadSource]
+                if (Model && l.leadId) {
+                    try {
+                        originalDetails = await Model.findById(l.leadId).lean()
+                    } catch (err) {
+                        console.error(`Error fetching original lead ${l.leadId}:`, err)
+                    }
+                }
+                return {
+                    ...l,
+                    chatThreadId: threadMap.get(l.leadId) || null,
+                    regNo: originalDetails?.regNo || null,
+                    brand: originalDetails?.brand || null,
+                    model: originalDetails?.model || null,
+                    year: originalDetails?.year || null,
+                    fuel: originalDetails?.fuel || null,
+                    kms: originalDetails?.kms || null,
+                    weight: originalDetails?.weight || null,
+                    desiredCompany: originalDetails?.desiredCompany || null,
+                    desiredModel: originalDetails?.desiredModel || null,
+                }
+            }))
         } else {
             const CCOperator = await getCCOperatorModel()
             const operator = await CCOperator.findOne({ ccId }).lean() as any
@@ -52,7 +94,30 @@ export async function GET(request: NextRequest) {
                     ccCity = cc.city
                 }
             }
-            leads = await UnlockedLead.find({ assignedCcId: ccId }).sort({ assignedAt: -1 }).lean()
+            const rawNormalLeads = await UnlockedLead.find({ assignedCcId: ccId }).sort({ assignedAt: -1 }).lean() as any[]
+            leads = await Promise.all(rawNormalLeads.map(async (l) => {
+                let originalDetails: any = null
+                const Model = MODEL_MAP[l.leadSource]
+                if (Model && l.leadId) {
+                    try {
+                        originalDetails = await Model.findById(l.leadId).lean()
+                    } catch (err) {
+                        console.error(`Error fetching original normal lead ${l.leadId}:`, err)
+                    }
+                }
+                return {
+                    ...l,
+                    regNo: originalDetails?.regNo || null,
+                    brand: originalDetails?.brand || null,
+                    model: originalDetails?.model || null,
+                    year: originalDetails?.year || null,
+                    fuel: originalDetails?.fuel || null,
+                    kms: originalDetails?.kms || null,
+                    weight: originalDetails?.weight || null,
+                    desiredCompany: originalDetails?.desiredCompany || null,
+                    desiredModel: originalDetails?.desiredModel || null,
+                }
+            }))
         }
 
         return NextResponse.json({
