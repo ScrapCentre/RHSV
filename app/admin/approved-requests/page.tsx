@@ -31,23 +31,34 @@ export default async function ApprovedRequestsPage() {
 
     const formatWizardLead = (req: any) => {
         const plainReq = JSON.parse(JSON.stringify(req));
-        let typeName = "Vehicle Request";
-        let color = "blue";
-        const serviceType = plainReq.serviceType || plainReq.type || "wizard";
+        const serviceType = plainReq.serviceType || "scrap";
+        const isScrapAndBuy = serviceType === "scrap" && plainReq.category === "scrap_and_buy";
         
-        let linkType = serviceType;
-        if (serviceType === "scrap") { typeName = "Scrap Vehicle"; color = "blue"; linkType = "quote"; }
-        if (serviceType === "scrap-buy") { typeName = "Scrap & Buy New"; color = "purple"; }
-        if (serviceType === "sell" || serviceType === "wizard-sell") { typeName = "Sell Old Vehicle"; color = "green"; linkType = "sell"; }
-        if (serviceType === "buy" || serviceType === "wizard-buy") { typeName = "Buy New Vehicle"; color = "orange"; linkType = "buy"; }
+        let linkType: string;
+        let typeName: string;
+        let color: string;
+        
+        if (serviceType === "buy") {
+            linkType = "buy";
+            typeName = "Buy";
+            color = "orange";
+        } else if (isScrapAndBuy) {
+            linkType = "exchange";
+            typeName = "Scrap&Buy";
+            color = "purple";
+        } else {
+            linkType = "quote";
+            typeName = "Srap";
+            color = "blue";
+        }
         
         return { ...plainReq, type: linkType, originalType: serviceType, typeName, color };
     }
 
     // Combine all requests with type information
     const allRequests = [
-        ...exchangeRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "exchange", typeName: "Exchange Vehicle", color: "purple" })),
-        ...buyRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "buy", typeName: "Buy New Vehicle", color: "orange" })),
+        ...exchangeRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "exchange", typeName: "Scrap&Buy", color: "purple" })),
+        ...buyRequests.map((req: any) => ({ ...JSON.parse(JSON.stringify(req)), type: "buy", typeName: "Buy", color: "orange" })),
         ...wizardRequests.map(formatWizardLead)
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 

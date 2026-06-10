@@ -49,14 +49,16 @@ interface UnlockedLead {
 function getCategoryBadge(lead: UnlockedLead) {
     const source = lead.leadSource
     if (source === "ExchangeVehicle") {
-        return { label: "Exchange Vehicle", color: "text-purple-700 bg-purple-50 border-purple-100" }
+        return { label: "Scrap&Buy", color: "text-purple-700 bg-purple-50 border-purple-100" }
     } else if (source === "BuyVehicle") {
-        return { label: "Buy New Vehicle", color: "text-orange-700 bg-orange-50 border-orange-100" }
+        return { label: "Buy", color: "text-orange-700 bg-orange-50 border-orange-100" }
     } else if (source === "WizardLead") {
-        return { label: "Scrap Vehicle", color: "text-blue-700 bg-blue-50 border-blue-100" }
+        if (lead.desiredCompany) {
+            return { label: "Scrap&Buy", color: "text-purple-700 bg-purple-50 border-purple-100" }
+        }
+        return { label: "Srap", color: "text-blue-700 bg-blue-50 border-blue-100" }
     } else {
-        // Valuation or anything else → Scrap Vehicle
-        return { label: "Scrap Vehicle", color: "text-blue-700 bg-blue-50 border-blue-100" }
+        return { label: "Srap", color: "text-blue-700 bg-blue-50 border-blue-100" }
     }
 }
 

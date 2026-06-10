@@ -17,50 +17,13 @@ const MODEL_MAP: Record<string, any> = {
     WizardLead,
 }
 
-// ─── Extract weight from lead ───────────────────────────────────
-// Returns weight in TONS (numeric). Falls back to 1 ton if missing.
-function extractWeightTons(lead: any, source: string): number {
-    let weightKg = 0
-
-    if (source === "WizardLead") {
-        // weight field — stored as string (tons)
-        const raw = parseFloat(lead.weight || "0")
-        if (raw > 0) {
-            weightKg = raw < 10 ? raw * 1000 : raw
-        }
-    }
-    // ExchangeVehicle and BuyVehicle don't have weight fields
-
-    // Convert to tons
-    const tons = weightKg > 0 ? weightKg / 1000 : 0
-    return tons
-}
-
 // ─── Calculate unlock price ─────────────────────────────────────
-// Formula: max(VAHAN weight, secondary API weight) × 0.75
-// Since we only have one weight source currently, we use it directly.
-// Minimum unlock price: ₹99
-// For BuyVehicle leads (no weight): flat ₹99
+// Formula: weight_kg × ₹0.75 (same as frontend getUnlockPrice)
+// Weight is stored in kg in the WizardLead.weight field.
+// No minimum or maximum limits.
 function calculateUnlockPrice(lead: any, source: string): number {
-    if (source === "BuyVehicle") {
-        return 99 // Flat rate for buy leads
-    }
-
-    const weightTons = extractWeightTons(lead, source)
-
-    if (weightTons <= 0) {
-        // No weight data — use flat rate based on estimated value
-        if (lead.estimatedValue && lead.estimatedValue > 0) {
-            // 0.75% of estimated value, min ₹99, max ₹999
-            const price = Math.round(lead.estimatedValue * 0.0075)
-            return Math.max(99, Math.min(price, 999))
-        }
-        return 199 // Default fallback
-    }
-
-    // weight (tons) × ₹750 per ton (0.75 × 1000)
-    const price = Math.round(weightTons * 750)
-    return Math.max(99, Math.min(price, 999))
+    const weightKg = parseFloat((lead as any).weight || "0")
+    return Math.round(weightKg * 0.75)
 }
 
 // ─── Razorpay instance ──────────────────────────────────────────

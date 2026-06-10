@@ -81,9 +81,9 @@ function getEstimatedRange(lead: Lead): string {
 // ── Type badge ───────────────────────────────────────────────────
 function getTypeBadge(type: string) {
     switch (type) {
-        case "quote": return { label: "Scrap Vehicle", color: "text-[#E31E24]", bg: "bg-red-50" }
-        case "exchange": return { label: "Exchange", color: "text-blue-600", bg: "bg-blue-50" }
-        case "buy": return { label: "Buy Request", color: "text-emerald-600", bg: "bg-emerald-50" }
+        case "quote": return { label: "Srap", color: "text-[#E31E24]", bg: "bg-red-50" }
+        case "exchange": return { label: "Scrap&Buy", color: "text-blue-600", bg: "bg-blue-50" }
+        case "buy": return { label: "Buy", color: "text-emerald-600", bg: "bg-emerald-50" }
         default: return { label: "Lead", color: "text-purple-600", bg: "bg-purple-50" }
     }
 }

@@ -87,44 +87,18 @@ function getEstimatedRange(lead: Lead): string {
 }
 
 // ── Unlock price ─────────────────────────────────────────────────
+// Price = weight (kg) × ₹0.75
 function getUnlockPrice(lead: Lead): number {
-    if (lead.type === "buy" || lead.source === "BuyVehicle") {
-        return 99
-    }
-
-    let weightKg = 0
-    if (lead.source === "Valuation") {
-        const raw = parseFloat(lead.vehicleWeight || "0")
-        if (raw > 0) {
-            weightKg = raw < 10 ? raw * 1000 : raw
-        }
-    } else if (lead.source === "WizardLead") {
-        const raw = parseFloat(lead.weight || "0")
-        if (raw > 0) {
-            weightKg = raw < 10 ? raw * 1000 : raw
-        }
-    }
-
-    const weightTons = weightKg > 0 ? weightKg / 1000 : 0
-
-    if (weightTons <= 0) {
-        if (lead.estimatedValue && lead.estimatedValue > 0) {
-            const price = Math.round(lead.estimatedValue * 0.0075)
-            return Math.max(99, Math.min(price, 999))
-        }
-        return 199 // Default fallback
-    }
-
-    const price = Math.round(weightTons * 750)
-    return Math.max(99, Math.min(price, 999))
+    const rawWeight = parseFloat(lead.weight || lead.vehicleWeight || "0")
+    return Math.round(rawWeight * 0.75)
 }
 
 // ── Type badge ───────────────────────────────────────────────────
 function getTypeBadge(type: string) {
     switch (type) {
-        case "quote": return { label: "Scrap Vehicle", color: "text-[#E31E24]", bg: "bg-red-50" }
-        case "exchange": return { label: "Exchange", color: "text-blue-600", bg: "bg-blue-50" }
-        case "buy": return { label: "Buy Request", color: "text-emerald-600", bg: "bg-emerald-50" }
+        case "quote": return { label: "Srap", color: "text-[#E31E24]", bg: "bg-red-50" }
+        case "exchange": return { label: "Scrap&Buy", color: "text-blue-600", bg: "bg-blue-50" }
+        case "buy": return { label: "Buy", color: "text-emerald-600", bg: "bg-emerald-50" }
         default: return { label: "Lead", color: "text-purple-600", bg: "bg-purple-50" }
     }
 }

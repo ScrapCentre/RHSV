@@ -108,7 +108,15 @@ export async function GET(request: Request) {
         const allLeads = [
             ...latestExchanges.map((item: any) => ({ ...item, type: 'exchange' })),
             ...latestBuys.map((item: any) => ({ ...item, type: 'buy' })),
-            ...latestWizards.map((item: any) => ({ ...item, type: item.serviceType || 'wizard' }))
+            ...latestWizards.map((item: any) => {
+                let resolvedType = item.serviceType || 'wizard'
+                if (item.serviceType === 'scrap' && item.category === 'scrap_and_buy') {
+                    resolvedType = 'exchange'
+                } else if (item.serviceType === 'scrap') {
+                    resolvedType = 'quote'
+                }
+                return { ...item, type: resolvedType }
+            })
         ]
 
         // Resolve states and calculate count per state
@@ -142,20 +150,26 @@ export async function GET(request: Request) {
         // Format leads with maximum security (fully masked data, no inspect element leaks!)
         const formattedLeads = selectedLeads.map((item: any, index: number) => {
             let vehicleInfo = "Vehicle Details Hidden"
+            let resolvedType = "Srap"
+
             if (item.type === 'quote') {
                 vehicleInfo = `${item.year || '20XX'} ${item.brand || 'Vehicle'} ${item.model || ''} (${item.vehicleType || ''})`.trim()
+                resolvedType = "Srap"
             } else if (item.type === 'exchange') {
                 vehicleInfo = `Exchange: ${item.oldVehicleBrand || 'Old'} -> ${item.newVehicleBrand || 'New'}`.trim()
+                resolvedType = "Scrap&Buy"
             } else if (item.type === 'buy') {
                 vehicleInfo = `Looking for: ${item.customBrand || item.vehicleBrand || 'Vehicle'}`.trim()
+                resolvedType = "Buy"
             } else {
                 vehicleInfo = `${item.year || '20XX'} ${item.brand || 'Vehicle'} ${item.model || ''}`.trim()
+                resolvedType = "Srap"
             }
 
             return {
                 _id: `lead_${index}_${Math.random().toString(36).substr(2, 9)}`, // Obscure actual DB ID to prevent scraping
                 createdAt: item.createdAt,
-                type: item.type === 'quote' ? 'scrap' : item.type,
+                type: resolvedType,
                 // Hard masked fields ensuring secure data delivery
                 customerName: "Customer (LOCKED)",
                 customerPhone: "+91 ••••• •••••",

@@ -65,17 +65,28 @@ export default async function SubcontractingPage() {
             }),
             ...latestWizards.map((item: any) => {
                 const plainItem = JSON.parse(JSON.stringify(item));
-                let typeName = "Vehicle Request";
-                const serviceType = plainItem.serviceType || plainItem.type || "wizard";
-                let linkType = serviceType;
-                if (serviceType === "scrap") { typeName = "Scrap Vehicle"; linkType = "quote"; }
-                if (serviceType === "scrap-buy") { typeName = "Scrap & Buy New"; }
+                const serviceType = plainItem.serviceType || "scrap";
+                const isScrapAndBuy = serviceType === "scrap" && plainItem.category === "scrap_and_buy";
+                
+                let linkType: string;
+                let typeName: string;
+                
+                if (serviceType === "buy") {
+                    linkType = "buy";
+                    typeName = "Buy";
+                } else if (isScrapAndBuy) {
+                    linkType = "exchange";
+                    typeName = "Scrap&Buy";
+                } else {
+                    linkType = "quote";
+                    typeName = "Srap";
+                }
 
-                if (serviceType === "buy" || serviceType === "wizard-buy") { typeName = "Buy New Vehicle"; linkType = "buy"; }
-
-                let vehicleInfoStr = serviceType === "buy" ? `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}` :
-                    (serviceType === "scrap" && item.category === "scrap_and_buy") ? `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}` :
-                        `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
+                let vehicleInfoStr = serviceType === "buy"
+                    ? `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}`
+                    : isScrapAndBuy
+                        ? `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}`
+                        : `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
 
                 return {
                     ...plainItem,

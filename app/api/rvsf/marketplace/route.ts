@@ -306,9 +306,17 @@ export async function GET(request: NextRequest) {
                 } else {
                     vehicleInfoStr = `${item.year || ""} ${item.brand || ""} ${item.model || ""}`
                 }
+                
+                let resolvedType = "quote"
+                if (serviceType === "buy") {
+                    resolvedType = "buy"
+                } else if (serviceType === "scrap" && item.category === "scrap_and_buy") {
+                    resolvedType = "exchange"
+                }
+
                 return {
                     _id: item._id.toString(),
-                    type: serviceType === "buy" ? "buy" : "quote",
+                    type: resolvedType,
                     source: "WizardLead",
                     customerName: item.name || "N/A",
                     vehicleInfo: vehicleInfoStr.trim(),

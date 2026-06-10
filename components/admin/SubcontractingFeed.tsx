@@ -64,10 +64,10 @@ export default function SubcontractingFeed({ initialData, error }: Subcontractin
 
     const getTypeLabel = (type: string) => {
         switch (type) {
-            case 'quote': return 'Scrap / Get Quote'
-            case 'sell': return 'Sell Old Vehicle'
-            case 'exchange': return 'Exchange Vehicle'
-            case 'buy': return 'Buy New Vehicle'
+            case 'quote': return 'Srap'
+            case 'sell': return 'Srap'
+            case 'exchange': return 'Scrap&Buy'
+            case 'buy': return 'Buy'
             default: return type
         }
     }
@@ -168,9 +168,9 @@ export default function SubcontractingFeed({ initialData, error }: Subcontractin
                             className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-[13px] sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-gray-700 dark:text-gray-300 transition-all cursor-pointer"
                         >
                             <option value="all">All Types</option>
-                            <option value="quote">Scrap Quotes</option>
-                            <option value="exchange">Exchange Requests</option>
-                            <option value="buy">Buy Requests</option>
+                            <option value="quote">Srap</option>
+                            <option value="exchange">Scrap&Buy</option>
+                            <option value="buy">Buy</option>
                         </select>
                     </div>
 

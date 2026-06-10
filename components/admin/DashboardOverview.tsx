@@ -80,15 +80,15 @@ export default function DashboardOverview({
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                     <div className="flex items-center gap-2 p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
                         <div className="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-200 dark:shadow-none shrink-0"></div>
-                        <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400">Scrap</span>
+                        <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400">Srap</span>
                     </div>
                     <div className="flex items-center gap-2 p-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
                         <div className="w-2 h-2 rounded-full bg-purple-500 shadow-sm shadow-purple-200 dark:shadow-none shrink-0"></div>
-                        <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400">Scrap &amp; Buy</span>
+                        <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400">Scrap&amp;Buy</span>
                     </div>
                     <div className="flex items-center gap-2 p-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/30">
                         <div className="w-2 h-2 rounded-full bg-orange-500 shadow-sm shadow-orange-200 dark:shadow-none shrink-0"></div>
-                        <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">Buy New</span>
+                        <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">Buy</span>
                     </div>
                 </div>
             </motion.div>
@@ -173,22 +173,22 @@ export default function DashboardOverview({
                                     <td className="px-4 py-3">
                                         {item.type === 'quote' && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800/30 leading-none">
-                                                Scrap
+                                                Srap
                                             </span>
                                         )}
                                         {item.type === 'scrap-buy' && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border border-purple-100 dark:border-purple-800/30 leading-none">
-                                                Scrap &amp; Buy
+                                                Scrap&amp;Buy
                                             </span>
                                         )}
                                         {item.type === 'buy' && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border border-orange-100 dark:border-orange-800/30 leading-none">
-                                                Buy Vehicle
+                                                Buy
                                             </span>
                                         )}
                                         {item.type === 'exchange' && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/30 leading-none">
-                                                Exchange
+                                                Scrap&amp;Buy
                                             </span>
                                         )}
                                     </td>
@@ -257,22 +257,22 @@ export default function DashboardOverview({
                                         <div className="flex justify-between items-start">
                                             {item.type === 'quote' && (
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">
-                                                    Scrap
+                                                    Srap
                                                 </span>
                                             )}
                                             {item.type === 'scrap-buy' && (
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-100">
-                                                    Scrap &amp; Buy
+                                                    Scrap&amp;Buy
                                                 </span>
                                             )}
                                             {item.type === 'buy' && (
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-orange-50 text-orange-700 border border-orange-100">
-                                                    Buy Vehicle
+                                                    Buy
                                                 </span>
                                             )}
                                             {item.type === 'exchange' && (
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-750 border border-indigo-100">
-                                                    Exchange
+                                                    Scrap&amp;Buy
                                                 </span>
                                             )}
                                             <p className="text-[10px] text-slate-400 font-medium">
