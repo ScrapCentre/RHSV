@@ -267,7 +267,7 @@ export async function GET(request: NextRequest) {
         ])
 
         // ── 4. Normalize all leads ─────────────────────────────
-        const allLeads: any[] = [
+        let allLeads: any[] = [
             ...exchanges.map((item: any) => ({
                 _id: item._id.toString(),
                 type: "exchange",
@@ -334,7 +334,11 @@ export async function GET(request: NextRequest) {
             }),
         ]
 
-        console.log(`[Marketplace] Total leads found: ${allLeads.length} (E:${exchanges.length} B:${buys.length} W:${wizards.length})`)
+        // Filter out leads already purchased/unlocked by this RVSF
+        const purchasedLeadsSet = new Set(rvsfUser.purchasedLeads || [])
+        allLeads = allLeads.filter(lead => !purchasedLeadsSet.has(lead._id))
+
+        console.log(`[Marketplace] Total available leads: ${allLeads.length} (E:${exchanges.length} B:${buys.length} W:${wizards.length})`)
         console.log(`[Marketplace] CCs found: ${ccs.length}`, ccs.map(c => `${c.name} (${c.city}, ${c.state} — ${c.catchmentRadius}km)`))
         console.log(`[Marketplace] RVSF location: ${rvsfUser.city}, ${rvsfUser.state} ${rvsfUser.pincode}`)
 

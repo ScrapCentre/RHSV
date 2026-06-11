@@ -7,7 +7,7 @@ export interface IRefundRequest extends Document {
     rejectionReason: string
     unlockPaymentId: string
     razorpayOrderId?: string
-    status: "pending_admin_review" | "refund_approved" | "refund_processed" | "refund_denied" | "refunded" | "denied"
+    status: "pending_admin_review" | "refund_approved" | "refund_processed" | "refund_denied" | "refunded" | "denied" | "failed"
     adminNotes?: string
     createdAt: Date
     updatedAt: Date
@@ -23,7 +23,7 @@ const RefundRequestSchema: Schema = new Schema(
         razorpayOrderId: { type: String },
         status: {
             type: String,
-            enum: ["pending_admin_review", "refund_approved", "refund_processed", "refund_denied", "refunded", "denied"],
+            enum: ["pending_admin_review", "refund_approved", "refund_processed", "refund_denied", "refunded", "denied", "failed"],
             default: "pending_admin_review",
         },
         adminNotes: { type: String },

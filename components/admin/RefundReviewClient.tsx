@@ -29,8 +29,38 @@ interface RefundRequest {
     unlockPaymentId: string
     razorpayOrderId?: string
     status: string
+    adminNotes?: string
     createdAt: string
     rvsfName: string
+}
+
+function getStatusBadge(status: string) {
+    switch (status) {
+        case "refunded":
+            return (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
+                    <CheckCircle className="w-3 h-3" /> Refunded
+                </span>
+            )
+        case "failed":
+            return (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-500/20">
+                    <AlertCircle className="w-3 h-3" /> Failed
+                </span>
+            )
+        case "denied":
+            return (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-355 border border-slate-200 dark:border-slate-700">
+                    <XCircle className="w-3 h-3" /> Denied
+                </span>
+            )
+        default:
+            return (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20">
+                    <Clock className="w-3 h-3" /> Pending
+                </span>
+            )
+    }
 }
 
 interface RefundReviewClientProps {
@@ -43,11 +73,6 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null)
     
-    // Action states
-    const [isProcessing, setIsProcessing] = useState(false)
-    const [showDenyInput, setShowDenyInput] = useState(false)
-    const [denialReason, setDenialReason] = useState("")
-
     // Filter requests by search term (Lead ID or RVSF Name)
     const filteredRequests = requests.filter(req => 
         req.leadId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,117 +82,10 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
 
     const handleOpenReview = (req: RefundRequest) => {
         setSelectedRequest(req)
-        setShowDenyInput(false)
-        setDenialReason("")
     }
 
     const handleCloseReview = () => {
-        if (isProcessing) return
         setSelectedRequest(null)
-        setShowDenyInput(false)
-        setDenialReason("")
-    }
-
-    // Call backend API to Approve Refund
-    const handleApproveRefund = async () => {
-        if (!selectedRequest) return
-        
-        const confirmApprove = window.confirm(
-            `Are you sure you want to APPROVE this refund of ₹${selectedRequest.amount} for RVSF "${selectedRequest.rvsfName}"?\n\nThis will trigger an immediate full refund via Razorpay.`
-        )
-        if (!confirmApprove) return
-
-        setIsProcessing(true)
-        try {
-            const res = await fetch(`/api/admin/refund-requests/${selectedRequest._id}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ action: "approve" }),
-            })
-
-            const data = await res.json()
-
-            if (res.ok) {
-                toast({
-                    title: "Refund Approved",
-                    description: `Successfully processed full refund for lead ${selectedRequest.leadId}. Refund ID: ${data.refundId || "N/A"}`,
-                })
-                // Remove from pending list
-                setRequests(prev => prev.filter(r => r._id !== selectedRequest._id))
-                setSelectedRequest(null)
-            } else {
-                toast({
-                    title: "Approval Failed",
-                    description: data.message || "Failed to initiate refund.",
-                    variant: "destructive",
-                })
-            }
-        } catch (err: any) {
-            console.error("Refund approval exception:", err)
-            toast({
-                title: "Gateway Connection Error",
-                description: "Something went wrong while contacting the refund servers.",
-                variant: "destructive",
-            })
-        } finally {
-            setIsProcessing(false)
-        }
-    }
-
-    // Call backend API to Deny Refund
-    const handleDenyRefundSubmit = async () => {
-        if (!selectedRequest) return
-        if (!denialReason.trim()) {
-            toast({
-                title: "Reason Required",
-                description: "Please enter a valid reason for denial.",
-                variant: "destructive",
-            })
-            return
-        }
-
-        setIsProcessing(true)
-        try {
-            const res = await fetch(`/api/admin/refund-requests/${selectedRequest._id}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ 
-                    action: "deny",
-                    reason: denialReason.trim()
-                }),
-            })
-
-            const data = await res.json()
-
-            if (res.ok) {
-                toast({
-                    title: "Refund Request Denied",
-                    description: `Refund request for lead ${selectedRequest.leadId} has been successfully denied.`,
-                })
-                // Remove from pending list
-                setRequests(prev => prev.filter(r => r._id !== selectedRequest._id))
-                setSelectedRequest(null)
-            } else {
-                toast({
-                    title: "Denial Failed",
-                    description: data.message || "Failed to deny refund.",
-                    variant: "destructive",
-                })
-            }
-        } catch (err: any) {
-            console.error("Refund denial exception:", err)
-            toast({
-                title: "Error",
-                description: "Something went wrong while processing denial request.",
-                variant: "destructive",
-            })
-        } finally {
-            setIsProcessing(false)
-        }
     }
 
     const containerVariants = {
@@ -213,7 +131,7 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                     <span className="text-gray-900 dark:text-white font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-xs">
                         {filteredRequests.length}
                     </span>
-                    Pending Requests
+                    Total Refund Requests
                 </div>
             </div>
 
@@ -232,15 +150,16 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                 <th className="px-6 py-4.5 font-bold">Lead ID</th>
                                 <th className="px-6 py-4.5 font-bold">Unlock Amount</th>
                                 <th className="px-6 py-4.5 font-bold">Rejection Reason</th>
+                                <th className="px-6 py-4.5 font-bold">Status</th>
                                 <th className="px-6 py-4.5 font-bold">Date of Request</th>
-                                <th className="px-6 py-4.5 font-bold text-right">Action</th>
+                                <th className="px-6 py-4.5 font-bold text-right">Details</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                             {filteredRequests.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500 font-medium">
-                                        No pending refund requests found.
+                                    <td colSpan={7} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500 font-medium">
+                                        No refund requests found.
                                     </td>
                                 </tr>
                             ) : (
@@ -265,6 +184,9 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                         <td className="px-6 py-4 text-slate-600 dark:text-slate-300 align-middle max-w-xs truncate" title={req.rejectionReason}>
                                             {req.rejectionReason}
                                         </td>
+                                        <td className="px-6 py-4 align-middle">
+                                            {getStatusBadge(req.status)}
+                                        </td>
                                         <td className="px-6 py-4 text-slate-500 dark:text-slate-400 align-middle">
                                             <div className="flex items-center gap-1.5">
                                                 <Calendar className="w-3.5 h-3.5 text-blue-500" />
@@ -277,7 +199,7 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-emerald-500 hover:text-white dark:bg-slate-800 dark:hover:bg-emerald-500 text-gray-900 dark:text-white rounded-lg text-xs font-bold transition-all shadow-sm group"
                                             >
                                                 <Eye className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                                                Review
+                                                View
                                             </button>
                                         </td>
                                     </motion.tr>
@@ -292,7 +214,7 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
             <div className="grid grid-cols-1 gap-4 md:hidden">
                 {filteredRequests.length === 0 ? (
                     <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-gray-100 dark:border-slate-800 p-8 text-center text-slate-400 dark:text-slate-500">
-                        No pending refund requests found.
+                        No refund requests found.
                     </div>
                 ) : (
                     filteredRequests.map((req) => (
@@ -301,6 +223,7 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                 <div>
                                     <h4 className="font-bold text-gray-900 dark:text-white text-base">{req.rvsfName}</h4>
                                     <span className="text-[9px] text-slate-400 font-mono uppercase font-medium">{req.rvsfId}</span>
+                                    <div className="mt-1.5">{getStatusBadge(req.status)}</div>
                                 </div>
                                 <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-base">₹{req.amount}</span>
                             </div>
@@ -318,15 +241,15 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
 
                             <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-slate-800">
                                 <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                                    <Calendar className="w-3 h-3 text-blue-500" />
+                                    <Calendar className="w-3.5 h-3.5 text-blue-500" />
                                     {new Date(req.createdAt).toLocaleDateString()}
                                 </span>
                                 <button 
                                     onClick={() => handleOpenReview(req)}
-                                    className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm shadow-emerald-500/10"
+                                    className="px-3.5 py-1.5 bg-gray-100 hover:bg-emerald-500 hover:text-white dark:bg-slate-800 dark:hover:bg-emerald-500 text-gray-900 dark:text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm"
                                 >
                                     <Eye className="w-3.5 h-3.5" />
-                                    Review
+                                    View
                                 </button>
                             </div>
                         </div>
@@ -361,13 +284,12 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                         <RefreshCcw className="w-5 h-5 text-emerald-500" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Refund Review</h3>
+                                        <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Refund Details</h3>
                                         <p className="text-xs text-gray-500 dark:text-slate-500 font-mono uppercase tracking-tight">ID: {selectedRequest._id.slice(-8)}</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={handleCloseReview}
-                                    disabled={isProcessing}
                                     className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
                                     <X className="w-5 h-5" />
@@ -435,64 +357,23 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                     </div>
                                 </div>
 
-                                {/* Review Actions Panel */}
-                                <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
-                                    {!showDenyInput ? (
-                                        <div className="flex flex-col sm:flex-row gap-3">
-                                            <button
-                                                onClick={handleApproveRefund}
-                                                disabled={isProcessing}
-                                                className="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                                            >
-                                                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-                                                Approve Refund
-                                            </button>
-                                            <button
-                                                onClick={() => setShowDenyInput(true)}
-                                                disabled={isProcessing}
-                                                className="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-lg shadow-red-500/20 hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                                            >
-                                                <XCircle className="w-5 h-5" />
-                                                Deny Refund
-                                            </button>
+                                {/* Status & Logs Panel */}
+                                <div className="pt-4 border-t border-gray-100 dark:border-slate-800 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Refund Status
+                                        </h4>
+                                        {getStatusBadge(selectedRequest.status)}
+                                    </div>
+                                    {selectedRequest.adminNotes && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest block">
+                                                Transaction Notes / Logs
+                                            </h4>
+                                            <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-gray-100 dark:border-slate-800 text-xs font-semibold text-gray-600 dark:text-slate-400 leading-relaxed">
+                                                {selectedRequest.adminNotes}
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <motion.div 
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: "auto" }}
-                                            className="space-y-4"
-                                        >
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-red-500 uppercase tracking-wider block">
-                                                    Reason for Denial
-                                                </label>
-                                                <textarea
-                                                    disabled={isProcessing}
-                                                    rows={3}
-                                                    placeholder="Explain why this refund request is being denied. This reason will be emailed directly to the RVSF Partner."
-                                                    value={denialReason}
-                                                    onChange={(e) => setDenialReason(e.target.value)}
-                                                    className="w-full p-4 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 text-gray-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
-                                                />
-                                            </div>
-                                            <div className="flex flex-col sm:flex-row gap-3">
-                                                <button
-                                                    onClick={handleDenyRefundSubmit}
-                                                    disabled={isProcessing || !denialReason.trim()}
-                                                    className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-extrabold py-3 px-6 rounded-2xl transition-colors flex items-center justify-center gap-2"
-                                                >
-                                                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                                                    Confirm Denial & Send Email
-                                                </button>
-                                                <button
-                                                    onClick={() => setShowDenyInput(false)}
-                                                    disabled={isProcessing}
-                                                    className="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 font-bold py-3 px-6 rounded-2xl transition-colors text-slate-700 dark:text-slate-300"
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        </motion.div>
                                     )}
                                 </div>
                             </div>

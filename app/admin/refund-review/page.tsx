@@ -18,8 +18,8 @@ export default async function RefundReviewPage() {
 
     await connectToDatabase()
 
-    // 2. Fetch all refund requests where status is "pending_admin_review"
-    const pendingRequests = await RefundRequest.find({ status: "pending_admin_review" })
+    // 2. Fetch all refund requests
+    const pendingRequests = await RefundRequest.find({})
         .sort({ createdAt: -1 })
         .lean()
 
@@ -42,6 +42,7 @@ export default async function RefundReviewPage() {
         unlockPaymentId: r.unlockPaymentId,
         razorpayOrderId: r.razorpayOrderId || "",
         status: r.status,
+        adminNotes: r.adminNotes || "",
         createdAt: r.createdAt.toISOString(),
         rvsfName: rvsfMap[r.rvsfId] || r.rvsfId || "Unknown RVSF Partner",
     }))

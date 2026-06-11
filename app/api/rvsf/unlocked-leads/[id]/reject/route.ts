@@ -153,10 +153,10 @@ export async function POST(
             rejectionReason: rejectionReason.trim(),
             unlockPaymentId: unlockedLead.unlockPaymentId,
             razorpayOrderId: unlockedLead.razorpayOrderId,
-            status: isAutoRefunded ? "refunded" : "pending_admin_review",
+            status: isAutoRefunded ? "refunded" : "failed",
             adminNotes: isAutoRefunded 
                 ? `Auto-refunded upon RVSF rejection. Razorpay Refund ID: ${razorpayRefundId}`
-                : `Auto-refund failed: ${refundError}. Kept for admin review.`
+                : `Auto-refund failed: ${refundError}.`
         })
 
         // 5. Send email notification if auto-refunded successfully
@@ -245,13 +245,13 @@ export async function POST(
             }
         }
 
-        console.log(`[Reject] Lead ${unlockedLead.leadId} rejected by ${rvsfId}. Status: ${isAutoRefunded ? "Auto-refunded" : "Pending admin review"}`)
+        console.log(`[Reject] Lead ${unlockedLead.leadId} rejected by ${rvsfId}. Status: ${isAutoRefunded ? "Auto-refunded" : "Auto-refund failed"}`)
 
         return NextResponse.json({
             success: true,
             message: isAutoRefunded
                 ? "Lead rejected. A refund has been automatically initiated to your original payment method."
-                : "Lead rejected. Refund is queued for manual admin review.",
+                : `Lead rejected. Automatic refund failed: ${refundError}. The administrator has been notified.`,
         })
 
 
