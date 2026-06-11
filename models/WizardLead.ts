@@ -42,6 +42,7 @@ export interface IWizardLead {
   photoBack?: string;
   photoLeft?: string;
   photoRight?: string;
+  carPhoto?: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -93,6 +94,7 @@ const WizardLeadSchema: Schema = new Schema(
     photoBack: { type: String },
     photoLeft: { type: String },
     photoRight: { type: String },
+    carPhoto: { type: String },
   },
   {
     timestamps: true,

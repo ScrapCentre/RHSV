@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       state: body.state,
       desiredCompany: body.desiredCompany,
       desiredModel: body.desiredModel,
+      carPhoto: body.carPhoto,
     });
 
     const savedLead = await newLead.save();

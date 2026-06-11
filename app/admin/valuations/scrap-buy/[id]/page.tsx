@@ -23,7 +23,9 @@ import {
     MoreHorizontal, 
     ShieldCheck,
     Info,
-    Globe
+    Globe,
+    ImageIcon,
+    Download
 } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
@@ -513,6 +515,114 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                 </div>
 
             </div>
+
+            {/* Documents Section */}
+            {(request.aadharFile || request.rcFile || request.carPhoto) && (
+                <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
+                    <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800 mb-3">
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-lg">
+                            <ImageIcon className="w-4.5 h-4.5" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                Uploaded Documents
+                            </h2>
+                            <div className="h-0.5 w-8 bg-blue-500 rounded-full mt-1" />
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {request.aadharFile && (
+                            <div className="border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col justify-between gap-2.5">
+                                <div>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Aadhar Card Document</span>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold truncate">Uploaded File</p>
+                                </div>
+                                <div className="flex items-center gap-3 pt-1.5 border-t border-slate-100/50 dark:border-slate-800/30">
+                                    <button
+                                        onClick={() => window.open(request.aadharFile, '_blank')}
+                                        className="text-blue-650 dark:text-blue-455 hover:underline text-xs font-bold"
+                                    >
+                                        View
+                                    </button>
+                                    <button
+                                        onClick={() => window.open(request.aadharFile.replace("/upload/", "/upload/fl_attachment/"), '_blank')}
+                                        className="text-slate-450 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 transition-colors flex items-center gap-0.5 text-xs font-bold"
+                                        title="Download Document"
+                                    >
+                                        <Download className="w-3 h-3" />
+                                        Download
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {request.rcFile && (
+                            <div className="border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col justify-between gap-2.5">
+                                <div>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Registration Certificate (RC)</span>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold truncate">Uploaded File</p>
+                                </div>
+                                <div className="flex items-center gap-3 pt-1.5 border-t border-slate-100/50 dark:border-slate-800/30">
+                                    <button
+                                        onClick={() => window.open(request.rcFile, '_blank')}
+                                        className="text-blue-655 dark:text-blue-455 hover:underline text-xs font-bold"
+                                    >
+                                        View
+                                    </button>
+                                    <button
+                                        onClick={() => window.open(request.rcFile.replace("/upload/", "/upload/fl_attachment/"), '_blank')}
+                                        className="text-slate-455 hover:text-blue-650 dark:text-slate-550 dark:hover:text-blue-455 transition-colors flex items-center gap-0.5 text-xs font-bold"
+                                        title="Download Document"
+                                    >
+                                        <Download className="w-3 h-3" />
+                                        Download
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {request.carPhoto && (
+                            <div className="border border-slate-100 dark:border-slate-800/60 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/30 flex flex-col">
+                                {/* Image Preview */}
+                                <div className="relative w-full aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800/50 group cursor-pointer" onClick={() => window.open(request.carPhoto, '_blank')}>
+                                    <img
+                                        src={request.carPhoto}
+                                        alt="Vehicle Photo"
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest">
+                                            Open Full Size
+                                        </span>
+                                    </div>
+                                </div>
+                                {/* Label + Actions */}
+                                <div className="p-3 flex items-center justify-between">
+                                    <div>
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Vehicle Photo</span>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Uploaded by customer</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => window.open(request.carPhoto, '_blank')}
+                                            className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-bold"
+                                        >
+                                            View
+                                        </button>
+                                        <button
+                                            onClick={() => window.open(request.carPhoto.replace("/upload/", "/upload/fl_attachment/"), '_blank')}
+                                            className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-0.5 text-xs font-bold"
+                                            title="Download Photo"
+                                        >
+                                            <Download className="w-3 h-3" />
+                                            Download
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Bottom Footer Notice Bar */}
             <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-blue-50/30 dark:bg-slate-900/30 border border-blue-100/30 dark:border-slate-800/20">

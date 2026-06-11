@@ -6,7 +6,8 @@ import {
     Car, Recycle, ShoppingCart, ArrowRight, ArrowLeft,
     Zap, Shield, Sparkles, CheckCircle, Search,
     MapPin, Calendar, User, Phone, ClipboardList,
-    Smartphone, Lock, Fuel, Gauge, Home, Loader2
+    Smartphone, Lock, Fuel, Gauge, Home, Loader2,
+    Camera, UploadCloud
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase"
@@ -216,7 +217,7 @@ export default function ValuationWizardCard() {
     }, [])
 
     useEffect(() => {
-        if (serviceType === "scrap" && step === 7) {
+        if (serviceType === "scrap" && step === 8) {
             triggerConfetti(2);
         }
     }, [step, serviceType]);
@@ -239,7 +240,8 @@ export default function ValuationWizardCard() {
         buyNew: "",
         pincode: "",
         state: "",
-        city: ""
+        city: "",
+        carPhoto: ""
     })
 
     // Sync desiredCompany & desiredModel selection states with form data
@@ -324,6 +326,47 @@ export default function ValuationWizardCard() {
     const [isSendingOtp, setIsSendingOtp] = useState(false)
     const [isVerifying, setIsVerifying] = useState(false)
     const [isDetectingLocation, setIsDetectingLocation] = useState(false)
+    const [isUploadingImage, setIsUploadingImage] = useState(false)
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setIsUploadingImage(true)
+        const uploadData = new FormData()
+        uploadData.append("file", file)
+
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: uploadData,
+            })
+
+            if (!res.ok) {
+                throw new Error("Failed to upload image")
+            }
+
+            const data = await res.json()
+            if (data.success && data.url) {
+                setFormData(prev => ({ ...prev, carPhoto: data.url }))
+                toast({
+                    title: "Image Uploaded",
+                    description: "Your vehicle image has been successfully uploaded to Cloudinary.",
+                })
+            } else {
+                throw new Error(data.message || "Upload failed")
+            }
+        } catch (err: any) {
+            console.error("Error uploading image:", err)
+            toast({
+                title: "Upload Failed",
+                description: err.message || "Could not upload image. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsUploadingImage(false)
+        }
+    }
 
     const verifyAndFillViaPincode = async (pincode: string): Promise<boolean> => {
         console.log("verifyAndFillViaPincode: Triggered for pincode", pincode);
@@ -647,7 +690,7 @@ export default function ValuationWizardCard() {
         setCustomBrand("")
         setCustomModel("")
         setFormData({
-            regNo: "", brand: "", model: "", year: "", weight: "", kms: "", fuel: "", name: "", address: "", phone: "", otp: "", desiredCompany: "", desiredModel: "", buyNew: "", pincode: "", state: "", city: ""
+            regNo: "", brand: "", model: "", year: "", weight: "", kms: "", fuel: "", name: "", address: "", phone: "", otp: "", desiredCompany: "", desiredModel: "", buyNew: "", pincode: "", state: "", city: "", carPhoto: ""
         })
     }
 
@@ -913,7 +956,7 @@ export default function ValuationWizardCard() {
     }
 
     const heroOffset = fromHero ? 1 : 0 // subtract 1 step when vehicle number is skipped
-    const totalSteps = (!serviceType ? 1 : (serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 9 - heroOffset : 8 - heroOffset) : 4)))
+    const totalSteps = (!serviceType ? 1 : (serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 11 - heroOffset : 10 - heroOffset) : 4)))
 
     if (mode === "scrap-valuation") {
         return (
@@ -2155,16 +2198,103 @@ export default function ValuationWizardCard() {
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <button disabled={!formData.state || !formData.city || formData.pincode.length !== 6} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
+                                                <button disabled={!formData.state || !formData.city || !formData.pincode} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2">Continue <ArrowRight className="w-3.5 h-3.5" /></button>
                                             </div>
                                         )}
 
-                                        {step === 7 && (() => {
+                                        {step === 7 && (
+                                            <div className="space-y-4 text-center px-2 sm:px-6">
+                                                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1 animate-pulse">
+                                                    <Camera className="w-6 h-6 sm:w-7 sm:h-7 text-[#E31E24]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Vehicle Photo</h3>
+                                                    <p className="text-slate-500 text-[10px] sm:text-[11.5px] font-semibold max-w-md mx-auto px-2">
+                                                        Capture a live photo of your vehicle or upload an image to receive an accurate scrap valuation.
+                                                    </p>
+                                                </div>
+
+                                                {/* Upload & Capture Options */}
+                                                <div className="grid grid-cols-2 gap-2.5 sm:gap-4 max-w-md mx-auto pt-1">
+                                                    {/* Option 1: Capture */}
+                                                    <label className="flex flex-col items-center justify-center p-3 sm:p-5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#E31E24] active:scale-[0.98] rounded-2xl cursor-pointer transition-all duration-300 shadow-sm relative group">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            capture="environment"
+                                                            onChange={handleImageUpload}
+                                                            disabled={isUploadingImage}
+                                                            className="hidden"
+                                                        />
+                                                        <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-red-50 text-[#E31E24] group-hover:bg-[#E31E24] group-hover:text-white flex items-center justify-center transition-colors mb-2">
+                                                            <Camera className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" />
+                                                        </div>
+                                                        <span className="text-[10.5px] sm:text-xs font-black text-slate-800 uppercase tracking-wider">Take Photo</span>
+                                                        <span className="text-[8px] sm:text-[9.5px] text-slate-400 font-bold mt-0.5">Use camera</span>
+                                                    </label>
+
+                                                    {/* Option 2: Upload */}
+                                                    <label className="flex flex-col items-center justify-center p-3 sm:p-5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#E31E24] active:scale-[0.98] rounded-2xl cursor-pointer transition-all duration-300 shadow-sm relative group">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={handleImageUpload}
+                                                            disabled={isUploadingImage}
+                                                            className="hidden"
+                                                        />
+                                                        <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-red-50 text-[#E31E24] group-hover:bg-[#E31E24] group-hover:text-white flex items-center justify-center transition-colors mb-2">
+                                                            <UploadCloud className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" />
+                                                        </div>
+                                                        <span className="text-[10.5px] sm:text-xs font-black text-slate-800 uppercase tracking-wider">Upload File</span>
+                                                        <span className="text-[8px] sm:text-[9.5px] text-slate-400 font-bold mt-0.5">Select image</span>
+                                                    </label>
+                                                </div>
+
+                                                {/* Uploading State */}
+                                                {isUploadingImage && (
+                                                    <div className="flex flex-col items-center justify-center py-4 space-y-2 max-w-md mx-auto">
+                                                        <Loader2 className="w-6 h-6 text-[#E31E24] animate-spin" />
+                                                        <p className="text-[9.5px] font-black text-slate-500 uppercase tracking-widest animate-pulse">Uploading to Cloudinary...</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Preview Area */}
+                                                {formData.carPhoto && !isUploadingImage && (
+                                                    <div className="max-w-md mx-auto w-full bg-slate-50 border border-slate-100 rounded-2xl p-2 sm:p-3 flex flex-col items-center space-y-2 shadow-inner">
+                                                        <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-slate-200">
+                                                            <img
+                                                                src={formData.carPhoto}
+                                                                alt="Vehicle Preview"
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                            <div className="absolute top-2 right-2 bg-emerald-500 text-white rounded-full p-1 shadow">
+                                                                <CheckCircle className="w-4 h-4 fill-emerald-500 text-white" />
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+                                                            Successfully Uploaded
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Save and Continue Button */}
+                                                <button
+                                                    disabled={!formData.carPhoto || isUploadingImage}
+                                                    onClick={nextStep}
+                                                    className="w-full max-w-md mx-auto py-2.5 sm:py-3 bg-[#E31E24] text-white font-black rounded-xl shadow-lg hover:bg-red-600 active:scale-[0.99] transition-all uppercase tracking-widest text-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                >
+                                                    Save & Continue
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {step === 8 && (() => {
                                             return (
                                                 <div className="space-y-3">
                                                     <div className="text-center space-y-1 mb-2">
                                                         <span className="bg-red-50 text-red-600 border border-red-100 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                                                            Step 8 of 8 — scrap Service 100%
+                                                            Step {totalSteps} of {totalSteps} — scrap Service 100%
                                                         </span>
                                                         <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight mt-1">Your Scrap Valuation is Ready! 🎉</h3>
                                                         <p className="text-slate-500 text-[10px] sm:text-[11px] font-semibold max-w-lg mx-auto">Verify your mobile number to unlock Certificate of Deposit (CD) and other green benefits.</p>

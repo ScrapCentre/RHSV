@@ -373,23 +373,39 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
                             </div>
                         )}
                         {request.carPhoto && (
-                            <div className="border border-gray-200 dark:border-slate-800 rounded-lg p-4 bg-gray-50/50 dark:bg-slate-900/50">
-                                <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 font-bold uppercase tracking-wider text-[10px]">Car Photo</p>
-                                <div className="flex items-center gap-4">
-                                    <button
-                                        onClick={() => window.open(request.carPhoto, '_blank')}
-                                        className="text-purple-600 dark:text-purple-400 hover:underline text-sm font-bold flex items-center gap-1.5"
-                                    >
-                                        View Photo
-                                    </button>
-                                    <button
-                                        onClick={() => window.open(request.carPhoto.replace("/upload/", "/upload/fl_attachment/"), '_blank')}
-                                        className="text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400 transition-colors flex items-center gap-1.5 text-sm font-bold"
-                                        title="Download Photo"
-                                    >
-                                        <Download className="w-4 h-4" />
-                                        Download
-                                    </button>
+                            <div className="border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden bg-gray-50/50 dark:bg-slate-900/50 flex flex-col">
+                                {/* Image Preview */}
+                                <div className="relative w-full aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800/50 group cursor-pointer" onClick={() => window.open(request.carPhoto, '_blank')}>
+                                    <img
+                                        src={request.carPhoto}
+                                        alt="Vehicle Photo"
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest">
+                                            Open Full Size
+                                        </span>
+                                    </div>
+                                </div>
+                                {/* Label + Actions */}
+                                <div className="p-3 flex items-center justify-between">
+                                    <p className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Vehicle Photo</p>
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={() => window.open(request.carPhoto, '_blank')}
+                                            className="text-purple-600 dark:text-purple-400 hover:underline text-xs font-bold"
+                                        >
+                                            View
+                                        </button>
+                                        <button
+                                            onClick={() => window.open(request.carPhoto.replace("/upload/", "/upload/fl_attachment/"), '_blank')}
+                                            className="text-gray-500 hover:text-purple-600 dark:text-slate-400 dark:hover:text-purple-400 transition-colors flex items-center gap-1.5 text-xs font-bold"
+                                            title="Download Photo"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                            Download
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

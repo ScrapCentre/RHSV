@@ -55,6 +55,9 @@ export async function GET(
                     city: wizardLead.city,
                     state: wizardLead.state
                 },
+                aadharFile: wizardLead.aadharFile,
+                rcFile: wizardLead.rcFile,
+                carPhoto: wizardLead.carPhoto,
                 createdAt: wizardLead.createdAt,
                 updatedAt: wizardLead.updatedAt
             } as any
