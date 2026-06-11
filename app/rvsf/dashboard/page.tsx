@@ -44,6 +44,7 @@ interface UnlockedLead {
     weight?: string
     desiredCompany?: string
     desiredModel?: string
+    carPhoto?: string
 }
 
 export default function RVSFDashboardPage() {
@@ -61,6 +62,9 @@ export default function RVSFDashboardPage() {
 
     // Main error state
     const [dashboardError, setDashboardError] = useState<string | null>(null)
+
+    // Image Lightbox State
+    const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
 
     // CC Assignment Modal State
     const [assigningLead, setAssigningLead] = useState<any | null>(null)
@@ -348,6 +352,24 @@ export default function RVSFDashboardPage() {
                                 className="bg-white border border-slate-100 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300"
                             >
                                 <div className="space-y-3">
+                                    {/* Vehicle Photo Block */}
+                                    <div className="relative h-32 w-full bg-slate-50 border border-slate-100 rounded-lg overflow-hidden group/img shrink-0">
+                                        {lead.carPhoto ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                                src={lead.carPhoto}
+                                                alt="Vehicle"
+                                                className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-350"
+                                                onClick={() => setLightboxUrl(lead.carPhoto!)}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1">
+                                                <Car className="w-8 h-8 opacity-30" />
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400/80">No Vehicle Photo Uploaded</span>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <div className="flex justify-between items-start gap-2">
                                         <h3 className="font-bold text-slate-800 text-xs leading-normal">
                                             {lead.vehicleInfo || "Vehicle Details"}
@@ -478,6 +500,24 @@ export default function RVSFDashboardPage() {
                                 className="bg-white border border-slate-100 hover:border-emerald-500/15 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow transition-all duration-300"
                             >
                                 <div className="space-y-3">
+                                    {/* Vehicle Photo Block */}
+                                    <div className="relative h-32 w-full bg-slate-50 border border-slate-100 rounded-lg overflow-hidden group/img shrink-0">
+                                        {lead.carPhoto ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                                src={lead.carPhoto}
+                                                alt="Vehicle"
+                                                className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-350"
+                                                onClick={() => setLightboxUrl(lead.carPhoto!)}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1">
+                                                <Car className="w-8 h-8 opacity-30" />
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400/80">No Vehicle Photo Uploaded</span>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <div className="flex justify-between items-start gap-2">
                                         <h3 className="font-bold text-slate-800 text-xs leading-normal">
                                             {lead.vehicleInfo || "Vehicle Details"}
@@ -785,6 +825,43 @@ export default function RVSFDashboardPage() {
                                     </div>
                                 </div>
                             )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ── IMAGE LIGHTBOX MODAL ───────────────────────── */}
+            <AnimatePresence>
+                {lightboxUrl && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            onClick={() => setLightboxUrl(null)}
+                            className="absolute inset-0 bg-black/85 backdrop-blur-md cursor-zoom-out"
+                        />
+ 
+                        {/* Image Container */}
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="relative z-10 max-w-4xl max-h-[85vh] overflow-hidden rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-2xl"
+                        >
+                            <button 
+                                onClick={() => setLightboxUrl(null)}
+                                className="absolute top-3 right-3 p-2 rounded-full bg-black/60 border border-white/10 text-white hover:bg-black/80 hover:scale-105 transition-all z-20"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                                src={lightboxUrl} 
+                                alt="Vehicle Fullscreen" 
+                                className="max-w-full max-h-[80vh] object-contain rounded-lg"
+                            />
                         </motion.div>
                     </div>
                 )}

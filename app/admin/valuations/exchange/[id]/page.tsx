@@ -6,6 +6,7 @@ import { RefreshCcw, Car, User, MapPin, Calendar, ChevronLeft, CheckCircle, Tras
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
+import VehiclePhotosSection from "@/components/admin/VehiclePhotosSection"
 
 export default function ExchangeDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
@@ -292,34 +293,13 @@ export default function ExchangeDetailPage({ params }: { params: Promise<{ id: s
                     </div>
                 </div>
 
-                {/* WhatsApp Logs */}
-                <div className="bg-white dark:bg-[#0E192D] rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 p-6 lg:col-span-2">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <MessageCircle className="w-5 h-5 text-green-600 dark:text-green-500" />
-                        WhatsApp Logs
-                    </h2>
-                    <div className="flex flex-col items-center justify-center py-6 text-center space-y-4">
-                        <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-full">
-                            <MessageCircle className="w-8 h-8 text-green-600 dark:text-green-500" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">Connect via WhatsApp</h3>
-                            <p className="text-sm text-gray-500 dark:text-slate-400 max-w-[250px] mx-auto mt-1">
-                                Click below to open a direct WhatsApp chat with the client
-                            </p>
-                        </div>
-                        <a
-                            href={`https://wa.me/${request.customerPhone?.replace(/\D/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="relative inline-flex items-center gap-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#128C7E] hover:to-[#075E54] text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-1 group"
-                        >
-                            <div className="absolute inset-0 rounded-full border border-white/20 group-hover:border-white/40 transition-colors"></div>
-                            <MessageCircle className="w-6 h-6" />
-                            <span>Chat on WhatsApp</span>
-                        </a>
-                    </div>
-                </div>
+                <VehiclePhotosSection
+                    leadId={id}
+                    leadType="exchange"
+                    request={request}
+                    onPhotoUploaded={fetchRequest}
+                    className="lg:col-span-2"
+                />
             </motion.div>
 
             {/* Documents Section */}

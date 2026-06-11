@@ -466,7 +466,6 @@ function LeadCard({ lead, index, mode, onUnlock, isUnlocking, isPaymentSuccess }
     const BadgeIcon = badge.icon
     const valueRange = getEstimatedRange(lead)
     const unlockPrice = getUnlockPrice(lead)
-    const hasPhoto = !!lead.carPhoto
 
     return (
         <motion.div
@@ -477,21 +476,9 @@ function LeadCard({ lead, index, mode, onUnlock, isUnlocking, isPaymentSuccess }
         >
             {/* Image Area */}
             <div className="relative h-36 bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
-                {hasPhoto ? (
-                    <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src={lead.carPhoto!}
-                            alt="Vehicle"
-                            className="w-full h-full object-cover filter blur-md scale-105 opacity-60"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    </>
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <Car className="w-12 h-12 text-slate-200 dark:text-slate-700 opacity-40" />
-                    </div>
-                )}
+                <div className="w-full h-full flex items-center justify-center">
+                    <Car className="w-12 h-12 text-slate-200 dark:text-slate-700 opacity-40" />
+                </div>
 
                 {/* Locked overlay */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm">

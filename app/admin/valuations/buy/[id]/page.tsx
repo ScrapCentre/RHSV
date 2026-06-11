@@ -31,6 +31,7 @@ import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
 import { Plus_Jakarta_Sans } from "next/font/google"
+import VehiclePhotosSection from "@/components/admin/VehiclePhotosSection"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
@@ -421,54 +422,13 @@ export default function BuyDetailPage({ params }: { params: Promise<{ id: string
                     </div>
                 </div>
 
-                {/* ── CARD 4: WhatsApp (Green theme & illustration) ── */}
-                <div className="relative overflow-hidden bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm flex flex-col justify-between lg:col-span-2">
-                    <div>
-                        <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                            <div className="p-2 bg-[#EFFBF3] dark:bg-emerald-950/40 text-emerald-650 dark:text-emerald-400 rounded-lg">
-                                <MessageCircle className="w-4.5 h-4.5" />
-                            </div>
-                            <div>
-                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
-                                    WhatsApp
-                                </h2>
-                                <div className="h-0.5 w-8 bg-emerald-500 rounded-full mt-1" />
-                            </div>
-                        </div>
-
-                        <div className="py-4 space-y-3 max-w-[280px]">
-                            <div>
-                                <h3 className="font-extrabold text-xs text-slate-800 dark:text-white">
-                                    Connect via WhatsApp
-                                </h3>
-                                <p className="text-[11px] text-slate-455 dark:text-slate-500 leading-relaxed font-medium mt-0.5">
-                                    Click below to open a direct WhatsApp chat with the client
-                                </p>
-                            </div>
-                            <a
-                                href={`https://wa.me/${request.customerPhone?.replace(/\D/g, '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] transition-all hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                                <MessageCircle className="w-3.5 h-3.5 fill-emerald-500/10 dark:fill-none" />
-                                <span>Chat on WhatsApp</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* SVG 3D-styled Message Illustration */}
-                    <div className="hidden sm:block absolute right-6 bottom-4 w-24 h-24 text-emerald-500/15 dark:text-emerald-400/5 pointer-events-none">
-                        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 70 L50 85 L80 70 L50 55 Z" fill="currentColor" opacity="0.3" />
-                            <path d="M20 70 L50 85 L50 89 L20 74 Z" fill="currentColor" opacity="0.4" />
-                            <path d="M80 70 L50 85 L50 89 L80 74 Z" fill="currentColor" opacity="0.2" />
-                            <circle cx="50" cy="45" r="18" fill="#10B981" />
-                            <path d="M42 53 L38 57 L43 52 Z" fill="#10B981" />
-                            <path d="M45 37 C42 37 39 40 39 43 C39 45 40 47 42 48 L41 52 L45 51 C46 51 47 52 48 52 C51 52 53 49 53 46 C53 43 51 37 45 37 Z" fill="#fff" />
-                        </svg>
-                    </div>
-                </div>
+                <VehiclePhotosSection
+                    leadId={id}
+                    leadType="buy"
+                    request={request}
+                    onPhotoUploaded={fetchRequest}
+                    className="lg:col-span-2"
+                />
 
             </div>
 

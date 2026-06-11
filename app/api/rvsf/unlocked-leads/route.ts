@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
                 weight: originalDetails?.weight || null,
                 desiredCompany: originalDetails?.desiredCompany || null,
                 desiredModel: originalDetails?.desiredModel || null,
+                carPhoto: originalDetails?.carPhoto || null,
             }
         }))
 

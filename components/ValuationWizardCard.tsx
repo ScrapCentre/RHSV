@@ -2286,6 +2286,15 @@ export default function ValuationWizardCard() {
                                                 >
                                                     Save & Continue
                                                 </button>
+
+                                                {/* Skip Button */}
+                                                <button
+                                                    type="button"
+                                                    onClick={nextStep}
+                                                    className="w-full max-w-md mx-auto mt-2 py-2 sm:py-2.5 bg-transparent hover:bg-slate-50 text-slate-500 hover:text-slate-800 font-bold rounded-xl transition-all uppercase tracking-widest text-xs flex items-center justify-center border border-dashed border-slate-200 hover:border-slate-300 active:scale-[0.99]"
+                                                >
+                                                    Skip for Now
+                                                </button>
                                             </div>
                                         )}
 

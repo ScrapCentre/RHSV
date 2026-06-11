@@ -58,6 +58,11 @@ export async function GET(
                     pincode: wizardLead.pincode,
                     city: wizardLead.city,
                     state: wizardLead.state,
+                    carPhoto: wizardLead.carPhoto,
+                    photoFront: wizardLead.photoFront,
+                    photoBack: wizardLead.photoBack,
+                    photoLeft: wizardLead.photoLeft,
+                    photoRight: wizardLead.photoRight,
                     createdAt: wizardLead.createdAt,
                     updatedAt: wizardLead.updatedAt
                 } as any
