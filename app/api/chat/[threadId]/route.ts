@@ -104,3 +104,56 @@ export async function GET(
         )
     }
 }
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ threadId: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions)
+        if (!session) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+        }
+
+        const { threadId } = await params
+        await connectToDatabase()
+
+        let thread = await ChatThread.findById(threadId)
+        let isPersonal = false
+        if (!thread) {
+            const PersonalChatThread = (await import("@/models/PersonalChatThread")).default
+            thread = await PersonalChatThread.findById(threadId) as any
+            isPersonal = true
+        }
+
+        if (!thread) {
+            return NextResponse.json({ message: "Chat thread not found" }, { status: 404 })
+        }
+
+        const rvsfId = (session.user as any)?.rvsfId
+        const partnerId = (session.user as any)?.partnerId
+
+        const isRvsfOwner = !isPersonal && rvsfId && thread.rvsfId === rvsfId
+        const isPartnerOwner = isPersonal && partnerId && (thread as any).partnerId === partnerId
+
+        if (!isRvsfOwner && !isPartnerOwner) {
+            return NextResponse.json({ message: "Forbidden: You do not own this chat thread" }, { status: 403 })
+        }
+
+        if (isPersonal) {
+            const PersonalChatThread = (await import("@/models/PersonalChatThread")).default
+            await PersonalChatThread.findByIdAndDelete(threadId)
+        } else {
+            await ChatThread.findByIdAndDelete(threadId)
+        }
+
+        return NextResponse.json({ success: true, message: "Chat thread deleted successfully" })
+
+    } catch (err: any) {
+        console.error("[Chat Thread Delete API] Error:", err)
+        return NextResponse.json(
+            { message: err.message || "Internal server error" },
+            { status: 500 }
+        )
+    }
+}

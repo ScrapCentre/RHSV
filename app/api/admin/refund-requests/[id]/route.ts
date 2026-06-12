@@ -298,3 +298,31 @@ export async function POST(
         return NextResponse.json({ message: error.message || "Internal server error" }, { status: 500 })
     }
 }
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions)
+        if (!session || (session.user as any)?.role !== "admin") {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+        }
+
+        await connectToDatabase()
+        const { id } = await params
+
+        const deletedRequest = await RefundRequest.findByIdAndDelete(id)
+        if (!deletedRequest) {
+            return NextResponse.json({ message: "Refund request not found" }, { status: 404 })
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: "Refund request record permanently deleted from database."
+        })
+    } catch (error: any) {
+        console.error("[Refund Delete API] Error:", error)
+        return NextResponse.json({ message: error.message || "Internal server error" }, { status: 500 })
+    }
+}

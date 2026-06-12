@@ -1,11 +1,12 @@
-import { getServerSession } from "next-auth/next"
+import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import connectToDatabase from "@/lib/db"
+import B2BRegistration from "@/models/B2BRegistration"
+import B2BPartner from "@/models/B2BPartner"
 import ExchangeVehicle from "@/models/ExchangeVehicle"
 import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
-import B2BRegistration from "@/models/B2BRegistration"
 import ExecutiveDashboardOverview from "@/components/executive/ExecutiveDashboardOverview"
 
 export const dynamic = "force-dynamic"
@@ -18,120 +19,211 @@ export default async function ExecutiveDashboardPage() {
         redirect("/executive")
     }
 
+    // Fetch Data for Charts & Cards
+    let b2bCount = 0
+    let b2bTotal = 0
+    let b2bPending = 0
+    let b2bApproved = 0
+
+    let quoteCount = 0
+    let exchangeCount = 0
+    let buyCount = 0
     let marketFeed: any[] = []
-    let timelineItems: any[] = []
-    const stats = {
-        totalApproved: 0,
-        totalLeadVolume: 0
-    }
+    let totalRequests = 0
+    let totalApproved = 0
+    let formattedTotalTons = "0.0"
+
+    let formattedMonthlyGrowth: { name: string, value: number }[] = []
+    let formattedWeeklyActivity: { name: string, requests: number, partners: number }[] = []
 
     try {
         await connectToDatabase()
 
-        // 1. Fetch Full Market Feed
+        // Parallel Fetching for Performance
         const [
-            allExchanges,
-            allBuys,
-            allWizardLeads
+            b2bPendingCount,
+            b2bPartnerCount,
+            exchangeRes,
+            buyRes,
+            quoteLeadCount,
+            exchangeLeadCount,
+            buyLeadCount,
+            latestWizardLeads,
+            weightLeads
         ] = await Promise.all([
-            ExchangeVehicle.find().sort({ createdAt: -1 }).limit(10).lean(),
-            BuyVehicle.find().sort({ createdAt: -1 }).limit(10).lean(),
+            B2BRegistration.countDocuments({ status: 'pending' }),
+            B2BPartner.countDocuments(),
+            ExchangeVehicle.countDocuments(),
+            BuyVehicle.countDocuments(),
+            WizardLead.countDocuments({ serviceType: 'scrap', category: { $ne: 'scrap_and_buy' } }),
+            WizardLead.countDocuments({ serviceType: 'scrap', category: 'scrap_and_buy' }),
+            WizardLead.countDocuments({ serviceType: 'buy' }),
             WizardLead.find().sort({ createdAt: -1 }).limit(10).lean(),
+            WizardLead.find({}, { weight: 1 }).lean()
+        ])
+
+        b2bPending = b2bPendingCount
+        b2bApproved = b2bPartnerCount
+        b2bTotal = b2bPartnerCount + b2bPending 
+        b2bCount = b2bPending 
+
+        // Initial counts from dedicated collections
+        quoteCount = quoteLeadCount
+        exchangeCount = exchangeRes + exchangeLeadCount
+        buyCount = buyRes + buyLeadCount
+
+        // Market Feed Fetching
+        const [
+            latestExchanges,
+            latestBuys
+        ] = await Promise.all([
+            ExchangeVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
+            BuyVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
         ])
 
         marketFeed = [
+            ...latestExchanges.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'exchange', customerName: item.customerName || "N/A", customerPhone: item.customerPhone || "N/A", vehicleInfo: `Old: ${item.oldVehicleBrand} ${item.oldVehicleModel} -> New: ${item.newVehicleBrand}` })),
+            ...latestBuys.map((item: any) => ({ ...JSON.parse(JSON.stringify(item)), type: 'buy', customerName: item.customerName || "N/A", customerPhone: item.customerPhone || "N/A", vehicleInfo: `Looking for: ${item.customBrand || item.vehicleBrand} ${item.customModel || item.vehicleModel}` })),
+            ...latestWizardLeads.map((item: any) => {
+                let vehicleInfoStr = item.serviceType === "buy" ? `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}` : 
+                                   (item.serviceType === "scrap" && item.category === "scrap_and_buy") ? `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}` :
+                                   `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
+                
+                let resolvedType = (item.serviceType === 'scrap' && item.category === 'scrap_and_buy') ? 'scrap-buy' : 
+                                  (item.serviceType === 'scrap') ? 'quote' : item.serviceType;
 
-            ...allExchanges.map((item: any) => ({
-                ...JSON.parse(JSON.stringify(item)),
-                type: 'exchange',
-                customerName: item.customerName || "N/A",
-                customerPhone: item.customerPhone || "N/A",
-                vehicleInfo: `Exchange: ${item.oldVehicleBrand} -> ${item.newVehicleBrand}`
-            })),
-            ...allBuys.map((item: any) => ({
-                ...JSON.parse(JSON.stringify(item)),
-                type: 'buy',
-                customerName: item.customerName || "N/A",
-                customerPhone: item.customerPhone || "N/A",
-                vehicleInfo: `Buying: ${item.vehicleBrand} ${item.vehicleModel}`
-            })),
-            ...allWizardLeads.map((item: any) => {
-                const plainItem = JSON.parse(JSON.stringify(item));
-                let vehicleInfoStr = "";
-                if (item.serviceType === "buy") {
-                    vehicleInfoStr = `Looking for: ${item.desiredCompany || ''} ${item.desiredModel || ''}`;
-                } else if (item.serviceType === "scrap" && item.category === "scrap_and_buy") {
-                    vehicleInfoStr = `Scrap: ${item.brand || ''} ${item.model || ''} | Buy: ${item.desiredCompany || ''} ${item.desiredModel || ''}`;
-                } else {
-                    vehicleInfoStr = `${item.year || ''} ${item.brand || ''} ${item.model || ''}`;
-                }
-                let resolvedType: string;
-                if (item.serviceType === 'scrap' && item.category === 'scrap_and_buy') {
-                    resolvedType = 'scrap-buy';
-                } else if (item.serviceType === 'scrap') {
-                    resolvedType = 'quote';
-                } else {
-                    resolvedType = item.serviceType;
-                }
-                return {
-                    ...plainItem,
-                    type: resolvedType,
-                    customerName: item.name || "N/A",
-                    customerPhone: item.phone || "N/A",
-                    vehicleInfo: vehicleInfoStr
-                };
+                return { ...JSON.parse(JSON.stringify(item)), type: resolvedType, customerName: item.name || "N/A", customerPhone: item.phone || "N/A", vehicleInfo: vehicleInfoStr };
             })
-        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 15)
+        ].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
+        totalRequests = quoteCount + exchangeCount + buyCount
 
-
-        // 2. Stats
-        const [
-            countExchanges,
-            countBuys,
-            countWizard
-        ] = await Promise.all([
+        // Total Approved logic (simplified for clarity)
+        const [appE, appB, appW] = await Promise.all([
             ExchangeVehicle.countDocuments({ status: 'approved' }),
             BuyVehicle.countDocuments({ status: 'approved' }),
-            WizardLead.countDocuments({ status: 'approved' }),
+            WizardLead.countDocuments({ status: 'approved' })
         ])
+        totalApproved = appE + appB + appW
 
-        stats.totalApproved = countExchanges + countBuys + countWizard
-        stats.totalLeadVolume = await Promise.all([
-            ExchangeVehicle.countDocuments(),
-            BuyVehicle.countDocuments(),
-            WizardLead.countDocuments()
-        ]).then(counts => counts.reduce((a, b) => a + b, 0))
+        // Total Tons calculation
+        let totalTons = 0
+        weightLeads.forEach((v: any) => {
+            if (v.weight) {
+                const weightStr = v.weight.toLowerCase().replace(/,/g, '')
+                const num = parseFloat(weightStr)
+                if (!isNaN(num)) {
+                    if (weightStr.includes('kg')) totalTons += num / 1000
+                    else if (weightStr.includes('ton')) totalTons += num
+                    else if (num > 50) totalTons += num / 1000
+                    else totalTons += num
+                }
+            }
+        })
+        formattedTotalTons = totalTons.toFixed(1)
 
-        // 3. Activity Timeline
-        // Combine recent submissions and status changes
-        const [
-            recentB2B
-        ] = await Promise.all([
-            B2BRegistration.find().sort({ createdAt: -1 }).limit(5).lean()
-        ])
+        // --- Improved Chart Data Aggregation ---
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
 
-        timelineItems = [
-            ...recentB2B.map((item: any) => ({
-                action: "Partner Registration",
-                description: `${item.businessName} applied for B2B partnership.`,
-                timestamp: item.createdAt
-            }))
-        ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 15)
+        const monthlyAggregation = [
+            { $match: { createdAt: { $gte: sixMonthsAgo } } },
+            { $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } }, count: { $sum: 1 } } }
+        ];
 
-    } catch (error: any) {
-        console.error("Error fetching executive dashboard data:", error)
-        // If it's a critical error (like DB connection), we want to show the error page
-        if (error.message?.includes('connect') || error.name === 'MongooseError') {
-            throw new Error("Critical System Failure: Unable to establish secure link to database.")
+        const [mE, mB, mW] = await Promise.all([
+            ExchangeVehicle.aggregate(monthlyAggregation),
+            BuyVehicle.aggregate(monthlyAggregation),
+            WizardLead.aggregate(monthlyAggregation)
+        ]);
+
+        const monthlyTotals: { [key: string]: number } = {};
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            monthlyTotals[`${d.getFullYear()}-${d.getMonth() + 1}`] = 0;
         }
+
+        [...mE, ...mB, ...mW].forEach(item => {
+            const key = `${item._id.year}-${item._id.month}`;
+            if (monthlyTotals[key] !== undefined) monthlyTotals[key] += item.count;
+        });
+
+        formattedMonthlyGrowth = Object.entries(monthlyTotals).map(([key, value]) => ({
+            name: monthNames[parseInt(key.split('-')[1]) - 1],
+            value: value
+        }));
+
+        // Weekly Activity (Last 7 Days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        const dailyAggregation = [
+            { $match: { createdAt: { $gte: sevenDaysAgo } } },
+            { $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" }, dayOfWeek: { $dayOfWeek: "$createdAt" } }, count: { $sum: 1 } } }
+        ];
+
+        const [dE, dB, dP, dR, dW] = await Promise.all([
+            ExchangeVehicle.aggregate(dailyAggregation),
+            BuyVehicle.aggregate(dailyAggregation),
+            B2BPartner.aggregate(dailyAggregation),
+            B2BRegistration.aggregate(dailyAggregation),
+            WizardLead.aggregate(dailyAggregation)
+        ]);
+
+        const dailyTotals: { [key: string]: { requests: number, partners: number, dayOfWeek: number } } = {};
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            dailyTotals[`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`] = { requests: 0, partners: 0, dayOfWeek: d.getDay() + 1 };
+        }
+
+        [...dE, ...dB, ...dW].forEach(item => {
+            const key = `${item._id.year}-${item._id.month}-${item._id.day}`;
+            if (dailyTotals[key] !== undefined) dailyTotals[key].requests += item.count;
+        });
+
+        [...dP, ...dR].forEach(item => {
+            const key = `${item._id.year}-${item._id.month}-${item._id.day}`;
+            if (dailyTotals[key] !== undefined) dailyTotals[key].partners += item.count;
+        });
+
+        formattedWeeklyActivity = Object.entries(dailyTotals).map(([key, data]) => ({
+            name: dayNames[data.dayOfWeek - 1],
+            requests: data.requests,
+            partners: data.partners
+        }));
+
+    } catch (error) {
+        console.error("Error fetching executive dashboard data:", error);
+        // Don't re-throw — let the page render with zeroed-out fallback data
     }
 
     return (
         <ExecutiveDashboardOverview
+            totalRequests={totalRequests}
+            formattedTotalTons={formattedTotalTons}
+            b2bTotal={b2bTotal}
+            totalApproved={totalApproved}
             marketFeed={marketFeed}
-            timelineItems={timelineItems}
-            stats={stats}
+            valuationCounts={{
+                quote: quoteCount,
+                exchange: exchangeCount,
+                buy: buyCount
+            }}
+            b2bStats={{
+                total: b2bTotal,
+                pending: b2bPending,
+                approved: b2bApproved
+            }}
+            monthlyGrowthData={formattedMonthlyGrowth}
+            activityData={formattedWeeklyActivity}
         />
     )
 }

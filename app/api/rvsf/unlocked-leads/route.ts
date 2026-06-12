@@ -55,17 +55,28 @@ export async function GET(request: NextRequest) {
             chatThreadMap[t.leadId] = t._id.toString()
         })
 
-        // Enrich each lead with original vehicle details from the source model
-        const leadsWithDetails = await Promise.all(leads.map(async (l: any) => {
-            let originalDetails: any = null
-            const Model = MODEL_MAP[l.leadSource]
-            if (Model && l.leadId) {
-                try {
-                    originalDetails = await Model.findById(l.leadId).lean()
-                } catch (err) {
-                    console.error(`Error fetching original lead ${l.leadId}:`, err)
-                }
+        // Bulk fetch vehicle details from all three collections
+        const exchangeIds = leads.filter(l => l.leadSource === "ExchangeVehicle" && l.leadId).map(l => l.leadId)
+        const buyIds = leads.filter(l => l.leadSource === "BuyVehicle" && l.leadId).map(l => l.leadId)
+        const wizardIds = leads.filter(l => (l.leadSource === "WizardLead" || l.leadSource === "Valuation") && l.leadId).map(l => l.leadId)
+
+        const [exchanges, buys, wizards] = await Promise.all([
+            exchangeIds.length ? ExchangeVehicle.find({ _id: { $in: exchangeIds } }).select("regNo brand model year fuel kms weight desiredCompany desiredModel carPhoto").lean() : [],
+            buyIds.length ? BuyVehicle.find({ _id: { $in: buyIds } }).select("regNo brand model year fuel kms weight desiredCompany desiredModel carPhoto").lean() : [],
+            wizardIds.length ? WizardLead.find({ _id: { $in: wizardIds } }).select("regNo brand model year fuel kms weight desiredCompany desiredModel carPhoto").lean() : []
+        ])
+
+        const detailsMap: Record<string, any> = {}
+        const allDetails = [...exchanges, ...buys, ...wizards]
+        allDetails.forEach((d: any) => {
+            if (d && d._id) {
+                detailsMap[d._id.toString()] = d
             }
+        })
+
+        // Enrich each lead with original vehicle details from the detailsMap
+        const leadsWithDetails = leads.map((l: any) => {
+            const originalDetails = l.leadId ? detailsMap[l.leadId.toString()] : null
             return {
                 ...l,
                 chatThreadId: chatThreadMap[l.leadId] || null,
@@ -80,7 +91,7 @@ export async function GET(request: NextRequest) {
                 desiredModel: originalDetails?.desiredModel || null,
                 carPhoto: originalDetails?.carPhoto || null,
             }
-        }))
+        })
 
         return NextResponse.json({ leads: leadsWithDetails })
 

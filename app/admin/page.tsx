@@ -41,18 +41,27 @@ export default async function AdminPage() {
         await connectToDatabase()
 
         // Parallel Fetching for Performance
+        // Parallel Fetching for Performance
         const [
             b2bPendingCount,
             b2bPartnerCount,
             exchangeRes,
             buyRes,
-            wizardLeadsAll
+            quoteLeadCount,
+            exchangeLeadCount,
+            buyLeadCount,
+            latestWizardLeads,
+            weightLeads
         ] = await Promise.all([
             B2BRegistration.countDocuments({ status: 'pending' }),
             B2BPartner.countDocuments(),
             ExchangeVehicle.countDocuments(),
             BuyVehicle.countDocuments(),
-            WizardLead.find().lean()
+            WizardLead.countDocuments({ serviceType: 'scrap', category: { $ne: 'scrap_and_buy' } }),
+            WizardLead.countDocuments({ serviceType: 'scrap', category: 'scrap_and_buy' }),
+            WizardLead.countDocuments({ serviceType: 'buy' }),
+            WizardLead.find().sort({ createdAt: -1 }).limit(10).lean(),
+            WizardLead.find({}, { weight: 1 }).lean()
         ])
 
         b2bPending = b2bPendingCount
@@ -61,28 +70,11 @@ export default async function AdminPage() {
         b2bCount = b2bPending 
 
         // Initial counts from dedicated collections
-        quoteCount = 0
-        exchangeCount = exchangeRes
-        buyCount = buyRes
-
-        // Add WizardLeads to counts based on their serviceType/category
-        wizardLeadsAll.forEach((lead: any) => {
-            if (lead.serviceType === 'scrap') {
-                if (lead.category === 'scrap_and_buy') {
-                    // This is Scrap & Buy, count under exchangeCount (Scrap & Buy)
-                    exchangeCount++
-                } else {
-                    quoteCount++
-                }
-            } else if (lead.serviceType === 'buy') {
-                buyCount++
-            }
-        })
+        quoteCount = quoteLeadCount
+        exchangeCount = exchangeRes + exchangeLeadCount
+        buyCount = buyRes + buyLeadCount
 
         // Market Feed Fetching
-        const latestWizardLeads = [...wizardLeadsAll]
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
         const [
             latestExchanges,
             latestBuys
@@ -118,7 +110,7 @@ export default async function AdminPage() {
 
         // Total Tons calculation
         let totalTons = 0
-        latestWizardLeads.forEach((v: any) => {
+        weightLeads.forEach((v: any) => {
             if (v.weight) {
                 const weightStr = v.weight.toLowerCase().replace(/,/g, '')
                 const num = parseFloat(weightStr)

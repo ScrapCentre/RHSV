@@ -20,42 +20,17 @@ export async function GET() {
 
         await connectToDatabase()
 
-        // Fetch latest new/pending requests from relevant models, including the stepper WizardLeads
+        // Fetch latest new/pending requests only from WizardLead and Contact
         const [
-            exchangeRequests,
-            buyRequests,
             contactRequests,
-            b2bRegistrations,
-            bulkOutsourcing,
             wizardLeads
         ] = await Promise.all([
-            ExchangeVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
-            BuyVehicle.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
             Contact.find({ status: "new" }).sort({ createdAt: -1 }).limit(10).lean(),
-            B2BRegistration.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
-            BulkOutsourcing.find({ status: "pending" }).sort({ createdAt: -1 }).limit(5).lean(),
-            WizardLead.find({ status: "pending" }).sort({ createdAt: -1 }).limit(10).lean()
+            WizardLead.find({ status: "pending" }).sort({ createdAt: -1 }).limit(15).lean()
         ])
 
         // Format and combine notifications
         const notifications: any[] = [
-
-            ...exchangeRequests.map((e: any) => ({
-                id: e._id,
-                type: "exchange",
-                title: "New Exchange Request",
-                description: `${e.oldVehicleBrand} to ${e.newVehicleBrand}`,
-                createdAt: e.createdAt,
-                href: `/admin/valuations/exchange/${e._id}?highlight=true`
-            })),
-            ...buyRequests.map((b: any) => ({
-                id: b._id,
-                type: "buy",
-                title: "New Buy Inquiry",
-                description: `${b.vehicleBrand} ${b.vehicleModel}`,
-                createdAt: b.createdAt,
-                href: `/admin/valuations/buy/${b._id}?highlight=true`
-            })),
             ...contactRequests.map((c: any) => ({
                 id: c._id,
                 type: "contact",
@@ -63,22 +38,6 @@ export async function GET() {
                 description: `From ${c.name}: ${c.subject}`,
                 createdAt: c.createdAt,
                 href: `/admin/contact?id=${c._id}&highlight=true`
-            })),
-            ...b2bRegistrations.map((b2b: any) => ({
-                id: b2b._id,
-                type: "b2b_registration",
-                title: "New B2B Partner Request",
-                description: `From ${b2b.name} (${b2b.city}, ${b2b.state})`,
-                createdAt: b2b.createdAt,
-                href: `/admin/partners?id=${b2b._id}&highlight=true`
-            })),
-            ...bulkOutsourcing.map((bulk: any) => ({
-                id: bulk._id,
-                type: "b2b_bulk",
-                title: "New B2B Bulk Data Request",
-                description: `From ${bulk.partnerName} (${bulk.entries?.length || 0} entries)`,
-                createdAt: bulk.createdAt,
-                href: `/admin/bulk-outsourcing/${bulk._id}?highlight=true`
             })),
             ...wizardLeads.map((wl: any) => {
                 let type: string = "valuation"
@@ -90,7 +49,6 @@ export async function GET() {
                     type = "valuation"
                     title = "New Scrap & Buy Request"
                     href = `/admin/valuations/scrap-buy/${wl._id}?highlight=true`
-
                 } else if (wl.serviceType === "buy") {
                     type = "buy"
                     title = "New Buy Inquiry"

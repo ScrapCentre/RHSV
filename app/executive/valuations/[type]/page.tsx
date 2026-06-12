@@ -6,7 +6,6 @@ import BuyVehicle from "@/models/BuyVehicle"
 import WizardLead from "@/models/WizardLead"
 import { FileText, Recycle, ShoppingCart, Sparkles, ArrowUpRight, CheckCircle, Clock } from "lucide-react"
 import Link from "next/link"
-import DeleteLeadButton from "@/components/admin/DeleteLeadButton"
 
 export const dynamic = "force-dynamic"
 
@@ -205,7 +204,6 @@ export default async function ExecutiveLeadsListing({ params }: { params: Promis
                                             >
                                                 Review <ArrowUpRight className="w-3 h-3" />
                                             </Link>
-                                            <DeleteLeadButton id={item._id} type={type} />
                                         </div>
                                     </td>
                                 </tr>
@@ -253,7 +251,6 @@ export default async function ExecutiveLeadsListing({ params }: { params: Promis
                                 >
                                     Review <ArrowUpRight className="w-3 h-3" />
                                 </Link>
-                                <DeleteLeadButton id={item._id} type={type} />
                             </div>
                         </div>
                     ))}

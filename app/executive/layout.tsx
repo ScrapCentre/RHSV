@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Plus_Jakarta_Sans } from "next/font/google"
@@ -9,18 +9,16 @@ import {
     FileText,
     CheckCircle,
     Users,
-    Shield,
-    MessageSquare,
+    Key,
     LogOut,
     Home,
     Menu,
     X,
     ChevronDown,
-    Briefcase,
-    Clock,
-    Activity,
-    Bell,
-    Key
+    Shield,
+    MessageSquare,
+    Settings,
+    Briefcase
 } from "lucide-react"
 
 import { useSession, signOut } from "next-auth/react"
@@ -28,7 +26,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
-import { ThemeToggle } from "@/components/ThemeToggle"
+import NotificationBox from "@/components/admin/NotificationBox"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
@@ -59,13 +57,25 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
     const { data: session, status } = useSession()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isValuationsOpen, setIsValuationsOpen] = useState(true)
-    const [notifications, setNotifications] = useState<any[]>([])
-    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
-    const dropdownRef = useRef<HTMLDivElement>(null)
     const pathname = usePathname()
     const router = useRouter()
+    const [showOpeningAnimation, setShowOpeningAnimation] = useState(true)
 
-    // Auto open sidebar only on xl+ screens
+    const isExecutive = session && (session.user as any).role === "executive"
+
+    // 3-second opening animation trigger
+    useEffect(() => {
+        if (status !== "loading" && isExecutive) {
+            const timer = setTimeout(() => {
+                setShowOpeningAnimation(false)
+            }, 3000)
+            return () => clearTimeout(timer)
+        } else if (status !== "loading" && !isExecutive) {
+            setShowOpeningAnimation(false)
+        }
+    }, [isExecutive, status])
+
+    // Auto open sidebar only on large desktop screens
     useEffect(() => {
         const checkWidth = () => {
             setIsSidebarOpen(window.innerWidth >= 1280)
@@ -80,37 +90,11 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
 
     useEffect(() => {
         if (status !== "loading") {
-            const isExecutive = session && (session.user as any).role === "executive"
-            if (isExecutive && pathname === "/executive") {
-                router.push("/executive/dashboard")
-            } else if (!isExecutive && pathname !== "/executive") {
+            if (!isExecutive && pathname !== "/executive") {
                 router.push("/executive")
             }
         }
-    }, [session, status, pathname, router])
-
-    // Fetch notifications
-    useEffect(() => {
-        if (status === "authenticated" && session && (session.user as any).role === "executive") {
-            fetch('/api/executive/notifications')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.notifications) setNotifications(data.notifications)
-                })
-                .catch(console.error)
-        }
-    }, [status, session])
-
-    // Handle outside click for dropdown
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsNotificationsOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
+    }, [isExecutive, status, pathname, router])
 
     // Handle Auth States
     if (status === "loading") {
@@ -124,19 +108,86 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
         )
     }
 
-    const isExecutive = session && (session.user as any).role === "executive"
-
-    // If on the login page and authenticated, wait for redirect
-    if (isExecutive && pathname === "/executive") {
-        return null
-    }
-
     // If not executive, show the login page (children) without the sidebar/layout
     if (!isExecutive) {
         if (pathname !== "/executive") {
             return null // Wait for redirect
         }
         return <div className={`min-h-screen w-full bg-white ${plusJakartaSans.className}`}>{children}</div>
+    }
+
+    if (showOpeningAnimation) {
+        return (
+            <div className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white ${plusJakartaSans.className}`}>
+                {/* Visual Glow elements */}
+                <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-slate-900/5 rounded-full blur-3xl pointer-events-none" />
+                
+                <div className="relative flex flex-col items-center max-w-sm px-6 text-center space-y-6">
+                    {/* Animated Icon */}
+                    <motion.div
+                        initial={{ scale: 0.5, rotate: -180, opacity: 0 }}
+                        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                        transition={{ 
+                            type: "spring", 
+                            stiffness: 100, 
+                            damping: 15,
+                            duration: 0.8 
+                        }}
+                        className="w-16 h-16 rounded-2xl bg-[#E31E24]/10 border border-[#E31E24]/20 flex items-center justify-center relative shadow-lg shadow-red-650/5 overflow-hidden"
+                    >
+                        <Shield className="w-8 h-8 text-[#E31E24]" />
+                        {/* Shimmer effect */}
+                        <motion.div 
+                            initial={{ x: "-100%" }}
+                            animate={{ x: "100%" }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full h-full"
+                        />
+                    </motion.div>
+
+                    {/* Animated Text */}
+                    <div className="space-y-1">
+                        <motion.h1
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.3, duration: 0.6 }}
+                            className="text-2xl font-black text-slate-800 tracking-tight leading-none"
+                        >
+                            SCRAPCENTRE
+                        </motion.h1>
+                        <motion.p
+                            initial={{ y: 15, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.45, duration: 0.6 }}
+                            className="text-[10px] text-[#E31E24] font-bold tracking-widest uppercase"
+                        >
+                            Secure Executive Portal
+                        </motion.p>
+                    </div>
+
+                    {/* Loading Progress Bar */}
+                    <div className="w-48 h-1 bg-slate-100 rounded-full overflow-hidden relative border border-slate-50">
+                        <motion.div
+                            initial={{ width: "0%" }}
+                            animate={{ width: "100%" }}
+                            transition={{ duration: 2.8, ease: "easeInOut" }}
+                            className="h-full bg-[#E31E24] rounded-full"
+                        />
+                    </div>
+
+                    {/* Micro subtext */}
+                    <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.4 }}
+                        transition={{ delay: 0.6, duration: 0.8 }}
+                        className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block"
+                    >
+                        Initializing Executive Terminal...
+                    </motion.span>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -195,35 +246,35 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
 
                     {/* Dashboard */}
                     <motion.div variants={sidebarLinkVariants}>
-                        <Link href="/executive/dashboard" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/dashboard') ? 'bg-[#E31E24]/10 text-[#E31E24]' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
-                            {isActive('/executive/dashboard') && (
+                        <Link href="/executive/dashboard" className={`flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/dashboard') && pathname === '/executive/dashboard' ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                            {isActive('/executive/dashboard') && pathname === '/executive/dashboard' && (
                                 <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
                             )}
-                            <LayoutDashboard className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/executive/dashboard') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
-                            <span className="font-semibold">Dashboard</span>
+                            <LayoutDashboard className={`w-4 h-4 mr-3 transition-colors ${isActive('/executive/dashboard') && pathname === '/executive/dashboard' ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                            <span className="font-semibold text-[13px]">Dashboard</span>
                         </Link>
                     </motion.div>
-
+ 
                     {/* Valuations Dropdown */}
-                    <motion.div variants={sidebarLinkVariants} className="space-y-1 pt-1">
+                    <motion.div variants={sidebarLinkVariants} className="space-y-0.5 pt-0.5">
                         <button
                             onClick={() => setIsValuationsOpen(!isValuationsOpen)}
-                            className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-[#E31E24] transition-all duration-200 group"
+                            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-[#E31E24] transition-all duration-200 group"
                         >
                             <div className="flex items-center">
-                                <FileText className="w-5 h-5 mr-3.5 text-slate-500 group-hover:text-[#E31E24]" />
-                                <span className="font-semibold">Market Data</span>
+                                <FileText className="w-4 h-4 mr-3 text-slate-500 group-hover:text-[#E31E24]" />
+                                <span className="font-semibold text-[13px]">Market Data</span>
                             </div>
-                            <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isValuationsOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${isValuationsOpen ? 'rotate-180' : ''}`} />
                         </button>
-
+ 
                         <AnimatePresence>
                             {isValuationsOpen && (
                                 <motion.div
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: "auto", opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden space-y-1"
+                                    className="overflow-hidden space-y-0.5"
                                 >
                                     {[
                                         { href: "/executive/valuations/quote", label: "Scrap" },
@@ -233,9 +284,9 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
                                         <Link
                                             key={item.href}
                                             href={item.href}
-                                            className={`flex items-center pl-12 pr-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive(item.href) ? 'bg-[#E31E24]/10 text-[#E31E24]' : 'text-slate-600 hover:text-[#E31E24] hover:bg-slate-50'}`}
+                                            className={`flex items-center pl-11 pr-4 py-2 rounded-xl text-xs font-medium transition-all ${isActive(item.href) ? 'bg-[#E31E24]/10 text-[#E31E24]' : 'text-slate-600 hover:text-[#E31E24] hover:bg-slate-50'}`}
                                         >
-                                            <div className={`w-1.5 h-1.5 rounded-full mr-3 ${isActive(item.href) ? 'bg-[#E31E24]' : 'bg-slate-400'}`} />
+                                            <div className={`w-1.5 h-1.5 rounded-full mr-2.5 ${isActive(item.href) ? 'bg-[#E31E24]' : 'bg-slate-400'}`} />
                                             {item.label}
                                         </Link>
                                     ))}
@@ -243,134 +294,79 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
                             )}
                         </AnimatePresence>
                     </motion.div>
-
+ 
                     {/* Approved Requests */}
                     <motion.div variants={sidebarLinkVariants}>
-                        <Link href="/executive/approved-requests" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/approved-requests') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                        <Link href="/executive/approved-requests" className={`flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/approved-requests') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
                             {isActive('/executive/approved-requests') && (
                                 <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
                             )}
-                            <CheckCircle className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/executive/approved-requests') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
-                            <span className="font-semibold">Approved Req.</span>
+                            <CheckCircle className={`w-4 h-4 mr-3 transition-colors ${isActive('/executive/approved-requests') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                            <span className="font-semibold text-[13px]">Personal Leads</span>
                         </Link>
                     </motion.div>
-
-                    {/* Access & Provisioning Hub */}
-                    <motion.div variants={sidebarLinkVariants}>
-                        <Link href="/executive/access-generator" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/access-generator') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
-                            {isActive('/executive/access-generator') && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
-                            )}
-                            <Key className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/executive/access-generator') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
-                            <span className="font-semibold">Access Generator</span>
-                        </Link>
-                    </motion.div>
-
-                    {/* Contact Requests */}
-                    <motion.div variants={sidebarLinkVariants}>
-                        <Link href="/executive/contact" className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/contact') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
-                            {isActive('/executive/contact') && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
-                            )}
-                            <MessageSquare className={`w-5 h-5 mr-3.5 transition-colors ${isActive('/executive/contact') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
-                            <span className="font-semibold">Contact Requests</span>
-                        </Link>
-                    </motion.div>
-
+ 
+                    <div className="pt-4 mt-1 border-t border-slate-100">
+                        <motion.p variants={sidebarLinkVariants} className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Management</motion.p>
+                        <div className="space-y-0.5">
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/executive/access-generator" className={`flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/access-generator') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                                    {isActive('/executive/access-generator') && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
+                                    )}
+                                    <Key className={`w-4 h-4 mr-3 transition-colors ${isActive('/executive/access-generator') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                                    <span className="font-semibold text-[13px]">Access &amp; Provisioning Hub</span>
+                                </Link>
+                            </motion.div>
+                            <motion.div variants={sidebarLinkVariants}>
+                                <Link href="/executive/contact" className={`flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/contact') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                                    {isActive('/executive/contact') && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
+                                    )}
+                                    <MessageSquare className={`w-4 h-4 mr-3 transition-colors ${isActive('/executive/contact') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                                    <span className="font-semibold text-[13px]">Contact Requests</span>
+                                </Link>
+                            </motion.div>
+                        </div>
+                    </div>
                 </motion.nav>
-
+ 
                 {/* Sidebar Footer */}
                 <div className="p-4 border-t border-slate-200 bg-white">
+                    <Link href="/" className="flex items-center px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-[#E31E24] transition-all mb-1.5 group">
+                        <Home className="w-4 h-4 mr-3 text-slate-500 group-hover:text-[#E31E24]" />
+                        <span className="font-semibold text-[13px]">Back to Home</span>
+                    </Link>
                     <button
                         onClick={() => signOut({ callbackUrl: "/executive" })}
-                        className="w-full flex items-center px-4 py-3 rounded-xl text-[#E31E24] bg-[#E31E24]/10 hover:bg-[#E31E24]/20 hover:shadow-sm transition-all group"
+                        className="w-full flex items-center px-4 py-2.5 rounded-xl text-[#E31E24] bg-[#E31E24]/10 hover:bg-[#E31E24]/20 hover:shadow-sm transition-all group"
                     >
-                        <LogOut className="w-5 h-5 mr-3.5 group-hover:scale-110 transition-transform" />
-                        <span className="font-black uppercase tracking-wider text-xs">Terminate Session</span>
+                        <LogOut className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" />
+                        <span className="font-semibold text-[13px]">Sign Out</span>
                     </button>
                 </div>
             </motion.aside>
 
             {/* Main Content Area */}
             <div className={`flex-1 flex flex-col min-h-screen overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'xl:pl-72' : ''}`}>
-                {/* Desktop/Mobile Header */}
+                {/* Header */}
                 <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 justify-between z-30 sticky top-0">
                     <div className="flex items-center gap-3">
+                        {/* Hamburger — always visible on mobile, shows when sidebar is closed on desktop */}
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                             className="p-2 -ml-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
                         >
-                            <Menu className="w-5 h-5" />
+                            {isSidebarOpen ? <X className="w-5 h-5 hidden xl:block" /> : <Menu className="w-5 h-5" />}
                         </button>
-                        <div className="flex items-center gap-2">
-                             <span className="text-sm font-black uppercase tracking-[0.2em] text-slate-900">Executive Terminal</span>
-                        </div>
+                        <span className="text-base sm:text-lg font-bold text-slate-900">Executive Panel</span>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-4">
-                        <div className="relative" ref={dropdownRef}>
-                            <button 
-                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all relative"
-                            >
-                                <Bell className="w-5 h-5" />
-                                {notifications.length > 0 && (
-                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#E31E24] rounded-full border border-white"></span>
-                                )}
-                            </button>
-
-                            <AnimatePresence>
-                                {isNotificationsOpen && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-50"
-                                    >
-                                        <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Recent Requests</h3>
-                                            <span className="text-[9px] font-bold bg-red-100 text-[#E31E24] px-2 py-0.5 rounded-full">{notifications.length} New</span>
-                                        </div>
-                                        <div className="max-h-[60vh] overflow-y-auto">
-                                            {notifications.length > 0 ? (
-                                                notifications.map((notif: any) => (
-                                                    <Link 
-                                                        key={notif.id} 
-                                                        href={`/executive/valuations/${notif.type}/${notif.id}`}
-                                                        onClick={() => setIsNotificationsOpen(false)}
-                                                        className="block px-4 py-3 border-b border-slate-100 hover:bg-slate-50 transition-colors last:border-0 group"
-                                                    >
-                                                        <div className="flex justify-between items-start mb-1">
-                                                            <span className="text-[10px] font-bold text-slate-900 group-hover:text-[#E31E24] transition-colors">{notif.title}</span>
-                                                            <span className="text-[9px] text-slate-450">
-                                                                {new Date(notif.createdAt).toLocaleDateString()}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-[11px] text-slate-500 leading-snug">
-                                                            {notif.message}
-                                                        </p>
-                                                    </Link>
-                                                ))
-                                            ) : (
-                                                <div className="px-4 py-8 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                                                    No new notifications
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="px-4 py-2 border-t border-slate-200 bg-slate-50 text-center">
-                                            <Link href="/executive/valuations" onClick={() => setIsNotificationsOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-[#E31E24] hover:text-red-700 transition-colors">
-                                                View All Market Data
-                                            </Link>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <NotificationBox apiUrl="/api/executive/notifications" dashboardUrl="/executive/dashboard" />
+                        <div className="hidden sm:flex flex-col items-end">
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Executive User</span>
+                            <span className="text-sm font-semibold text-slate-900">Executive Terminal</span>
                         </div>
-                        <ThemeToggle />
-                        <Link href="/executive/dashboard" className="hidden sm:flex flex-col items-end hover:opacity-80 transition-opacity">
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Clearance Level 4</span>
-                            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">{session?.user?.name || 'Executive'}</span>
-                        </Link>
                     </div>
                 </header>
 

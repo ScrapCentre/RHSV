@@ -76,6 +76,9 @@ function AccessGeneratorContent() {
     const [scrapCentreUsers, setScrapCentreUsers] = useState<ScrapCentreUser[]>([])
     const [rvsfUsers, setRvsfUsers] = useState<RVSFUser[]>([])
 
+    const [selectedRvsfDetails, setSelectedRvsfDetails] = useState<any | null>(null)
+    const [isFetchingRvsfDetails, setIsFetchingRvsfDetails] = useState(false)
+
     // Provision Form Data State
     const [formData, setFormData] = useState({
         name: "",
@@ -147,6 +150,31 @@ function AccessGeneratorContent() {
             })
         } finally {
             setIsLoadingProfiles(false)
+        }
+    }
+
+    const fetchRvsfDetails = async (rvsfId: string) => {
+        setIsFetchingRvsfDetails(true)
+        try {
+            const res = await fetch(`/api/admin/rvsf-generator?rvsfId=${rvsfId}`)
+            if (res.ok) {
+                const data = await res.json()
+                setSelectedRvsfDetails(data)
+            } else {
+                toast({
+                    title: "Fetch Error",
+                    description: "Failed to query RVSF partner details.",
+                    variant: "destructive"
+                })
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Something went wrong while fetching details.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsFetchingRvsfDetails(false)
         }
     }
 
@@ -380,7 +408,7 @@ function AccessGeneratorContent() {
                 {/* Quick tab totals counter */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full md:w-auto">
                     {[
-                        { label: "B2B Partners", count: b2bPartners.length, icon: Building2 },
+                        { label: "Personal RVSF", count: b2bPartners.length, icon: Building2 },
                         { label: "Staff", count: executives.length, icon: Users },
                         { label: "Operators", count: scrapCentreUsers.length, icon: UserCheck },
                         { label: "RVSF Centers", count: rvsfUsers.length, icon: Shield }
@@ -418,7 +446,7 @@ function AccessGeneratorContent() {
                     }`}
                 >
                     <Building2 className="w-3.5 h-3.5" />
-                    B2B Partners ({b2bPartners.length})
+                    Personal RVSF ({b2bPartners.length})
                 </button>
                 <button
                     onClick={() => setActiveTab("exec_list")}
@@ -499,10 +527,9 @@ function AccessGeneratorContent() {
                                         onChange={(e) => setSelectedUserType(e.target.value as UserType)}
                                         className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 pr-8 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#E31E24] cursor-pointer appearance-none"
                                     >
-                                        <option value="b2b">B2B Partner</option>
-                                        <option value="executive">Staff Executive</option>
-                                        <option value="scrapcentre">ScrapCentre Operator</option>
-                                        <option value="rvsf">RVSF Partner</option>
+                                        <option value="b2b">Personal RVSF</option>
+                                        <option value="executive">Executive</option>
+                                        <option value="scrapcentre">ScrapCentre</option>
                                     </select>
                                     <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
                                 </div>
@@ -517,7 +544,7 @@ function AccessGeneratorContent() {
                                     <input
                                         type="text"
                                         required
-                                        placeholder={selectedUserType === "b2b" ? "Scrap Services Ltd." : "Shubham Shukla"}
+                                        placeholder={selectedUserType === "b2b" ? "Enter Business Name" : "Enter Name"}
                                         value={formData.name}
                                         onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                                         className="w-full bg-slate-50 dark:bg-slate-850/50 border border-slate-200 dark:border-slate-750 focus:border-[#E31E24] focus:bg-white dark:focus:bg-slate-900 rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-slate-100 focus:outline-none transition-all placeholder:text-slate-400 font-semibold"
@@ -652,7 +679,7 @@ function AccessGeneratorContent() {
                                 {selectedUserType !== "executive" && (
                                     <div className="space-y-1.5">
                                         <label className="block text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
-                                            {selectedUserType === "b2b" ? "B2B Partner ID" : selectedUserType === "scrapcentre" ? "Operator Login ID" : "RVSF ID"}
+                                            {selectedUserType === "b2b" ? "Personal RVSF ID" : selectedUserType === "scrapcentre" ? "Operator Login ID" : "RVSF ID"}
                                         </label>
                                         <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2">
                                             <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-200 select-all">{formData.userId}</span>
@@ -702,7 +729,7 @@ function AccessGeneratorContent() {
                         <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                             <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
                                 <Building2 className="w-4 h-4 text-[#E31E24]" />
-                                Active B2B Partners ({filteredB2b.length})
+                                Active Personal RVSF ({filteredB2b.length})
                             </h2>
                         </div>
 
@@ -711,13 +738,13 @@ function AccessGeneratorContent() {
                                 <Loader2 className="w-6 h-6 animate-spin text-[#E31E24]" />
                             </div>
                         ) : filteredB2b.length === 0 ? (
-                            <div className="text-center py-16 text-slate-400 dark:text-slate-500 text-xs font-semibold">No B2B partners match search query.</div>
+                            <div className="text-center py-16 text-slate-400 dark:text-slate-500 text-xs font-semibold">No Personal RVSF match search query.</div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-xs border-collapse">
                                     <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                                         <tr>
-                                            <th className="px-5 py-3">Partner ID</th>
+                                            <th className="px-5 py-3">Personal RVSF ID</th>
                                             <th className="px-5 py-3">Business Name</th>
                                             <th className="px-5 py-3">Contact</th>
                                             <th className="px-5 py-3">Email Address</th>
@@ -911,13 +938,23 @@ function AccessGeneratorContent() {
                                                 <td className="px-5 py-3.5 font-semibold text-slate-650 dark:text-slate-300">{rvsf.email}</td>
                                                 <td className="px-5 py-3.5 text-slate-450 dark:text-slate-400">{new Date(rvsf.createdAt).toLocaleDateString()}</td>
                                                 <td className="px-5 py-3.5 text-center">
-                                                    <button 
-                                                        onClick={() => setDeletingProfile({ id: rvsf._id, name: rvsf.name, type: "rvsf" })}
-                                                        className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-[#E31E24] rounded-lg transition-colors"
-                                                        title="Revoke RVSF Partner Access"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    <div className="flex items-center justify-center gap-1.5">
+                                                        <button 
+                                                            onClick={() => fetchRvsfDetails(rvsf.rvsfId)}
+                                                            disabled={isFetchingRvsfDetails}
+                                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-blue-600 rounded-lg transition-colors"
+                                                            title="View Details & Collection Centers"
+                                                        >
+                                                            <Search className="w-4 h-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => setDeletingProfile({ id: rvsf._id, name: rvsf.name, type: "rvsf" })}
+                                                            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-[#E31E24] rounded-lg transition-colors"
+                                                            title="Revoke RVSF Partner Access"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -973,6 +1010,130 @@ function AccessGeneratorContent() {
                                 >
                                     {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                                     Revoke Access
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* RVSF DETAILS & CC MODAL */}
+            <AnimatePresence>
+                {selectedRvsfDetails && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, y: 10 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 10 }}
+                            className="bg-white dark:bg-slate-900 max-w-2xl w-full rounded-2xl border border-slate-200/50 dark:border-slate-800 p-6 shadow-xl space-y-6 max-h-[85vh] overflow-y-auto"
+                        >
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl">
+                                        <Building2 className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-base font-bold text-slate-800 dark:text-white">{selectedRvsfDetails.user.name}</h4>
+                                        <span className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest">RVSF Partner Identity &amp; Collection Centers</span>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedRvsfDetails(null)}
+                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-650 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Identity Details */}
+                            <div className="bg-slate-50 dark:bg-slate-850/50 border border-slate-100 dark:border-slate-800/80 rounded-xl p-4 space-y-3">
+                                <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Core Profile Information</h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
+                                    <div className="flex justify-between py-1.5 border-b border-slate-150/45 dark:border-slate-800">
+                                        <span className="text-slate-450">RVSF Login ID</span>
+                                        <span className="text-slate-800 dark:text-slate-205 font-mono">{selectedRvsfDetails.user.rvsfId}</span>
+                                    </div>
+                                    <div className="flex justify-between py-1.5 border-b border-slate-150/45 dark:border-slate-800">
+                                        <span className="text-slate-450">Registered Email</span>
+                                        <span className="text-slate-800 dark:text-slate-205">{selectedRvsfDetails.user.email}</span>
+                                    </div>
+                                    <div className="flex justify-between py-1.5 border-b border-slate-150/45 dark:border-slate-800">
+                                        <span className="text-slate-450">City / State</span>
+                                        <span className="text-slate-800 dark:text-slate-205">{selectedRvsfDetails.user.city || "Not Specified"}, {selectedRvsfDetails.user.state || ""}</span>
+                                    </div>
+                                    <div className="flex justify-between py-1.5 border-b border-slate-150/45 dark:border-slate-800">
+                                        <span className="text-slate-450">Registered Address</span>
+                                        <span className="text-slate-800 dark:text-slate-205 text-right truncate max-w-[180px]">{selectedRvsfDetails.user.registeredAddress || "Not Specified"}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Collection Centers (CC) Section */}
+                            <div className="space-y-3">
+                                <h5 className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
+                                    Active Collection Centers ({selectedRvsfDetails.ccs.length})
+                                </h5>
+
+                                {selectedRvsfDetails.ccs.length === 0 ? (
+                                    <div className="text-center py-8 bg-slate-50 dark:bg-slate-850/35 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-400 font-semibold">
+                                        No collection centers currently linked to this RVSF center.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {selectedRvsfDetails.ccs.map((cc: any, i: number) => (
+                                            <div key={i} className="border border-slate-150 dark:border-slate-800 rounded-xl p-4 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden group">
+                                                <div className="absolute top-0 left-0 w-1 h-full bg-[#E31E24]" />
+                                                <div className="flex justify-between items-start gap-4">
+                                                    <div>
+                                                        <h6 className="text-xs font-bold text-slate-905 dark:text-white">{cc.name}</h6>
+                                                        <p className="text-[10px] text-slate-450 dark:text-slate-500 mt-1 flex items-center gap-1 font-semibold">
+                                                            <MapPin className="w-3.5 h-3.5" />
+                                                            {cc.fullAddress}, {cc.city}, {cc.state} - {cc.pincode}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right shrink-0">
+                                                        <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-200/40 dark:border-slate-700 leading-none">
+                                                            Radius: {cc.catchmentRadius} km
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-slate-400 uppercase tracking-widest text-[8px] font-bold">Contact:</span>
+                                                        <span className="text-slate-800 dark:text-slate-200 font-bold">{cc.contactPersonName}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="flex items-center gap-1">
+                                                            <Phone className="w-3 h-3 text-slate-400" />
+                                                            {cc.contactPersonPhone}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <Mail className="w-3 h-3 text-slate-400" />
+                                                            {cc.contactPersonEmail}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modal Action */}
+                            <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-805">
+                                <button
+                                    onClick={() => setSelectedRvsfDetails(null)}
+                                    className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 font-bold text-xs py-2 px-5 rounded-lg transition-all"
+                                >
+                                    Close Details
                                 </button>
                             </div>
                         </motion.div>

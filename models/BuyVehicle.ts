@@ -27,6 +27,7 @@ const BuyVehicleSchema = new Schema(
         b2bPickupId: { type: String },
         b2bPartnerId: { type: String },
         carPhoto: { type: String },
+        additionalPhotos: [{ type: String }],
     },
     {
         timestamps: true,

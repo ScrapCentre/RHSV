@@ -16,7 +16,8 @@ import {
     Loader2,
     DollarSign,
     User,
-    FileText
+    FileText,
+    Trash2
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -88,6 +89,39 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
         setSelectedRequest(null)
     }
 
+    const handleDeleteRequest = async (id: string) => {
+        if (!confirm("Are you sure you want to permanently delete this refund request record from the database? This action cannot be undone.")) {
+            return
+        }
+        
+        try {
+            const res = await fetch(`/api/admin/refund-requests/${id}`, {
+                method: "DELETE"
+            })
+            const data = await res.json()
+            if (res.ok) {
+                toast({
+                    title: "Request Deleted",
+                    description: "The refund request was successfully removed from the database."
+                })
+                // Remove from local state
+                setRequests(prev => prev.filter(r => r._id !== id))
+            } else {
+                toast({
+                    title: "Deletion Failed",
+                    description: data.message || "Failed to delete refund request.",
+                    variant: "destructive"
+                })
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Something went wrong while deleting the request.",
+                variant: "destructive"
+            })
+        }
+    }
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -142,23 +176,23 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                 animate="visible"
                 className="bg-white dark:bg-[#0E192D] rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden hidden md:block"
             >
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm border-collapse">
+                <div className="w-full overflow-hidden">
+                    <table className="w-full text-left text-sm border-collapse table-fixed">
                         <thead>
-                            <tr className="bg-gray-50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase text-xs font-bold tracking-wider">
-                                <th className="px-6 py-4.5 font-bold">RVSF Info</th>
-                                <th className="px-6 py-4.5 font-bold">Lead ID</th>
-                                <th className="px-6 py-4.5 font-bold">Unlock Amount</th>
-                                <th className="px-6 py-4.5 font-bold">Rejection Reason</th>
-                                <th className="px-6 py-4.5 font-bold">Status</th>
-                                <th className="px-6 py-4.5 font-bold">Date of Request</th>
-                                <th className="px-6 py-4.5 font-bold text-right">Details</th>
+                            <tr className="bg-gray-50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider">
+                                <th className="px-4 py-3.5 w-[18%] font-bold">RVSF Info</th>
+                                <th className="px-4 py-3.5 w-[15%] font-bold">Lead ID</th>
+                                <th className="px-4 py-3.5 w-[12%] font-bold">Unlock Amount</th>
+                                <th className="px-4 py-3.5 w-[24%] font-bold">Rejection Reason</th>
+                                <th className="px-4 py-3.5 w-[11%] font-bold">Status</th>
+                                <th className="px-4 py-3.5 w-[10%] font-bold">Date</th>
+                                <th className="px-4 py-3.5 w-[10%] font-bold text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                             {filteredRequests.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500 font-medium">
+                                    <td colSpan={7} className="px-4 py-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                                         No refund requests found.
                                     </td>
                                 </tr>
@@ -169,38 +203,47 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                         variants={itemVariants}
                                         className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors"
                                     >
-                                        <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white align-middle">
-                                            <div className="flex flex-col">
-                                                <span>{req.rvsfName}</span>
-                                                <span className="text-[10px] text-slate-400 font-mono tracking-tight font-normal uppercase">{req.rvsfId}</span>
+                                        <td className="px-4 py-4 font-semibold text-gray-900 dark:text-white align-middle truncate">
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="block truncate" title={req.rvsfName}>{req.rvsfName}</span>
+                                                <span className="text-[10px] text-slate-400 font-mono tracking-tight font-normal uppercase block truncate" title={req.rvsfId}>{req.rvsfId}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-gray-700 dark:text-slate-300 font-mono text-xs font-semibold align-middle">
-                                            {req.leadId}
+                                        <td className="px-4 py-4 text-gray-700 dark:text-slate-300 font-mono text-xs font-semibold align-middle truncate" title={req.leadId}>
+                                            <span className="block truncate">{req.leadId}</span>
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-emerald-400 align-middle">
+                                        <td className="px-4 py-4 font-bold text-gray-900 dark:text-emerald-400 align-middle">
                                             ₹{req.amount}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300 align-middle max-w-xs truncate" title={req.rejectionReason}>
-                                            {req.rejectionReason}
+                                        <td className="px-4 py-4 text-slate-600 dark:text-slate-300 align-middle truncate" title={req.rejectionReason}>
+                                            <span className="block truncate">{req.rejectionReason}</span>
                                         </td>
-                                        <td className="px-6 py-4 align-middle">
+                                        <td className="px-4 py-4 align-middle">
                                             {getStatusBadge(req.status)}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400 align-middle">
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5 text-blue-500" />
-                                                <span>{new Date(req.createdAt).toLocaleDateString()}</span>
+                                        <td className="px-4 py-4 text-slate-500 dark:text-slate-400 align-middle truncate">
+                                            <div className="flex items-center gap-1.5 truncate">
+                                                <Calendar className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                                <span className="block truncate">{new Date(req.createdAt).toLocaleDateString()}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-right align-middle">
-                                            <button 
-                                                onClick={() => handleOpenReview(req)}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-emerald-500 hover:text-white dark:bg-slate-800 dark:hover:bg-emerald-500 text-gray-900 dark:text-white rounded-lg text-xs font-bold transition-all shadow-sm group"
-                                            >
-                                                <Eye className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                                                View
-                                            </button>
+                                        <td className="px-4 py-4 text-center align-middle">
+                                            <div className="flex items-center justify-center gap-1.5">
+                                                <button 
+                                                    onClick={() => handleOpenReview(req)}
+                                                    className="p-1.5 bg-gray-100 hover:bg-emerald-500 hover:text-white dark:bg-slate-800 dark:hover:bg-emerald-500 text-gray-900 dark:text-white rounded-lg transition-colors shadow-sm group"
+                                                    title="View Details"
+                                                >
+                                                    <Eye className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteRequest(req._id)}
+                                                    className="p-1.5 bg-red-50 hover:bg-[#E31E24] hover:text-white dark:bg-red-950/20 dark:hover:bg-[#E31E24] text-[#E31E24] rounded-lg transition-colors shadow-sm"
+                                                    title="Delete Request"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </motion.tr>
                                 ))
@@ -228,10 +271,10 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                 <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-base">₹{req.amount}</span>
                             </div>
                             
-                            <div className="bg-gray-50 dark:bg-slate-900/60 p-3 rounded-xl space-y-1.5 text-xs">
-                                <p className="text-slate-500 dark:text-slate-400 flex justify-between">
-                                    <span>Lead ID:</span>
-                                    <span className="font-mono font-semibold text-gray-800 dark:text-gray-200">{req.leadId}</span>
+                            <div className="bg-gray-50 dark:bg-slate-900/60 p-3 rounded-xl space-y-1.5 text-xs min-w-0">
+                                <p className="text-slate-500 dark:text-slate-400 flex justify-between gap-2">
+                                    <span className="shrink-0">Lead ID:</span>
+                                    <span className="font-mono font-semibold text-gray-800 dark:text-gray-200 truncate select-all">{req.leadId}</span>
                                 </p>
                                 <div className="text-slate-500 dark:text-slate-400 flex flex-col pt-1">
                                     <span className="font-semibold text-slate-700 dark:text-slate-300">Rejection Reason:</span>
@@ -244,13 +287,22 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                     <Calendar className="w-3.5 h-3.5 text-blue-500" />
                                     {new Date(req.createdAt).toLocaleDateString()}
                                 </span>
-                                <button 
-                                    onClick={() => handleOpenReview(req)}
-                                    className="px-3.5 py-1.5 bg-gray-100 hover:bg-emerald-500 hover:text-white dark:bg-slate-800 dark:hover:bg-emerald-500 text-gray-900 dark:text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm"
-                                >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    View
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => handleOpenReview(req)}
+                                        className="px-3.5 py-1.5 bg-gray-100 hover:bg-emerald-500 hover:text-white dark:bg-slate-800 dark:hover:bg-emerald-500 text-gray-900 dark:text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm"
+                                    >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        View
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDeleteRequest(req._id)}
+                                        className="px-3.5 py-1.5 bg-red-50 hover:bg-[#E31E24] hover:text-white dark:bg-red-950/20 dark:hover:bg-[#E31E24] text-[#E31E24] font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm"
+                                        title="Delete Request"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))
@@ -288,12 +340,24 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                         <p className="text-xs text-gray-500 dark:text-slate-500 font-mono uppercase tracking-tight">ID: {selectedRequest._id.slice(-8)}</p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={handleCloseReview}
-                                    className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => {
+                                            handleDeleteRequest(selectedRequest._id)
+                                            handleCloseReview()
+                                        }}
+                                        className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 text-[#E31E24] transition-colors"
+                                        title="Delete Request"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={handleCloseReview}
+                                        className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Body */}
@@ -332,12 +396,12 @@ export default function RefundReviewClient({ initialRequests }: RefundReviewClie
                                         <CreditCard className="w-4 h-4 text-emerald-500" /> Payment Identifiers
                                     </h4>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1.5">
-                                        <div>
+                                        <div className="min-w-0">
                                             <span className="text-slate-400">Unlock Payment ID (Razorpay):</span>
                                             <p className="font-mono font-semibold text-gray-800 dark:text-gray-200 mt-0.5 truncate select-all">{selectedRequest.unlockPaymentId}</p>
                                         </div>
                                         {selectedRequest.razorpayOrderId && (
-                                            <div>
+                                            <div className="min-w-0">
                                                 <span className="text-slate-400">Razorpay Order ID:</span>
                                                 <p className="font-mono font-semibold text-gray-800 dark:text-gray-200 mt-0.5 truncate select-all">{selectedRequest.razorpayOrderId}</p>
                                             </div>

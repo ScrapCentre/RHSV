@@ -72,7 +72,21 @@ export async function GET(req: Request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
+        const { searchParams } = new URL(req.url)
+        const rvsfId = searchParams.get("rvsfId")
+
         await connectToDatabase()
+
+        if (rvsfId) {
+            const user = await RVSFUser.findOne({ rvsfId }).select("-password").lean()
+            if (!user) {
+                return NextResponse.json({ message: "RVSF User not found" }, { status: 404 })
+            }
+            const CollectionCenter = (await import("@/models/CollectionCenter")).default
+            const centers = await CollectionCenter.find({ rvsfId }).sort({ createdAt: -1 }).lean()
+            return NextResponse.json({ user, ccs: centers }, { status: 200 })
+        }
+
         const users = await RVSFUser.find({}).sort({ createdAt: -1 }).select("-password")
         return NextResponse.json(users, { status: 200 })
     } catch (error: any) {

@@ -59,6 +59,7 @@ export async function GET(
                     city: wizardLead.city,
                     state: wizardLead.state,
                     carPhoto: wizardLead.carPhoto,
+                    additionalPhotos: wizardLead.additionalPhotos,
                     photoFront: wizardLead.photoFront,
                     photoBack: wizardLead.photoBack,
                     photoLeft: wizardLead.photoLeft,

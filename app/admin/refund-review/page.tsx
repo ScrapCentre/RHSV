@@ -48,7 +48,7 @@ export default async function RefundReviewPage() {
     }))
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full overflow-hidden">
             {/* Page Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-[#0E192D] p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
                 <div>

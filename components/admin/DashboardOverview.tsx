@@ -1,9 +1,11 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight } from "lucide-react"
+import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight, RotateCw } from "lucide-react"
 import Link from "next/link"
 import DashboardCharts from "./DashboardCharts"
+import { useRouter } from "next/navigation"
+import { useTransition } from "react"
 
 interface DashboardOverviewProps {
     totalRequests: number
@@ -45,6 +47,25 @@ const itemVariants = {
     }
 }
 
+const listVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.05
+        }
+    }
+}
+
+const rowVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { type: "spring", stiffness: 100, damping: 15 } as any
+    }
+}
+
 export default function DashboardOverview({
     totalRequests,
     formattedTotalTons,
@@ -56,6 +77,15 @@ export default function DashboardOverview({
     monthlyGrowthData,
     activityData
 }: DashboardOverviewProps) {
+    const router = useRouter()
+    const [isPending, startTransition] = useTransition()
+
+    const handleRefresh = () => {
+        startTransition(() => {
+            router.refresh()
+        })
+    }
+
     return (
         <motion.div
             variants={containerVariants}
@@ -149,9 +179,19 @@ export default function DashboardOverview({
                         <FileText className="w-4 h-4 text-blue-650" />
                         Market Feed
                     </h2>
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 tracking-wider uppercase">
-                        Latest Activities
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleRefresh}
+                            disabled={isPending}
+                            className="inline-flex items-center justify-center p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white transition-all disabled:opacity-50 active:scale-95 shadow-sm"
+                            title="Refresh Feed"
+                        >
+                            <RotateCw className={`w-3.5 h-3.5 ${isPending ? 'animate-spin' : ''}`} />
+                        </button>
+                        <span className="text-[9px] font-bold px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 tracking-wider uppercase">
+                            Latest Activities
+                        </span>
+                    </div>
                 </div>
 
                 {/* Desktop View (Table) */}
@@ -167,9 +207,21 @@ export default function DashboardOverview({
                                 <th className="px-4 py-2 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <motion.tbody
+                            key={marketFeed.map(item => item._id).join(',')}
+                            variants={listVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="divide-y divide-gray-100 dark:divide-slate-800"
+                        >
                             {marketFeed.map((item: any, index: number) => (
-                                <tr key={item._id} onClick={() => window.location.href = `/admin/valuations/${item.type}/${item._id}`} className={`transition-all duration-350 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} hover:bg-slate-100/50`}>
+                                <motion.tr
+                                    key={item._id}
+                                    variants={rowVariants}
+                                    whileHover={{ scale: 1.008, zIndex: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
+                                    onClick={() => window.location.href = `/admin/valuations/${item.type}/${item._id}`}
+                                    className={`transition-all duration-200 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} hover:bg-slate-100/50 relative`}
+                                >
                                     <td className="px-4 py-3">
                                         {item.type === 'quote' && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800/30 leading-none">
@@ -237,22 +289,34 @@ export default function DashboardOverview({
                                             <ChevronRight className="w-4 h-4" />
                                         </Link>
                                     </td>
-                                </tr>
+                                </motion.tr>
                             ))}
-                        </tbody>
+                        </motion.tbody>
                     </table>
                 </div>
 
                 {/* Mobile View (Cards) */}
-                <div className="md:hidden p-3 space-y-3 bg-gray-50/30">
+                <motion.div
+                    key={marketFeed.map(item => item._id).join(',')}
+                    variants={listVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="md:hidden p-3 space-y-3 bg-gray-50/30"
+                >
                     {marketFeed.length === 0 ? (
                         <div className="px-4 py-6 text-center text-slate-400 text-xs bg-white rounded-xl border border-gray-100">
                             No recent activity found.
                         </div>
                     ) : (
                         marketFeed.map((item: any, index: number) => (
-                            <Link key={item._id} href={`/admin/valuations/${item.type}/${item._id}`} className="block">
-                                <div className={`rounded-xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow active:scale-[0.98] ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                            <motion.div
+                                key={item._id}
+                                variants={rowVariants}
+                                whileHover={{ scale: 1.02 }}
+                                className="block"
+                            >
+                                <Link href={`/admin/valuations/${item.type}/${item._id}`} className="block">
+                                    <div className={`rounded-xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
                                     <div className="p-3.5 space-y-2.5">
                                         <div className="flex justify-between items-start">
                                             {item.type === 'quote' && (
@@ -324,11 +388,12 @@ export default function DashboardOverview({
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </Link>
+                                    </div>
+                                </Link>
+                            </motion.div>
                         ))
                     )}
-                </div>
+                </motion.div>
             </motion.div>
         </motion.div>
     )

@@ -9,7 +9,6 @@ import {
     MapPin, 
     ChevronLeft, 
     CheckCircle, 
-    Trash2, 
     Phone, 
     Hash, 
     Weight, 
@@ -106,36 +105,6 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
             toast({
                 title: "Error",
                 description: "Critical failure during status update.",
-                variant: "destructive"
-            })
-        }
-    }
-
-    const handleDelete = async () => {
-        if (!confirm("WARNING: Permanent Deletion. Proceed?")) return
-
-        try {
-            const res = await fetch(`/api/admin/requests/delete?id=${id}&type=${type}`, {
-                method: "DELETE"
-            })
-
-            if (res.ok) {
-                toast({
-                    title: "Purged",
-                    description: "Lead record permanently removed from database."
-                })
-                router.push(`/executive/valuations/${type}`)
-            } else {
-                toast({
-                    title: "Error",
-                    description: "Failed to purge record.",
-                    variant: "destructive"
-                })
-            }
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "Failed to purge record.",
                 variant: "destructive"
             })
         }
@@ -238,15 +207,6 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                         <option value="reviewing" className="bg-white dark:bg-zinc-900 text-slate-800 dark:text-white">Reviewing</option>
                     </select>
                 </div>
-
-                {/* Delete Lead */}
-                <button
-                    onClick={handleDelete}
-                    className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#FEE2E2] hover:bg-[#FCA5A5] text-[#EF4444] rounded-xl font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete</span>
-                </button>
             </div>
         )
     }
@@ -801,6 +761,306 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
         )
     }
 
+    // ── VIEW 4: Exchange Lead ──
+    const ExchangeDetailView = () => {
+        return (
+            <div className={`space-y-5 ${plusJakartaSans.className}`}>
+                {/* Banner Section */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-50/70 via-fuchsia-50/40 to-pink-50/20 dark:from-purple-950/15 dark:to-transparent border border-purple-100/60 dark:border-purple-900/30 p-5 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex items-start gap-3.5 z-10 max-w-xl">
+                        <div className="w-10 h-10 rounded-xl bg-purple-600/10 dark:bg-purple-500/20 flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <Sparkles className="w-5 h-5 text-purple-655 dark:text-purple-455 animate-pulse" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm md:text-base font-extrabold text-slate-800 dark:text-purple-300">
+                                This is an <span className="text-purple-707 font-black dark:text-purple-400">Exchange Vehicle</span> lead —
+                            </h3>
+                            <p className="text-xs text-slate-555 dark:text-slate-400 mt-0.5 leading-relaxed font-semibold">
+                                the customer wants to exchange their old vehicle and purchase a new one.
+                            </p>
+                        </div>
+                    </div>
+                    {/* SVG Illustration */}
+                    <div className="relative w-40 h-20 md:w-48 md:h-24 flex-shrink-0 z-10 select-none opacity-85 pointer-events-none">
+                        <svg className="w-full h-full text-purple-600 dark:text-purple-500" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse cx="100" cy="85" rx="75" ry="10" fill="rgba(124, 58, 237, 0.12)" />
+                            <path d="M125 25 C145 25 155 45 145 65 Z" fill="currentColor" opacity="0.15" />
+                            <circle cx="50" cy="73" r="12" fill="#fff" stroke="currentColor" strokeWidth="2.5" />
+                            <circle cx="50" cy="73" r="5" fill="currentColor" />
+                            <circle cx="120" cy="73" r="12" fill="#fff" stroke="currentColor" strokeWidth="2.5" />
+                            <circle cx="120" cy="73" r="5" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-purple-200/20 dark:bg-purple-800/10 rounded-full blur-3xl -z-0 pointer-events-none" />
+                </div>
+
+                {/* Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {/* CARD 1: Old Vehicle Information (Green theme) */}
+                    <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
+                        <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                            <div className="p-2 bg-[#EFFBF3] dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                <Car className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    Old Vehicle Information
+                                </h2>
+                                <div className="h-0.5 w-8 bg-emerald-500 rounded-full mt-1" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1 mt-2.5">
+                            {[
+                                { icon: Hash, label: "Registration No.", value: request.oldVehicleRegistration },
+                                { icon: Car, label: "Brand", value: request.oldVehicleBrand },
+                                { icon: Car, label: "Model", value: request.oldVehicleModel },
+                                { icon: Calendar, label: "Year", value: request.oldVehicleYear },
+                                { icon: Fuel, label: "Fuel Type", value: request.oldVehicleFuelType },
+                            ].map(({ icon: IconComponent, label, value }, index) => (
+                                <div 
+                                    key={label} 
+                                    className={`flex items-center justify-between py-2 px-3 rounded-xl transition-all duration-200 hover:translate-x-1 border border-transparent group ${
+                                        index % 2 === 0 
+                                        ? "bg-white dark:bg-slate-900/10" 
+                                        : "bg-emerald-50/45 dark:bg-emerald-950/20 border-emerald-100/10 dark:border-emerald-900/10"
+                                    } hover:bg-emerald-100/40 dark:hover:bg-emerald-900/30 hover:border-emerald-200/20`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <IconComponent className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors" />
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{label}</span>
+                                    </div>
+                                    <span className="text-xs text-slate-800 dark:text-slate-200 font-black uppercase tracking-wide group-hover:text-emerald-650 dark:group-hover:text-emerald-400 transition-colors">
+                                        {value || "Not specified"}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* CARD 2: New Vehicle Preferences (Purple theme) */}
+                    <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
+                        <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                            <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-650 dark:text-purple-400 rounded-lg">
+                                <ShoppingCart className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    New Vehicle Preferences
+                                </h2>
+                                <div className="h-0.5 w-8 bg-purple-500 rounded-full mt-1" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1 mt-2.5">
+                            {[
+                                { icon: Building, label: "Brand", value: request.newVehicleBrand },
+                                { icon: Car, label: "Model", value: request.newVehicleModel || "Any Model" },
+                            ].map(({ icon: IconComponent, label, value }, index) => (
+                                <div 
+                                    key={label} 
+                                    className={`flex items-center justify-between py-2 px-3 rounded-xl transition-all duration-200 hover:translate-x-1 border border-transparent group ${
+                                        index % 2 === 0 
+                                        ? "bg-white dark:bg-slate-900/10" 
+                                        : "bg-purple-50/45 dark:bg-purple-950/20 border-purple-100/10 dark:border-purple-900/10"
+                                    } hover:bg-purple-100/40 dark:hover:bg-purple-900/30 hover:border-purple-200/20`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <IconComponent className="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors" />
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{label}</span>
+                                    </div>
+                                    <span className="text-xs text-slate-800 dark:text-slate-205 font-black uppercase tracking-wide group-hover:text-purple-655 dark:group-hover:text-purple-400 transition-colors">
+                                        {value || "Not specified"}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* CARD 3: Customer Information (Orange theme) */}
+                    <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
+                        <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                            <div className="p-2 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-lg">
+                                <User className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    Customer Information
+                                </h2>
+                                <div className="h-0.5 w-8 bg-orange-500 rounded-full mt-1" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1 mt-2.5">
+                            {[
+                                { icon: User, label: "Name", value: request.customerName },
+                                { icon: Phone, label: "Phone", value: request.customerPhone, type: "phone" },
+                                { icon: MapPin, label: "Pincode", value: request.pincode },
+                                { icon: Building, label: "City", value: request.customCity || request.city },
+                                { icon: Globe, label: "State", value: request.state }
+                            ].map(({ icon: IconComponent, label, value, type }, index) => (
+                                <div 
+                                    key={label} 
+                                    className={`flex items-center justify-between py-2 px-3 rounded-xl transition-all duration-200 hover:translate-x-1 border border-transparent group ${
+                                        index % 2 === 0 
+                                        ? "bg-white dark:bg-slate-900/10" 
+                                        : "bg-orange-50/45 dark:bg-orange-950/20 border-orange-100/10 dark:border-orange-900/10"
+                                    } hover:bg-orange-100/40 dark:hover:bg-orange-900/30 hover:border-orange-200/20`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <IconComponent className="w-3.5 h-3.5 text-slate-400 group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors" />
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{label}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-slate-800 dark:text-slate-205 font-black uppercase tracking-wide group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                            {value || "N/A"}
+                                        </span>
+                                        {type === "phone" && value && (
+                                            <a 
+                                                href={`tel:${value}`} 
+                                                className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 flex items-center justify-center transition-all hover:scale-110 shadow-sm"
+                                                title="Call Customer"
+                                            >
+                                                <Phone className="w-3 h-3 fill-current" />
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <VehiclePhotosSection
+                        leadId={id}
+                        leadType={type}
+                        request={request}
+                        onPhotoUploaded={fetchRequest}
+                        className="lg:col-span-2"
+                    />
+                </div>
+
+                {/* Uploaded Documents */}
+                {(request.aadharFile || request.rcFile || request.carPhoto) && (
+                    <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
+                        <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800 mb-3">
+                            <div className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-lg">
+                                <ImageIcon className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    Uploaded Documents
+                                </h2>
+                                <div className="h-0.5 w-8 bg-blue-500 rounded-full mt-1" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {request.aadharFile && (
+                                <div className="border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col justify-between gap-2.5">
+                                    <div>
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Aadhar Card Document</span>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold truncate">Uploaded File</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 pt-1.5 border-t border-slate-100/50 dark:border-slate-800/30">
+                                        <button
+                                            onClick={() => window.open(request.aadharFile, '_blank')}
+                                            className="text-blue-650 dark:text-blue-455 hover:underline text-xs font-bold"
+                                        >
+                                            View
+                                        </button>
+                                        <button
+                                            onClick={() => window.open(request.aadharFile.replace("/upload/", "/upload/fl_attachment/"), '_blank')}
+                                            className="text-slate-450 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 transition-colors flex items-center gap-0.5 text-xs font-bold"
+                                            title="Download Document"
+                                        >
+                                            <Download className="w-3 h-3" />
+                                            Download
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            {request.rcFile && (
+                                <div className="border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col justify-between gap-2.5">
+                                    <div>
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Registration Certificate (RC)</span>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold truncate">Uploaded File</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 pt-1.5 border-t border-slate-100/50 dark:border-slate-800/30">
+                                        <button
+                                            onClick={() => window.open(request.rcFile, '_blank')}
+                                            className="text-blue-655 dark:text-blue-455 hover:underline text-xs font-bold"
+                                        >
+                                            View
+                                        </button>
+                                        <button
+                                            onClick={() => window.open(request.rcFile.replace("/upload/", "/upload/fl_attachment/"), '_blank')}
+                                            className="text-slate-455 hover:text-blue-650 dark:text-slate-550 dark:hover:text-blue-455 transition-colors flex items-center gap-0.5 text-xs font-bold"
+                                            title="Download Document"
+                                        >
+                                            <Download className="w-3 h-3" />
+                                            Download
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            {request.carPhoto && (
+                                <div className="border border-slate-100 dark:border-slate-800/60 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/30 flex flex-col">
+                                    {/* Image Preview */}
+                                    <div className="relative w-full aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800/50 group cursor-pointer" onClick={() => window.open(request.carPhoto, '_blank')}>
+                                        <img
+                                            src={request.carPhoto}
+                                            alt="Vehicle Photo"
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest">
+                                                Open Full Size
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {/* Label + Actions */}
+                                    <div className="p-3 flex items-center justify-between">
+                                        <div>
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Vehicle Photo</span>
+                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Uploaded by customer</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => window.open(request.carPhoto, '_blank')}
+                                                className="text-blue-650 dark:text-blue-455 hover:underline text-xs font-bold"
+                                            >
+                                                View
+                                            </button>
+                                            <button
+                                                onClick={() => window.open(request.carPhoto.replace("/upload/", "/upload/fl_attachment/"), '_blank')}
+                                                className="text-slate-455 hover:text-blue-650 dark:hover:text-blue-455 transition-colors flex items-center gap-0.5 text-xs font-bold"
+                                                title="Download Photo"
+                                            >
+                                                <Download className="w-3 h-3" />
+                                                Download
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Bottom Footer Notice Bar */}
+                <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-blue-50/30 dark:bg-slate-900/30 border border-blue-100/30 dark:border-slate-800/20">
+                    <div className="flex items-center gap-2 text-[11px] font-bold text-blue-600 dark:text-blue-400">
+                        <Info className="w-3.5 h-3.5 shrink-0" />
+                        <span>All details are provided by the customer. Please review before proceeding.</span>
+                    </div>
+                    <div className="hidden sm:block opacity-10 dark:opacity-5 text-blue-600 dark:text-blue-400">
+                        <ShieldCheck className="w-5 h-5" />
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className={`min-h-screen bg-[#F8FAFC] dark:bg-[#070e1a] p-4 md:p-6 lg:p-8 space-y-5 max-w-7xl mx-auto ${plusJakartaSans.className}`}>
             {/* Back Button */}
@@ -823,7 +1083,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                     </h1>
                     <div className="flex flex-wrap items-center gap-3">
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50/80 text-blue-600 border border-blue-100">
-                            {type === 'quote' ? 'QUOTE' : type === 'scrap-buy' ? 'SCRAP & BUY' : 'BUY'}
+                            {type === 'quote' ? 'QUOTE' : type === 'scrap-buy' ? 'SCRAP & BUY' : type === 'exchange' ? 'SCRAP & BUY (EXCHANGE)' : 'BUY'}
                         </span>
                         {getStatusBadge(request.status || "pending")}
                         <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 font-mono tracking-wider">
@@ -840,6 +1100,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
             {type === 'quote' && <QuoteDetailView />}
             {type === 'scrap-buy' && <ScrapBuyDetailView />}
             {type === 'buy' && <BuyDetailView />}
+            {type === 'exchange' && <ExchangeDetailView />}
 
         </div>
     )

@@ -49,7 +49,7 @@ export default function AdminLoginForm() {
 
     return (
         <div
-            className="min-h-screen flex items-end lg:items-center justify-center lg:justify-end pb-10 lg:pb-0 p-4 lg:pr-40 xl:pr-56 font-sans selection:bg-[#E31E24] selection:text-white"
+            className="min-h-screen flex items-center justify-center lg:items-center lg:justify-end p-4 sm:p-6 lg:pr-20 xl:pr-32 2xl:pr-44 selection:bg-[#E31E24] selection:text-white transition-all duration-500 font-sans"
             style={{
                 backgroundImage: "url('/adminlogin.png')",
                 backgroundSize: "cover",
@@ -58,65 +58,65 @@ export default function AdminLoginForm() {
             }}
         >
             <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-                className="w-full max-w-[420px]"
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="w-full max-w-[400px] relative z-10"
             >
                 {/* Card */}
-                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
-
-                        {/* Form body */}
-                    <div className="px-8 py-7">
-                        <form onSubmit={handleSubmit} className="space-y-5">
-
+                <div className="relative group">
+                    {/* Card Border Glow */}
+                    <div className="absolute -inset-0.5 bg-gradient-to-b from-[#E31E24]/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-700" />
+                    
+                    <div className="relative bg-white/95 backdrop-blur-md border border-slate-100 p-6 sm:p-8 rounded-2xl shadow-2xl">
+                        <form onSubmit={handleSubmit} className="space-y-4">
                             {error && (
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
-                                    className="bg-red-50 border border-red-200 text-red-600 text-xs py-2.5 px-4 rounded-lg font-medium text-center"
+                                    className="bg-red-50 border border-red-200 text-red-600 text-xs py-2.5 px-4 rounded-xl font-medium text-center"
                                 >
                                     {error}
                                 </motion.div>
                             )}
 
                             {/* Email */}
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+                            <div className="space-y-2">
+                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
                                     Login ID or Email
                                 </label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <div className="relative mt-1.5">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input
                                         type="text"
                                         required
                                         placeholder="sc01@scrapcentre.in"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-[#E31E24] focus:bg-white rounded-lg px-10 py-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400"
+                                        className="w-full bg-slate-50/50 border border-slate-200 hover:border-slate-300 focus:border-[#E31E24]/60 focus:bg-white rounded-xl px-11 py-3.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 font-medium"
                                     />
                                 </div>
                             </div>
 
                             {/* Password */}
-                            <div className="space-y-1.5">
-                                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+                            <div className="space-y-2">
+                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
                                     Access Key
                                 </label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <div className="relative mt-1.5">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         required
                                         placeholder="••••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-[#E31E24] focus:bg-white rounded-lg px-10 py-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400"
+                                        className="w-full bg-slate-50/50 border border-slate-200 hover:border-slate-300 focus:border-[#E31E24]/60 focus:bg-white rounded-xl px-11 py-3.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 font-medium"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                     >
                                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
@@ -127,7 +127,7 @@ export default function AdminLoginForm() {
                             <button
                                 disabled={isLoading}
                                 type="submit"
-                                className="w-full mt-2 py-3.5 bg-[#E31E24] hover:bg-[#c9181d] active:scale-[0.98] text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group/btn shadow-md shadow-red-600/20"
+                                className="w-full py-3.5 bg-[#E31E24] hover:bg-[#c9181d] active:scale-[0.98] text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group/btn shadow-lg shadow-red-600/10 text-sm mt-6"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -139,8 +139,6 @@ export default function AdminLoginForm() {
                                 )}
                             </button>
                         </form>
-
-
                     </div>
                 </div>
             </motion.div>

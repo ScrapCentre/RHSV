@@ -32,7 +32,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
-import { ThemeToggle } from "@/components/ThemeToggle"
 import NotificationBox from "@/components/admin/NotificationBox"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -69,29 +68,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [showOpeningAnimation, setShowOpeningAnimation] = useState(true)
 
     const isAdmin = session && (session.user as any).role === "admin"
-    const [contactCount, setContactCount] = useState(0)
-
-    // Poll contact requests notifications count
-    useEffect(() => {
-        if (!isAdmin) return
-        const fetchContactCount = async () => {
-            try {
-                const res = await fetch("/api/admin/notifications")
-                if (res.ok) {
-                    const data = await res.json()
-                    if (Array.isArray(data)) {
-                        const count = data.filter((n: any) => n.type === "contact").length
-                        setContactCount(count)
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching contact notifications:", error)
-            }
-        }
-        fetchContactCount()
-        const interval = setInterval(fetchContactCount, 30000)
-        return () => clearInterval(interval)
-    }, [isAdmin])
 
     // 3-second opening animation trigger
     useEffect(() => {
@@ -431,24 +407,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <span className="text-base sm:text-lg font-bold text-slate-900">Admin Panel</span>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <Link
-                            href="/admin/contact"
-                            className="relative p-1.5 rounded-xl text-slate-450 hover:text-[#E31E24] dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center"
-                            aria-label="Contact Requests"
-                            title="Contact Requests"
-                        >
-                            <MessageSquare className="w-5 h-5" />
-                            {contactCount > 0 && (
-                                <span className="absolute top-1 right-1 flex h-3.5 w-3.5">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E31E24] opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#E31E24] text-[8px] font-bold text-white items-center justify-center">
-                                        {contactCount}
-                                    </span>
-                                </span>
-                            )}
-                        </Link>
                         <NotificationBox />
-                        <ThemeToggle />
                         <div className="hidden sm:flex flex-col items-end">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Administrator</span>
                             <span className="text-sm font-semibold text-slate-900">Admin Control</span>

@@ -15,34 +15,89 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const { id, type, carPhoto } = await req.json()
+        const { id, type, carPhoto, action, photoUrl } = await req.json()
 
-        if (!id || !type || !carPhoto) {
-            return NextResponse.json({ error: "Missing id, type, or carPhoto" }, { status: 400 })
+        if (!id || !type) {
+            return NextResponse.json({ error: "Missing id or type" }, { status: 400 })
         }
 
         await connectToDatabase()
 
-        let updated = null
+        let lead: any = null
 
         if (type === "scrap-buy") {
-            updated = await WizardLead.findByIdAndUpdate(id, { carPhoto }, { new: true })
+            lead = await WizardLead.findById(id)
         } else if (type === "exchange") {
-            updated = await ExchangeVehicle.findByIdAndUpdate(id, { carPhoto }, { new: true })
+            lead = await ExchangeVehicle.findById(id)
         } else if (type === "quote") {
-            updated = await WizardLead.findByIdAndUpdate(id, { carPhoto }, { new: true })
+            lead = await WizardLead.findById(id)
         } else if (type === "buy") {
-            updated = await BuyVehicle.findByIdAndUpdate(id, { carPhoto }, { new: true })
-            if (!updated) {
-                updated = await WizardLead.findByIdAndUpdate(id, { carPhoto }, { new: true })
+            lead = await BuyVehicle.findById(id)
+            if (!lead) {
+                lead = await WizardLead.findById(id)
             }
         }
 
-        if (!updated) {
+        if (!lead) {
             return NextResponse.json({ error: "Request not found in any matching collection" }, { status: 404 })
         }
 
-        return NextResponse.json({ success: true, data: updated })
+        if (action === "delete") {
+            if (!photoUrl) {
+                return NextResponse.json({ error: "Missing photoUrl for delete action" }, { status: 400 })
+            }
+
+            // Remove photo URL if it matches any field
+            if (lead.carPhoto === photoUrl) {
+                lead.carPhoto = ""
+            } else if (lead.photoFront === photoUrl) {
+                lead.photoFront = ""
+            } else if (lead.photoBack === photoUrl) {
+                lead.photoBack = ""
+            } else if (lead.photoLeft === photoUrl) {
+                lead.photoLeft = ""
+            } else if (lead.photoRight === photoUrl) {
+                lead.photoRight = ""
+            }
+
+            if (lead.additionalPhotos && Array.isArray(lead.additionalPhotos)) {
+                lead.additionalPhotos = lead.additionalPhotos.filter((url: string) => url !== photoUrl)
+            }
+
+            await lead.save()
+            return NextResponse.json({ success: true, data: lead })
+        } else {
+            if (!carPhoto) {
+                return NextResponse.json({ error: "Missing carPhoto URL to add" }, { status: 400 })
+            }
+
+            // Count total current photos
+            const currentPhotosCount = [
+                lead.carPhoto,
+                lead.photoFront,
+                lead.photoBack,
+                lead.photoLeft,
+                lead.photoRight
+            ].filter(Boolean).length + (lead.additionalPhotos ? lead.additionalPhotos.length : 0)
+
+            if (currentPhotosCount >= 6) {
+                return NextResponse.json({ error: "Maximum of 6 photos allowed" }, { status: 400 })
+            }
+
+            // If carPhoto is empty, set it directly
+            if (!lead.carPhoto) {
+                lead.carPhoto = carPhoto
+            } else {
+                // Otherwise append to additionalPhotos
+                if (!lead.additionalPhotos) {
+                    lead.additionalPhotos = []
+                }
+                lead.additionalPhotos.push(carPhoto)
+            }
+
+            await lead.save()
+            return NextResponse.json({ success: true, data: lead })
+        }
     } catch (error) {
         console.error("Error updating vehicle photo:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })

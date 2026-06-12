@@ -514,7 +514,7 @@ export default function ValuationWizardCard() {
     const maxScrapValue = Math.round((weightNum * (ratePerKg + 5)) / 100) * 100;
 
     // CD certificate value
-    const potentialCDDiscount = cdDiscount !== null ? cdDiscount : 55000;
+    const potentialCDDiscount = (serviceType === "scrap" && formData.buyNew === "no") ? 0 : (cdDiscount !== null ? cdDiscount : 55000);
 
     // Totals
     const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
@@ -1005,19 +1005,21 @@ export default function ValuationWizardCard() {
                                             </h3>
 
                                             {/* Breakdown Box */}
-                                            <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-2 sm:mb-3">
+                                            <div className={`grid ${formData.buyNew === "no" ? "grid-cols-1" : "grid-cols-2"} gap-2 sm:gap-3 mb-2 sm:mb-3`}>
                                                 <div className="border border-white/10 bg-white/[0.02] rounded-xl p-2 sm:p-3">
                                                     <p className="text-[7.5px] sm:text-[8px] font-bold text-slate-400 uppercase tracking-wider">SCRAP VALUE</p>
                                                     <p className="text-[11px] sm:text-xs font-black text-white mt-0.5">₹{formatCurrency(minScrapValue)} - ₹{formatCurrency(maxScrapValue)}</p>
                                                 </div>
-                                                <div className="border border-emerald-500/10 bg-emerald-500/[0.02] rounded-xl p-2 sm:p-3">
-                                                    <p className="text-[7.5px] sm:text-[8px] font-bold text-emerald-400 uppercase tracking-wider">CD CERTIFICATE</p>
-                                                    <p className="text-[11px] sm:text-xs font-black text-emerald-400 mt-0.5">
-                                                        {formData.buyNew === "yes" && cdDiscount === null ? (
-                                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400 inline" />
-                                                        ) : `+ ₹${formatCurrency(potentialCDDiscount)}`}
-                                                    </p>
-                                                </div>
+                                                {formData.buyNew !== "no" && (
+                                                    <div className="border border-emerald-500/10 bg-emerald-500/[0.02] rounded-xl p-2 sm:p-3">
+                                                        <p className="text-[7.5px] sm:text-[8px] font-bold text-emerald-400 uppercase tracking-wider">CD CERTIFICATE</p>
+                                                        <p className="text-[11px] sm:text-xs font-black text-emerald-400 mt-0.5">
+                                                            {formData.buyNew === "yes" && cdDiscount === null ? (
+                                                                <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400 inline" />
+                                                            ) : `+ ₹${formatCurrency(potentialCDDiscount)}`}
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <span className="inline-block px-2 py-0.5 bg-black/40 border border-white/10 text-slate-200 text-[7px] sm:text-[7.5px] font-bold rounded-full tracking-wider uppercase mb-1">
@@ -1025,7 +1027,9 @@ export default function ValuationWizardCard() {
                                             </span>
 
                                             <p className="text-slate-400 text-[7.5px] sm:text-[8px] leading-normal italic mt-0.5">
-                                                *Calculated using industrial scrap indices for {weightNum}, maximum CD Certificate redemption value, and all partner benefits.
+                                                {formData.buyNew === "no"
+                                                    ? `*Calculated using industrial scrap indices for ${weightNum} and all partner benefits.`
+                                                    : `*Calculated using industrial scrap indices for ${weightNum}, maximum CD Certificate redemption value, and all partner benefits.`}
                                             </p>
                                         </div>
                                     </div>
@@ -1081,18 +1085,20 @@ export default function ValuationWizardCard() {
                                     </div>
 
                                     {/* 2x2 Grid of Benefit Cards */}
-                                    <div className="grid grid-cols-2 md:grid-cols-2 gap-2 sm:gap-3">
+                                    <div className={`grid ${formData.buyNew === "no" ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2"} gap-2 sm:gap-3`}>
                                         {/* Card 1: CD Certificate */}
-                                        <div className="bg-[#f0fdf4] border border-emerald-100 rounded-xl p-2.5 sm:p-3 relative shadow-sm hover:shadow-md transition-all">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-3.5 right-3.5" />
-                                            <p className="text-[8px] sm:text-[9px] font-black text-emerald-600 uppercase tracking-wider">CD CERTIFICATE</p>
-                                            <p className="text-base sm:text-lg font-black text-emerald-600 mt-0.5">
-                                                {formData.buyNew === "yes" && cdDiscount === null ? (
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin inline text-emerald-600" />
-                                                ) : `+ ₹${formatCurrency(potentialCDDiscount)}`}
-                                            </p>
-                                            <p className="text-[8px] sm:text-[9px] text-emerald-800/80 font-semibold mt-0.5 leading-tight">Registration & tax waiver</p>
-                                        </div>
+                                        {formData.buyNew !== "no" && (
+                                            <div className="bg-[#f0fdf4] border border-emerald-100 rounded-xl p-2.5 sm:p-3 relative shadow-sm hover:shadow-md transition-all">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-3.5 right-3.5" />
+                                                <p className="text-[8px] sm:text-[9px] font-black text-emerald-600 uppercase tracking-wider">CD CERTIFICATE</p>
+                                                <p className="text-base sm:text-lg font-black text-emerald-600 mt-0.5">
+                                                    {formData.buyNew === "yes" && cdDiscount === null ? (
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin inline text-emerald-600" />
+                                                    ) : `+ ₹${formatCurrency(potentialCDDiscount)}`}
+                                                </p>
+                                                <p className="text-[8px] sm:text-[9px] text-emerald-800/80 font-semibold mt-0.5 leading-tight">Registration & tax waiver</p>
+                                            </div>
+                                        )}
 
                                         {/* Card 2: Dealer OEM Discount */}
                                         <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
@@ -1163,10 +1169,12 @@ export default function ValuationWizardCard() {
                                                     <span className="text-slate-900 font-extrabold text-[11px] sm:text-xs">₹{formatCurrency(averageScrapValue)}</span>
                                                 </div>
 
-                                                <div className="flex justify-between items-center text-xs">
-                                                    <span className="text-emerald-600 font-bold text-[11px] sm:text-xs">CD Certificate Advantage</span>
-                                                    <span className="text-emerald-600 font-extrabold text-[11px] sm:text-xs">+ ₹{formatCurrency(potentialCDDiscount)}</span>
-                                                </div>
+                                                {formData.buyNew !== "no" && (
+                                                    <div className="flex justify-between items-center text-xs">
+                                                        <span className="text-emerald-600 font-bold text-[11px] sm:text-xs">CD Certificate Advantage</span>
+                                                        <span className="text-emerald-600 font-extrabold text-[11px] sm:text-xs">+ ₹{formatCurrency(potentialCDDiscount)}</span>
+                                                    </div>
+                                                )}
 
                                                 <div className="flex justify-between items-center text-xs">
                                                     <span className="text-slate-600 font-medium text-[11px] sm:text-xs">Dealer OEM Discount</span>
@@ -1191,7 +1199,9 @@ export default function ValuationWizardCard() {
                                             <div className="bg-[#0f172a] rounded-[1.25rem] p-3.5 sm:p-4 text-white flex items-center justify-between shadow-md border border-slate-800">
                                                 <div>
                                                     <p className="text-[8px] sm:text-[9px] font-black text-emerald-400 uppercase tracking-wider mb-0.5">GRAND TOTAL BENEFIT</p>
-                                                    <p className="text-[9px] sm:text-[10px] text-slate-300 font-medium">Scrap + CD + Partner Savings</p>
+                                                    <p className="text-[9px] sm:text-[10px] text-slate-300 font-medium">
+                                                        {formData.buyNew === "no" ? "Scrap + Partner Savings" : "Scrap + CD + Partner Savings"}
+                                                    </p>
                                                 </div>
                                                 <span className="text-xl sm:text-2xl font-black text-white">₹{formatCurrency(grandTotalBenefit)}</span>
                                             </div>
@@ -1199,7 +1209,9 @@ export default function ValuationWizardCard() {
 
                                         {/* Footer Disclaimer */}
                                         <p className="text-slate-400 text-[9px] sm:text-[10px] italic mt-4 sm:mt-6 text-center leading-normal">
-                                            *Our team will assist you for getting best value of your CD Certificate.
+                                            {formData.buyNew === "no"
+                                                ? "*Our team will assist you in getting the best scrap value and partner savings."
+                                                : "*Our team will assist you for getting best value of your CD Certificate."}
                                         </p>
                                     </div>
                                 </div>
@@ -1749,6 +1761,14 @@ export default function ValuationWizardCard() {
                                                             placeholder="E.g. DL-01-AB-1234"
                                                             value={formData.regNo}
                                                             onChange={(e) => setFormData({ ...formData, regNo: e.target.value.toUpperCase() })}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    e.preventDefault();
+                                                                    if (formData.regNo && !isFetching) {
+                                                                        handleRegSubmit();
+                                                                    }
+                                                                }
+                                                            }}
                                                             className="w-full px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50/60 hover:bg-slate-50 border-2 border-slate-100 focus:bg-white focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 rounded-xl text-center text-sm xs:text-base sm:text-lg md:text-xl font-black tracking-widest text-slate-800 placeholder:text-slate-300 placeholder:font-semibold placeholder:tracking-normal focus:outline-none transition-all duration-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
                                                         />
                                                     </div>
@@ -2306,7 +2326,9 @@ export default function ValuationWizardCard() {
                                                             Step {totalSteps} of {totalSteps} — scrap Service 100%
                                                         </span>
                                                         <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight mt-1">Your Scrap Valuation is Ready! 🎉</h3>
-                                                        <p className="text-slate-500 text-[10px] sm:text-[11px] font-semibold max-w-lg mx-auto">Verify your mobile number to unlock Certificate of Deposit (CD) and other green benefits.</p>
+                                                        <p className="text-slate-500 text-[10px] sm:text-[11px] font-semibold max-w-lg mx-auto">
+                                                            {formData.buyNew === "no" ? "Verify your mobile number to unlock your green and partner benefits." : "Verify your mobile number to unlock Certificate of Deposit (CD) and other green benefits."}
+                                                        </p>
                                                     </div>
 
                                                     {/* Stack on mobile, side-by-side on md+ */}
@@ -2328,9 +2350,15 @@ export default function ValuationWizardCard() {
                                                             {/* Middle Section: Phone Verification / OTP */}
                                                             <div className="flex flex-col items-center text-center space-y-2.5">
                                                                 <div>
-                                                                    <h4 className="text-xs sm:text-sm font-black text-[#E31E24] uppercase tracking-wider mb-1">{otpSent ? "VERIFY IDENTITY" : "UNLOCK CD BENEFITS"}</h4>
+                                                                    <h4 className="text-xs sm:text-sm font-black text-[#E31E24] uppercase tracking-wider mb-1">
+                                                                        {otpSent ? "VERIFY IDENTITY" : (formData.buyNew === "no" ? "UNLOCK VALUATION & BENEFITS" : "UNLOCK CD BENEFITS")}
+                                                                    </h4>
                                                                     <p className="text-[10px] sm:text-[11px] text-slate-500 font-semibold leading-relaxed max-w-xs">
-                                                                        {otpSent ? "Enter the OTP sent to your phone." : "Enter your phone number to unlock your CD certificate and partner benefits."}
+                                                                        {otpSent 
+                                                                            ? "Enter the OTP sent to your phone." 
+                                                                            : (formData.buyNew === "no" 
+                                                                                ? "Enter your phone number to unlock your scrap valuation and partner benefits." 
+                                                                                : "Enter your phone number to unlock your CD certificate and partner benefits.")}
                                                                     </p>
                                                                 </div>
 
@@ -2448,7 +2476,7 @@ export default function ValuationWizardCard() {
                                                                     <div className="space-y-1.5">
                                                                         {[
                                                                             { label: "Scrap Value Estimate (Average)", value: `₹${formatCurrency(averageScrapValue)}`, cls: "text-slate-600" },
-                                                                            { label: "CD Certificate Advantage", value: `+ ₹${formatCurrency(potentialCDDiscount)}`, cls: "text-emerald-600" },
+                                                                            ...(formData.buyNew === "no" ? [] : [{ label: "CD Certificate Advantage", value: `+ ₹${formatCurrency(potentialCDDiscount)}`, cls: "text-emerald-600" }]),
                                                                             { label: "Dealer OEM Discount", value: `+ ₹${formatCurrency(dealerOemDiscount)}`, cls: "text-slate-600" },
                                                                             { label: "Green Finance Savings", value: `+ ₹${formatCurrency(greenFinanceSavings)}`, cls: "text-slate-600" },
                                                                             { label: "Green Insurance Savings", value: `+ ₹${formatCurrency(greenInsuranceSavings)}`, cls: "text-slate-600" },
@@ -2465,7 +2493,9 @@ export default function ValuationWizardCard() {
                                                                     <div className="bg-[#0f172a] rounded-lg p-2.5 sm:p-3 text-white flex items-center justify-between border border-slate-800">
                                                                         <div>
                                                                             <p className="text-[7px] sm:text-[8px] font-black text-emerald-400 uppercase tracking-wider mb-0.5">GRAND TOTAL BENEFIT</p>
-                                                                            <p className="text-[7.5px] sm:text-[8.5px] text-slate-300 font-medium">Scrap + CD + Partner Savings</p>
+                                                                            <p className="text-[7.5px] sm:text-[8.5px] text-slate-300 font-medium">
+                                                                                {formData.buyNew === "no" ? "Scrap + Partner Savings" : "Scrap + CD + Partner Savings"}
+                                                                            </p>
                                                                         </div>
                                                                         <span className="text-sm sm:text-base font-black text-white">₹{formatCurrency(grandTotalBenefit)}</span>
                                                                     </div>
@@ -2473,7 +2503,9 @@ export default function ValuationWizardCard() {
                                                             </div>
 
                                                             <p className="text-slate-400 text-[7.5px] sm:text-[8px] leading-normal italic border-t border-slate-200/80 pt-2 mt-2">
-                                                                *Honest pricing based on unladen weight and global indices. Our team will assist in redeeming maximum CD certificate value.
+                                                                {formData.buyNew === "no"
+                                                                    ? "*Honest pricing based on unladen weight and global indices. Our team will assist in redeeming partner benefits."
+                                                                    : "*Honest pricing based on unladen weight and global indices. Our team will assist in redeeming maximum CD certificate value."}
                                                             </p>
                                                         </div>
                                                     </div>

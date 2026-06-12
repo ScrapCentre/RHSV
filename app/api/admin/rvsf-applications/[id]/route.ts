@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import connectToDatabase from "@/lib/db"
 import RVSFDetail from "@/models/RVSFDetail"
 import RVSFUser from "@/models/RVSFUser"
+import CollectionCenter from "@/models/CollectionCenter"
+import CCOperator from "@/models/CCOperator"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import bcrypt from "bcryptjs"
@@ -214,6 +216,47 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         return NextResponse.json({ message: "Invalid action" }, { status: 400 })
     } catch (error: any) {
         console.error("RVSF Action Error:", error)
+        return NextResponse.json({ message: error.message || "Internal server error" }, { status: 500 })
+    }
+}
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions)
+        if (!session || (session.user as any).role !== "admin") {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+        }
+
+        const { id } = await params
+        await connectToDatabase()
+        const application = await RVSFDetail.findById(id)
+        if (!application) {
+            return NextResponse.json({ message: "Not found" }, { status: 404 })
+        }
+
+        // Cascade delete RVSF user and associated assets if they exist
+        const businessEmail = application.businessEmail
+        if (businessEmail) {
+            const rvsfUser = await RVSFUser.findOne({ email: businessEmail })
+            if (rvsfUser && rvsfUser.rvsfId) {
+                const rvsfId = rvsfUser.rvsfId
+                // Delete Collection Centers
+                await CollectionCenter.deleteMany({ rvsfId })
+                // Delete CC Operators
+                await CCOperator.deleteMany({ rvsfId })
+                // Delete RVSF User
+                await RVSFUser.deleteOne({ _id: rvsfUser._id })
+            }
+        }
+
+        await RVSFDetail.findByIdAndDelete(id)
+
+        return NextResponse.json({ success: true, message: "RVSF Application and associated accounts/CCs deleted successfully" }, { status: 200 })
+    } catch (error: any) {
+        console.error("RVSF Delete Error:", error)
         return NextResponse.json({ message: error.message || "Internal server error" }, { status: 500 })
     }
 }

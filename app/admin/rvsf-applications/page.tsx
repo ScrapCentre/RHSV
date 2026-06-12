@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { Eye, Clock, CheckCircle, XCircle, Search } from "lucide-react"
+import { Eye, Clock, CheckCircle, XCircle, Search, Trash2, AlertTriangle, AlertCircle, Loader2 } from "lucide-react"
 
 export default function RVSFApplicationsPage() {
     const [applications, setApplications] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+    const [deleteStep, setDeleteStep] = useState<number>(0) // 0: closed, 1: first confirmation, 2: second confirmation
+    const [deletingId, setDeletingId] = useState<string | null>(null)
 
     useEffect(() => {
         fetch("/api/admin/rvsf-applications")
@@ -20,6 +23,40 @@ export default function RVSFApplicationsPage() {
             .catch(console.error)
             .finally(() => setLoading(false))
     }, [])
+
+    const handleDeleteClick = (id: string) => {
+        setDeleteTargetId(id)
+        setDeleteStep(1)
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTargetId) return
+        
+        if (deleteStep === 1) {
+            setDeleteStep(2)
+            return
+        }
+
+        setDeletingId(deleteTargetId)
+        setDeleteStep(0)
+        setDeleteTargetId(null)
+
+        try {
+            const res = await fetch(`/api/admin/rvsf-applications/${deleteTargetId}`, {
+                method: "DELETE"
+            })
+            if (res.ok) {
+                setApplications(prev => prev.filter(app => app._id !== deleteTargetId))
+            } else {
+                alert("Failed to delete application. Please try again.")
+            }
+        } catch (err) {
+            console.error(err)
+            alert("An error occurred while deleting the application.")
+        } finally {
+            setDeletingId(null)
+        }
+    }
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -89,11 +126,25 @@ export default function RVSFApplicationsPage() {
                                     <td className="px-6 py-4 text-gray-600 dark:text-slate-300">{new Date(app.createdAt).toLocaleDateString()}</td>
                                     <td className="px-6 py-4">{getStatusBadge(app.status)}</td>
                                     <td className="px-6 py-4 text-right">
-                                        <Link href={`/admin/rvsf-applications/${app._id}`}>
-                                            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white rounded-lg text-xs font-bold transition-colors">
-                                                <Eye className="w-3.5 h-3.5" /> View
+                                        <div className="inline-flex gap-2 justify-end w-full">
+                                            <Link href={`/admin/rvsf-applications/${app._id}`}>
+                                                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white rounded-lg text-xs font-bold transition-colors">
+                                                    <Eye className="w-3.5 h-3.5" /> View
+                                                </button>
+                                            </Link>
+                                            <button 
+                                                onClick={() => handleDeleteClick(app._id)}
+                                                disabled={deletingId === app._id}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-[#E31E24] dark:bg-slate-800 dark:hover:bg-red-650 text-red-500 hover:text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                                            >
+                                                {deletingId === app._id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                )}
+                                                Delete
                                             </button>
-                                        </Link>
+                                        </div>
                                     </td>
                                 </motion.tr>
                             ))}
@@ -101,6 +152,80 @@ export default function RVSFApplicationsPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Step 1 Delete Confirmation Modal */}
+            {deleteStep === 1 && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div 
+                        onClick={() => { setDeleteStep(0); setDeleteTargetId(null); }}
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                    />
+                    <div className="bg-white dark:bg-[#0E192D] border border-slate-100 dark:border-slate-800 w-full max-w-sm rounded-2xl p-6 relative z-10 shadow-2xl space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+                                <AlertCircle className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-955 dark:text-white text-sm">Delete Application (Step 1 of 2)</h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 leading-normal">
+                                    Are you sure you want to delete this RVSF registration request?
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                            <button 
+                                onClick={() => { setDeleteStep(0); setDeleteTargetId(null); }}
+                                className="flex-1 py-2 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-650 dark:text-slate-400 font-bold text-xs rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleConfirmDelete}
+                                className="flex-1 py-2 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-red-600/10"
+                            >
+                                Yes, Proceed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Step 2 Final Delete Confirmation Modal */}
+            {deleteStep === 2 && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div 
+                        onClick={() => { setDeleteStep(0); setDeleteTargetId(null); }}
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                    />
+                    <div className="bg-white dark:bg-[#0E192D] border border-slate-100 dark:border-slate-800 w-full max-w-sm rounded-2xl p-6 relative z-10 shadow-2xl space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center text-red-600 shrink-0">
+                                <AlertTriangle className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-955 dark:text-white text-sm">Final Warning (Step 2 of 2)</h3>
+                                <p className="text-xs text-red-650 dark:text-red-400 mt-1 leading-normal font-medium">
+                                    This action is IRREVERSIBLE. Are you absolutely certain you want to permanently delete this application?
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                            <button 
+                                onClick={() => { setDeleteStep(0); setDeleteTargetId(null); }}
+                                className="flex-1 py-2 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-650 dark:text-slate-400 font-bold text-xs rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleConfirmDelete}
+                                className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-red-600/20"
+                            >
+                                Yes, Delete Permanently
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

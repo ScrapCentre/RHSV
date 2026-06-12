@@ -96,10 +96,10 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#000000" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <GoogleAnalytics />
-        <GoogleTag />
       </head>
       <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
+        <GoogleAnalytics />
+        <GoogleTag />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <AuthProvider>
             <AdminAwareLayout>

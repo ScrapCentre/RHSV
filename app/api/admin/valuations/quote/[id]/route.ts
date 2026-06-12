@@ -58,6 +58,7 @@ export async function GET(
                 aadharFile: wizardLead.aadharFile,
                 rcFile: wizardLead.rcFile,
                 carPhoto: wizardLead.carPhoto,
+                additionalPhotos: wizardLead.additionalPhotos,
                 photoFront: wizardLead.photoFront,
                 photoBack: wizardLead.photoBack,
                 photoLeft: wizardLead.photoLeft,

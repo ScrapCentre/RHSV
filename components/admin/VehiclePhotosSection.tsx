@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { Image as ImageIcon, Upload, Loader2, Eye, Camera } from "lucide-react"
+import { Image as ImageIcon, Upload, Loader2, Eye, Camera, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface VehiclePhotosSectionProps {
@@ -13,6 +13,7 @@ interface VehiclePhotosSectionProps {
         photoBack?: string
         photoLeft?: string
         photoRight?: string
+        additionalPhotos?: string[]
         [key: string]: any
     }
     onPhotoUploaded: () => void
@@ -24,13 +25,19 @@ export default function VehiclePhotosSection({ leadId, leadType, request, onPhot
     const [uploading, setUploading] = useState(false)
 
     // Gather all available photos
-    const photos = [
-        { label: "General View", url: request?.carPhoto },
+    const photos: { label: string; url: string; isDeletable?: boolean }[] = [
+        { label: "General View", url: request?.carPhoto, isDeletable: !!request?.carPhoto },
         { label: "Front View", url: request?.photoFront },
         { label: "Back View", url: request?.photoBack },
         { label: "Left Side", url: request?.photoLeft },
         { label: "Right Side", url: request?.photoRight }
-    ].filter(p => !!p.url)
+    ].filter(p => !!p.url) as any
+
+    if (request?.additionalPhotos && Array.isArray(request.additionalPhotos)) {
+        request.additionalPhotos.forEach((url: string, index: number) => {
+            photos.push({ label: `Additional Photo ${index + 1}`, url, isDeletable: true })
+        })
+    }
 
     const hasPhotos = photos.length > 0
 
@@ -102,6 +109,45 @@ export default function VehiclePhotosSection({ leadId, leadType, request, onPhot
         }
     }
 
+    const handleDeletePhoto = async (photoUrl: string) => {
+        if (!confirm("Are you sure you want to delete this photo?")) return
+
+        setUploading(true)
+        try {
+            const res = await fetch("/api/admin/valuations/update-photo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: leadId,
+                    type: leadType,
+                    photoUrl,
+                    action: "delete"
+                })
+            })
+
+            if (!res.ok) {
+                const errData = await res.json()
+                throw new Error(errData.error || "Failed to delete photo")
+            }
+
+            toast({
+                title: "Photo Deleted",
+                description: "Vehicle photo has been successfully deleted from this lead."
+            })
+
+            onPhotoUploaded()
+        } catch (err: any) {
+            console.error(err)
+            toast({
+                title: "Delete Failed",
+                description: err.message || "An error occurred during deletion",
+                variant: "destructive"
+            })
+        } finally {
+            setUploading(false)
+        }
+    }
+
     return (
         <div className={`bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-5 shadow-sm transition-all duration-300 flex flex-col justify-between h-full relative overflow-hidden min-h-[280px] ${className}`}>
             {/* Header */}
@@ -126,7 +172,7 @@ export default function VehiclePhotosSection({ leadId, leadType, request, onPhot
                         <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
                             <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
                             <p className="text-xs font-bold text-slate-500 dark:text-slate-400 animate-pulse">
-                                Uploading photo to secure storage...
+                                Processing...
                             </p>
                         </div>
                     ) : hasPhotos ? (
@@ -147,6 +193,15 @@ export default function VehiclePhotosSection({ leadId, leadType, request, onPhot
                                         >
                                             <Eye className="w-3.5 h-3.5" />
                                         </button>
+                                        {photo.isDeletable && (
+                                            <button
+                                                onClick={() => handleDeletePhoto(photo.url)}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-2 bg-red-500 hover:bg-red-650 text-white rounded-full shadow-md hover:scale-110"
+                                                title="Delete Photo"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
                                     </div>
                                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
                                         <span className="text-[9px] font-extrabold text-white uppercase tracking-wider block">
@@ -156,8 +211,8 @@ export default function VehiclePhotosSection({ leadId, leadType, request, onPhot
                                 </div>
                             ))}
 
-                            {/* Allow uploading additional photos if less than 5 */}
-                            {photos.length < 5 && (
+                            {/* Allow uploading additional photos if less than 6 */}
+                            {photos.length < 6 && (
                                 <label className="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl flex flex-col items-center justify-center p-3 cursor-pointer transition-colors aspect-video group">
                                     <Camera className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
                                     <span className="text-[10px] font-bold text-slate-400 group-hover:text-blue-500 transition-colors mt-1">

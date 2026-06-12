@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Bell, Clock, FileText, MessageSquare, Car, RefreshCcw, ShoppingCart, ChevronRight, Building2, Database } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 
 interface Notification {
@@ -15,18 +16,41 @@ interface Notification {
     href: string
 }
 
-export default function NotificationBox() {
+interface NotificationBoxProps {
+    apiUrl?: string
+    dashboardUrl?: string
+}
+
+export default function NotificationBox({
+    apiUrl = "/api/admin/notifications",
+    dashboardUrl = "/admin"
+}: NotificationBoxProps) {
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [isOpen, setIsOpen] = useState(false)
     const [loading, setLoading] = useState(true)
     const containerRef = useRef<HTMLDivElement>(null)
+    const router = useRouter()
+
+    const handleNotificationClick = (e: React.MouseEvent, href: string) => {
+        e.preventDefault()
+        setIsOpen(false)
+        router.push(href)
+    }
 
     const fetchNotifications = async () => {
         try {
-            const res = await fetch("/api/admin/notifications")
+            const res = await fetch(apiUrl)
             const data = await res.json()
-            if (Array.isArray(data)) {
-                setNotifications(data)
+            
+            // Format check: executive notifications returns { notifications: [...] }
+            // while admin notifications returns a flat array [...]
+            let resolvedData = data
+            if (data && typeof data === "object" && !Array.isArray(data) && Array.isArray(data.notifications)) {
+                resolvedData = data.notifications
+            }
+
+            if (Array.isArray(resolvedData)) {
+                setNotifications(resolvedData)
             }
         } catch (error) {
             console.error("Error fetching notifications:", error)
@@ -132,7 +156,7 @@ export default function NotificationBox() {
                                         >
                                             <Link
                                                 href={notif.href}
-                                                onClick={() => setIsOpen(false)}
+                                                onClick={(e) => handleNotificationClick(e, notif.href)}
                                                 className="flex items-start p-3 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors group"
                                             >
                                                 <div className="mt-0.5 bg-white dark:bg-slate-900 p-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-slate-700 group-hover:border-emerald-500/30 transition-colors">
@@ -170,8 +194,8 @@ export default function NotificationBox() {
                         {notifications.length > 0 && (
                             <div className="p-2 bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 text-center">
                                 <Link
-                                    href="/admin"
-                                    onClick={() => setIsOpen(false)}
+                                    href={dashboardUrl}
+                                    onClick={(e) => handleNotificationClick(e, dashboardUrl)}
                                     className="text-[10px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors"
                                 >
                                     View Dashboard Overview

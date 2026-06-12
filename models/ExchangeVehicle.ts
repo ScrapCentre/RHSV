@@ -35,6 +35,7 @@ const ExchangeVehicleSchema = new Schema(
         aadharFile: { type: String }, // URL or Path
         rcFile: { type: String }, // URL or Path
         carPhoto: { type: String }, // URL or Path
+        additionalPhotos: [{ type: String }],
         ekycStatus: {
             type: String,
             enum: ["pending", "verified", "rejected"],
