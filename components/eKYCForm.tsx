@@ -161,7 +161,7 @@ export default function EKYCForm({
             if (source) fd.append("source", source)
             fd.append("firstName", data.firstName)
             fd.append("dob", data.dob)
-            fd.append("aadharNumber", data.aadharNumber)
+            fd.append("aadharNumber", data.aadharNumber.replace(/\D/g, ""))
             fd.append("whatsapp", data.whatsapp)
             fd.append("fullAddress", data.fullAddress)
             fd.append("state", data.state)

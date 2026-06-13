@@ -16,7 +16,7 @@ import {
 import { z } from "zod"
 import { rateLimiters } from "@/lib/rate-limit"
 
-const ALLOWED_SOURCES = ["exchange-vehicle", "valuation"] as const
+const ALLOWED_SOURCES = ["exchange-vehicle", "exchange", "valuation", "scrap", "sell", "buy", "get-quote"] as const
 
 export async function PATCH(req: NextRequest) {
     try {
@@ -26,7 +26,10 @@ export async function PATCH(req: NextRequest) {
 
         const formData = await req.formData()
         const valuationId = formData.get("valuationId") as string
-        const source = formData.get("source") as string
+        let source = formData.get("source") as string | null
+        if (!source) {
+            source = "valuation"
+        }
 
         // Validate valuationId
         const idCheck = zMongoId.safeParse(valuationId)
@@ -66,8 +69,9 @@ export async function PATCH(req: NextRequest) {
 
         // Validate Aadhar number
         const aadharNumberRaw = formData.get("aadharNumber") as string | null
+        const cleanAadhar = aadharNumberRaw ? aadharNumberRaw.replace(/\D/g, "") : ""
         if (aadharNumberRaw) {
-            const aadharCheck = zAadhar.safeParse(aadharNumberRaw)
+            const aadharCheck = zAadhar.safeParse(cleanAadhar)
             if (!aadharCheck.success) {
                 return NextResponse.json(
                     { message: formatZodError(aadharCheck.error) },
@@ -75,7 +79,7 @@ export async function PATCH(req: NextRequest) {
                 )
             }
         }
-        const aadharNumber = aadharNumberRaw?.trim() ?? ""
+        const aadharNumber = cleanAadhar
 
         // Validate pincode
         const pincodeRaw = formData.get("pincode") as string | null
@@ -164,7 +168,7 @@ export async function PATCH(req: NextRequest) {
         let updateStatus = "pending"
         const customFieldsToSet: any = {}
 
-        if (source === "exchange-vehicle") {
+        if (source === "exchange-vehicle" || source === "exchange") {
             Model = ExchangeVehicle
             if (fullAddress) customFieldsToSet.fullAddress = fullAddress
             if (state) customFieldsToSet.state = state

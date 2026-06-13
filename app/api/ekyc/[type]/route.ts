@@ -51,13 +51,14 @@ export async function POST(
 
         // Validate Aadhar number
         const aadharNumberRaw = formData.get("aadharNumber") as string | null;
+        const cleanAadhar = aadharNumberRaw ? aadharNumberRaw.replace(/\D/g, "") : "";
         if (aadharNumberRaw) {
-            const aadharCheck = zAadhar.safeParse(aadharNumberRaw);
+            const aadharCheck = zAadhar.safeParse(cleanAadhar);
             if (!aadharCheck.success) {
                 return NextResponse.json({ error: formatZodError(aadharCheck.error) }, { status: 400 });
             }
         }
-        const aadharNumber = aadharNumberRaw?.trim() ?? "";
+        const aadharNumber = cleanAadhar;
 
         // Collect files
         const aadharFile = formData.get("aadharFile") as File | null;

@@ -61,11 +61,14 @@ const BRAND_LOGOS: Record<string, string> = {
 const normalizeFuelType = (fuel?: string): string => {
     if (!fuel) return "";
     const cleanFuel = fuel.trim().toUpperCase();
-    if (cleanFuel.includes("PETROL") && !cleanFuel.includes("CNG")) return "Petrol";
-    if (cleanFuel.includes("DIESEL")) return "Diesel";
-    if (cleanFuel.includes("CNG") || cleanFuel.includes("LPG")) return "CNG";
-    if (cleanFuel.includes("ELECTRIC") || cleanFuel.includes("EV")) return "Electric";
-    if (cleanFuel.includes("HYBRID")) return "Hybrid";
+    const fuels: string[] = [];
+    if (cleanFuel.includes("PETROL")) fuels.push("Petrol");
+    if (cleanFuel.includes("DIESEL")) fuels.push("Diesel");
+    if (cleanFuel.includes("CNG") || cleanFuel.includes("LPG")) fuels.push("CNG");
+    if (cleanFuel.includes("ELECTRIC") || cleanFuel.includes("EV")) fuels.push("Electric");
+    if (cleanFuel.includes("HYBRID")) fuels.push("Hybrid");
+    
+    if (fuels.length > 0) return fuels.join(", ");
     return fuel.charAt(0).toUpperCase() + fuel.slice(1).toLowerCase();
 };
 
@@ -878,12 +881,63 @@ export default function ValuationWizardCard() {
 
     const submitLeadData = async () => {
         try {
+            // Clean up data before sending to route validator
+            const cleanData: any = { ...formData, serviceType };
+            
+            // Delete empty optional strings or format them
+            if (cleanData.pincode === "") delete cleanData.pincode;
+            if (cleanData.regNo === "") delete cleanData.regNo;
+            
+            if (cleanData.year === "") {
+                delete cleanData.year;
+            } else if (cleanData.year) {
+                const yrNum = parseInt(cleanData.year, 10);
+                if (!isNaN(yrNum)) {
+                    cleanData.year = yrNum;
+                } else {
+                    delete cleanData.year;
+                }
+            }
+
+            if (cleanData.kms === "") {
+                delete cleanData.kms;
+            } else if (cleanData.kms) {
+                const kmsNum = parseFloat(cleanData.kms);
+                if (!isNaN(kmsNum)) {
+                    cleanData.kms = kmsNum;
+                } else {
+                    delete cleanData.kms;
+                }
+            }
+
+            if (cleanData.weight === "") {
+                delete cleanData.weight;
+            } else if (cleanData.weight) {
+                const wtNum = parseFloat(cleanData.weight);
+                if (!isNaN(wtNum)) {
+                    cleanData.weight = wtNum;
+                }
+            }
+
+            // Remove empty values from other string fields
+            const optionalFields = ["brand", "model", "address", "city", "state", "buyNew", "desiredCompany", "desiredModel", "carPhoto"];
+            optionalFields.forEach(f => {
+                if (cleanData[f] === "") delete cleanData[f];
+            });
+
             const res = await fetch('/api/wizard-lead', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...formData, serviceType })
+                body: JSON.stringify(cleanData)
             });
-            if (!res.ok) throw new Error(`wizard-lead returned status ${res.status}`);
+            if (!res.ok) {
+                let errMsg = `wizard-lead returned status ${res.status}`;
+                try {
+                    const errData = await res.json();
+                    if (errData && errData.error) errMsg = errData.error;
+                } catch (e) {}
+                throw new Error(errMsg);
+            }
             const ct = res.headers.get("content-type");
             if (!ct || !ct.includes("application/json")) throw new Error("wizard-lead response was not JSON");
 
@@ -893,6 +947,7 @@ export default function ValuationWizardCard() {
             }
         } catch (error) {
             console.error("Failed to save lead data:", error);
+            throw error;
         }
     };
 
@@ -1855,26 +1910,6 @@ export default function ValuationWizardCard() {
                                                     >
                                                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
                                                         <input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Santro" />
-                                                    </motion.div>
-                                                    <motion.div 
-                                                        variants={{
-                                                            hidden: { opacity: 0, y: 8 },
-                                                            show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
-                                                        }}
-                                                        className="space-y-0.5"
-                                                    >
-                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Reg. Year</label>
-                                                        <input type="text" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
-                                                    </motion.div>
-                                                    <motion.div 
-                                                        variants={{
-                                                            hidden: { opacity: 0, y: 8 },
-                                                            show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
-                                                        }}
-                                                        className="space-y-0.5"
-                                                    >
-                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Weight (KG)</label>
-                                                        <input type="text" value={formData.weight} onChange={(e) => setFormData({ ...formData, weight: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. 1200" />
                                                     </motion.div>
                                                 </motion.div>
                                                 

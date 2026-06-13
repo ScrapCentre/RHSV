@@ -15,11 +15,14 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 const normalizeFuelType = (fuel?: string): string => {
     if (!fuel) return "";
     const cleanFuel = fuel.trim().toUpperCase();
-    if (cleanFuel.includes("PETROL")) return "Petrol";
-    if (cleanFuel.includes("DIESEL")) return "Diesel";
-    if (cleanFuel.includes("CNG") || cleanFuel.includes("LPG")) return "CNG";
-    if (cleanFuel.includes("ELECTRIC") || cleanFuel.includes("EV")) return "Electric";
-    if (cleanFuel.includes("HYBRID")) return "Hybrid";
+    const fuels: string[] = [];
+    if (cleanFuel.includes("PETROL")) fuels.push("Petrol");
+    if (cleanFuel.includes("DIESEL")) fuels.push("Diesel");
+    if (cleanFuel.includes("CNG") || cleanFuel.includes("LPG")) fuels.push("CNG");
+    if (cleanFuel.includes("ELECTRIC") || cleanFuel.includes("EV")) fuels.push("Electric");
+    if (cleanFuel.includes("HYBRID")) fuels.push("Hybrid");
+    
+    if (fuels.length > 0) return fuels.join(", ");
     return fuel.charAt(0).toUpperCase() + fuel.slice(1).toLowerCase();
 };
 
