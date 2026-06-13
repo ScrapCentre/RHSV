@@ -4,6 +4,7 @@ import ScrapCentreUser from "@/models/ScrapCentreUser"
 import bcrypt from "bcryptjs"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { createScrapUserSchema, zMongoId, formatZodError } from "@/lib/validation"
 
 export async function GET() {
     try {
@@ -29,22 +30,28 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
-        const { name, email, loginId, password } = await req.json()
+        const body = await req.json()
 
-        if (!name || !email || !loginId || !password) {
-            return NextResponse.json({ message: "Missing required fields" }, { status: 400 })
+        // Validate all fields
+        const parsed = createScrapUserSchema.safeParse(body)
+        if (!parsed.success) {
+            return NextResponse.json(
+                { message: formatZodError(parsed.error) },
+                { status: 400 }
+            )
         }
+
+        const { name, email, loginId, password } = parsed.data
 
         await connectToDatabase()
 
-        // Check if user or loginId already exists
-        const existingUser = await ScrapCentreUser.findOne({ 
+        const existingUser = await ScrapCentreUser.findOne({
             $or: [
-                { email: email.toLowerCase() },
-                { loginId: loginId.toLowerCase() }
+                { email },
+                { loginId }
             ]
         })
-        
+
         if (existingUser) {
             return NextResponse.json({ message: "Identity (Email or Login ID) already exists" }, { status: 400 })
         }
@@ -52,8 +59,8 @@ export async function POST(req: Request) {
         const hashedPassword = await bcrypt.hash(password, 12)
         const newUser = await ScrapCentreUser.create({
             name,
-            loginId: loginId.toLowerCase(),
-            email: email.toLowerCase(),
+            loginId,
+            email,
             password: hashedPassword,
         })
 
@@ -63,7 +70,6 @@ export async function POST(req: Request) {
     }
 }
 
-// DELETE scrap-center-user
 export async function DELETE(req: Request) {
     try {
         const session = await getServerSession(authOptions)
@@ -75,12 +81,14 @@ export async function DELETE(req: Request) {
         const { searchParams } = new URL(req.url)
         const id = searchParams.get("id")
 
-        if (!id) {
-            return NextResponse.json({ message: "ID parameter is required" }, { status: 400 })
+        // Validate MongoDB ObjectId format
+        const idCheck = zMongoId.safeParse(id)
+        if (!idCheck.success) {
+            return NextResponse.json({ message: "Invalid or missing ID parameter" }, { status: 400 })
         }
 
         await connectToDatabase()
-        const deletedUser = await ScrapCentreUser.findByIdAndDelete(id)
+        const deletedUser = await ScrapCentreUser.findByIdAndDelete(idCheck.data)
 
         if (!deletedUser) {
             return NextResponse.json({ message: "ScrapCentre operator not found" }, { status: 404 })

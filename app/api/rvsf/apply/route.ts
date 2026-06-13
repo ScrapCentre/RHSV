@@ -4,25 +4,52 @@ import RVSFDetail from "@/models/RVSFDetail"
 import { uploadToCloudinary } from "@/lib/cloudinary"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { rvsfApplySchema, validateDocumentFile, escapeHtml, formatZodError } from "@/lib/validation"
+import { rateLimiters } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
     try {
+        // Rate limit: 3 applications per IP per 24 hours
+        const limited = await rateLimiters.rvsfApply(request)
+        if (limited) return limited
+
         await connectToDatabase()
 
         const formData = await request.formData()
 
-        // ── Step 1 fields ──────────────────────────────────────
-        const legalEntityName = formData.get("legalEntityName") as string
-        const gstNumber = formData.get("gstNumber") as string
-        const panNumber = formData.get("panNumber") as string
-        const cpcbAuthNumber = formData.get("cpcbAuthNumber") as string
-        const morthAuthNumber = formData.get("morthAuthNumber") as string
-        const businessEmail = formData.get("businessEmail") as string
-        const phoneNumber = formData.get("phoneNumber") as string
-        const registeredAddress = formData.get("registeredAddress") as string
-        const city = formData.get("city") as string
-        const state = formData.get("state") as string
-        const pincode = Number(formData.get("pincode"))
+        // ── Validate all text fields ────────────────────────────
+        const textFields = {
+            legalEntityName: formData.get("legalEntityName") as string,
+            gstNumber: formData.get("gstNumber") as string,
+            panNumber: formData.get("panNumber") as string,
+            cpcbAuthNumber: formData.get("cpcbAuthNumber") as string,
+            morthAuthNumber: formData.get("morthAuthNumber") as string,
+            businessEmail: formData.get("businessEmail") as string,
+            phoneNumber: formData.get("phoneNumber") as string,
+            registeredAddress: formData.get("registeredAddress") as string,
+            city: formData.get("city") as string,
+            state: formData.get("state") as string,
+            pincode: formData.get("pincode") as string,
+            accountHolderName: formData.get("accountHolderName") as string,
+            bankName: formData.get("bankName") as string,
+            accountNumber: formData.get("accountNumber") as string,
+            ifscCode: formData.get("ifscCode") as string,
+            accountType: formData.get("accountType") as string,
+        }
+
+        const parsed = rvsfApplySchema.safeParse(textFields)
+        if (!parsed.success) {
+            return NextResponse.json(
+                { message: formatZodError(parsed.error) },
+                { status: 400 }
+            )
+        }
+
+        const {
+            legalEntityName, gstNumber, panNumber, cpcbAuthNumber, morthAuthNumber,
+            businessEmail, phoneNumber, registeredAddress, city, state, pincode,
+            accountHolderName, bankName, accountNumber, ifscCode, accountType,
+        } = parsed.data
 
         // ── Step 2 files ────────────────────────────────────────
         const gstCertFile = formData.get("gstCertificate") as File | null
@@ -30,24 +57,21 @@ export async function POST(request: NextRequest) {
         const morthCertFile = formData.get("morthCertificate") as File | null
         const panCardFile = formData.get("panCard") as File | null
 
-        // ── Step 3 fields ──────────────────────────────────────
-        const accountHolderName = formData.get("accountHolderName") as string
-        const bankName = formData.get("bankName") as string
-        const accountNumber = formData.get("accountNumber") as string
-        const ifscCode = formData.get("ifscCode") as string
-        const accountType = formData.get("accountType") as string
-
-        // ── Validate required fields ────────────────────────────
-        if (!legalEntityName || !gstNumber || !panNumber || !cpcbAuthNumber || !morthAuthNumber || !businessEmail || !phoneNumber || !registeredAddress || !city || !state || !pincode) {
-            return NextResponse.json({ message: "All identity fields are required." }, { status: 400 })
-        }
-
         if (!gstCertFile || !cpcbLetterFile || !morthCertFile || !panCardFile) {
             return NextResponse.json({ message: "All 4 KYC documents are required." }, { status: 400 })
         }
 
-        if (!accountHolderName || !bankName || !accountNumber || !ifscCode || !accountType) {
-            return NextResponse.json({ message: "All bank account fields are required." }, { status: 400 })
+        // Validate document files: PDF or image, max 10 MB each
+        for (const [file, label] of [
+            [gstCertFile, "GST Certificate"],
+            [cpcbLetterFile, "CPCB Letter"],
+            [morthCertFile, "MoRTH Certificate"],
+            [panCardFile, "PAN Card"],
+        ] as [File, string][]) {
+            const check = validateDocumentFile(file, label)
+            if (!check.valid) {
+                return NextResponse.json({ message: check.message }, { status: 400 })
+            }
         }
 
         // ── Upload files to Cloudinary ──────────────────────────
@@ -83,7 +107,7 @@ export async function POST(request: NextRequest) {
             registeredAddress,
             city,
             state,
-            pincode,
+            pincode: Number(pincode),
             gstCertificateUrl,
             cpcbLetterUrl,
             morthCertificateUrl,
@@ -118,7 +142,7 @@ export async function POST(request: NextRequest) {
                         <!-- Body -->
                         <tr>
                           <td style="padding:40px;">
-                            <p style="margin:0 0 16px;font-size:16px;color:#111827;">Dear <strong>${legalEntityName}</strong>,</p>
+                            <p style="margin:0 0 16px;font-size:16px;color:#111827;">Dear <strong>${escapeHtml(legalEntityName)}</strong>,</p>
                             <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
                               Thank you for applying to join ScrapCentre as a Registered Vehicle Scrapping Facility. We have successfully received your application and our team will get in touch with you shortly.
                             </p>
@@ -186,7 +210,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(
-            { message: "Application submitted successfully!", id: detail._id.toString() },
+            { message: "Application submitted successfully!", id: (detail as any)._id.toString() },
             { status: 201 }
         )
     } catch (error: any) {

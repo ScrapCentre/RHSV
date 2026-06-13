@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import crypto from "crypto"
 import Razorpay from "razorpay"
+import { unlockVerifySchema, escapeHtml, formatZodError } from "@/lib/validation"
 
 // Models
 import ExchangeVehicle from "@/models/ExchangeVehicle"
@@ -112,19 +113,24 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
+
+        // Validate all payment fields
+        const parsed = unlockVerifySchema.safeParse(body)
+        if (!parsed.success) {
+            return NextResponse.json(
+                { message: formatZodError(parsed.error) },
+                { status: 400 }
+            )
+        }
+
         const {
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature,
             leadId,
             source,
-            amount, // in paise
-        } = body
-
-        // Validate required fields
-        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !leadId || !source) {
-            return NextResponse.json({ message: "Missing required payment fields" }, { status: 400 })
-        }
+            amount,
+        } = parsed.data
 
         // ── 1. Verify Razorpay signature ────────────────────────
         const key_secret = process.env.RAZORPAY_KEY_SECRET?.trim()
@@ -250,7 +256,7 @@ export async function POST(request: NextRequest) {
                                     <td style="padding:40px;">
                                         <h2 style="color:#0E192D;margin:0 0 16px;">Your Lead Has Been Unlocked</h2>
                                         <p style="color:#555;line-height:1.6;">
-                                            Dear ${customer.name},
+                                            Dear ${escapeHtml(customer.name)},
                                         </p>
                                         <p style="color:#555;line-height:1.6;">
                                             An RVSF (Registered Vehicle Scrapping Facility) has reviewed your vehicle lead

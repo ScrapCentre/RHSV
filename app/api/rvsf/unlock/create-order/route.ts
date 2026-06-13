@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import connectToDatabase from "@/lib/db"
 import Razorpay from "razorpay"
+import { unlockOrderSchema, formatZodError } from "@/lib/validation"
+import { rateLimiters } from "@/lib/rate-limit"
 
 // Models
 import ExchangeVehicle from "@/models/ExchangeVehicle"
@@ -41,6 +43,10 @@ function getRazorpayInstance() {
 // ─── POST /api/rvsf/unlock/create-order ─────────────────────────
 export async function POST(request: NextRequest) {
     try {
+        // Rate limit: 20 payment orders per IP per hour
+        const limited = await rateLimiters.paymentOrder(request)
+        if (limited) return limited
+
         // Auth check
         const session = await getServerSession(authOptions)
         if (!session || (session.user as any)?.role !== "rvsf") {
@@ -53,22 +59,17 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json()
-        const { leadId, source } = body
 
-        if (!leadId || !source) {
+        // Validate leadId and source
+        const parsed = unlockOrderSchema.safeParse(body)
+        if (!parsed.success) {
             return NextResponse.json(
-                { message: "leadId and source are required" },
+                { message: formatZodError(parsed.error) },
                 { status: 400 }
             )
         }
 
-        // Validate source
-        if (!MODEL_MAP[source]) {
-            return NextResponse.json(
-                { message: `Invalid source: ${source}. Must be one of: ${Object.keys(MODEL_MAP).join(", ")}` },
-                { status: 400 }
-            )
-        }
+        const { leadId, source } = parsed.data
 
         await connectToDatabase()
 

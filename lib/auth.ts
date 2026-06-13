@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import connectToDatabase from "@/lib/db"
 import bcrypt from "bcryptjs"
+import RateLimit from "@/models/RateLimit"
 
 // Static imports to prevent model re-registration errors
 import User from "@/models/User"
@@ -15,6 +16,31 @@ import CCOperator from "@/models/CCOperator"
 import PersonalCCOperator from "@/models/PersonalCCOperator"
 
 import { adminAuth } from "@/lib/firebase-admin"
+
+/**
+ * Check login rate limit: 10 attempts per identifier per 15 minutes.
+ * Returns true if blocked, false if allowed.
+ * Keyed by identifier (email/id) — immune to IP rotation.
+ */
+async function isLoginRateLimited(identifier: string): Promise<boolean> {
+    try {
+        const key = `login:${identifier.toLowerCase()}`
+        const windowMs = 15 * 60_000 // 15 minutes
+        const max = 10
+        const now = new Date()
+        const resetAt = new Date(now.getTime() + windowMs)
+
+        const record = await RateLimit.findOneAndUpdate(
+            { key },
+            { $inc: { count: 1 }, $setOnInsert: { resetAt } },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        )
+
+        return (record?.count ?? 1) > max
+    } catch {
+        return false // fail open
+    }
+}
 
 export const authOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
@@ -29,15 +55,15 @@ export const authOptions: NextAuthOptions = {
             async authorize(credentials) {
                 console.log("[Auth] Login Attempt for:", credentials?.email);
                 if (!credentials?.email || !credentials?.password) return null;
-                
-                // 1. DEBUG BYPASS
-                if (credentials.email === "debug@test.com" && credentials.password === "debug123") {
-                    console.log("[Auth] DEBUG LOGIN SUCCESS");
-                    return { id: "debug-id", name: "Debug User", email: "debug@test.com", role: "admin" }
+
+                // Rate limit: 10 attempts per email per 15 minutes
+                await connectToDatabase();
+                if (await isLoginRateLimited(credentials.email)) {
+                    console.warn("[Auth] Rate limit hit for:", credentials.email);
+                    throw new Error("TOO_MANY_ATTEMPTS");
                 }
 
                 try {
-                    await connectToDatabase();
                     const identifier = credentials.email.toLowerCase();
                     const password = credentials.password;
 
@@ -64,12 +90,7 @@ export const authOptions: NextAuthOptions = {
                     if (scrapUser) {
                         const storedPw = (scrapUser as any).password;
                         const isHashed = storedPw?.startsWith("$2");
-                        let isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
-                        if (!isMatch && (identifier === "sc01@gmail.com" || identifier === "sc01")) {
-                            if (password === "sc01" || password === "verifya" || password === "xyz") {
-                                isMatch = true;
-                            }
-                        }
+                        const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
                         if (isMatch) return { id: (scrapUser as any)._id.toString(), name: (scrapUser as any).name, email: (scrapUser as any).email, role: "scrapcentre" }
                     }
 
@@ -78,11 +99,7 @@ export const authOptions: NextAuthOptions = {
                     if (partner) {
                         const storedPw = (partner as any).password;
                         const isHashed = storedPw?.startsWith("$2");
-                        let isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
-                        // Bypass for testing
-                        if (!isMatch && (password === "verifya" || password === "xyz")) {
-                            isMatch = true;
-                        }
+                        const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
                         if (isMatch) return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
                     }
 
@@ -91,14 +108,7 @@ export const authOptions: NextAuthOptions = {
                     if (rvsf) {
                         const storedPw = (rvsf as any).password;
                         const isHashed = storedPw?.startsWith("$2");
-                        let isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
-                        
-                        // Fallback testing logic
-                        if (!isMatch && (identifier === "rvsf01@gmail.com" || identifier === "rvsf01" || identifier === "rvsf44986" || identifier === "partner.52850@rvsf.in")) {
-                            if (password === "rvsf01" || password === "xyz" || password === "verifya") {
-                                isMatch = true;
-                            }
-                        }
+                        const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
                         if (isMatch) return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf" }
                     }
 
@@ -121,21 +131,18 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) return null;
+                await connectToDatabase();
+                if (await isLoginRateLimited(credentials.email)) {
+                    throw new Error("TOO_MANY_ATTEMPTS");
+                }
                 try {
-                    await connectToDatabase();
                     const identifier = credentials.email.toLowerCase();
                     const user = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password").lean();
                     
                     if (!user) return null;
                     const storedPw = (user as any).password;
                     const isHashed = storedPw?.startsWith("$2");
-                    let isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-                    
-                    if (!isMatch && (identifier === "sc01@gmail.com" || identifier === "sc01")) {
-                        if (credentials.password === "sc01" || credentials.password === "verifya" || credentials.password === "xyz") {
-                            isMatch = true;
-                        }
-                    }
+                    const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
                     if (!isMatch) return null;
                     
                     return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "scrapcentre" }
@@ -157,20 +164,17 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 if (!credentials?.userId || !credentials?.password) return null;
+                await connectToDatabase();
+                if (await isLoginRateLimited(credentials.userId)) {
+                    throw new Error("TOO_MANY_ATTEMPTS");
+                }
                 try {
-                    await connectToDatabase();
                     const partner = await B2BPartner.findOne({ userId: credentials.userId }).select("+password").lean();
                     if (!partner) return null;
  
                     const storedPw = (partner as any).password;
                     const isHashed = storedPw?.startsWith("$2");
-                    let isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-                    
-                    // Fallbacks for testing
-                    if (!isMatch && (credentials.password === "verifya" || credentials.password === "xyz")) {
-                        isMatch = true;
-                    }
-                    
+                    const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
                     if (!isMatch) return null;
  
                     return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner", partnerId: (partner as any).userId }
@@ -192,20 +196,17 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) return null;
+                await connectToDatabase();
+                if (await isLoginRateLimited(credentials.email)) {
+                    throw new Error("TOO_MANY_ATTEMPTS");
+                }
                 try {
-                    await connectToDatabase();
                     const user = await Executive.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
                     if (!user) return null;
 
                     const storedPw = (user as any).password;
                     const isHashed = storedPw?.startsWith("$2");
-                    let isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-
-                    // Fallbacks
-                    if (!isMatch && (credentials.password === "verifya" || credentials.password === "xyz")) {
-                        isMatch = true;
-                    }
-
+                    const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
                     if (!isMatch) return null;
                     return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "executive" }
                 } catch (err: any) {
@@ -226,22 +227,17 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 if (!credentials?.rvsfId || !credentials?.password) return null;
+                await connectToDatabase();
+                if (await isLoginRateLimited(credentials.rvsfId)) {
+                    throw new Error("TOO_MANY_ATTEMPTS");
+                }
                 try {
-                    await connectToDatabase();
                     const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: credentials.rvsfId }, { email: credentials.rvsfId.toLowerCase() }] }).select("+password").lean();
                     if (!rvsf) return null;
 
                     const storedPw = (rvsf as any).password;
                     const isHashed = storedPw?.startsWith("$2");
-                    let isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-                    
-                    const identifier = credentials.rvsfId.toLowerCase();
-                    if (!isMatch && (identifier === "rvsf01@gmail.com" || identifier === "rvsf01" || identifier === "rvsf44986" || identifier === "partner.52850@rvsf.in")) {
-                        if (credentials.password === "rvsf01" || credentials.password === "xyz" || credentials.password === "verifya") {
-                            isMatch = true;
-                        }
-                    }
-
+                    const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
                     if (!isMatch) return null;
                     return { 
                         id: (rvsf as any)._id.toString(), 
@@ -309,7 +305,7 @@ export const authOptions: NextAuthOptions = {
                 name: { label: "Name", type: "text" },
             },
             async authorize(credentials) {
-                if (!credentials?.phone || credentials?.otp !== "000000") return null;
+                if (!credentials?.phone || credentials?.otp !== "000000" || process.env.NODE_ENV === "production") return null;
                 try {
                     await connectToDatabase();
                     let user = await User.findOne({ phone: credentials.phone });

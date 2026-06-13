@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { uploadToCloudinary } from "@/lib/cloudinary"
+import { validateImageFile } from "@/lib/validation"
+import { rateLimiters } from "@/lib/rate-limit"
 
 export async function POST(req: NextRequest) {
     try {
-        // 1. Authenticate user session
+        // Rate limit: 30 uploads per IP per hour
+        const limited = await rateLimiters.chatUpload(req)
+        if (limited) return limited
+
+        // Authenticate user session
         const session = await getServerSession(authOptions)
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
@@ -18,9 +24,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "No file provided" }, { status: 400 })
         }
 
-        // Validate file type is image
-        if (!file.type.startsWith("image/")) {
-            return NextResponse.json({ message: "Only image attachments are allowed" }, { status: 400 })
+        // Strict file validation: MIME type + 5 MB size cap
+        const fileCheck = validateImageFile(file, "Chat attachment")
+        if (!fileCheck.valid) {
+            return NextResponse.json({ message: fileCheck.message }, { status: 400 })
         }
 
         const buffer = Buffer.from(await file.arrayBuffer())

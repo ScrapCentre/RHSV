@@ -4,6 +4,14 @@ import connectToDatabase from "@/lib/db";
 import WizardLead from "@/models/WizardLead";
 import ExchangeVehicle from "@/models/ExchangeVehicle";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import {
+    zMongoId,
+    zAadhar,
+    zPhone,
+    validateDocumentFile,
+    validateImageFile,
+    formatZodError,
+} from "@/lib/validation";
 
 export async function POST(
     req: NextRequest,
@@ -21,26 +29,66 @@ export async function POST(
 
         const formData = await req.formData();
 
-        // Extract fields
+        // Validate document ID
         const id = formData.get("id") as string;
-        const firstName = formData.get("firstName") as string;
-        const dob = formData.get("dob") as string;
-        const aadharPhone = formData.get("aadharPhone") as string;
-        const aadharNumber = formData.get("aadharNumber") as string;
+        const idCheck = zMongoId.safeParse(id);
+        if (!idCheck.success) {
+            return NextResponse.json({ error: "Invalid or missing document ID" }, { status: 400 });
+        }
 
-        // Extract files
-        const aadharFile = formData.get("aadharFile") as File;
-        const rcFile = formData.get("rcFile") as File;
-        const carPhoto = formData.get("carPhoto") as File;
+        const firstName = (formData.get("firstName") as string | null)?.trim().slice(0, 100) ?? "";
+        const dob = (formData.get("dob") as string | null)?.trim() ?? "";
 
-        if (!id) {
-            return NextResponse.json({ error: "Missing document ID" }, { status: 400 });
+        // Validate phone
+        const aadharPhoneRaw = formData.get("aadharPhone") as string | null;
+        if (aadharPhoneRaw) {
+            const phoneCheck = zPhone.safeParse(aadharPhoneRaw);
+            if (!phoneCheck.success) {
+                return NextResponse.json({ error: formatZodError(phoneCheck.error) }, { status: 400 });
+            }
+        }
+        const aadharPhone = aadharPhoneRaw?.trim() ?? "";
+
+        // Validate Aadhar number
+        const aadharNumberRaw = formData.get("aadharNumber") as string | null;
+        if (aadharNumberRaw) {
+            const aadharCheck = zAadhar.safeParse(aadharNumberRaw);
+            if (!aadharCheck.success) {
+                return NextResponse.json({ error: formatZodError(aadharCheck.error) }, { status: 400 });
+            }
+        }
+        const aadharNumber = aadharNumberRaw?.trim() ?? "";
+
+        // Collect files
+        const aadharFile = formData.get("aadharFile") as File | null;
+        const rcFile = formData.get("rcFile") as File | null;
+        const carPhoto = formData.get("carPhoto") as File | null;
+
+        // Validate Aadhar and RC as documents (PDF or image, max 10 MB)
+        for (const [file, label] of [
+            [aadharFile, "Aadhar document"],
+            [rcFile, "RC document"],
+        ] as [File | null, string][]) {
+            if (file && typeof file !== "string") {
+                const check = validateDocumentFile(file, label);
+                if (!check.valid) {
+                    return NextResponse.json({ error: check.message }, { status: 400 });
+                }
+            }
+        }
+
+        // Validate car photo as image (max 5 MB)
+        if (carPhoto && typeof carPhoto !== "string") {
+            const check = validateImageFile(carPhoto, "Car photo");
+            if (!check.valid) {
+                return NextResponse.json({ error: check.message }, { status: 400 });
+            }
         }
 
         const uploadFile = async (file: File | null, folder: string) => {
             if (!file) return null;
             const buffer = Buffer.from(await file.arrayBuffer());
-            const filename = `${folder}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '')}`;
+            const filename = `${folder}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "")}`;
             return await uploadToCloudinary(buffer, `autoscrap/ekyc/${type}/${id}`, filename);
         };
 
@@ -52,7 +100,6 @@ export async function POST(
 
         let Model;
         switch (type) {
-
             case "valuation":
                 Model = WizardLead;
                 break;
@@ -71,7 +118,7 @@ export async function POST(
             ...(aadharUrl && { aadharFile: aadharUrl }),
             ...(rcUrl && { rcFile: rcUrl }),
             ...(carPhotoUrl && { carPhoto: carPhotoUrl }),
-            ekycStatus: "verified" // Set to verified upon submission or pending depending on your workflow
+            ekycStatus: "verified"
         };
 
         const updatedDoc = await Model.findByIdAndUpdate(
@@ -93,7 +140,7 @@ export async function POST(
     } catch (error: any) {
         console.error("eKYC upload error:", error);
         return NextResponse.json(
-            { error: "Failed to upload eKYC documents", details: error.message },
+            { error: "Failed to upload eKYC documents" },
             { status: 500 }
         );
     }

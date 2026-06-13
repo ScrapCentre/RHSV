@@ -1,16 +1,28 @@
 import { NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import connectToDatabase from "@/lib/db"
 import Contact from "@/models/Contact"
+import { contactSchema, formatZodError } from "@/lib/validation"
+import { rateLimiters } from "@/lib/rate-limit"
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const body = await req.json()
-        const { name, email, phone, subject, message } = body
+        // Rate limit: 10 submissions per IP per hour
+        const limited = await rateLimiters.contact(req)
+        if (limited) return limited
 
-        // Basic validation
-        if (!name || !email || !phone || !subject || !message) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+        const body = await req.json()
+
+        // Validate all fields with strict rules
+        const parsed = contactSchema.safeParse(body)
+        if (!parsed.success) {
+            return NextResponse.json(
+                { error: formatZodError(parsed.error) },
+                { status: 400 }
+            )
         }
+
+        const { name, email, phone, subject, message } = parsed.data
 
         await connectToDatabase()
 
@@ -31,4 +43,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }
 }
-

@@ -4,53 +4,68 @@ import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/db";
 import WizardLead from "@/models/WizardLead";
 import User from "@/models/User";
+import { wizardLeadSchema, formatZodError } from "@/lib/validation";
+import { rateLimiters } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 30 leads per IP per hour
+    const limited = await rateLimiters.wizardLead(req)
+    if (limited) return limited
+
     await connectToDatabase();
 
-    // Get session to link lead to user account (optional — guest leads still saved)
     const session = await getServerSession(authOptions);
     let userId = session ? (session.user as any).id : undefined;
 
     const body = await req.json();
 
-    // Fallback: If session hasn't propagated yet (due to race condition immediately after OTP verification),
-    // lookup the user by their phone number.
-    if (!userId && body.phone) {
-      const formattedPhone = body.phone.startsWith("+") ? body.phone : `+91${body.phone}`;
+    // Validate input fields
+    const parsed = wizardLeadSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: formatZodError(parsed.error) },
+        { status: 400 }
+      );
+    }
+
+    const data = parsed.data;
+
+    // Fallback: look up user by phone if session not yet propagated
+    if (!userId && data.phone) {
+      const formattedPhone = data.phone.startsWith("+") ? data.phone : `+91${data.phone}`;
       const existingUser = await User.findOne({ phone: formattedPhone });
       if (existingUser) {
         userId = existingUser._id.toString();
       }
     }
 
-    // Determine category based on serviceType and buyNew
-    let category = body.serviceType + "_only";
-    if (body.serviceType === "scrap" && body.buyNew === "yes") {
+    // Determine category
+    let category = data.serviceType + "_only";
+    if (data.serviceType === "scrap" && body.buyNew === "yes") {
       category = "scrap_and_buy";
     }
 
     const newLead = new WizardLead({
-      serviceType: body.serviceType,
+      serviceType: data.serviceType,
       category,
       userId,
-      regNo: body.regNo,
-      brand: body.brand,
-      model: body.model,
-      year: body.year,
-      weight: body.weight,
-      kms: body.kms,
-      fuel: Array.isArray(body.fuel) ? body.fuel : [body.fuel].filter(Boolean),
-      name: body.name,
-      phone: body.phone,
-      address: body.address,
-      pincode: body.pincode,
-      city: body.city,
-      state: body.state,
-      desiredCompany: body.desiredCompany,
-      desiredModel: body.desiredModel,
-      carPhoto: body.carPhoto,
+      regNo: data.regNo,
+      brand: data.brand,
+      model: data.model,
+      year: data.year,
+      weight: data.weight,
+      kms: data.kms,
+      fuel: Array.isArray(data.fuel) ? data.fuel : [data.fuel].filter(Boolean),
+      name: data.name,
+      phone: data.phone,
+      address: data.address,
+      pincode: data.pincode,
+      city: data.city,
+      state: data.state,
+      desiredCompany: data.desiredCompany,
+      desiredModel: data.desiredModel,
+      carPhoto: data.carPhoto,
     });
 
     const savedLead = await newLead.save();

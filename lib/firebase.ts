@@ -2,13 +2,13 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAXgYEpbvDfylJI9d0e3CPBXBkToppFE0c",
-  authDomain: "scrap-centre-auth.firebaseapp.com",
-  projectId: "scrap-centre-auth",
-  storageBucket: "scrap-centre-auth.firebasestorage.app",
-  messagingSenderId: "970659628462",
-  appId: "1:970659628462:web:4e61a38918fdedbc13f43f",
-  measurementId: "G-S6RC7LV6ST"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
