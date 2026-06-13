@@ -10,7 +10,7 @@ import {
     Camera, UploadCloud
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { auth } from "@/lib/firebase"
+import { getFirebaseAuth } from "@/lib/firebase"
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth"
 import { signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
@@ -532,7 +532,7 @@ export default function ValuationWizardCard() {
 
     const getOrCreateRecaptcha = (): RecaptchaVerifier => {
         if (recaptchaVerifierRef.current) return recaptchaVerifierRef.current
-        const verifier = new RecaptchaVerifier(auth, 'wizard-recaptcha-container', {
+        const verifier = new RecaptchaVerifier(getFirebaseAuth(), 'wizard-recaptcha-container', {
             size: 'invisible',
             callback: () => { },
             'expired-callback': () => {
@@ -853,7 +853,7 @@ export default function ValuationWizardCard() {
             // Try real Firebase OTP first
             const verifier = getOrCreateRecaptcha()
             const formattedPhone = `+91${formData.phone}`
-            const confirmation = await signInWithPhoneNumber(auth, formattedPhone, verifier)
+            const confirmation = await signInWithPhoneNumber(getFirebaseAuth(), formattedPhone, verifier)
             setConfirmationResult(confirmation)
             setIsSandboxMode(false)
             setOtpSent(true)

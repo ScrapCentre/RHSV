@@ -7,7 +7,7 @@ import { Mail, Lock, ArrowRight, Loader2, Building2, User, Eye, EyeOff, Phone, S
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { useSearchParams } from "next/navigation"
-import { auth } from "@/lib/firebase"
+import { getFirebaseAuth } from "@/lib/firebase"
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth"
 
 export default function LoginPage() {
@@ -69,7 +69,7 @@ function LoginContent() {
 
     useEffect(() => {
         if (!recaptchaVerifier) {
-            const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            const verifier = new RecaptchaVerifier(getFirebaseAuth(), 'recaptcha-container', {
                 size: 'invisible',
                 callback: () => {
                     console.log("Recaptcha verified");
@@ -244,7 +244,7 @@ function LoginContent() {
                 if (!recaptchaVerifier) throw new Error("Recaptcha not initialized");
                 
                 const formattedPhone = `+91${phone}`;
-                const confirmation = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
+                const confirmation = await signInWithPhoneNumber(getFirebaseAuth(), formattedPhone, recaptchaVerifier);
                 setConfirmationResult(confirmation);
                 setIsSandboxMode(false);
                 setOtpSent(true);
