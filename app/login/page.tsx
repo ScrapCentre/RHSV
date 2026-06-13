@@ -250,13 +250,22 @@ function LoginContent() {
                 setOtpSent(true);
                 toast({ title: "OTP Sent", description: "Please check your phone for the verification code." });
             } catch (error: any) {
-                console.warn("Firebase SMS failed, falling back to Local Sandbox:", error);
-                setIsSandboxMode(true);
-                setOtpSent(true);
-                toast({
-                    title: "Sandbox Mode Activated",
-                    description: "Firebase credentials invalid. Use verification code '000000' to sign in.",
-                });
+                if (process.env.NODE_ENV === "production") {
+                    console.error("Firebase SMS failed in production:", error);
+                    toast({
+                        title: "Failed to Send OTP",
+                        description: error.message || "Failed to send verification code. Please try again.",
+                        variant: "destructive"
+                    });
+                } else {
+                    console.warn("Firebase SMS failed, falling back to Local Sandbox:", error);
+                    setIsSandboxMode(true);
+                    setOtpSent(true);
+                    toast({
+                        title: "Sandbox Mode Activated",
+                        description: "Firebase credentials invalid. Use verification code '000000' to sign in.",
+                    });
+                }
             } finally {
                 setIsLoading(false);
             }

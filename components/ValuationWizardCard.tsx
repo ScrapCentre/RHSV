@@ -865,15 +865,24 @@ export default function ValuationWizardCard() {
                 description: "Please check your phone for the verification code.",
             })
         } catch (err: any) {
-            // Gracefully fall back to Sandbox Mode (works when Firebase is not configured)
-            console.warn("Firebase SMS failed, switching to Sandbox Mode:", err.message)
             recaptchaVerifierRef.current = null
-            setIsSandboxMode(true)
-            setOtpSent(true)
-            toast({
-                title: "OTP Ready",
-                description: "Use verification code 000000 to continue.",
-            })
+            if (process.env.NODE_ENV === "production") {
+                console.error("Firebase SMS failed in production:", err)
+                toast({
+                    title: "Failed to Send OTP",
+                    description: err.message || "Failed to send verification code. Please verify your phone number and try again.",
+                    variant: "destructive"
+                })
+            } else {
+                // Gracefully fall back to Sandbox Mode (works when Firebase is not configured)
+                console.warn("Firebase SMS failed, switching to Sandbox Mode:", err.message)
+                setIsSandboxMode(true)
+                setOtpSent(true)
+                toast({
+                    title: "OTP Ready",
+                    description: "Use verification code 000000 to continue.",
+                })
+            }
         } finally {
             setIsSendingOtp(false)
         }
