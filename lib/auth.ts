@@ -42,6 +42,122 @@ async function isLoginRateLimited(identifier: string): Promise<boolean> {
     }
 }
 
+async function sendAdminLockoutEmail(adminEmail: string) {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) {
+        console.error("[Email] RESEND_API_KEY not configured, cannot send alert email");
+        return;
+    }
+    try {
+        const subject = "⚠️ Security Alert: Admin Account Lockout Triggered";
+        const emailHtml = `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,sans-serif;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+                    <tr><td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-top:4px solid #E31E24;">
+                            <tr>
+                                <td style="background:#0E192D;padding:24px 40px;">
+                                    <p style="margin:0;font-size:22px;font-weight:800;color:#ffffff;">
+                                        Scrap<span style="color:#E31E24;">Centre</span> Security
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:40px;">
+                                    <h2 style="color:#D32F2F;margin:0 0 16px;">Admin Account Temporarily Locked</h2>
+                                    <p style="color:#333;font-size:15px;line-height:1.6;margin-bottom:24px;">
+                                        Hello Security Team,
+                                    </p>
+                                    <p style="color:#555;font-size:14px;line-height:1.6;margin-bottom:20px;">
+                                        This is a security notification from the ScrapCentre admin panel. Multiple failed login attempts were detected for the following administrator account:
+                                    </p>
+                                    <div style="background:#f9fafb;border-left:4px solid #D32F2F;padding:16px;margin-bottom:24px;border-radius:4px;">
+                                        <p style="margin:0 0 8px;font-size:14px;color:#555;"><strong>Admin Email:</strong> ${adminEmail}</p>
+                                        <p style="margin:0;font-size:14px;color:#555;"><strong>Reason:</strong> 2 consecutive incorrect password attempts</p>
+                                    </div>
+                                    <p style="color:#555;font-size:14px;line-height:1.6;margin-bottom:20px;">
+                                        To protect the account from brute-force access, **the account has been locked out for 10 minutes**. No login attempts for this email will be processed during this period.
+                                    </p>
+                                    <p style="color:#555;font-size:14px;line-height:1.6;margin-bottom:20px;">
+                                        If this attempt was not made by an authorized administrator, please review the server logs and verify security configurations immediately.
+                                    </p>
+                                    <p style="color:#999;font-size:12px;margin-top:30px;border-top:1px solid #eee;padding-top:20px;">
+                                        Please do not reply directly to this email. For assistance, contact security administration.
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background:#f9fafb;padding:20px 40px;text-align:center;">
+                                    <p style="margin:0;color:#aaa;font-size:12px;">© ${new Date().getFullYear()} ScrapCentre Security. All rights reserved.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td></tr>
+                </table>
+            </body>
+            </html>
+        `;
+
+        const res = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${RESEND_API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                from: "ScrapCentre Security <noreply@scrapcentre.com>",
+                to: ["scrapcentre69@gmail.com"],
+                subject,
+                html: emailHtml,
+            }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            console.error("[Email] Failed to send alert email:", data);
+        } else {
+            console.log("[Email] Alert email sent successfully to scrapcentre69@gmail.com");
+        }
+    } catch (err) {
+        console.error("[Email] Error sending alert email:", err);
+    }
+}
+
+async function handleFailedAdminAttempt(identifier: string) {
+    const attemptsKey = `admin-attempts:${identifier}`;
+    const lockoutKey = `admin-lockout:${identifier}`;
+    const now = new Date();
+    const resetAt = new Date(now.getTime() + 15 * 60_000); // 15 mins window for attempts
+
+    const attemptsRecord = await RateLimit.findOneAndUpdate(
+        { key: attemptsKey },
+        { $inc: { count: 1 }, $setOnInsert: { resetAt } },
+        { upsert: true, new: true }
+    );
+
+    const failedCount = attemptsRecord?.count || 1;
+    if (failedCount >= 2) {
+        // Trigger 10-minute lockout
+        const lockoutResetAt = new Date(now.getTime() + 10 * 60_000);
+        await RateLimit.findOneAndUpdate(
+            { key: lockoutKey },
+            { count: 1, resetAt: lockoutResetAt },
+            { upsert: true }
+        );
+
+        // Delete attempts record so they start fresh after lockout expires
+        await RateLimit.deleteOne({ key: attemptsKey });
+
+        // Send alert email to scrapcentre69@gmail.com
+        await sendAdminLockoutEmail(identifier);
+
+        // Throw lockout error immediately to trigger UI lockdown on the 2nd attempt
+        throw new Error("LOCKOUT:10");
+    }
+}
+
 export const authOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
     providers: [
@@ -67,25 +183,98 @@ export const authOptions: NextAuthOptions = {
                     const identifier = credentials.email.toLowerCase();
                     const password = credentials.password;
 
-                    // 2. Env Fallback (Admin)
+                    // 1. Check if they are trying to log in as admin
                     const envAdminEmail = process.env.ADMIN_EMAIL;
+                    const isEnvAdmin = envAdminEmail && identifier === envAdminEmail.toLowerCase();
+                    let isAdmin = isEnvAdmin;
+
+                    if (!isAdmin) {
+                        const dbUser = await User.findOne({ email: identifier }).select("role").lean();
+                        if (dbUser && dbUser.role === "admin") {
+                            isAdmin = true;
+                        }
+                    }
+
+                    // 2. Lockout Check for Admin (or bypass token verify)
+                    if (isAdmin) {
+                        // Check if it's a bypass token first
+                        if (password.startsWith("BYPASS_TOKEN_")) {
+                            const tokenKey = `admin-bypass-token:${identifier}:${password}`;
+                            const storedTokenRecord = await RateLimit.findOne({ key: tokenKey });
+                            if (storedTokenRecord && storedTokenRecord.resetAt > new Date()) {
+                                // Valid bypass token! Clear attempts, lockout and token
+                                await Promise.all([
+                                    RateLimit.deleteOne({ key: tokenKey }),
+                                    RateLimit.deleteOne({ key: `admin-lockout:${identifier}` }),
+                                    RateLimit.deleteOne({ key: `admin-attempts:${identifier}` })
+                                ]);
+                                
+                                console.log("[Auth] Admin login bypass successful via one-time token");
+                                if (isEnvAdmin) {
+                                    return { id: "env-admin", name: "System Admin", email: envAdminEmail, role: "admin" }
+                                } else {
+                                    const dbUser = await User.findOne({ email: identifier }).lean();
+                                    return { id: (dbUser as any)._id.toString(), name: (dbUser as any).name, email: (dbUser as any).email, role: "admin" }
+                                }
+                            } else {
+                                throw new Error("Invalid or expired bypass verification.");
+                            }
+                        }
+
+                        // Otherwise check regular lockout
+                        const lockoutKey = `admin-lockout:${identifier}`;
+                        const lockoutRecord = await RateLimit.findOne({ key: lockoutKey });
+                        if (lockoutRecord && lockoutRecord.resetAt > new Date()) {
+                            const remainingMs = lockoutRecord.resetAt.getTime() - Date.now();
+                            const remainingMins = Math.ceil(remainingMs / 60_000);
+                            throw new Error(`LOCKOUT:${remainingMins}`);
+                        }
+                    }
+
+                    // 3. Env Fallback (Admin)
                     const envAdminPassword = process.env.ADMIN_PASSWORD;
                     
                     if (envAdminEmail && envAdminPassword && 
-                        identifier === envAdminEmail.toLowerCase() && 
-                        password === envAdminPassword) {
-                        console.log("[Auth] Env Admin Match");
-                        return { id: "env-admin", name: "System Admin", email: envAdminEmail, role: "admin" }
+                        identifier === envAdminEmail.toLowerCase()) {
+                        const isHashed = envAdminPassword.startsWith("$2a$") || 
+                                         envAdminPassword.startsWith("$2b$") || 
+                                         envAdminPassword.startsWith("$2y$");
+                        
+                        const isMatch = isHashed 
+                            ? await bcrypt.compare(password, envAdminPassword)
+                            : await bcrypt.compare(password, await bcrypt.hash(envAdminPassword, 10));
+
+                        if (!isHashed && process.env.NODE_ENV !== "production") {
+                            console.warn("[Auth] WARNING: ADMIN_PASSWORD is set as plaintext in your environment. Please use a bcrypt hash instead for production security.");
+                        }
+
+                        if (isMatch) {
+                            console.log("[Auth] Env Admin Match");
+                            await RateLimit.deleteOne({ key: `admin-attempts:${identifier}` });
+                            return { id: "env-admin", name: "System Admin", email: envAdminEmail, role: "admin" }
+                        } else {
+                            await handleFailedAdminAttempt(identifier);
+                            return null;
+                        }
                     }
 
-                    // 3. Standard User Database
-                    const dbUser = await User.findOne({ email: identifier }).select("+password").lean();
+                    // 4. Standard User Database
+                    const dbUser = await User.findOne({ email: identifier }).select("+password role").lean();
                     if (dbUser) {
                         const isMatch = await bcrypt.compare(password, (dbUser as any).password);
-                        if (isMatch) return { id: (dbUser as any)._id.toString(), name: (dbUser as any).name, email: (dbUser as any).email, role: (dbUser as any).role || "client" }
+                        if (isMatch) {
+                            if ((dbUser as any).role === "admin") {
+                                await RateLimit.deleteOne({ key: `admin-attempts:${identifier}` });
+                            }
+                            return { id: (dbUser as any)._id.toString(), name: (dbUser as any).name, email: (dbUser as any).email, role: (dbUser as any).role || "client" }
+                        } else {
+                            if ((dbUser as any).role === "admin") {
+                                await handleFailedAdminAttempt(identifier);
+                            }
+                        }
                     }
 
-                    // 4. ScrapCentre Database
+                    // 5. ScrapCentre Database
                     const scrapUser = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password").lean();
                     if (scrapUser) {
                         const storedPw = (scrapUser as any).password;
@@ -94,7 +283,7 @@ export const authOptions: NextAuthOptions = {
                         if (isMatch) return { id: (scrapUser as any)._id.toString(), name: (scrapUser as any).name, email: (scrapUser as any).email, role: "scrapcentre" }
                     }
 
-                    // 5. B2B Database
+                    // 6. B2B Database
                     const partner = await B2BPartner.findOne({ userId: identifier }).select("+password").lean();
                     if (partner) {
                         const storedPw = (partner as any).password;
@@ -103,7 +292,7 @@ export const authOptions: NextAuthOptions = {
                         if (isMatch) return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
                     }
 
-                    // 6. RVSF Database
+                    // 7. RVSF Database
                     const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: identifier }] }).select("+password").lean();
                     if (rvsf) {
                         const storedPw = (rvsf as any).password;
@@ -112,8 +301,17 @@ export const authOptions: NextAuthOptions = {
                         if (isMatch) return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf" }
                     }
 
+                    // If we reached here, login has failed.
+                    // If the email entered contains "admin", track it as a failed admin attempt.
+                    if (identifier.includes("admin")) {
+                        await handleFailedAdminAttempt(identifier);
+                    }
+
                 } catch (err: any) {
                     console.error("[Auth] Database error during authorize:", err);
+                    if (err.message?.startsWith("LOCKOUT:")) {
+                        throw err;
+                    }
                     if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
                         throw new Error("DATABASE_CONNECTION_ERROR");
                     }
