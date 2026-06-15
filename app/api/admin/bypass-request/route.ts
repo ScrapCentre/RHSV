@@ -5,9 +5,9 @@ import RateLimit from "@/models/RateLimit"
 
 export async function POST(req: NextRequest) {
     try {
-        const { email } = await req.json()
-        if (!email) {
-            return NextResponse.json({ message: "Email is required" }, { status: 400 })
+        const { email, requestId } = await req.json()
+        if (!email || !requestId) {
+            return NextResponse.json({ message: "Email and request ID are required" }, { status: 400 })
         }
 
         const identifier = email.toLowerCase()
@@ -30,12 +30,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Access denied. Only administrators can request a bypass." }, { status: 403 })
         }
 
-        // 2. Verify if the administrator is currently locked out
-        const lockoutKey = `admin-lockout:${identifier}`
-        const lockoutRecord = await RateLimit.findOne({ key: lockoutKey })
-        if (!lockoutRecord || lockoutRecord.resetAt <= new Date()) {
-            return NextResponse.json({ message: "Bypass requested but the account is not currently locked out." }, { status: 400 })
+        // 2. Rate-limit bypass requests to 5 attempts per 15 minutes to prevent spam
+        const requestRateKey = `bypass-req-rate:${identifier}`
+        const requestRateRecord = await RateLimit.findOne({ key: requestRateKey })
+        if (requestRateRecord && requestRateRecord.count >= 5 && requestRateRecord.resetAt > new Date()) {
+            return NextResponse.json({ message: "Too many reset requests. Please wait a few minutes before trying again." }, { status: 429 })
         }
+        await RateLimit.findOneAndUpdate(
+            { key: requestRateKey },
+            { $inc: { count: 1 }, $setOnInsert: { resetAt: new Date(Date.now() + 15 * 60_000) } },
+            { upsert: true }
+        )
 
         // 3. Generate 3 random two-digit numbers
         const numbers: string[] = []
@@ -50,8 +55,8 @@ export async function POST(req: NextRequest) {
         const correctOption = numbers[Math.floor(Math.random() * 3)]
 
         // 4. Save the challenge in RateLimit (valid for 5 minutes)
-        // Format: admin-challenge:${email}:${correctOption}:${num1}-${num2}-${num3}
-        const challengeKey = `admin-challenge:${identifier}:${correctOption}:${numbers.join("-")}`
+        // Format: admin-challenge:${email}:${requestId}:${correctOption}:${num1}-${num2}-${num3}
+        const challengeKey = `admin-challenge:${identifier}:${requestId}:${correctOption}:${numbers.join("-")}`
         
         // Clear any existing challenge first
         const regex = new RegExp(`^admin-challenge:${identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}:`)
@@ -94,11 +99,15 @@ export async function POST(req: NextRequest) {
                                         </p>
                                         
                                         <p style="color:#555;font-size:14px;line-height:1.6;margin-bottom:16px;">
-                                            Please enter the following verification code on the login screen to complete authorization:
+                                            Please click on the security number below that matches the one shown on your admin login screen:
                                         </p>
-                                        <div style="background:#f9fafb;border:1px dashed #E31E24;padding:20px;margin-bottom:24px;border-radius:8px;text-align:center;">
-                                            <span style="font-size:32px;font-weight:900;color:#E31E24;letter-spacing:2px;">${correctOption}</span>
+                                        
+                                        <div style="text-align:center;margin:30px 0;padding:10px;">
+                                            ${numbers.map(num => `
+                                                <a href="${siteUrl}/api/admin/bypass-confirm?email=${encodeURIComponent(identifier)}&option=${num}&requestId=${requestId}" style="display:inline-block;padding:12px 24px;margin:0 10px;background:#f9fafb;border:2px solid #e2e8f0;border-radius:10px;color:#0e192d;font-size:18px;font-weight:bold;text-decoration:none;box-shadow:0 2px 4px rgba(0,0,0,0.02);">${num}</a>
+                                            `).join("")}
                                         </div>
+
                                         <p style="color:#D32F2F;font-size:13px;line-height:1.6;margin-bottom:20px;font-weight:bold;">
                                             Warning: If you did not request this, someone else is attempting to gain administrative access. Please investigate immediately.
                                         </p>
@@ -138,7 +147,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            options: numbers
+            correctOption: correctOption
         })
 
     } catch (error: any) {

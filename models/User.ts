@@ -39,6 +39,10 @@ const UserSchema = new Schema(
             sparse: true, // allows multiple docs with no phone
             required: false,
         },
+        mustChangePassword: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,

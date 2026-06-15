@@ -12,6 +12,7 @@ export interface IRVSFUser extends Document {
     pincode?: number
     purchasedStates?: string[]
     purchasedLeads?: string[]
+    mustChangePassword?: boolean
     createdAt: Date
     updatedAt: Date
 }
@@ -28,7 +29,8 @@ const RVSFUserSchema: Schema = new Schema(
         state: { type: String },
         pincode: { type: Number },
         purchasedStates: { type: [String], default: [] },
-        purchasedLeads: { type: [String], default: [] }
+        purchasedLeads: { type: [String], default: [] },
+        mustChangePassword: { type: Boolean, default: false }
     },
     { timestamps: true }
 )

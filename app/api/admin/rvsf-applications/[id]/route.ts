@@ -95,6 +95,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             return NextResponse.json({ message: "Scheduled KYC call" })
 
         } else if (action === "activate") {
+            const siteUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
             // Generate temp password
             const tempPassword = Math.random().toString(36).slice(-8)
             const hashedPassword = await bcrypt.hash(tempPassword, 10)
@@ -119,6 +120,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
                 city: application.city,
                 state: application.state,
                 pincode: application.pincode,
+                mustChangePassword: true,
             })
 
             application.status = "activated"
@@ -154,7 +156,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
                                   <tr>
                                     <td style="padding:6px 0;font-size:14px;color:#6b7280;width:150px;">Login Portal</td>
                                     <td style="padding:6px 0;font-size:14px;color:#111827;font-weight:600;">
-                                      <a href="https://scrapcentre.com/rvsf/login" style="color:#E31E24;text-decoration:none;">scrapcentre.com/rvsf/login</a>
+                                      <a href="${siteUrl}/rvsf/login" style="color:#E31E24;text-decoration:none;font-weight:bold;">${siteUrl}/rvsf/login</a>
                                     </td>
                                   </tr>
                                   <tr>
@@ -211,6 +213,73 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             await sendEmail(businessEmail, "ScrapCentre - Application Rejected", emailHtml)
 
             return NextResponse.json({ message: "Rejected application" })
+        } else if (action === "edit_details") {
+            const { 
+                legalEntityName,
+                businessEmail,
+                phoneNumber,
+                gstNumber,
+                panNumber,
+                cpcbAuthNumber,
+                morthAuthNumber,
+                registeredAddress,
+                city,
+                state,
+                pincode,
+                accountHolderName,
+                bankName,
+                accountNumber,
+                ifscCode,
+                accountType
+            } = body
+
+            // Validate and update fields
+            if (legalEntityName) application.legalEntityName = legalEntityName
+            if (businessEmail) {
+                // If rvsf user exists, sync their email as well
+                const oldEmail = application.businessEmail
+                if (oldEmail && oldEmail.toLowerCase() !== businessEmail.toLowerCase()) {
+                    // Check if new email already exists in RVSFUser
+                    const existingUser = await RVSFUser.findOne({ email: businessEmail.toLowerCase() })
+                    if (existingUser) {
+                        return NextResponse.json({ message: "A user with this email already exists." }, { status: 400 })
+                    }
+                    const rvsfUser = await RVSFUser.findOne({ email: oldEmail })
+                    if (rvsfUser) {
+                        rvsfUser.email = businessEmail.toLowerCase()
+                        await rvsfUser.save()
+                    }
+                }
+                application.businessEmail = businessEmail.toLowerCase()
+            }
+            if (phoneNumber) application.phoneNumber = phoneNumber
+            if (gstNumber) application.gstNumber = gstNumber.toUpperCase()
+            if (panNumber) application.panNumber = panNumber.toUpperCase()
+            if (cpcbAuthNumber) application.cpcbAuthNumber = cpcbAuthNumber
+            if (morthAuthNumber) application.morthAuthNumber = morthAuthNumber
+            if (registeredAddress) application.registeredAddress = registeredAddress
+            if (city) application.city = city
+            if (state) application.state = state
+            if (pincode !== undefined) application.pincode = Number(pincode)
+
+            if (accountHolderName) application.accountHolderName = accountHolderName
+            if (bankName) application.bankName = bankName
+            if (accountNumber) application.accountNumber = accountNumber
+            if (ifscCode) application.ifscCode = ifscCode.toUpperCase()
+            if (accountType) application.accountType = accountType
+
+            // If rvsf user exists, sync name as well
+            if (legalEntityName) {
+                const rvsfUser = await RVSFUser.findOne({ email: application.businessEmail })
+                if (rvsfUser) {
+                    rvsfUser.name = legalEntityName
+                    await rvsfUser.save()
+                }
+            }
+
+            await application.save()
+
+            return NextResponse.json({ message: "RVSF application details updated successfully" })
         }
 
         return NextResponse.json({ message: "Invalid action" }, { status: 400 })

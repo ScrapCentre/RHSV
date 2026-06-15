@@ -12,7 +12,8 @@ import {
     AlertCircle,
     CheckCircle2,
     RefreshCcw,
-    Users
+    Users,
+    X
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -20,6 +21,7 @@ export default function AdminExecutivesPage() {
     const [executives, setExecutives] = useState<any[]>([])
     const [isLoadingList, setIsLoadingList] = useState(true)
     const [isCreating, setIsCreating] = useState(false)
+    const [lastCreated, setLastCreated] = useState<any>(null)
     
     // Form state
     const [formData, setFormData] = useState({
@@ -84,6 +86,7 @@ export default function AdminExecutivesPage() {
                     title: "Success",
                     description: "Executive account created successfully",
                 })
+                setLastCreated({ name: formData.name, email: formData.email, password: formData.password })
                 setFormData({ name: "", email: "", password: "" })
                 generateCredentials()
                 fetchExecutives()
@@ -148,6 +151,35 @@ export default function AdminExecutivesPage() {
                     <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Create and manage high-authority executive portal accounts.</p>
                 </div>
             </div>
+
+            {/* Last Created Success Banner */}
+            {lastCreated && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 p-6 rounded-2xl space-y-3 relative"
+                >
+                    <button 
+                        onClick={() => setLastCreated(null)} 
+                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                        title="Dismiss"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                    <h3 className="font-bold text-emerald-950 dark:text-emerald-400 flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                        Executive Account Created Successfully
+                    </h3>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-500">
+                        Please copy these credentials now. The generated password will not be shown on the form input again.
+                    </p>
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-emerald-100 dark:border-slate-800 text-sm space-y-1 font-mono max-w-md">
+                        <div><strong className="text-gray-500 dark:text-gray-400">Name:</strong> <span className="text-gray-900 dark:text-white">{lastCreated.name}</span></div>
+                        <div><strong className="text-gray-500 dark:text-gray-400">Email:</strong> <span className="text-gray-900 dark:text-white">{lastCreated.email}</span></div>
+                        <div><strong className="text-gray-500 dark:text-gray-400">Password:</strong> <code className="bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-600 dark:text-emerald-400 font-bold select-all">{lastCreated.password}</code></div>
+                    </div>
+                </motion.div>
+            )}
 
             {/* Generator Style Form Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -13,7 +13,8 @@ export default function AdminLoginForm() {
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [lockoutTimeLeft, setLockoutTimeLeft] = useState<number | null>(null) // in seconds
-    const [bypassOptions, setBypassOptions] = useState<string[] | null>(null)
+    const [correctOption, setCorrectOption] = useState<string | null>(null)
+    const [currentRequestId, setCurrentRequestId] = useState<string | null>(null)
     const [isRequestingBypass, setIsRequestingBypass] = useState(false)
     const [bypassStatus, setBypassStatus] = useState("")
 
@@ -37,7 +38,8 @@ export default function AdminLoginForm() {
             if (lockoutTimeLeft === 0) {
                 setLockoutTimeLeft(null)
                 setError("")
-                setBypassOptions(null)
+                setCorrectOption(null)
+                setCurrentRequestId(null)
                 setBypassStatus("")
             }
             return
@@ -64,22 +66,25 @@ export default function AdminLoginForm() {
     }
 
     const handleRequestBypass = async () => {
-        const requestEmail = email || "scrapcentreadmin@gmail.com"
+        const requestEmail = email.trim() || "scrapcentreadmin@gmail.com"
         setIsRequestingBypass(true)
         setError("")
         setBypassStatus("Requesting verification code...")
+
+        const generatedRequestId = self.crypto?.randomUUID ? self.crypto.randomUUID() : Math.random().toString(36).substring(2, 15)
+        setCurrentRequestId(generatedRequestId)
 
         try {
             const res = await fetch("/api/admin/bypass-request", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: requestEmail }),
+                body: JSON.stringify({ email: requestEmail, requestId: generatedRequestId }),
             })
 
             const data = await res.json()
             if (res.ok) {
-                setBypassOptions(data.options)
-                setBypassStatus("Verification sent to sxxxxxxxxx69@gmail.com. Select correct option:")
+                setCorrectOption(data.correctOption)
+                setBypassStatus("Security check sent to sxxxxxxxxx69@gmail.com. Select matching code in mail:")
             } else {
                 setError(data.message || "Failed to initiate bypass request.")
                 setBypassStatus("")
@@ -92,53 +97,50 @@ export default function AdminLoginForm() {
         }
     }
 
-    const handleVerifyBypass = async (selectedOption: string) => {
-        setIsLoading(true)
-        setError("")
-        setBypassStatus("Verifying code and unlocking...")
-        const requestEmail = email || "scrapcentreadmin@gmail.com"
+    // Polling effect for automatic login
+    React.useEffect(() => {
+        if (!correctOption || !currentRequestId) return
 
-        try {
-            const res = await fetch("/api/admin/bypass-verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: requestEmail, selectedOption }),
-            })
+        let isMounted = true
+        const interval = setInterval(async () => {
+            try {
+                const requestEmail = email.trim() || "scrapcentreadmin@gmail.com"
+                const res = await fetch(`/api/admin/bypass-status?email=${encodeURIComponent(requestEmail)}&requestId=${currentRequestId}`)
+                if (!res.ok) return
 
-            const data = await res.json()
-            if (res.ok && data.success) {
-                setBypassStatus("Identity verified! Logging you in...")
-                localStorage.removeItem("admin_lockout_until")
-                setLockoutTimeLeft(null)
-                setBypassOptions(null)
+                const data = await res.json()
+                if (data.verified && data.token && isMounted) {
+                    clearInterval(interval)
+                    setIsLoading(true)
+                    setBypassStatus("Identity verified! Logging you in...")
+                    
+                    // Trigger NextAuth login automatically using the one-time bypass token
+                    const result = await signIn("credentials", {
+                        email: requestEmail,
+                        password: data.token,
+                        redirect: false,
+                    })
 
-                // Trigger NextAuth login automatically using the one-time bypass token
-                const result = await signIn("credentials", {
-                    email: requestEmail,
-                    password: data.token,
-                    redirect: false,
-                })
-
-                if (result?.error) {
-                    setError("Bypass login failed: " + result.error)
-                    setIsLoading(false)
-                    setBypassStatus("")
-                } else {
-                    const params = new URLSearchParams(window.location.search)
-                    const callbackUrl = params.get("callbackUrl")
-                    window.location.href = callbackUrl || "/admin"
+                    if (result?.error) {
+                        setError("Bypass login failed: " + result.error)
+                        setBypassStatus("")
+                        setIsLoading(false)
+                    } else {
+                        const params = new URLSearchParams(window.location.search)
+                        const callbackUrl = params.get("callbackUrl")
+                        window.location.href = callbackUrl || "/admin"
+                    }
                 }
-            } else {
-                setError(data.message || "Incorrect verification number chosen.")
-                setBypassStatus("")
-                setIsLoading(false)
+            } catch (err) {
+                console.error("Polling error:", err)
             }
-        } catch (err) {
-            setError("Bypass verification communication error.")
-            setBypassStatus("")
-            setIsLoading(false)
+        }, 2000)
+
+        return () => {
+            isMounted = false
+            clearInterval(interval)
         }
-    }
+    }, [correctOption, currentRequestId, email])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -210,7 +212,13 @@ export default function AdminLoginForm() {
                     {/* Card Border Glow */}
                     <div className="absolute -inset-0.5 bg-gradient-to-b from-[#E31E24]/20 to-transparent rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-700" />
                     
-                    <div className="relative bg-white/95 backdrop-blur-md border border-slate-100 p-4 sm:p-5 rounded-2xl shadow-2xl">
+                    <div className="relative bg-white/95 backdrop-blur-md border border-slate-100 p-4 sm:p-5 rounded-2xl shadow-2xl overflow-hidden">
+                        {isLoading && bypassStatus.includes("Logging you in") && (
+                            <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-3">
+                                <Loader2 className="w-10 h-10 text-[#E31E24] animate-spin" />
+                                <span className="text-xs font-bold text-slate-700 animate-pulse">{bypassStatus}</span>
+                            </div>
+                        )}
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {error && (
                                 <motion.div
@@ -232,7 +240,7 @@ export default function AdminLoginForm() {
                                         Too many failed attempts. Try again in <strong className="text-sm font-bold text-red-600">{formatTime(lockoutTimeLeft)}</strong>
                                     </p>
                                     
-                                    {!bypassOptions && (
+                                    {!correctOption && (
                                         <button
                                             type="button"
                                             disabled={isRequestingBypass}
@@ -251,19 +259,11 @@ export default function AdminLoginForm() {
                                 </div>
                             )}
 
-                            {bypassOptions && (
-                                <div className="grid grid-cols-3 gap-3 pt-1">
-                                    {bypassOptions.map(option => (
-                                        <button
-                                            key={option}
-                                            type="button"
-                                            disabled={isLoading}
-                                            onClick={() => handleVerifyBypass(option)}
-                                            className="py-3 bg-slate-50 border border-slate-200 hover:border-[#E31E24] text-slate-800 hover:text-[#E31E24] hover:bg-red-50/50 rounded-xl text-sm font-black transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                                        >
-                                            {option}
-                                        </button>
-                                    ))}
+                            {correctOption && (
+                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center gap-1.5 font-sans">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verify Security Code</span>
+                                    <strong className="text-4xl font-black text-[#E31E24] tracking-wide animate-pulse">{correctOption}</strong>
+                                    <p className="text-[10px] text-slate-400 text-center font-medium">Click this number in the verification email to unlock and log in.</p>
                                 </div>
                             )}
 
@@ -288,9 +288,21 @@ export default function AdminLoginForm() {
 
                             {/* Password */}
                             <div className="space-y-2">
-                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                                    Access Key
-                                </label>
+                                <div className="flex justify-between items-center">
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                                        Access Key
+                                    </label>
+                                    {lockoutTimeLeft === null && !correctOption && (
+                                        <button
+                                            type="button"
+                                            disabled={isRequestingBypass}
+                                            onClick={handleRequestBypass}
+                                            className="text-[11px] text-blue-600 hover:text-blue-800 underline font-bold uppercase tracking-wider disabled:opacity-50"
+                                        >
+                                            {isRequestingBypass ? "Sending Request..." : "Forgot Password?"}
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="relative mt-1.5">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input

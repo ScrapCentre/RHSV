@@ -65,7 +65,8 @@ export async function POST(req: Request) {
             password: hashedPassword,
             role: "rvsf",
             purchasedStates: [normalizedState],
-            purchasedLeads: []
+            purchasedLeads: [],
+            mustChangePassword: true,
         })
 
         return NextResponse.json({

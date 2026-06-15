@@ -47,12 +47,82 @@ export async function POST(req: Request) {
             state,
             pincode,
             registrationId,
-            originalUserId
+            originalUserId,
+            mustChangePassword: true
         })
 
         // If created successfully, and we have a registrationId, delete the original request
         if (registrationId) {
             await B2BRegistration.findByIdAndDelete(registrationId)
+        }
+
+        // Send Email with credentials
+        const RESEND_API_KEY = process.env.RESEND_API_KEY
+        if (RESEND_API_KEY && email) {
+            try {
+                const siteUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+                const emailHtml = `
+                    <!DOCTYPE html>
+                    <html>
+                    <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,sans-serif;">
+                      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+                        <tr><td align="center">
+                          <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-top:4px solid #E31E24;">
+                            <tr>
+                              <td style="background:#0E192D;padding:24px 40px;">
+                                <p style="margin:0;font-size:22px;font-weight:800;color:#ffffff;">
+                                  Scrap<span style="color:#E31E24;">Centre</span> Security
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:40px;">
+                                <h2 style="color:#0E192D;margin:0 0 16px;">B2B Partner Account Created</h2>
+                                <p style="color:#333;font-size:15px;line-height:1.6;margin-bottom:20px;">
+                                  Hello ${businessName},
+                                </p>
+                                <p style="color:#555;font-size:14px;line-height:1.6;margin-bottom:24px;">
+                                  A B2B Personal Partner account has been successfully provisioned for you.
+                                </p>
+                                <div style="background:#f9fafb;border:1px solid #e5e7eb;padding:20px;margin-bottom:24px;border-radius:8px;">
+                                    <p style="margin:0 0 8px;font-size:13px;color:#555;"><strong>Partner User ID:</strong> ${userId}</p>
+                                    <p style="margin:0 0 8px;font-size:13px;color:#555;"><strong>Email:</strong> ${email}</p>
+                                    <p style="margin:0 0 8px;font-size:13px;color:#555;"><strong>Password:</strong> <code style="font-family:monospace;font-size:14px;font-weight:bold;background:#fff;padding:2px 6px;border:1px solid #ddd;border-radius:4px;">${password}</code></p>
+                                    <p style="margin:0;font-size:13px;color:#555;"><strong>Login URL:</strong> <a href="${siteUrl}/login" style="color:#E31E24;text-decoration:none;font-weight:bold;">${siteUrl}/login</a></p>
+                                </div>
+                                <p style="color:#D32F2F;font-size:13px;line-height:1.6;margin-bottom:20px;font-weight:bold;">
+                                  Please log in and update your password immediately to secure your access.
+                                </p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="background:#f9fafb;padding:20px 40px;text-align:center;">
+                                <p style="margin:0;color:#aaa;font-size:12px;">© ${new Date().getFullYear()} ScrapCentre Security. All rights reserved.</p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td></tr>
+                      </table>
+                    </body>
+                    </html>
+                `
+
+                await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${RESEND_API_KEY}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        from: "ScrapCentre Security <noreply@scrapcentre.com>",
+                        to: [email.toLowerCase()],
+                        subject: "🔑 ScrapCentre B2B Partner Account Credentials",
+                        html: emailHtml,
+                    }),
+                })
+            } catch (err) {
+                console.error("Failed to send credentials email:", err)
+            }
         }
 
         return NextResponse.json(

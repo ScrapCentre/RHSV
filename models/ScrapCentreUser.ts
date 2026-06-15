@@ -6,6 +6,7 @@ export interface IScrapCentreUser extends Document {
     email: string
     password: string
     role: string
+    mustChangePassword?: boolean
     createdAt: Date
     updatedAt: Date
 }
@@ -16,7 +17,8 @@ const ScrapCentreUserSchema: Schema = new Schema(
         loginId: { type: String, required: true, unique: true, lowercase: true },
         email: { type: String, required: true, unique: true, lowercase: true },
         password: { type: String, required: true },
-        role: { type: String, default: "scrapcentre" }
+        role: { type: String, default: "scrapcentre" },
+        mustChangePassword: { type: Boolean, default: false }
     },
     { timestamps: true }
 )

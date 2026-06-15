@@ -5,17 +5,19 @@ import crypto from "crypto"
 
 export async function POST(req: NextRequest) {
     try {
-        const { email, selectedOption } = await req.json()
-        if (!email || !selectedOption) {
-            return NextResponse.json({ message: "Email and selected option are required" }, { status: 400 })
+        const { email, selectedOption, requestId } = await req.json()
+        if (!email || !selectedOption || !requestId) {
+            return NextResponse.json({ message: "Email, selected option, and request ID are required" }, { status: 400 })
         }
 
         const identifier = email.toLowerCase()
 
         await connectToDatabase()
 
-        // 1. Fetch challenge from RateLimit
-        const regex = new RegExp(`^admin-challenge:${identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}:`)
+        // 1. Fetch challenge from RateLimit matching the email and requestId
+        const escapedIdentifier = identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+        const escapedRequestId = requestId.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+        const regex = new RegExp(`^admin-challenge:${escapedIdentifier}:${escapedRequestId}:`)
         const challengeRecord = await RateLimit.findOne({ key: { $regex: regex } })
 
         if (!challengeRecord || challengeRecord.resetAt <= new Date()) {
@@ -23,26 +25,26 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Parse correct option from key
-        // Key format: admin-challenge:${email}:${correctOption}:${num1}-${num2}-${num3}
+        // Key format: admin-challenge:${email}:${requestId}:${correctOption}:${num1}-${num2}-${num3}
         const parts = challengeRecord.key.split(":")
-        const correctOption = parts[2]
+        const correctOption = parts[3]
 
         // 3. Verify
         if (selectedOption !== correctOption) {
-            return NextResponse.json({ success: false, message: "Incorrect number selected. Access remains locked." }, { status: 400 })
+            return NextResponse.json({ success: false, message: "Incorrect number selected. Please check the security code on the admin login page." }, { status: 400 })
         }
 
         // 4. Generate one-time bypass token
         const randomHex = crypto.randomBytes(16).toString("hex")
         const bypassToken = `BYPASS_TOKEN_${randomHex}`
 
-        const tokenKey = `admin-bypass-token:${identifier}:${bypassToken}`
+        const tokenKey = `admin-bypass-token:${identifier}:${requestId}:${bypassToken}`
 
-        // Save token to database (valid for 2 minutes)
+        // Save token to database (valid for 5 minutes to give admin enough time to complete redirection/polling)
         await RateLimit.create({
             key: tokenKey,
             count: 1,
-            resetAt: new Date(Date.now() + 2 * 60_000)
+            resetAt: new Date(Date.now() + 5 * 60_000)
         })
 
         // 5. Clean up lockout and challenge

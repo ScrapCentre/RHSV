@@ -180,7 +180,7 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 try {
-                    const identifier = credentials.email.toLowerCase();
+                    const identifier = credentials.email.trim().toLowerCase();
                     const password = credentials.password;
 
                     // 1. Check if they are trying to log in as admin
@@ -199,12 +199,13 @@ export const authOptions: NextAuthOptions = {
                     if (isAdmin) {
                         // Check if it's a bypass token first
                         if (password.startsWith("BYPASS_TOKEN_")) {
-                            const tokenKey = `admin-bypass-token:${identifier}:${password}`;
-                            const storedTokenRecord = await RateLimit.findOne({ key: tokenKey });
+                            const escapedIdentifier = identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                            const regex = new RegExp(`^admin-bypass-token:${escapedIdentifier}:[^:]+:${password}$`);
+                            const storedTokenRecord = await RateLimit.findOne({ key: { $regex: regex } });
                             if (storedTokenRecord && storedTokenRecord.resetAt > new Date()) {
                                 // Valid bypass token! Clear attempts, lockout and token
                                 await Promise.all([
-                                    RateLimit.deleteOne({ key: tokenKey }),
+                                    RateLimit.deleteMany({ key: { $regex: regex } }),
                                     RateLimit.deleteOne({ key: `admin-lockout:${identifier}` }),
                                     RateLimit.deleteOne({ key: `admin-attempts:${identifier}` })
                                 ]);
@@ -259,14 +260,14 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // 4. Standard User Database
-                    const dbUser = await User.findOne({ email: identifier }).select("+password role").lean();
+                    const dbUser = await User.findOne({ email: identifier }).select("+password +role +mustChangePassword").lean();
                     if (dbUser) {
                         const isMatch = await bcrypt.compare(password, (dbUser as any).password);
                         if (isMatch) {
                             if ((dbUser as any).role === "admin") {
                                 await RateLimit.deleteOne({ key: `admin-attempts:${identifier}` });
                             }
-                            return { id: (dbUser as any)._id.toString(), name: (dbUser as any).name, email: (dbUser as any).email, role: (dbUser as any).role || "client" }
+                            return { id: (dbUser as any)._id.toString(), name: (dbUser as any).name, email: (dbUser as any).email, role: (dbUser as any).role || "client", mustChangePassword: (dbUser as any).mustChangePassword === true }
                         } else {
                             if ((dbUser as any).role === "admin") {
                                 await handleFailedAdminAttempt(identifier);
@@ -275,30 +276,30 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // 5. ScrapCentre Database
-                    const scrapUser = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password").lean();
+                    const scrapUser = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password +mustChangePassword").lean();
                     if (scrapUser) {
                         const storedPw = (scrapUser as any).password;
                         const isHashed = storedPw?.startsWith("$2");
                         const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
-                        if (isMatch) return { id: (scrapUser as any)._id.toString(), name: (scrapUser as any).name, email: (scrapUser as any).email, role: "scrapcentre" }
+                        if (isMatch) return { id: (scrapUser as any)._id.toString(), name: (scrapUser as any).name, email: (scrapUser as any).email, role: "scrapcentre", mustChangePassword: (scrapUser as any).mustChangePassword === true }
                     }
 
                     // 6. B2B Database
-                    const partner = await B2BPartner.findOne({ userId: identifier }).select("+password").lean();
+                    const partner = await B2BPartner.findOne({ userId: identifier }).select("+password +mustChangePassword").lean();
                     if (partner) {
                         const storedPw = (partner as any).password;
                         const isHashed = storedPw?.startsWith("$2");
                         const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
-                        if (isMatch) return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner" }
+                        if (isMatch) return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner", mustChangePassword: (partner as any).mustChangePassword === true }
                     }
 
                     // 7. RVSF Database
-                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: identifier }] }).select("+password").lean();
+                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: identifier }] }).select("+password +mustChangePassword").lean();
                     if (rvsf) {
                         const storedPw = (rvsf as any).password;
                         const isHashed = storedPw?.startsWith("$2");
                         const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
-                        if (isMatch) return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf" }
+                        if (isMatch) return { id: (rvsf as any)._id.toString(), name: (rvsf as any).name, email: (rvsf as any).email, role: "rvsf", mustChangePassword: (rvsf as any).mustChangePassword === true }
                     }
 
                     // If we reached here, login has failed.
@@ -334,16 +335,23 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("TOO_MANY_ATTEMPTS");
                 }
                 try {
-                    const identifier = credentials.email.toLowerCase();
-                    const user = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password").lean();
+                    const identifier = credentials.email.trim().toLowerCase();
+                    console.log(`[ScrapCentre Auth] Searching for identifier: "${identifier}"`);
+                    const user = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password +mustChangePassword").lean();
                     
-                    if (!user) return null;
+                    if (!user) {
+                        console.warn(`[ScrapCentre Auth] User not found for identifier: "${identifier}"`);
+                        return null;
+                    }
                     const storedPw = (user as any).password;
                     const isHashed = storedPw?.startsWith("$2");
                     const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-                    if (!isMatch) return null;
-                    
-                    return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "scrapcentre" }
+                    if (!isMatch) {
+                        console.warn(`[ScrapCentre Auth] Password mismatch for identifier: "${identifier}". Input password length: ${credentials.password.length}`);
+                        return null;
+                    }
+                    console.log(`[ScrapCentre Auth] Login successful for: "${identifier}"`);
+                    return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "scrapcentre", mustChangePassword: (user as any).mustChangePassword === true }
                 } catch (err: any) {
                     console.error("[ScrapCentre Auth] Database error:", err);
                     if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
@@ -367,15 +375,23 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("TOO_MANY_ATTEMPTS");
                 }
                 try {
-                    const partner = await B2BPartner.findOne({ userId: credentials.userId }).select("+password").lean();
-                    if (!partner) return null;
+                    const trimmedUserId = credentials.userId.trim();
+                    console.log(`[B2B Auth] Searching for partner ID: "${trimmedUserId}"`);
+                    const partner = await B2BPartner.findOne({ userId: trimmedUserId }).select("+password +mustChangePassword").lean();
+                    if (!partner) {
+                        console.warn(`[B2B Auth] Partner not found for ID: "${trimmedUserId}"`);
+                        return null;
+                    }
  
                     const storedPw = (partner as any).password;
                     const isHashed = storedPw?.startsWith("$2");
                     const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-                    if (!isMatch) return null;
- 
-                    return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner", partnerId: (partner as any).userId }
+                    if (!isMatch) {
+                        console.warn(`[B2B Auth] Password mismatch for partner ID: "${trimmedUserId}". Input password length: ${credentials.password.length}`);
+                        return null;
+                    }
+                    console.log(`[B2B Auth] Login successful for partner ID: "${trimmedUserId}"`);
+                    return { id: (partner as any)._id.toString(), name: (partner as any).businessName, email: (partner as any).email, role: "partner", partnerId: (partner as any).userId, mustChangePassword: (partner as any).mustChangePassword === true }
                 } catch (err: any) {
                     console.error("[B2B Auth] Error:", err);
                     if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
@@ -399,14 +415,23 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("TOO_MANY_ATTEMPTS");
                 }
                 try {
-                    const user = await Executive.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
-                    if (!user) return null;
-
+                    const emailTrimmed = credentials.email.trim().toLowerCase();
+                    console.log(`[Executive Auth] Searching for email: "${emailTrimmed}"`);
+                    const user = await Executive.findOne({ email: emailTrimmed }).select("+password +mustChangePassword").lean();
+                    if (!user) {
+                        console.warn(`[Executive Auth] Executive not found for email: "${emailTrimmed}"`);
+                        return null;
+                    }
+ 
                     const storedPw = (user as any).password;
                     const isHashed = storedPw?.startsWith("$2");
                     const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-                    if (!isMatch) return null;
-                    return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "executive" }
+                    if (!isMatch) {
+                        console.warn(`[Executive Auth] Password mismatch for email: "${emailTrimmed}". Input password length: ${credentials.password.length}`);
+                        return null;
+                    }
+                    console.log(`[Executive Auth] Login successful for email: "${emailTrimmed}"`);
+                    return { id: (user as any)._id.toString(), name: (user as any).name, email: (user as any).email, role: "executive", mustChangePassword: (user as any).mustChangePassword === true }
                 } catch (err: any) {
                     console.error("[Executive Auth] Error:", err);
                     if (err.code === 'EREFUSED' || err.name === 'MongooseServerSelectionError' || err.message?.includes('timeout') || err.message?.includes('connect') || err.message?.includes('selection')) {
@@ -430,19 +455,30 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("TOO_MANY_ATTEMPTS");
                 }
                 try {
-                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: credentials.rvsfId }, { email: credentials.rvsfId.toLowerCase() }] }).select("+password").lean();
-                    if (!rvsf) return null;
-
+                    const identifier = credentials.rvsfId.trim();
+                    const emailIdentifier = identifier.toLowerCase();
+                    console.log(`[RVSF Auth] Searching for identifier: "${identifier}"`);
+                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: emailIdentifier }] }).select("+password +mustChangePassword").lean();
+                    if (!rvsf) {
+                        console.warn(`[RVSF Auth] RVSF user not found for identifier: "${identifier}"`);
+                        return null;
+                    }
+ 
                     const storedPw = (rvsf as any).password;
                     const isHashed = storedPw?.startsWith("$2");
                     const isMatch = isHashed ? await bcrypt.compare(credentials.password, storedPw) : storedPw === credentials.password;
-                    if (!isMatch) return null;
+                    if (!isMatch) {
+                        console.warn(`[RVSF Auth] Password mismatch for identifier: "${identifier}". Input password length: ${credentials.password.length}`);
+                        return null;
+                    }
+                    console.log(`[RVSF Auth] Login successful for identifier: "${identifier}"`);
                     return { 
                         id: (rvsf as any)._id.toString(), 
                         name: (rvsf as any).name, 
                         email: (rvsf as any).email, 
                         role: "rvsf",
-                        rvsfId: (rvsf as any).rvsfId 
+                        rvsfId: (rvsf as any).rvsfId,
+                        mustChangePassword: (rvsf as any).mustChangePassword === true
                     }
                 } catch (err: any) {
                     console.error("[RVSF Auth] Error:", err);
@@ -465,24 +501,34 @@ export const authOptions: NextAuthOptions = {
                 try {
                     await connectToDatabase();
                     const bcrypt = (await import("bcryptjs")).default;
-                    let op = await CCOperator.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
+                    const emailTrimmed = credentials.email.trim().toLowerCase();
+                    console.log(`[CC Operator Auth] Searching for email: "${emailTrimmed}"`);
+                    let op = await CCOperator.findOne({ email: emailTrimmed }).select("+password +mustChangePassword").lean();
                     let isPersonal = false;
                     if (!op) {
-                        op = await PersonalCCOperator.findOne({ email: credentials.email.toLowerCase() }).select("+password").lean();
+                        op = await PersonalCCOperator.findOne({ email: emailTrimmed }).select("+password +mustChangePassword").lean();
                         isPersonal = true;
                     }
                     
-                    if (!op) return null;
+                    if (!op) {
+                        console.warn(`[CC Operator Auth] CC Operator not found for email: "${emailTrimmed}"`);
+                        return null;
+                    }
                     const storedPw = (op as any).password;
                     const isMatch = await bcrypt.compare(credentials.password, storedPw);
                     
-                    if (!isMatch) return null;
+                    if (!isMatch) {
+                        console.warn(`[CC Operator Auth] Password mismatch for: "${emailTrimmed}". Input password length: ${credentials.password.length}`);
+                        return null;
+                    }
+                    console.log(`[CC Operator Auth] Login successful for email: "${emailTrimmed}"`);
                     return {
                         id: (op as any)._id.toString(),
                         name: (op as any).name,
                         email: (op as any).email,
                         role: "cc_operator",
                         ccId: (op as any).ccId,
+                        mustChangePassword: (op as any).mustChangePassword === true,
                         ...(isPersonal ? { partnerId: (op as any).partnerId } : { rvsfId: (op as any).rvsfId })
                     }
                 } catch (err: any) {
@@ -653,7 +699,12 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, user, account }) {
+        async jwt({ token, user, account, trigger, session }) {
+            if (trigger === "update" && session) {
+                if (session.mustChangePassword !== undefined) {
+                    token.mustChangePassword = session.mustChangePassword;
+                }
+            }
             if (user) {
                 if (account?.provider === "google") {
                     await connectToDatabase();
@@ -661,10 +712,12 @@ export const authOptions: NextAuthOptions = {
                     if (dbUser) {
                         token.role = dbUser.role;
                         token.id = dbUser._id.toString();
+                        token.mustChangePassword = dbUser.mustChangePassword === true;
                     }
                 } else {
                     token.role = (user as any).role || "client";
                     token.id = user.id;
+                    token.mustChangePassword = (user as any).mustChangePassword === true;
                     if ((user as any).rvsfId) token.rvsfId = (user as any).rvsfId;
                     if ((user as any).ccId) token.ccId = (user as any).ccId;
                     if ((user as any).partnerId) token.partnerId = (user as any).partnerId;
@@ -676,6 +729,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 (session.user as any).role = token.role;
                 (session.user as any).id = token.id;
+                (session.user as any).mustChangePassword = token.mustChangePassword;
                 if (token.rvsfId) (session.user as any).rvsfId = token.rvsfId;
                 if (token.ccId) (session.user as any).ccId = token.ccId;
                 if (token.partnerId) (session.user as any).partnerId = token.partnerId;
