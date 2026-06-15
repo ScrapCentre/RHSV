@@ -49,6 +49,19 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
         setMounted(true)
     }, [])
 
+    useEffect(() => {
+        if (mounted && requests.length > 0) {
+            const params = new URLSearchParams(window.location.search)
+            const leadId = params.get("leadId")
+            if (leadId) {
+                const matched = requests.find(r => r._id === leadId)
+                if (matched) {
+                    setSelectedRequest(matched)
+                }
+            }
+        }
+    }, [mounted, requests])
+
     const handleEkycClick = (e: React.MouseEvent, req: any) => {
         e.stopPropagation()
         // Pre-fill and prep localStorage for eKYC wizard

@@ -750,32 +750,6 @@ export default function ValuationWizardCard() {
         setIsFetching(true)
         const startTime = Date.now();
         try {
-            // Demo Fallback for local testing / presentation
-            if (formData.regNo.includes("1234") || formData.regNo.includes("TEST")) {
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
-                setFormData(prev => ({
-                    ...prev,
-                    brand: "Maruti Suzuki",
-                    model: "Swift VXI",
-                    year: "2018",
-                    weight: "1250",
-                    fuel: "Petrol"
-                }))
-                toast({
-                    title: "Vehicle Found",
-                    description: "Details fetched successfully for " + formData.regNo
-                })
-                
-                // Enforce minimum 2-second delay for the loading animation
-                const elapsed = Date.now() - startTime;
-                if (elapsed < 2000) {
-                    await new Promise(resolve => setTimeout(resolve, 2000 - elapsed));
-                }
-
-                nextStep()
-                return
-            }
-
             const response = await fetch('/api/vehicle-lookup', {
                 method: 'POST',
                 headers: {
