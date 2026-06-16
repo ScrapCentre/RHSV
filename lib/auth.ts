@@ -233,7 +233,8 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // 3. Env Fallback (Admin)
-                    const envAdminPassword = process.env.ADMIN_PASSWORD;
+                    const rawEnvAdminPassword = process.env.ADMIN_PASSWORD;
+                    const envAdminPassword = rawEnvAdminPassword ? rawEnvAdminPassword.replace(/\\/g, '') : undefined;
                     
                     if (envAdminEmail && envAdminPassword && 
                         identifier === envAdminEmail.toLowerCase()) {
