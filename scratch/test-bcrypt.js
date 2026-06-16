@@ -1,11 +1,9 @@
 const bcrypt = require("bcryptjs");
-const hash = "$2b$10$1aDlzbb6w1aLfAHOuJwVTuxYYoKJQpXDu/S.VvxDZk.NM71R8ysDe";
-const input = "dspn8p2149";
 
-async function run() {
-    const res = await bcrypt.compare(input, hash);
-    console.log("Input:", input);
-    console.log("Hash:", hash);
-    console.log("Direct compare result:", res);
+async function check() {
+    const pw = "scrapcentre@789";
+    const hash = "$2b$10$.jHNuz3XurA5ZfG/ZZPavuuqiFpHi21dgTQcis4dMzCqCCw1vfRoy";
+    const result = await bcrypt.compare(pw, hash);
+    console.log("Password matches hash:", result);
 }
-run();
+check();
