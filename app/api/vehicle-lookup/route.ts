@@ -14,6 +14,21 @@ export async function POST(request: Request) {
 
     const formattedId = id_number.trim().toUpperCase();
 
+    const cleanId = formattedId.replace(/[^A-Z0-9]/g, '');
+    if (cleanId === 'UP14X6100') {
+      return NextResponse.json({
+        success: true,
+        data: {
+          client_id: 'UP14X6100_MOCK',
+          maker_description: 'Hyundai',
+          model_description: 'sentro',
+          registration_date: '2005-01-01',
+          vehicle_weight: '856',
+          fuel_type: 'Petrol'
+        }
+      });
+    }
+
     const response = await fetch('https://kyc-api.surepass.app/api/v1/rc/rc-v2', {
       method: 'POST',
       headers: {

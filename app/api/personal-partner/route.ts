@@ -18,6 +18,8 @@ export async function POST(req: Request) {
 
         const { userId, password, businessName, contactNumber, email, address, city, state, pincode, registrationId, originalUserId } = body
 
+        const cleanRegistrationId = registrationId && registrationId.trim() !== "" ? registrationId : undefined
+
         // Basic validation
         if (!userId || !password || !businessName) {
             return NextResponse.json(
@@ -46,14 +48,14 @@ export async function POST(req: Request) {
             city,
             state,
             pincode,
-            registrationId,
+            registrationId: cleanRegistrationId,
             originalUserId,
             mustChangePassword: true
         })
 
         // If created successfully, and we have a registrationId, delete the original request
-        if (registrationId) {
-            await B2BRegistration.findByIdAndDelete(registrationId)
+        if (cleanRegistrationId) {
+            await B2BRegistration.findByIdAndDelete(cleanRegistrationId)
         }
 
         // Send Email with credentials
@@ -88,7 +90,7 @@ export async function POST(req: Request) {
                                     <p style="margin:0 0 8px;font-size:13px;color:#555;"><strong>Partner User ID:</strong> ${userId}</p>
                                     <p style="margin:0 0 8px;font-size:13px;color:#555;"><strong>Email:</strong> ${email}</p>
                                     <p style="margin:0 0 8px;font-size:13px;color:#555;"><strong>Password:</strong> <code style="font-family:monospace;font-size:14px;font-weight:bold;background:#fff;padding:2px 6px;border:1px solid #ddd;border-radius:4px;">${password}</code></p>
-                                    <p style="margin:0;font-size:13px;color:#555;"><strong>Login URL:</strong> <a href="${siteUrl}/login" style="color:#E31E24;text-decoration:none;font-weight:bold;">${siteUrl}/login</a></p>
+                                    <p style="margin:0;font-size:13px;color:#555;"><strong>Login URL:</strong> <a href="${siteUrl}/personal" style="color:#E31E24;text-decoration:none;font-weight:bold;">${siteUrl}/personal</a></p>
                                 </div>
                                 <p style="color:#D32F2F;font-size:13px;line-height:1.6;margin-bottom:20px;font-weight:bold;">
                                   Please log in and update your password immediately to secure your access.

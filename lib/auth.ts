@@ -275,8 +275,11 @@ export const authOptions: NextAuthOptions = {
                         }
                     }
 
+                    const escapedIdentifier = identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    const caseInsensitiveQuery = { $regex: new RegExp("^" + escapedIdentifier + "$", "i") };
+
                     // 5. ScrapCentre Database
-                    const scrapUser = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password +mustChangePassword").lean();
+                    const scrapUser = await ScrapCentreUser.findOne({ $or: [{ email: caseInsensitiveQuery }, { loginId: caseInsensitiveQuery }] }).select("+password +mustChangePassword").lean();
                     if (scrapUser) {
                         const storedPw = (scrapUser as any).password;
                         const isHashed = storedPw?.startsWith("$2");
@@ -285,7 +288,7 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // 6. B2B Database
-                    const partner = await B2BPartner.findOne({ userId: identifier }).select("+password +mustChangePassword").lean();
+                    const partner = await B2BPartner.findOne({ $or: [{ userId: caseInsensitiveQuery }, { email: caseInsensitiveQuery }] }).select("+password +mustChangePassword").lean();
                     if (partner) {
                         const storedPw = (partner as any).password;
                         const isHashed = storedPw?.startsWith("$2");
@@ -294,7 +297,7 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // 7. RVSF Database
-                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: identifier }] }).select("+password +mustChangePassword").lean();
+                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: caseInsensitiveQuery }, { email: caseInsensitiveQuery }] }).select("+password +mustChangePassword").lean();
                     if (rvsf) {
                         const storedPw = (rvsf as any).password;
                         const isHashed = storedPw?.startsWith("$2");
@@ -336,8 +339,10 @@ export const authOptions: NextAuthOptions = {
                 }
                 try {
                     const identifier = credentials.email.trim().toLowerCase();
+                    const escapedIdentifier = identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    const caseInsensitiveQuery = { $regex: new RegExp("^" + escapedIdentifier + "$", "i") };
                     console.log(`[ScrapCentre Auth] Searching for identifier: "${identifier}"`);
-                    const user = await ScrapCentreUser.findOne({ $or: [{ email: identifier }, { loginId: identifier }] }).select("+password +mustChangePassword").lean();
+                    const user = await ScrapCentreUser.findOne({ $or: [{ email: caseInsensitiveQuery }, { loginId: caseInsensitiveQuery }] }).select("+password +mustChangePassword").lean();
                     
                     if (!user) {
                         console.warn(`[ScrapCentre Auth] User not found for identifier: "${identifier}"`);
@@ -376,10 +381,11 @@ export const authOptions: NextAuthOptions = {
                 }
                 try {
                     const trimmedUserId = credentials.userId.trim();
+                    const escapedUserId = trimmedUserId.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     console.log(`[B2B Auth] Searching for partner ID: "${trimmedUserId}"`);
-                    const partner = await B2BPartner.findOne({ userId: trimmedUserId }).select("+password +mustChangePassword").lean();
+                    const partner = await B2BPartner.findOne({ $or: [{ userId: { $regex: new RegExp("^" + escapedUserId + "$", "i") } }, { email: { $regex: new RegExp("^" + escapedUserId + "$", "i") } }] }).select("+password +mustChangePassword").lean();
                     if (!partner) {
-                        console.warn(`[B2B Auth] Partner not found for ID: "${trimmedUserId}"`);
+                        console.warn(`[B2B Auth] Partner not found for ID/Email: "${trimmedUserId}"`);
                         return null;
                     }
  
@@ -457,8 +463,10 @@ export const authOptions: NextAuthOptions = {
                 try {
                     const identifier = credentials.rvsfId.trim();
                     const emailIdentifier = identifier.toLowerCase();
+                    const escapedIdentifier = identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    const caseInsensitiveQuery = { $regex: new RegExp("^" + escapedIdentifier + "$", "i") };
                     console.log(`[RVSF Auth] Searching for identifier: "${identifier}"`);
-                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: identifier }, { email: emailIdentifier }] }).select("+password +mustChangePassword").lean();
+                    const rvsf = await RVSFUser.findOne({ $or: [{ rvsfId: caseInsensitiveQuery }, { email: caseInsensitiveQuery }] }).select("+password +mustChangePassword").lean();
                     if (!rvsf) {
                         console.warn(`[RVSF Auth] RVSF user not found for identifier: "${identifier}"`);
                         return null;
