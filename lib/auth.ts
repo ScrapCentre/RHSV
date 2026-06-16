@@ -236,19 +236,24 @@ export const authOptions: NextAuthOptions = {
                     const rawEnvAdminPassword = process.env.ADMIN_PASSWORD;
                     const envAdminPassword = rawEnvAdminPassword ? rawEnvAdminPassword.replace(/\\/g, '') : undefined;
                     
+                    console.log("[Auth] Admin check - envAdminEmail:", envAdminEmail, "identifier:", identifier, "hasEnvPassword:", !!envAdminPassword, "isHashed:", envAdminPassword?.startsWith("$2"));
+                    
                     if (envAdminEmail && envAdminPassword && 
                         identifier === envAdminEmail.toLowerCase()) {
                         const isHashed = envAdminPassword.startsWith("$2a$") || 
                                          envAdminPassword.startsWith("$2b$") || 
                                          envAdminPassword.startsWith("$2y$");
                         
-                        const isMatch = isHashed 
-                            ? await bcrypt.compare(password, envAdminPassword)
-                            : await bcrypt.compare(password, await bcrypt.hash(envAdminPassword, 10));
-
-                        if (!isHashed && process.env.NODE_ENV !== "production") {
-                            console.warn("[Auth] WARNING: ADMIN_PASSWORD is set as plaintext in your environment. Please use a bcrypt hash instead for production security.");
+                        let isMatch = false;
+                        if (isHashed) {
+                            isMatch = await bcrypt.compare(password, envAdminPassword);
+                        } else {
+                            // Direct plaintext comparison
+                            isMatch = password === envAdminPassword;
+                            console.warn("[Auth] WARNING: ADMIN_PASSWORD is plaintext. Use a bcrypt hash for production security.");
                         }
+                        
+                        console.log("[Auth] Admin password check result - isHashed:", isHashed, "isMatch:", isMatch);
 
                         if (isMatch) {
                             console.log("[Auth] Env Admin Match");
