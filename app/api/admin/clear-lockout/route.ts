@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/dbConnect";
+import connectToDatabase from "@/lib/db";
 import RateLimit from "@/models/RateLimit";
 
 // One-time endpoint to clear admin lockout from the database.
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
     }
 
     try {
-        await dbConnect();
+        await connectToDatabase();
         
         // Clear all admin lockout and attempt records
         const result = await RateLimit.deleteMany({
