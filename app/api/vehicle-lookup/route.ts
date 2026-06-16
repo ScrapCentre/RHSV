@@ -29,11 +29,13 @@ export async function POST(request: Request) {
       });
     }
 
+    const token = process.env.SUREPASS_API_TOKEN || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDM4NjYyMywianRpIjoiNWU0NTBhNjEtYzkzZS00NzRlLWFkNjItMWE4MmFmYjBjMzdiIiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2Lm1lZGljYWxAc3VyZXBhc3MuaW8iLCJuYmYiOjE3MTQzODY2MjMsImV4cCI6MjM0NTEwNjYyMywiZW1haWwiOiJtZWRpY2FsQHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.kXFo-Y5dcl5R7mQouTuaP5289-W3lMQgqb-2oLmWhis';
+
     const response = await fetch('https://kyc-api.surepass.app/api/v1/rc/rc-v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.SUREPASS_API_TOKEN}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         id_number: formattedId,
