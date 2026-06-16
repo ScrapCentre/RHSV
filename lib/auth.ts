@@ -17,6 +17,19 @@ import PersonalCCOperator from "@/models/PersonalCCOperator"
 
 import { adminAuth } from "@/lib/firebase-admin"
 
+async function isAdminEmailOrUser(identifier: string): Promise<boolean> {
+    const envAdminEmail = process.env.ADMIN_EMAIL;
+    if (envAdminEmail && identifier.toLowerCase() === envAdminEmail.toLowerCase()) {
+        return true;
+    }
+    try {
+        const user = await User.findOne({ email: identifier.toLowerCase() }).select("role").lean();
+        return user?.role === "admin";
+    } catch {
+        return false;
+    }
+}
+
 /**
  * Check login rate limit: 10 attempts per identifier per 15 minutes.
  * Returns true if blocked, false if allowed.
@@ -24,6 +37,10 @@ import { adminAuth } from "@/lib/firebase-admin"
  */
 async function isLoginRateLimited(identifier: string): Promise<boolean> {
     try {
+        // Exempt admin from rate limits entirely
+        if (await isAdminEmailOrUser(identifier)) {
+            return false;
+        }
         const key = `login:${identifier.toLowerCase()}`
         const windowMs = 15 * 60_000 // 15 minutes
         const max = 10
@@ -126,6 +143,10 @@ async function sendAdminLockoutEmail(adminEmail: string) {
 }
 
 async function handleFailedAdminAttempt(identifier: string) {
+    // Exclude admin from lockouts entirely
+    if (await isAdminEmailOrUser(identifier)) {
+        return;
+    }
     const attemptsKey = `admin-attempts:${identifier}`;
     const lockoutKey = `admin-lockout:${identifier}`;
     const now = new Date();
@@ -196,7 +217,7 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // 2. Lockout Check for Admin (or bypass token verify)
-                    if (isAdmin) {
+                    if (isAdmin && !(await isAdminEmailOrUser(identifier))) {
                         // Check if it's a bypass token first
                         if (password.startsWith("BYPASS_TOKEN_")) {
                             const escapedIdentifier = identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -268,7 +289,9 @@ export const authOptions: NextAuthOptions = {
                     // 4. Standard User Database
                     const dbUser = await User.findOne({ email: identifier }).select("+password +role +mustChangePassword").lean();
                     if (dbUser) {
-                        const isMatch = await bcrypt.compare(password, (dbUser as any).password);
+                        const storedPw = (dbUser as any).password;
+                        const isHashed = storedPw?.startsWith("$2");
+                        const isMatch = isHashed ? await bcrypt.compare(password, storedPw) : storedPw === password;
                         if (isMatch) {
                             if ((dbUser as any).role === "admin") {
                                 await RateLimit.deleteOne({ key: `admin-attempts:${identifier}` });
