@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
+import { lookupVehicle } from "@/app/actions"
+
 
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -158,13 +160,8 @@ export default function HomexHero() {
                     fuel: "Petrol"
                 };
             } else {
-                const response = await fetch('/api/vehicle-lookup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_number: vehicleNumber }),
-                });
-                const rawData = await response.json();
-                if (!response.ok) throw new Error(rawData.error || 'Failed to fetch vehicle details');
+                const rawData = await lookupVehicle(vehicleNumber);
+                if (rawData.error) throw new Error(rawData.error);
                 const data = rawData?.data?.client_id ? rawData.data : rawData;
                 vehicleInfo = {
                     regNo: vehicleNumber,

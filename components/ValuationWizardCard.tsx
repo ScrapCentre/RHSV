@@ -15,6 +15,8 @@ import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "fi
 import { signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import confetti from "canvas-confetti"
+import { lookupVehicle } from "@/app/actions"
+
 
 import { indiaData, states as STATES } from "@/lib/india-data"
 
@@ -750,23 +752,9 @@ export default function ValuationWizardCard() {
         setIsFetching(true)
         const startTime = Date.now();
         try {
-            const response = await fetch('/api/vehicle-lookup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id_number: formData.regNo }),
-            });
-
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                throw new Error(`Vehicle lookup returned non-JSON response (status ${response.status})`);
-            }
-
-            const rawData = await response.json();
-
-            if (!response.ok) {
-                throw new Error(rawData.error || 'Failed to fetch vehicle details');
+            const rawData = await lookupVehicle(formData.regNo);
+            if (rawData.error) {
+                throw new Error(rawData.error);
             }
 
             const data = rawData?.data?.client_id ? rawData.data : rawData;
