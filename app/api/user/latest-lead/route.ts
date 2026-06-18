@@ -100,6 +100,18 @@ export async function GET(req: NextRequest) {
     const activeChat = chatThread || personalChatThread;
     const chatThreadId = activeChat ? (activeChat as any)._id.toString() : null;
 
+    let latestChatMessage = null;
+    if (activeChat && activeChat.messages && activeChat.messages.length > 0) {
+      // Get the last message in chronological order
+      const sortedMessages = [...activeChat.messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      const lastMsg = sortedMessages[sortedMessages.length - 1];
+      latestChatMessage = {
+        message: lastMsg.message,
+        sender: lastMsg.sender,
+        createdAt: lastMsg.createdAt
+      };
+    }
+
     return NextResponse.json({
       authenticated: true,
       lead: {
@@ -110,7 +122,9 @@ export async function GET(req: NextRequest) {
         model: latestLead.model,
         regNo: latestLead.regNo,
         createdAt: latestLead.createdAt,
-        chatThreadId
+        chatThreadId,
+        latestChatMessage,
+        ekycStatus: latestLead.ekycStatus || 'pending'
       }
     }, { status: 200 });
 

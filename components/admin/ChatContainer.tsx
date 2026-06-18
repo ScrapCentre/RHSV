@@ -235,7 +235,7 @@ export default function ChatContainer({ role, threadId, disableNegotiation = fal
         <div
             className="flex flex-col overflow-hidden relative"
             style={{
-                height: "clamp(480px, 72vh, 700px)",
+                height: "clamp(400px, 62vh, 560px)",
                 background: "#ffffff",
                 border: "1.5px solid #fecaca",
                 borderRadius: "20px",

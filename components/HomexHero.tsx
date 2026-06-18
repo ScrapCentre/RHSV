@@ -1,13 +1,14 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { ChevronRight, Star, ShieldCheck, Zap, Award, Smartphone, Car, ArrowRight, Percent, FileCheck, MessageSquare } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { ChevronRight, Star, ShieldCheck, Zap, Award, Smartphone, Car, ArrowRight, Percent, FileCheck, MessageSquare, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { lookupVehicle } from "@/app/actions"
+import ChatContainer from "@/components/admin/ChatContainer"
 
 
 
@@ -102,7 +103,19 @@ export default function HomexHero() {
     const [latestLead, setLatestLead] = useState<any>(null)
     const [loadingLead, setLoadingLead] = useState(true)
     const [showLeadCard, setShowLeadCard] = useState(true)
+    const [showChatModal, setShowChatModal] = useState(false)
     const isLeadVisible = !!(status === "authenticated" && latestLead && showLeadCard)
+
+    useEffect(() => {
+        if (showChatModal) {
+            document.body.style.overflow = "hidden"
+        } else {
+            document.body.style.overflow = "unset"
+        }
+        return () => {
+            document.body.style.overflow = "unset"
+        }
+    }, [showChatModal])
 
     const fetchLatestLead = async () => {
         try {
@@ -297,88 +310,157 @@ export default function HomexHero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.6 }}
-                            className={`${plusJakartaSans.className} w-full max-w-[26rem] px-2 sm:px-0`}
+                            className={`${plusJakartaSans.className} w-full ${latestLead.chatThreadId ? "max-w-3xl" : "max-w-[26rem]"} px-2 sm:px-0`}
                         >
-                            <div className="bg-white/95 p-2.5 sm:p-3 rounded-xl border border-[#E31E24]/20 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:border-[#E31E24]/40 hover:shadow-[0_15px_40px_rgba(227,30,36,0.08)] transition-all duration-300 space-y-2 text-left relative overflow-hidden">
+                            <div className="bg-white/95 rounded-2xl border border-[#E31E24]/20 shadow-[0_15px_45px_rgba(0,0,0,0.06)] hover:border-[#E31E24]/40 hover:shadow-[0_20px_50px_rgba(227,30,36,0.08)] transition-all duration-300 relative overflow-hidden p-2.5 sm:p-3.5">
                                 {/* Decorative subtle background gradient */}
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-[#E31E24]/5 rounded-full blur-2xl pointer-events-none" />
-
-                                <div className="flex items-center justify-between gap-2">
-                                    <span className="text-[8px] font-black text-[#E31E24] uppercase tracking-widest bg-red-50 px-1.5 py-0.5 rounded border border-red-100/50">
-                                        Latest Lead Status
-                                    </span>
-                                    <div className="shrink-0">
-                                        {getStatusBadge(latestLead.status)}
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                    <Car className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                                    <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm">
-                                        {latestLead.brand || latestLead.model ? `${latestLead.brand} ${latestLead.model}` : "Vehicle Request"}
-                                    </h3>
-                                    {latestLead.regNo && (
-                                        <span className="text-[8px] sm:text-[9px] text-slate-400 font-mono tracking-wider uppercase bg-slate-50 border border-slate-100 rounded px-1.5 py-0.5">
-                                            {latestLead.regNo}
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* Message: Know the exact value of your vehicle */}
-                                <div className="py-1 px-2 bg-red-50/40 rounded border border-red-100/25">
-                                    <p className="text-[9px] sm:text-[10px] text-slate-600 font-semibold flex items-center gap-1">
-                                        <span className="w-1 h-1 rounded-full bg-[#E31E24] animate-ping shrink-0" />
-                                        Know the exact value of your vehicle.
-                                    </p>
-                                </div>
-
-                                {/* Chat Widget if Chat is available */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-[#E31E24]/5 rounded-full blur-3xl pointer-events-none" />
                                 {latestLead.chatThreadId && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/20 flex flex-col gap-1.5"
-                                    >
-                                        <div className="flex items-center gap-1.5 text-emerald-700">
-                                            <MessageSquare className="w-3 h-3 text-emerald-600 animate-pulse" />
-                                            <span className="text-[9px] font-black uppercase tracking-wider">Negotiation Chat Live</span>
-                                        </div>
-                                        <p className="text-[9px] text-slate-500 font-medium">
-                                            An RVSF partner has initialized negotiation. Chat to finalize.
-                                        </p>
-                                        <Link
-                                            href={`/profile/chat/${latestLead.chatThreadId}`}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] py-1 rounded-md transition-all flex items-center justify-center gap-1 shadow-sm active:scale-[0.98] text-center"
-                                        >
-                                            <MessageSquare className="w-2.5 h-2.5" /> Start Chat
-                                        </Link>
-                                    </motion.div>
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
                                 )}
 
-                                {/* Actions Bar */}
-                                <div className="flex gap-2 pt-0.5">
-                                    <Link
-                                        href={`/profile?leadId=${latestLead.id}`}
-                                        className="c-button--gooey flex-1 bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[10px] sm:text-[11px] py-1.5 rounded-lg text-center flex items-center justify-center gap-1 transition-all active:scale-[0.98] shadow-sm relative overflow-hidden"
-                                        style={{ filter: 'none' }}
-                                    >
-                                        <span className="relative z-10 flex items-center justify-center gap-1">
-                                            Check Lead Status <ChevronRight className="w-3 h-3" />
-                                        </span>
-                                        <div className="c-button__blobs" style={{ filter: 'url(#goo-hero)' }}>
-                                            <div />
-                                            <div />
-                                            <div />
+                                <div className="flex flex-col md:flex-row items-stretch gap-4 md:gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100/90">
+                                    {/* Left Side: Lead Details */}
+                                    <div className="flex-[1.1] flex flex-col justify-between space-y-3 pb-3 md:pb-0">
+                                        <div className="space-y-2.5">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="text-[8px] sm:text-[9px] font-black text-[#E31E24] uppercase tracking-widest bg-red-50 px-2 py-0.5 rounded border border-red-100/50">
+                                                    Latest Lead Status
+                                                </span>
+                                                <div className="shrink-0">
+                                                    {getStatusBadge(latestLead.status)}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <Car className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                                                <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm">
+                                                    {latestLead.brand || latestLead.model ? `${latestLead.brand} ${latestLead.model}` : "Vehicle Request"}
+                                                </h3>
+                                                {latestLead.regNo && (
+                                                    <span className="text-[8px] sm:text-[9px] text-slate-400 font-mono tracking-wider uppercase bg-slate-50 border border-slate-100 rounded px-1.5 py-0.5">
+                                                        {latestLead.regNo}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Message: Know the exact value of your vehicle */}
+                                            <div className="py-1.5 px-2.5 bg-red-50/40 rounded-lg border border-red-100/25">
+                                                <p className="text-[9px] sm:text-[10px] text-slate-600 font-semibold flex items-center gap-1.5">
+                                                    <span className="w-1 h-1 rounded-full bg-[#E31E24] animate-ping shrink-0" />
+                                                    Know the exact value of your vehicle.
+                                                </p>
+                                            </div>
                                         </div>
-                                    </Link>
-                                    
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowLeadCard(false)}
-                                        className="px-2.5 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg text-[9px] sm:text-[10px] font-bold py-1.5 transition-all active:scale-[0.98]"
-                                    >
-                                        Check New Vehicle
-                                    </button>
+
+                                        {/* Actions Bar */}
+                                        <div className="flex gap-2 pt-0.5">
+                                            {latestLead.ekycStatus === 'verified' ? (
+                                                <Link
+                                                    href={`/profile?leadId=${latestLead.id}`}
+                                                    className="c-button--gooey flex-1 bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[10px] sm:text-[11px] py-1.5 rounded-lg text-center flex items-center justify-center gap-1 transition-all active:scale-[0.98] shadow-sm relative overflow-hidden"
+                                                    style={{ filter: 'none' }}
+                                                >
+                                                    <span className="relative z-10 flex items-center justify-center gap-1">
+                                                        Check Lead Status <ChevronRight className="w-3 h-3" />
+                                                    </span>
+                                                    <div className="c-button__blobs" style={{ filter: 'url(#goo-hero)' }}>
+                                                        <div />
+                                                        <div />
+                                                        <div />
+                                                    </div>
+                                                </Link>
+                                            ) : (
+                                                <Link
+                                                    href="/ekyc"
+                                                    onClick={() => {
+                                                        localStorage.setItem("kycValuationId", latestLead.id)
+                                                        localStorage.setItem("kycSource", latestLead.type)
+                                                    }}
+                                                    className="c-button--gooey flex-1 bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[10px] sm:text-[11px] py-1.5 rounded-lg text-center flex items-center justify-center gap-1 transition-all active:scale-[0.98] shadow-sm relative overflow-hidden"
+                                                    style={{ filter: 'none' }}
+                                                >
+                                                    <span className="relative z-10 flex items-center justify-center gap-1">
+                                                        Complete Your eKYC <ChevronRight className="w-3 h-3" />
+                                                    </span>
+                                                    <div className="c-button__blobs" style={{ filter: 'url(#goo-hero)' }}>
+                                                        <div />
+                                                        <div />
+                                                        <div />
+                                                    </div>
+                                                </Link>
+                                            )}
+                                            
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowLeadCard(false)}
+                                                className="px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg text-[9px] sm:text-[10px] font-bold py-1.5 transition-all active:scale-[0.98]"
+                                            >
+                                                Check New Vehicle
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Side: Chat Integration */}
+                                    {latestLead.chatThreadId && (
+                                        <div className="flex-[0.9] md:max-w-[22rem] md:pl-4 lg:pl-6 flex flex-col justify-between space-y-3 pt-3 md:pt-0">
+                                            <div className="space-y-2.5">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="text-[8px] sm:text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100/50">
+                                                        Negotiation Live
+                                                    </span>
+                                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100 animate-pulse">
+                                                        <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0" />
+                                                        Active
+                                                    </span>
+                                                </div>
+
+                                                {/* Chat Message Bubble */}
+                                                {latestLead.latestChatMessage ? (
+                                                    <div className="py-1.5 px-2.5 bg-emerald-50/40 rounded-xl border border-emerald-100/25 space-y-1">
+                                                        <div className="flex items-center justify-between gap-2 border-b border-emerald-500/10 pb-0.5">
+                                                            <p className="text-[9px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                                                                <MessageSquare className="w-3 h-3 text-emerald-600 animate-pulse" />
+                                                                {latestLead.latestChatMessage.sender === "customer" ? "You" : latestLead.latestChatMessage.sender === "system" ? "System" : "RVSF Partner"}
+                                                            </p>
+                                                            {latestLead.latestChatMessage.createdAt && (
+                                                                <span className="text-[8px] text-slate-400 font-semibold">
+                                                                    {new Date(latestLead.latestChatMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-600 font-semibold leading-relaxed flex items-start gap-1">
+                                                            <span className="shrink-0 text-emerald-500">💬</span>
+                                                            &ldquo;{latestLead.latestChatMessage.message}&rdquo;
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="py-1.5 px-2.5 bg-emerald-50/40 rounded-xl border border-emerald-100/25 space-y-1">
+                                                        <p className="text-[9px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                                                            <MessageSquare className="w-3 h-3 text-emerald-600" />
+                                                            Chat Status
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-600 font-semibold italic flex items-start gap-1">
+                                                            <span className="shrink-0 text-emerald-500">💬</span>
+                                                            No messages yet. Click below to start negotiation.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="pt-0.5">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowChatModal(true)}
+                                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] sm:text-[11px] py-1.5 rounded-lg text-center flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] shadow-sm shadow-emerald-600/15"
+                                                >
+                                                    <MessageSquare className="w-3.5 h-3.5" />
+                                                    <span>Start Negotiation Chat</span>
+                                                    <ChevronRight className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
@@ -484,6 +566,34 @@ export default function HomexHero() {
                     </div>
                 </div>
             </motion.div>
+
+            {/* Chat Modal */}
+            <AnimatePresence>
+                {showChatModal && latestLead && latestLead.chatThreadId && (
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-3 sm:p-4">
+                        {/* Backdrop click to close */}
+                        <div className="absolute inset-0" onClick={() => setShowChatModal(false)} />
+                        
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-2xl z-10 flex flex-col"
+                        >
+                            {/* Close Button overlaying the top right of ChatContainer's header */}
+                            <button
+                                onClick={() => setShowChatModal(false)}
+                                className="absolute top-3 right-4 z-50 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-lg transition-all duration-200"
+                                title="Close Chat"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                            
+                            <ChatContainer role="customer" threadId={latestLead.chatThreadId} />
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
