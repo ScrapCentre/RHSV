@@ -1435,7 +1435,7 @@ export default function ValuationWizardCard() {
                                         )}
 
                                         {/* Identical side-by-side cards */}
-                                        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mx-auto px-1">
+                                        <div className="flex flex-col sm:flex-row gap-3 w-[90%] max-w-[320px] sm:w-full sm:max-w-md mx-auto px-1">
                                             {[
                                                 ...(!fromHero ? [{
                                                     key: "buy",
@@ -1483,9 +1483,9 @@ export default function ValuationWizardCard() {
                                 {/* ── BUY FLOW ── */}
                                 {serviceType === "buy" && (
                                     <>
-                                        {step === 0 && (
-                                            <div className="space-y-6 text-center">
-                                                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Car className="w-7 h-7 text-[#E31E24]" /></div>
+                        {step === 0 && (
+                                            <div className="space-y-5 text-center">
+                                                <h3 className="text-xl font-bold text-slate-900">Which vehicle do you want to buy?</h3>
                                                 <div className="space-y-3 max-w-md mx-auto">
                                                     {!formData.desiredCompany ? (
                                                         <div className="space-y-1.5 text-left">
@@ -1496,11 +1496,14 @@ export default function ValuationWizardCard() {
                                                                         key={b}
                                                                         type="button"
                                                                         onClick={() => {
-                                                                            if (b !== "Other") {
-                                                                                setFormData({ ...formData, desiredCompany: b });
-                                                                            } else {
-                                                                                setFormData({ ...formData, desiredCompany: b });
-                                                                            }
+                                                                            setSelectedBrand(b);
+                                                                            setSelectedModel("");
+                                                                            setCustomModel("");
+                                                                            setFormData(prev => ({
+                                                                                ...prev,
+                                                                                desiredCompany: b,
+                                                                                desiredModel: ""
+                                                                            }));
                                                                         }}
                                                                         className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${
                                                                             formData.desiredCompany === b 
@@ -1511,11 +1514,11 @@ export default function ValuationWizardCard() {
                                                                         }`}
                                                                     >
                                                                         {BRAND_LOGOS[b] ? (
-                                                                            <img src={BRAND_LOGOS[b]} alt={b} className="w-7 h-7 object-contain mb-1 drop-shadow-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
+                                                                            <img src={BRAND_LOGOS[b]} alt={b} className="w-8 h-8 sm:w-10 sm:h-10 object-contain mb-1 sm:mb-1.5 drop-shadow-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
                                                                         ) : (
-                                                                            <div className="w-7 h-7 flex items-center justify-center bg-slate-100 rounded-full mb-1"><Car className="w-3.5 h-3.5 text-slate-400" /></div>
+                                                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-100 rounded-full mb-1 sm:mb-1.5"><Car className="w-4 h-4 text-slate-400" /></div>
                                                                         )}
-                                                                        <span className="text-[8px] font-bold text-slate-700 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full px-0.5 flex items-center justify-center gap-1">
+                                                                        <span className="text-[10px] sm:text-xs font-bold text-slate-700 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full px-0.5 flex items-center justify-center gap-1">
                                                                             {b}
                                                                             {b === "Other" && (
                                                                                 <span className={`w-1 h-1 rounded-full transition-all ${formData.desiredCompany === b ? 'bg-[#E31E24] scale-125' : 'bg-red-400'}`} />
@@ -1528,57 +1531,116 @@ export default function ValuationWizardCard() {
                                                     ) : (
                                                         <>
                                                             {/* Selected Brand Header */}
-                                                            <div className="flex items-center justify-between bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 shadow-sm text-left">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Brand:</span>
-                                                                    <span className="text-xs font-black text-slate-800">
-                                                                        {formData.desiredCompany === "Other" && customBrand ? customBrand : (formData.desiredCompany === "Other" ? "Other" : formData.desiredCompany)}
-                                                                    </span>
-                                                                </div>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        setFormData(prev => ({
-                                                                            ...prev,
-                                                                            desiredCompany: "",
-                                                                            desiredModel: ""
-                                                                        }));
-                                                                    }}
-                                                                    className="text-[9px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
-                                                                >
-                                                                    Change
-                                                                </button>
-                                                            </div>
+                                                             <div className="flex items-center justify-between bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 shadow-sm text-left">
+                                                                 <div className="flex items-center gap-2">
+                                                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Brand:</span>
+                                                                     <span className="text-xs font-black text-slate-800">
+                                                                         {selectedBrand === "Other" && customBrand ? customBrand : (selectedBrand === "Other" ? "Other" : selectedBrand)}
+                                                                     </span>
+                                                                 </div>
+                                                                 <button
+                                                                     type="button"
+                                                                     onClick={() => {
+                                                                         setSelectedBrand("");
+                                                                         setSelectedModel("");
+                                                                         setCustomBrand("");
+                                                                         setCustomModel("");
+                                                                         setFormData(prev => ({
+                                                                             ...prev,
+                                                                             desiredCompany: "",
+                                                                             desiredModel: ""
+                                                                         }));
+                                                                     }}
+                                                                     className="text-[9px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
+                                                                 >
+                                                                     Change
+                                                                 </button>
+                                                             </div>
 
-                                                            {/* Custom Brand Input (if "Other" brand is selected) */}
-                                                            {formData.desiredCompany === "Other" && (
-                                                                <div className="space-y-1 text-left">
-                                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Brand Name</label>
-                                                                    <input 
-                                                                        type="text" 
-                                                                        placeholder="e.g. Ford, Chevrolet, etc." 
-                                                                        value={customBrand} 
-                                                                        onChange={(e) => {
-                                                                            const val = e.target.value;
-                                                                            setCustomBrand(val);
-                                                                            setFormData(prev => ({ ...prev, desiredCompany: val || "Other" }));
-                                                                        }} 
-                                                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-[#E31E24]" 
-                                                                    />
-                                                                </div>
-                                                            )}
+                                                             {/* Custom Brand Input (if "Other" brand is selected) */}
+                                                             {selectedBrand === "Other" && (
+                                                                 <div className="space-y-1 text-left">
+                                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Brand Name</label>
+                                                                     <input 
+                                                                         type="text" 
+                                                                         placeholder="e.g. Ford, Chevrolet, etc." 
+                                                                         value={customBrand} 
+                                                                         onChange={(e) => {
+                                                                             const val = e.target.value;
+                                                                             setCustomBrand(val);
+                                                                             setFormData(prev => ({ ...prev, desiredCompany: val || "Other" }));
+                                                                         }} 
+                                                                         className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-[#E31E24]" 
+                                                                     />
+                                                                 </div>
+                                                             )}
 
-                                                            {/* Model Input */}
-                                                            <div className="space-y-1.5 text-left">
-                                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Model</label>
-                                                                <input 
-                                                                    type="text" 
-                                                                    placeholder="e.g. Swift" 
-                                                                    value={formData.desiredModel} 
-                                                                    onChange={(e) => setFormData({ ...formData, desiredModel: e.target.value })} 
-                                                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
-                                                                />
-                                                            </div>
+                                                             {/* Model Selection (based on selected brand) */}
+                                                             <div className="space-y-1.5 text-left">
+                                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Model</label>
+                                                                 {selectedBrand !== "Other" && BRAND_MODELS[selectedBrand] ? (
+                                                                     <>
+                                                                         <div className="grid grid-cols-3 gap-2">
+                                                                             {BRAND_MODELS[selectedBrand].map((m) => (
+                                                                                 <button
+                                                                                     key={m}
+                                                                                     type="button"
+                                                                                     onClick={() => {
+                                                                                         setSelectedModel(m);
+                                                                                         setFormData(prev => ({
+                                                                                             ...prev,
+                                                                                             desiredModel: m === "Other" ? customModel : m
+                                                                                         }));
+                                                                                     }}
+                                                                                     className={`py-2 px-1 rounded-xl border text-[10px] sm:text-xs font-semibold text-center transition-all ${
+                                                                                         selectedModel === m 
+                                                                                             ? 'border-[#E31E24] bg-red-50 text-[#E31E24] font-bold shadow-sm' 
+                                                                                             : m === "Other"
+                                                                                                 ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30 text-slate-500 hover:text-[#E31E24]'
+                                                                                                 : 'border-slate-100 bg-white hover:border-red-100 hover:bg-red-50/20 text-slate-600'
+                                                                                     }`}
+                                                                                 >
+                                                                                     {m === "Other" ? (
+                                                                                         <span className="flex items-center justify-center gap-1.5">
+                                                                                             {m}
+                                                                                             <span className={`w-1.5 h-1.5 rounded-full transition-all ${selectedModel === m ? 'bg-[#E31E24] scale-125' : 'bg-red-400'}`} />
+                                                                                         </span>
+                                                                                     ) : (
+                                                                                         m
+                                                                                     )}
+                                                                                 </button>
+                                                                             ))}
+                                                                         </div>
+                                                                         
+                                                                         {/* Custom Model Input (if "Other" model is selected from grid) */}
+                                                                         {selectedModel === "Other" && (
+                                                                             <div className="mt-2.5 space-y-1">
+                                                                                 <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Enter Model Name</label>
+                                                                                 <input 
+                                                                                     type="text" 
+                                                                                     placeholder="e.g. Nexon, Creta, etc." 
+                                                                                     value={customModel} 
+                                                                                     onChange={(e) => {
+                                                                                         const val = e.target.value;
+                                                                                         setCustomModel(val);
+                                                                                         setFormData(prev => ({ ...prev, desiredModel: val }));
+                                                                                     }} 
+                                                                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
+                                                                                 />
+                                                                             </div>
+                                                                         )}
+                                                                     </>
+                                                                 ) : (
+                                                                     /* Fallback text input for custom brands */
+                                                                     <input 
+                                                                         type="text" 
+                                                                         placeholder="e.g. Swift" 
+                                                                         value={formData.desiredModel} 
+                                                                         onChange={(e) => setFormData({ ...formData, desiredModel: e.target.value })} 
+                                                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
+                                                                     />
+                                                                 )}
+                                                             </div>
                                                         </>
                                                     )}
                                                 </div>
