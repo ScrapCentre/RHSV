@@ -35,6 +35,7 @@ export async function DELETE(req: NextRequest) {
 
             case "exchange":
                 deleted = await ExchangeVehicle.findByIdAndDelete(id)
+                if (!deleted) deleted = await WizardLead.findByIdAndDelete(id)
                 break
             case "buy":
                 deleted = await BuyVehicle.findByIdAndDelete(id)

@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
             updated = await WizardLead.findByIdAndUpdate(id, { status }, { new: true });
         } else if (type === "exchange") {
             updated = await ExchangeVehicle.findByIdAndUpdate(id, { status }, { new: true });
+            if (!updated) {
+                updated = await WizardLead.findByIdAndUpdate(id, { status }, { new: true });
+            }
         } else if (type === "quote") {
             // Check WizardLead (scrap_only)
             updated = await WizardLead.findByIdAndUpdate(id, { status }, { new: true });

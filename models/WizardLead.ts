@@ -30,6 +30,8 @@ export interface IWizardLead {
   b2bPickupId?: string;
   b2bPartnerId?: string;
 
+  isManual?: boolean;
+
   // eKYC Details
   firstName?: string;
   dob?: string;
@@ -61,7 +63,7 @@ const WizardLeadSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'reviewing', 'reviewed', 'approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped', 'completed'],
+      enum: ['pending', 'reviewing', 'reviewed', 'approved', 'pickup_scheduled', 'reached_collection_centre', 'car_scrapped', 'completed', 'approved_to_rvsf'],
       default: 'pending',
     },
     userId: { type: String },
@@ -82,6 +84,7 @@ const WizardLeadSchema: Schema = new Schema(
     desiredModel: { type: String },
     b2bPickupId: { type: String },
     b2bPartnerId: { type: String },
+    isManual: { type: Boolean, default: false },
     
     // eKYC Details
     firstName: { type: String },
