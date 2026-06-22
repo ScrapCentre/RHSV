@@ -18,7 +18,8 @@ import {
     Shield,
     MessageSquare,
     Settings,
-    Briefcase
+    Briefcase,
+    PlusCircle
 } from "lucide-react"
 
 import { useSession, signOut } from "next-auth/react"
@@ -252,6 +253,17 @@ export default function ExecutiveLayout({ children }: { children: React.ReactNod
                             )}
                             <LayoutDashboard className={`w-4 h-4 mr-3 transition-colors ${isActive('/executive/dashboard') && pathname === '/executive/dashboard' ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
                             <span className="font-semibold text-[13px]">Dashboard</span>
+                        </Link>
+                    </motion.div>
+
+                    {/* Manual Lead Entry */}
+                    <motion.div variants={sidebarLinkVariants}>
+                        <Link href="/executive/manual-lead" className={`flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden ${isActive('/executive/manual-lead') ? 'bg-[#E31E24]/10 text-[#E31E24] shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-[#E31E24]'}`}>
+                            {isActive('/executive/manual-lead') && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E31E24] rounded-r-full" />
+                            )}
+                            <PlusCircle className={`w-4 h-4 mr-3 transition-colors ${isActive('/executive/manual-lead') ? 'text-[#E31E24]' : 'text-slate-500 group-hover:text-[#E31E24]'}`} />
+                            <span className="font-semibold text-[13px]">Manual Leads</span>
                         </Link>
                     </motion.div>
  

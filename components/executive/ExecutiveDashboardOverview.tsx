@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight, RotateCw } from "lucide-react"
+import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight, RotateCw, Plus } from "lucide-react"
 import Link from "next/link"
 import DashboardCharts from "../admin/DashboardCharts"
 import { useRouter } from "next/navigation"
@@ -94,7 +94,7 @@ export default function ExecutiveDashboardOverview({
             className="space-y-5 max-w-7xl mx-auto text-slate-800"
         >
             {/* Header */}
-            <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-2">
+            <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                 <div>
                     <h1 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 tracking-tight">
                         <Shield className="w-5 h-5 text-[#E31E24]" />
@@ -102,6 +102,13 @@ export default function ExecutiveDashboardOverview({
                     </h1>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">Overview of executive platform performance.</p>
                 </div>
+                <Link
+                    href="/executive/manual-lead"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-[#E31E24] hover:bg-[#c9181d] text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Manual Leads Hub</span>
+                </Link>
             </motion.div>
 
             {/* Color Legend */}
