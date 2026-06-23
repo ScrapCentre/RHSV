@@ -73,17 +73,17 @@ function getEstimatedRange(lead: Lead): string {
     if (lead.estimatedValue && lead.estimatedValue > 0) {
         const low = Math.round(lead.estimatedValue * 0.85)
         const high = Math.round(lead.estimatedValue * 1.15)
-        return `₹${(low / 1000).toFixed(0)}K — ₹${(high / 1000).toFixed(0)}K`
+        return `₹${low} — ₹${high}`
     }
     // Estimate based on weight if available
     const weight = parseFloat(lead.vehicleWeight || lead.weight || "0")
     if (weight > 0) {
-        const base = weight * 1000 * 28 // ~₹28/kg average scrap
+        const base = weight * 28 // ~₹28/kg average scrap
         const low = Math.round(base * 0.8)
         const high = Math.round(base * 1.2)
-        return `₹${(low / 1000).toFixed(0)}K — ₹${(high / 1000).toFixed(0)}K`
+        return `₹${low} — ₹${high}`
     }
-    return "₹15K — ₹45K"
+    return "₹15000 — ₹45000"
 }
 
 // ── Unlock price ─────────────────────────────────────────────────
