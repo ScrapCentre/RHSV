@@ -56,3 +56,62 @@ export async function GET(
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
+
+export async function PATCH(
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions)
+
+        if (!session || (session.user as any).role !== "admin") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        await connectToDatabase()
+        const resolvedParams = await params
+        const cleanId = String(resolvedParams.id).trim()
+
+        if (!cleanId || !/^[0-9a-fA-F]{24}$/.test(cleanId)) {
+            return NextResponse.json({ error: "Invalid ID format" }, { status: 400 })
+        }
+
+        const body = await req.json()
+
+        const updateFields: any = {}
+        if (body.regNo !== undefined) updateFields.regNo = body.regNo
+        if (body.brand !== undefined) updateFields.brand = body.brand
+        if (body.model !== undefined) updateFields.model = body.model
+        if (body.year !== undefined) updateFields.year = body.year
+        if (body.weight !== undefined) updateFields.weight = body.weight
+        if (body.fuel !== undefined) {
+            let fuel = body.fuel
+            if (typeof fuel === "string") {
+                fuel = fuel.split(",").map((f: string) => f.trim())
+            }
+            updateFields.fuel = fuel
+        }
+        if (body.desiredCompany !== undefined) updateFields.desiredCompany = body.desiredCompany
+        if (body.desiredModel !== undefined) updateFields.desiredModel = body.desiredModel
+        if (body.name !== undefined) updateFields.name = body.name
+        if (body.phone !== undefined) updateFields.phone = body.phone
+        if (body.pincode !== undefined) updateFields.pincode = body.pincode
+        if (body.city !== undefined) updateFields.city = body.city
+        if (body.state !== undefined) updateFields.state = body.state
+
+        const updatedWizard = await WizardLead.findByIdAndUpdate(
+            cleanId,
+            { $set: updateFields },
+            { new: true }
+        )
+
+        if (!updatedWizard) {
+            return NextResponse.json({ error: "Request not found" }, { status: 404 })
+        }
+
+        return NextResponse.json({ success: true, lead: updatedWizard })
+    } catch (error) {
+        console.error("Error updating scrap-buy request:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}

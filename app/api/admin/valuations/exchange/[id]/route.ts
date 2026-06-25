@@ -74,3 +74,81 @@ export async function GET(
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
+
+export async function PATCH(
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions)
+
+        if (!session || (session.user as any).role !== "admin") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        await connectToDatabase()
+        const resolvedParams = await params
+        const cleanId = String(resolvedParams.id).trim()
+
+        if (!cleanId || !/^[0-9a-fA-F]{24}$/.test(cleanId)) {
+            return NextResponse.json({ error: "Invalid ID format" }, { status: 400 })
+        }
+
+        const body = await req.json()
+
+        let exchange = await ExchangeVehicle.findById(cleanId)
+        if (exchange) {
+            const updateFields: any = {}
+            if (body.oldVehicleRegistration !== undefined) updateFields.oldVehicleRegistration = body.oldVehicleRegistration
+            if (body.oldVehicleBrand !== undefined) updateFields.oldVehicleBrand = body.oldVehicleBrand
+            if (body.oldVehicleModel !== undefined) updateFields.oldVehicleModel = body.oldVehicleModel
+            if (body.oldVehicleYear !== undefined) updateFields.oldVehicleYear = body.oldVehicleYear
+            if (body.oldVehicleFuelType !== undefined) updateFields.oldVehicleFuelType = body.oldVehicleFuelType
+            if (body.newVehicleBrand !== undefined) updateFields.newVehicleBrand = body.newVehicleBrand
+            if (body.newVehicleModel !== undefined) updateFields.newVehicleModel = body.newVehicleModel
+            if (body.customerName !== undefined) updateFields.customerName = body.customerName
+            if (body.customerPhone !== undefined) updateFields.customerPhone = body.customerPhone
+            if (body.state !== undefined) updateFields.state = body.state
+            if (body.city !== undefined) updateFields.city = body.city
+            if (body.customCity !== undefined) updateFields.customCity = body.customCity
+            if (body.pincode !== undefined) updateFields.pincode = body.pincode
+
+            const updatedExchange = await ExchangeVehicle.findByIdAndUpdate(
+                cleanId,
+                { $set: updateFields },
+                { new: true }
+            )
+            return NextResponse.json({ success: true, request: updatedExchange })
+        } else {
+            // Fallback: update in WizardLead
+            const updateFields: any = {}
+            if (body.oldVehicleRegistration !== undefined) updateFields.regNo = body.oldVehicleRegistration
+            if (body.oldVehicleBrand !== undefined) updateFields.brand = body.oldVehicleBrand
+            if (body.oldVehicleModel !== undefined) updateFields.model = body.oldVehicleModel
+            if (body.oldVehicleYear !== undefined) updateFields.year = body.oldVehicleYear
+            if (body.oldVehicleFuelType !== undefined) {
+                updateFields.fuel = body.oldVehicleFuelType.split(",").map((s: string) => s.trim())
+            }
+            if (body.newVehicleBrand !== undefined) updateFields.desiredCompany = body.newVehicleBrand
+            if (body.newVehicleModel !== undefined) updateFields.desiredModel = body.newVehicleModel
+            if (body.customerName !== undefined) updateFields.name = body.customerName
+            if (body.customerPhone !== undefined) updateFields.phone = body.customerPhone
+            if (body.state !== undefined) updateFields.state = body.state
+            if (body.city !== undefined) updateFields.city = body.city
+            if (body.pincode !== undefined) updateFields.pincode = body.pincode
+
+            const updatedWizard = await WizardLead.findByIdAndUpdate(
+                cleanId,
+                { $set: updateFields },
+                { new: true }
+            )
+            if (!updatedWizard) {
+                return NextResponse.json({ error: "Request not found" }, { status: 404 })
+            }
+            return NextResponse.json({ success: true, request: updatedWizard })
+        }
+    } catch (error) {
+        console.error("Error updating exchange request:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}

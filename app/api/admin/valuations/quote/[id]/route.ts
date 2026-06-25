@@ -86,3 +86,59 @@ export async function GET(
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
+
+export async function PATCH(
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions)
+
+        if (!session || (session.user as any).role !== "admin") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        await connectToDatabase()
+        const resolvedParams = await params
+        const idParam = resolvedParams?.id || (params as any)?.id
+        const cleanId = idParam ? String(idParam).trim() : ""
+
+        if (!cleanId || !/^[0-9a-fA-F]{24}$/.test(cleanId)) {
+            return NextResponse.json({ error: "Invalid lead ID format" }, { status: 400 })
+        }
+
+        const body = await req.json()
+        
+        const updateFields: any = {}
+        if (body.brand !== undefined) updateFields.brand = body.brand
+        if (body.model !== undefined) updateFields.model = body.model
+        if (body.year !== undefined) updateFields.year = body.year
+        if (body.vehicleNumber !== undefined) updateFields.regNo = body.vehicleNumber
+        if (body.vehicleWeight !== undefined) updateFields.weight = body.vehicleWeight
+        
+        if (body.contact) {
+            if (body.contact.name !== undefined) updateFields.name = body.contact.name
+            if (body.contact.phone !== undefined) updateFields.phone = body.contact.phone
+        }
+        if (body.address) {
+            if (body.address.pincode !== undefined) updateFields.pincode = body.address.pincode
+            if (body.address.city !== undefined) updateFields.city = body.address.city
+            if (body.address.state !== undefined) updateFields.state = body.address.state
+        }
+
+        const updatedLead = await WizardLead.findByIdAndUpdate(
+            cleanId,
+            { $set: updateFields },
+            { new: true }
+        )
+
+        if (!updatedLead) {
+            return NextResponse.json({ error: "Lead not found" }, { status: 404 })
+        }
+
+        return NextResponse.json({ success: true, lead: updatedLead })
+    } catch (error) {
+        console.error("Error updating quote lead:", error)
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+}

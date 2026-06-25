@@ -25,12 +25,15 @@ import {
     Info,
     Globe,
     Mail,
-    DollarSign
+    DollarSign,
+    Pencil,
+    X
 } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Plus_Jakarta_Sans } from "next/font/google"
+import { useSession } from "next-auth/react"
 import VehiclePhotosSection from "@/components/admin/VehiclePhotosSection"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -39,6 +42,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 })
 
 export default function BuyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { data: session } = useSession()
+    const isAdmin = session && (session.user as any)?.role === "admin"
     const router = useRouter()
     const searchParams = useSearchParams()
     const highlight = searchParams.get("highlight") === "true"
@@ -47,6 +52,83 @@ export default function BuyDetailPage({ params }: { params: Promise<{ id: string
     const [request, setRequest] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [showMoreMenu, setShowMoreMenu] = useState(false)
+
+    // Edit states
+    const [editSection, setEditSection] = useState<"preferences" | "contact" | null>(null)
+    const [editForm, setEditForm] = useState<any>({})
+    const [isSaving, setIsSaving] = useState(false)
+
+    const openEditModal = (section: "preferences" | "contact") => {
+        setEditSection(section)
+        if (section === "preferences") {
+            setEditForm({
+                vehicleBrand: request.customBrand || request.vehicleBrand || "",
+                vehicleModel: request.customModel || request.vehicleModel || "",
+                fuelType: request.fuelType || "",
+                budgetRange: request.budgetRange || "",
+            })
+        } else {
+            setEditForm({
+                customerName: request.customerName || "",
+                customerPhone: request.customerPhone || "",
+                customerEmail: request.customerEmail || "",
+                pincode: request.pincode || "",
+                city: request.customCity || request.city || "",
+                state: request.state || "",
+            })
+        }
+    }
+
+    const handleSave = async () => {
+        setIsSaving(true)
+        try {
+            const body = editSection === "preferences"
+                ? {
+                    vehicleBrand: editForm.vehicleBrand,
+                    vehicleModel: editForm.vehicleModel,
+                    fuelType: editForm.fuelType,
+                    budgetRange: editForm.budgetRange,
+                }
+                : {
+                    customerName: editForm.customerName,
+                    customerPhone: editForm.customerPhone,
+                    customerEmail: editForm.customerEmail,
+                    pincode: editForm.pincode,
+                    city: editForm.city,
+                    state: editForm.state,
+                }
+
+            const res = await fetch(`/api/admin/valuations/buy/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            })
+
+            if (res.ok) {
+                toast({
+                    title: "Success",
+                    description: "Lead details updated successfully",
+                })
+                setEditSection(null)
+                fetchRequest()
+            } else {
+                const data = await res.json()
+                toast({
+                    title: "Error",
+                    description: data.error || "Failed to update details",
+                    variant: "destructive",
+                })
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Something went wrong",
+                variant: "destructive",
+            })
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     useEffect(() => {
         fetchRequest()
@@ -329,16 +411,27 @@ export default function BuyDetailPage({ params }: { params: Promise<{ id: string
 
                 {/* ── CARD 1: Vehicle Preferences (Blue theme) ── */}
                 <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
-                    <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                        <div className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-lg">
-                            <Car className="w-4.5 h-4.5" />
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-lg">
+                                <Car className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    Vehicle Preferences
+                                </h2>
+                                <div className="h-0.5 w-8 bg-blue-500 rounded-full mt-1" />
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
-                                Vehicle Preferences
-                            </h2>
-                            <div className="h-0.5 w-8 bg-blue-500 rounded-full mt-1" />
-                        </div>
+                        {isAdmin && (
+                            <button
+                                onClick={() => openEditModal("preferences")}
+                                className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                title="Edit Vehicle Preferences"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="space-y-1 mt-2.5">
@@ -370,16 +463,27 @@ export default function BuyDetailPage({ params }: { params: Promise<{ id: string
 
                 {/* ── CARD 2: Contact Information (Orange theme) ── */}
                 <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
-                    <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                        <div className="p-2 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-lg">
-                            <User className="w-4.5 h-4.5" />
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-lg">
+                                <User className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    Contact &amp; Location
+                                </h2>
+                                <div className="h-0.5 w-8 bg-orange-500 rounded-full mt-1" />
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
-                                Contact &amp; Location
-                            </h2>
-                            <div className="h-0.5 w-8 bg-orange-500 rounded-full mt-1" />
-                        </div>
+                        {isAdmin && (
+                            <button
+                                onClick={() => openEditModal("contact")}
+                                className="p-1.5 text-slate-400 hover:text-orange-655 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                title="Edit Contact Info"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="space-y-1 mt-2.5">
@@ -442,6 +546,162 @@ export default function BuyDetailPage({ params }: { params: Promise<{ id: string
                     <ShieldCheck className="w-5 h-5" />
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            <AnimatePresence>
+                {editSection && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setEditSection(null)}
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.95, y: 15, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.95, y: 15, opacity: 0 }}
+                            className="bg-white dark:bg-[#0E192D] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-md z-10 overflow-hidden"
+                        >
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                                <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">
+                                    Edit {editSection === "preferences" ? "Vehicle Preferences" : "Contact & Location"}
+                                </h3>
+                                <button
+                                    onClick={() => setEditSection(null)}
+                                    className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+                                {editSection === "preferences" ? (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Preferred Brand</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.vehicleBrand || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, vehicleBrand: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Preferred Model</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.vehicleModel || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, vehicleModel: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Fuel Preference</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.fuelType || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, fuelType: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Budget Range</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.budgetRange || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, budgetRange: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Name</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.customerName || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, customerName: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Phone</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.customerPhone || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, customerPhone: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Email</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.customerEmail || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, customerEmail: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Pincode</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.pincode || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, pincode: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">City</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.city || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">State</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.state || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, state: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/10">
+                                <button
+                                    onClick={() => setEditSection(null)}
+                                    className="px-4 py-2 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-bold text-xs transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    disabled={isSaving}
+                                    className={`px-4 py-2 rounded-xl text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 ${
+                                        editSection === "preferences"
+                                            ? "bg-blue-650 hover:bg-blue-700 hover:shadow-blue-500/10"
+                                            : "bg-orange-655 hover:bg-orange-700 hover:shadow-orange-500/10"
+                                    }`}
+                                >
+                                    {isSaving ? "Saving..." : "Save Changes"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
         </div>
     )

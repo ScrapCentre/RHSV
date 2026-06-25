@@ -25,12 +25,15 @@ import {
     Info,
     Globe,
     ImageIcon,
-    Download
+    Download,
+    Pencil,
+    X
 } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Plus_Jakarta_Sans } from "next/font/google"
+import { useSession } from "next-auth/react"
 import VehiclePhotosSection from "@/components/admin/VehiclePhotosSection"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -39,6 +42,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 })
 
 export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { data: session } = useSession()
+    const isAdmin = session && (session.user as any)?.role === "admin"
     const router = useRouter()
     const searchParams = useSearchParams()
     const highlight = searchParams.get("highlight") === "true"
@@ -47,6 +52,95 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
     const [request, setRequest] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [showMoreMenu, setShowMoreMenu] = useState(false)
+
+    // Edit states
+    const [editSection, setEditSection] = useState<"scrap_vehicle" | "desired_vehicle" | "contact" | null>(null)
+    const [editForm, setEditForm] = useState<any>({})
+    const [isSaving, setIsSaving] = useState(false)
+
+    const openEditModal = (section: "scrap_vehicle" | "desired_vehicle" | "contact") => {
+        setEditSection(section)
+        if (section === "scrap_vehicle") {
+            setEditForm({
+                regNo: request.regNo || "",
+                brand: request.brand || "",
+                model: request.model || "",
+                year: request.year || "",
+                weight: request.weight || "",
+                fuel: Array.isArray(request.fuel) ? request.fuel.join(", ") : request.fuel || "",
+            })
+        } else if (section === "desired_vehicle") {
+            setEditForm({
+                desiredCompany: request.desiredCompany || "",
+                desiredModel: request.desiredModel || "",
+            })
+        } else {
+            setEditForm({
+                name: request.name || "",
+                phone: request.phone || "",
+                pincode: request.pincode || "",
+                city: request.city || "",
+                state: request.state || "",
+            })
+        }
+    }
+
+    const handleSave = async () => {
+        setIsSaving(true)
+        try {
+            const body = editSection === "scrap_vehicle"
+                ? {
+                    regNo: editForm.regNo,
+                    brand: editForm.brand,
+                    model: editForm.model,
+                    year: editForm.year,
+                    weight: editForm.weight,
+                    fuel: editForm.fuel,
+                }
+                : editSection === "desired_vehicle"
+                ? {
+                    desiredCompany: editForm.desiredCompany,
+                    desiredModel: editForm.desiredModel,
+                }
+                : {
+                    name: editForm.name,
+                    phone: editForm.phone,
+                    pincode: editForm.pincode,
+                    city: editForm.city,
+                    state: editForm.state,
+                }
+
+            const res = await fetch(`/api/admin/valuations/scrap-buy/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            })
+
+            if (res.ok) {
+                toast({
+                    title: "Success",
+                    description: "Lead details updated successfully",
+                })
+                setEditSection(null)
+                fetchRequest()
+            } else {
+                const data = await res.json()
+                toast({
+                    title: "Error",
+                    description: data.error || "Failed to update details",
+                    variant: "destructive",
+                })
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Something went wrong",
+                variant: "destructive",
+            })
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     useEffect(() => {
         fetchRequest()
@@ -329,20 +423,29 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* Grid Area with ultra-clean compact cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-                {/* ── CARD 1: Vehicle to Scrap (Green theme) ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">                {/* ── CARD 1: Vehicle to Scrap (Green theme) ── */}
                 <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
-                    <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                        <div className="p-2 bg-[#EFFBF3] dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                            <Car className="w-4.5 h-4.5" />
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 bg-[#EFFBF3] dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                <Car className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    Vehicle to Scrap
+                                </h2>
+                                <div className="h-0.5 w-8 bg-emerald-500 rounded-full mt-1" />
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
-                                Vehicle to Scrap
-                            </h2>
-                            <div className="h-0.5 w-8 bg-emerald-500 rounded-full mt-1" />
-                        </div>
+                        {isAdmin && (
+                            <button
+                                onClick={() => openEditModal("scrap_vehicle")}
+                                className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                title="Edit Scrap Vehicle Info"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="space-y-1 mt-2.5">
@@ -376,16 +479,27 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
 
                 {/* ── CARD 2: New Car Desired (Purple theme) ── */}
                 <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
-                    <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                        <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-lg">
-                            <ShoppingCart className="w-4.5 h-4.5" />
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-lg">
+                                <ShoppingCart className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    New Car Desired
+                                </h2>
+                                <div className="h-0.5 w-8 bg-purple-500 rounded-full mt-1" />
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
-                                New Car Desired
-                            </h2>
-                            <div className="h-0.5 w-8 bg-purple-500 rounded-full mt-1" />
-                        </div>
+                        {isAdmin && (
+                            <button
+                                onClick={() => openEditModal("desired_vehicle")}
+                                className="p-1.5 text-slate-400 hover:text-purple-650 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                title="Edit Desired Vehicle Info"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="space-y-1 mt-2.5">
@@ -415,17 +529,29 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
 
                 {/* ── CARD 3: Contact Information (Orange theme) ── */}
                 <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
-                    <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                        <div className="p-2 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-lg">
-                            <User className="w-4.5 h-4.5" />
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-lg">
+                                <User className="w-4.5 h-4.5" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
+                                    Contact Information
+                                </h2>
+                                <div className="h-0.5 w-8 bg-orange-500 rounded-full mt-1" />
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-sm font-extrabold text-slate-800 dark:text-white tracking-tight">
-                                Contact Information
-                            </h2>
-                            <div className="h-0.5 w-8 bg-orange-500 rounded-full mt-1" />
-                        </div>
+                        {isAdmin && (
+                            <button
+                                onClick={() => openEditModal("contact")}
+                                className="p-1.5 text-slate-400 hover:text-orange-655 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                title="Edit Contact Info"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
+
 
                     <div className="space-y-1 mt-2.5">
                         {[
@@ -593,6 +719,196 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                     <ShieldCheck className="w-5 h-5" />
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            <AnimatePresence>
+                {editSection && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setEditSection(null)}
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.95, y: 15, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.95, y: 15, opacity: 0 }}
+                            className="bg-white dark:bg-[#0E192D] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-md z-10 overflow-hidden"
+                        >
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                                <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">
+                                    Edit {editSection === "scrap_vehicle" ? "Vehicle to Scrap" : editSection === "desired_vehicle" ? "Desired Vehicle Preferences" : "Contact Details"}
+                                </h3>
+                                <button
+                                    onClick={() => setEditSection(null)}
+                                    className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+                                {editSection === "scrap_vehicle" && (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Registration No.</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.regNo || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, regNo: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Brand</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.brand || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, brand: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Model</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.model || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, model: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Year</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.year || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Weight</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.weight || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, weight: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Fuel (comma separated)</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.fuel || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, fuel: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                                {editSection === "desired_vehicle" && (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Desired Company</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.desiredCompany || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, desiredCompany: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Desired Model</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.desiredModel || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, desiredModel: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                                {editSection === "contact" && (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Name</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.name || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Phone</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.phone || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Pincode</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.pincode || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, pincode: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">City</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.city || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">State</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.state || ""}
+                                                onChange={(e) => setEditForm({ ...editForm, state: e.target.value })}
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/10">
+                                <button
+                                    onClick={() => setEditSection(null)}
+                                    className="px-4 py-2 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-305 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-bold text-xs transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    disabled={isSaving}
+                                    className={`px-4 py-2 rounded-xl text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 ${
+                                        editSection === "scrap_vehicle"
+                                            ? "bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-500/10"
+                                            : editSection === "desired_vehicle"
+                                            ? "bg-purple-650 hover:bg-purple-700 hover:shadow-purple-500/10"
+                                            : "bg-orange-655 hover:bg-orange-700 hover:shadow-orange-500/10"
+                                    }`}
+                                >
+                                    {isSaving ? "Saving..." : "Save Changes"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
         </div>
     )
