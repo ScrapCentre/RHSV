@@ -2394,187 +2394,74 @@ export default function ValuationWizardCard() {
                                                             Step {totalSteps} of {totalSteps} — scrap Service 100%
                                                         </span>
                                                         <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight mt-1">Your Scrap Valuation is Ready! 🎉</h3>
-                                                        <p className="text-slate-500 text-[10px] sm:text-[11px] font-semibold max-w-lg mx-auto">
-                                                            {formData.buyNew === "no" ? "Verify your mobile number to unlock your green and partner benefits." : "Verify your mobile number to unlock Certificate of Deposit (CD) and other green benefits."}
-                                                        </p>
-                                                    </div>
-
-                                                    {/* Stack on mobile, side-by-side on md+ */}
-                                                    <div className="flex flex-col md:grid md:grid-cols-12 gap-3 items-stretch mb-2">
-
-                                                        {/* LEFT: Unlock Benefits Card */}
-                                                        <div className="md:col-span-7 bg-white border border-slate-200/80 rounded-[1rem] p-3 sm:p-4 flex flex-col justify-between shadow-sm relative overflow-hidden space-y-3">
-
-                                                            {/* Top Section: Current Estimated Valuation */}
-                                                            <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
-                                                                <span className="text-[7.5px] font-black text-slate-500 uppercase tracking-widest block mb-1">
-                                                                    Your Current Estimated Valuation
-                                                                </span>
-                                                                <h4 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-none">
-                                                                    ₹{formatCurrency(minScrapValue)} – ₹{formatCurrency(maxScrapValue)}
-                                                                </h4>
-                                                            </div>
-
-                                                            {/* Middle Section: Phone Verification / OTP */}
-                                                            <div className="flex flex-col items-center text-center space-y-2.5">
-                                                                <div>
-                                                                    <h4 className="text-xs sm:text-sm font-black text-[#E31E24] uppercase tracking-wider mb-1">
-                                                                        {otpSent ? "VERIFY IDENTITY" : (formData.buyNew === "no" ? "UNLOCK VALUATION & BENEFITS" : "UNLOCK CD BENEFITS")}
-                                                                    </h4>
-                                                                    <p className="text-[10px] sm:text-[11px] text-slate-500 font-semibold leading-relaxed max-w-xs">
-                                                                        {otpSent 
-                                                                            ? "Enter the OTP sent to your phone." 
-                                                                            : (formData.buyNew === "no" 
-                                                                                ? "Enter your phone number to unlock your scrap valuation and partner benefits." 
-                                                                                : "Enter your phone number to unlock your CD certificate and partner benefits.")}
-                                                                    </p>
-                                                                </div>
-
-                                                                <div className="w-full space-y-2 max-w-xs sm:max-w-sm">
-                                                                    <div className="relative">
-                                                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
-                                                                        <input
-                                                                            type="tel"
-                                                                            disabled={otpSent}
-                                                                            placeholder="10-digit number"
-                                                                            value={formData.phone}
-                                                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                                                                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 focus:border-[#E31E24]/60 focus:bg-white rounded-lg text-base font-bold text-slate-900 focus:outline-none transition-all disabled:opacity-50"
-                                                                            maxLength={10}
-                                                                        />
+                                                        <div className="flex justify-center items-center py-2">
+                                                            {/* Phone Verification Card */}
+                                                            <div className="w-full max-w-md bg-white border border-slate-200/80 rounded-[1rem] p-5 sm:p-6 flex flex-col justify-center items-center shadow-sm relative overflow-hidden">
+                                                                <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-2xl pointer-events-none" />
+                                                                
+                                                                {/* Phone Verification / OTP */}
+                                                                <div className="w-full flex flex-col items-center text-center space-y-3.5">
+                                                                    <div>
+                                                                        <h4 className="text-xs sm:text-sm font-black text-[#E31E24] uppercase tracking-wider mb-1">
+                                                                            {otpSent ? "VERIFY IDENTITY" : (formData.buyNew === "no" ? "UNLOCK VALUATION & BENEFITS" : "UNLOCK CD BENEFITS")}
+                                                                        </h4>
+                                                                        <p className="text-[11px] text-slate-500 font-semibold leading-relaxed max-w-xs mx-auto">
+                                                                            {otpSent 
+                                                                                ? "Enter the OTP sent to your phone." 
+                                                                                : (formData.buyNew === "no" 
+                                                                                    ? "Enter your phone number to unlock your scrap valuation and partner benefits." 
+                                                                                    : "Enter your phone number to unlock your CD certificate and partner benefits.")}
+                                                                        </p>
                                                                     </div>
 
-                                                                    {otpSent && (
-                                                                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1.5">
+                                                                    <div className="w-full space-y-2.5">
+                                                                        <div className="relative">
+                                                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
                                                                             <input
                                                                                 type="tel"
-                                                                                placeholder={isSandboxMode ? "Use: 000000" : "••••••"}
-                                                                                value={formData.otp}
-                                                                                onChange={(e) => setFormData({ ...formData, otp: e.target.value.slice(0, 6) })}
-                                                                                className="w-full px-3 py-3 bg-slate-50 border border-[#E31E24]/30 rounded-lg text-xl text-center font-black tracking-[0.35em] text-slate-900 focus:outline-none focus:border-[#E31E24]"
-                                                                                maxLength={6}
-                                                                                autoFocus
+                                                                                disabled={otpSent}
+                                                                                placeholder="10-digit number"
+                                                                                value={formData.phone}
+                                                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                                                                                className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-[#E31E24]/60 focus:bg-white rounded-lg text-base font-bold text-slate-900 focus:outline-none transition-all disabled:opacity-50"
+                                                                                maxLength={10}
                                                                             />
-                                                                            {isSandboxMode && (
-                                                                                <p className="text-[8px] text-amber-600 font-bold">⚡ Sandbox mode — enter 000000</p>
-                                                                            )}
-                                                                            <button
-                                                                                onClick={() => { setOtpSent(false); setFormData({ ...formData, otp: "" }); setIsSandboxMode(false); }}
-                                                                                className="text-[9px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
-                                                                                type="button"
-                                                                            >
-                                                                                Change Number
-                                                                            </button>
-                                                                        </motion.div>
-                                                                    )}
-
-                                                                    <button
-                                                                        disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying}
-                                                                        onClick={otpSent ? handleVerifyOtp : handleSendOtp}
-                                                                        className="w-full py-3 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-lg shadow-md shadow-red-500/25 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-1.5"
-                                                                    >
-                                                                        {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "VERIFY & GET VALUATION" : "GET OTP")}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Bottom Section: Grand Total Benefit */}
-                                                            <div className="w-full bg-gradient-to-br from-[#122333] to-[#0c1622] border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center text-center space-y-1.5 relative overflow-hidden shadow-lg">
-                                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-                                                                <span className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] relative z-10">
-                                                                    GRAND TOTAL BENEFIT
-                                                                </span>
-                                                                <div className="relative z-10 flex items-center gap-1.5 animate-[pulse_2s_infinite]">
-                                                                    <span className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-sm">
-                                                                        ₹{formatCurrency(grandTotalBenefit)}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full shadow-inner">
-                                                                    <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                                                                    <span className="text-[9px] sm:text-[10px] font-extrabold text-amber-300 uppercase tracking-wider leading-none">
-                                                                        To unlock this value verify your number
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* RIGHT: Benefit Summary Receipt */}
-                                                        <div className="md:col-span-5 bg-[#f8fafc] border border-slate-200/80 rounded-[1rem] p-3 sm:p-4 flex flex-col justify-between shadow-inner text-slate-800 relative overflow-hidden">
-                                                            <div className="absolute top-0 right-0 w-24 h-24 bg-slate-200/[0.1] rounded-full blur-2xl pointer-events-none"></div>
-
-                                                            <div className="space-y-2 relative">
-                                                                {/* Receipt Header */}
-                                                                <div className="flex items-start justify-between">
-                                                                    <div>
-                                                                        <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">EST. INVOICE</p>
-                                                                        <h4 className="text-slate-900 font-black text-xs sm:text-sm leading-tight uppercase tracking-tight">BENEFIT SUMMARY RECEIPT</h4>
-                                                                    </div>
-                                                                    <div className="flex flex-col items-end gap-1">
-                                                                        <span className="bg-red-50 text-red-500 border border-red-150 text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">EST-BILL</span>
-                                                                        {formData.regNo && (
-                                                                            <span className="bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded text-[7px] font-mono tracking-widest uppercase">
-                                                                                {formData.regNo}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="border-t border-dashed border-slate-350 my-2" />
-
-                                                                <div className="flex justify-between items-start gap-2 text-[10px]">
-                                                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px] shrink-0">SCRAP VEHICLE</span>
-                                                                    <span className="text-slate-900 font-black text-right uppercase leading-tight text-[9px] sm:text-[10px]">
-                                                                        {formData.brand || "HYUNDAI"} {formData.model || "SANTRO XG"} ({formData.year || "2005"})
-                                                                    </span>
-                                                                </div>
-
-                                                                <div className="flex justify-between items-center text-[10px]">
-                                                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">UNLADEN WEIGHT</span>
-                                                                    <span className="text-slate-900 font-black text-[9px] sm:text-[10px]">{weightNum} kg</span>
-                                                                </div>
-
-                                                                <div className="flex justify-between items-center text-[10px]">
-                                                                    <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">BASE RATE / KG</span>
-                                                                    <span className="text-slate-900 font-black text-[9px] sm:text-[10px]">₹{ratePerKg} / kg</span>
-                                                                </div>
-
-                                                                <div className="border-t border-slate-200 my-2" />
-
-                                                                <div className="space-y-1.5">
-                                                                    <div className="space-y-1.5">
-                                                                        {[
-                                                                            { label: "Scrap Value Estimate (Average)", value: `₹${formatCurrency(averageScrapValue)}`, cls: "text-slate-600" },
-                                                                            ...(formData.buyNew === "no" ? [] : [{ label: "CD Certificate Advantage", value: `+ ₹${formatCurrency(potentialCDDiscount)}`, cls: "text-emerald-600" }]),
-                                                                            { label: "Dealer OEM Discount", value: `+ ₹${formatCurrency(dealerOemDiscount)}`, cls: "text-slate-600" },
-                                                                            { label: "Green Finance Savings", value: `+ ₹${formatCurrency(greenFinanceSavings)}`, cls: "text-slate-600" },
-                                                                            { label: "Green Insurance Savings", value: `+ ₹${formatCurrency(greenInsuranceSavings)}`, cls: "text-slate-600" },
-                                                                        ].map(({ label, value, cls }) => (
-                                                                            <div key={label} className="flex justify-between items-center gap-2">
-                                                                                <span className={`${cls} font-medium text-[9px] sm:text-[10px] leading-tight`}>{label}</span>
-                                                                                <span className={`${cls} font-extrabold text-[9px] sm:text-[10px] shrink-0 filter blur-[5px] select-none pointer-events-none`}>{value}</span>
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-
-                                                                    <div className="border-t border-dashed border-slate-300 my-2" />
-
-                                                                    <div className="bg-[#0f172a] rounded-lg p-2.5 sm:p-3 text-white flex items-center justify-between border border-slate-800">
-                                                                        <div>
-                                                                            <p className="text-[7px] sm:text-[8px] font-black text-emerald-400 uppercase tracking-wider mb-0.5">GRAND TOTAL BENEFIT</p>
-                                                                            <p className="text-[7.5px] sm:text-[8.5px] text-slate-300 font-medium">
-                                                                                {formData.buyNew === "no" ? "Scrap + Partner Savings" : "Scrap + CD + Partner Savings"}
-                                                                            </p>
                                                                         </div>
-                                                                        <span className="text-sm sm:text-base font-black text-white">₹{formatCurrency(grandTotalBenefit)}</span>
+
+                                                                        {otpSent && (
+                                                                            <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-1.5">
+                                                                                <input
+                                                                                    type="tel"
+                                                                                    placeholder={isSandboxMode ? "Use: 000000" : "••••••"}
+                                                                                    value={formData.otp}
+                                                                                    onChange={(e) => setFormData({ ...formData, otp: e.target.value.slice(0, 6) })}
+                                                                                    className="w-full px-3 py-2.5 bg-slate-50 border border-[#E31E24]/30 rounded-lg text-xl text-center font-black tracking-[0.35em] text-slate-900 focus:outline-none focus:border-[#E31E24]"
+                                                                                    maxLength={6}
+                                                                                    autoFocus
+                                                                                />
+                                                                                {isSandboxMode && (
+                                                                                    <p className="text-[8px] text-amber-600 font-bold">⚡ Sandbox mode — enter 000000</p>
+                                                                                )}
+                                                                                <button
+                                                                                    onClick={() => { setOtpSent(false); setFormData({ ...formData, otp: "" }); setIsSandboxMode(false); }}
+                                                                                    className="text-[9px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
+                                                                                    type="button"
+                                                                                >
+                                                                                    Change Number
+                                                                                </button>
+                                                                            </motion.div>
+                                                                        )}
+
+                                                                        <button
+                                                                            disabled={(otpSent ? (formData.otp.length !== 6 && formData.otp.length !== 4) : formData.phone.length !== 10) || isSendingOtp || isVerifying}
+                                                                            onClick={otpSent ? handleVerifyOtp : handleSendOtp}
+                                                                            className="w-full py-2.5 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-lg shadow-md shadow-red-500/25 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-1.5"
+                                                                        >
+                                                                            {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "VERIFY & GET VALUATION" : "GET OTP")}
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </div>
-
-                                                            <p className="text-slate-400 text-[7.5px] sm:text-[8px] leading-normal italic border-t border-slate-200/80 pt-2 mt-2">
-                                                                {formData.buyNew === "no"
-                                                                    ? "*Honest pricing based on unladen weight and global indices. Our team will assist in redeeming partner benefits."
-                                                                    : "*Honest pricing based on unladen weight and global indices. Our team will assist in redeeming maximum CD certificate value."}
-                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
