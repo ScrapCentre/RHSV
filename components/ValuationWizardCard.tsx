@@ -1111,7 +1111,7 @@ export default function ValuationWizardCard() {
                                     </div>
 
                                     {/* 2x2 Grid of Benefit Cards */}
-                                    <div className={`grid ${formData.buyNew === "no" ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2"} gap-2 sm:gap-3`}>
+                                    <div className={`grid ${formData.buyNew === "no" ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"} gap-2 sm:gap-3`}>
                                         {/* Card 1: CD Certificate */}
                                         {formData.buyNew !== "no" && (
                                             <div className="bg-[#f0fdf4] border border-emerald-100 rounded-xl p-2.5 sm:p-3 relative shadow-sm hover:shadow-md transition-all">
@@ -1127,21 +1127,21 @@ export default function ValuationWizardCard() {
                                         )}
 
                                         {/* Card 2: Dealer OEM Discount */}
-                                        <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
+                                        <div className="hidden sm:block bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
                                             <p className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-wider">DEALER OEM DISCOUNT</p>
                                             <p className="text-base sm:text-lg font-black text-slate-800 mt-0.5">Up to ₹{formatCurrency(dealerOemDiscount)}</p>
                                             <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mt-0.5 leading-tight">Scrappage exchange benefits</p>
                                         </div>
 
                                         {/* Card 3: Green Finance */}
-                                        <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
+                                        <div className="hidden sm:block bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
                                             <p className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-wider">GREEN FINANCE</p>
                                             <p className="text-base sm:text-lg font-black text-slate-800 mt-0.5">Up to ₹{formatCurrency(greenFinanceSavings)}</p>
                                             <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mt-0.5 leading-tight">Lower interest green loans</p>
                                         </div>
 
                                         {/* Card 4: Green Insurance */}
-                                        <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
+                                        <div className="hidden sm:block bg-[#f8fafc] border border-slate-200 rounded-xl p-2.5 sm:p-3 relative hover:shadow-sm transition-all">
                                             <p className="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-wider">GREEN INSURANCE</p>
                                             <p className="text-base sm:text-lg font-black text-slate-800 mt-0.5">Up to ₹{formatCurrency(greenInsuranceSavings)}</p>
                                             <p className="text-[8px] sm:text-[9px] text-slate-500 font-semibold mt-0.5 leading-tight">Eco insurance rebates</p>

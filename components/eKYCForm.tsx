@@ -66,7 +66,17 @@ function UploadBox({ label, sublabel, file, onChange, accent = "red" }: {
     accent?: string
 }) {
     const inputRef = useRef<HTMLInputElement>(null)
-    const preview = file ? URL.createObjectURL(file) : null
+    const [preview, setPreview] = React.useState<string | null>(null)
+
+    React.useEffect(() => {
+        if (!file) {
+            setPreview(null)
+            return
+        }
+        const url = URL.createObjectURL(file)
+        setPreview(url)
+        return () => URL.revokeObjectURL(url)
+    }, [file])
 
     return (
         <div
@@ -99,6 +109,69 @@ function UploadBox({ label, sublabel, file, onChange, accent = "red" }: {
             />
         </div>
     )
+}
+
+// ── IndexedDB Helpers for Draft Files ──────────────────────────────────────────
+const dbName = "ekyc-draft-files"
+const storeName = "files"
+
+const getDB = (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+        if (typeof window === "undefined") {
+            reject(new Error("IDB is only available in browser"))
+            return
+        }
+        const request = indexedDB.open(dbName, 1)
+        request.onupgradeneeded = () => {
+            const db = request.result
+            if (!db.objectStoreNames.contains(storeName)) {
+                db.createObjectStore(storeName)
+            }
+        }
+        request.onsuccess = () => resolve(request.result)
+        request.onerror = () => reject(request.error)
+    })
+}
+
+const saveFileToIndexedDB = async (key: string, file: File | null) => {
+    try {
+        const db = await getDB()
+        const tx = db.transaction(storeName, "readwrite")
+        const store = tx.objectStore(storeName)
+        if (file) {
+            store.put(file, key)
+        } else {
+            store.delete(key)
+        }
+    } catch (e) {
+        console.error("Failed to save file to IndexedDB", e)
+    }
+}
+
+const getFileFromIndexedDB = async (key: string): Promise<File | null> => {
+    try {
+        const db = await getDB()
+        return new Promise((resolve) => {
+            const tx = db.transaction(storeName, "readonly")
+            const store = tx.objectStore(storeName)
+            const req = store.get(key)
+            req.onsuccess = () => resolve(req.result || null)
+            req.onerror = () => resolve(null)
+        })
+    } catch (e) {
+        console.error("Failed to read file from IndexedDB", e)
+        return null
+    }
+}
+
+const clearIndexedDB = async () => {
+    try {
+        const db = await getDB()
+        const tx = db.transaction(storeName, "readwrite")
+        tx.objectStore(storeName).clear()
+    } catch (e) {
+        console.error("Failed to clear IndexedDB", e)
+    }
 }
 
 // ── Main Component ───────────────────────────────────────────────────────────
@@ -142,6 +215,100 @@ export default function EKYCForm({
 
     const totalSteps = STEPS.length
 
+    // Load saved text/checkbox values and active step from localStorage on mount
+    React.useEffect(() => {
+        const saved = localStorage.getItem("draft_ekyc_data")
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved)
+                setData(prev => ({
+                    ...prev,
+                    firstName: parsed.firstName || prev.firstName,
+                    dob: parsed.dob || prev.dob,
+                    aadharNumber: parsed.aadharNumber || prev.aadharNumber,
+                    whatsapp: parsed.whatsapp || prev.whatsapp,
+                    agreeTC: parsed.agreeTC ?? prev.agreeTC,
+                    fullAddress: parsed.fullAddress || prev.fullAddress,
+                    state: parsed.state || prev.state,
+                    city: parsed.city || prev.city,
+                    pincode: parsed.pincode || prev.pincode,
+                }))
+            } catch (e) {
+                console.error("Failed to parse saved eKYC data", e)
+            }
+        }
+        
+        const savedStep = localStorage.getItem("draft_ekyc_step")
+        if (savedStep) {
+            const stepNum = parseInt(savedStep, 10)
+            if (!isNaN(stepNum) && stepNum >= 0 && stepNum < totalSteps) {
+                setStep(stepNum)
+            }
+        }
+
+        // Load saved files from IndexedDB on mount
+        const loadFiles = async () => {
+            const keys: Array<keyof eKYCFormData> = [
+                "aadharFile",
+                "rcFile",
+                "photoFront",
+                "photoBack",
+                "photoLeft",
+                "photoRight"
+            ]
+            const loadedFiles: Partial<eKYCFormData> = {}
+            for (const key of keys) {
+                const file = await getFileFromIndexedDB(key)
+                if (file) {
+                    loadedFiles[key] = file
+                }
+            }
+            if (Object.keys(loadedFiles).length > 0) {
+                setData(prev => ({
+                    ...prev,
+                    ...loadedFiles
+                }))
+            }
+        }
+        loadFiles()
+    }, [totalSteps])
+
+    // Save text fields when they change
+    React.useEffect(() => {
+        const { aadharFile, rcFile, photoFront, photoBack, photoLeft, photoRight, ...textData } = data
+        localStorage.setItem("draft_ekyc_data", JSON.stringify(textData))
+    }, [data])
+
+    // Save current step index when it changes
+    React.useEffect(() => {
+        localStorage.setItem("draft_ekyc_step", step.toString())
+    }, [step])
+
+    // Save files to IndexedDB when they change in state
+    React.useEffect(() => {
+        saveFileToIndexedDB("aadharFile", data.aadharFile)
+    }, [data.aadharFile])
+
+    React.useEffect(() => {
+        saveFileToIndexedDB("rcFile", data.rcFile)
+    }, [data.rcFile])
+
+    React.useEffect(() => {
+        saveFileToIndexedDB("photoFront", data.photoFront)
+    }, [data.photoFront])
+
+    React.useEffect(() => {
+        saveFileToIndexedDB("photoBack", data.photoBack)
+    }, [data.photoBack])
+
+    React.useEffect(() => {
+        saveFileToIndexedDB("photoLeft", data.photoLeft)
+    }, [data.photoLeft])
+
+    React.useEffect(() => {
+        saveFileToIndexedDB("photoRight", data.photoRight)
+    }, [data.photoRight])
+
     const nextStep = () => { setDirection(1); setStep(s => s + 1) }
     const prevStep = () => { setDirection(-1); setStep(s => s - 1) }
 
@@ -179,6 +346,9 @@ export default function EKYCForm({
                 localStorage.removeItem("kycFormData")
                 localStorage.removeItem("kycValuation")
                 localStorage.removeItem("kycValuationId")
+                localStorage.removeItem("draft_ekyc_data")
+                localStorage.removeItem("draft_ekyc_step")
+                await clearIndexedDB()
                 setShowSuccess(true)
             } else {
                 const err = await res.json()
@@ -507,7 +677,7 @@ export default function EKYCForm({
                                                 className="mt-0.5 h-3.5 w-3.5 accent-[#E31E24] cursor-pointer" />
                                             <label htmlFor="kyc-tc" className="text-[9.5px] text-amber-800 cursor-pointer leading-normal font-semibold">
                                                 I declare all details are true. I agree to the{" "}
-                                                <Link href="/terms" className="font-black underline">Terms & Conditions</Link>.
+                                                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-black underline">Terms & Conditions</Link>.
                                             </label>
                                         </div>
                                         <button disabled={!data.agreeTC || isSubmitting} onClick={handleSubmit}

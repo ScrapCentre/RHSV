@@ -86,62 +86,62 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
         switch (status) {
             case "pending":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-900/20 text-yellow-400 border border-yellow-900/30">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-100">
                         <Clock className="w-3.5 h-3.5" /> Pending
                     </span>
                 )
             case "reviewing":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-900/20 text-blue-400 border border-blue-900/30">
-                        <Clock className="w-3.5 h-3.5 animate-pulse" /> Reviewing
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 animate-pulse">
+                        <Clock className="w-3.5 h-3.5" /> Reviewing
                     </span>
                 )
             case "contacted":
             case "reviewed":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-900/20 text-indigo-400 border border-indigo-900/30">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-100">
                         <CheckCircle className="w-3.5 h-3.5" /> Reviewed
                     </span>
                 )
             case "approved":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-900/20 text-emerald-400 border border-emerald-900/30">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
                         <CheckCircle className="w-3.5 h-3.5" /> Approved
                     </span>
                 )
             case "pickup_scheduled":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-900/20 text-blue-400 border border-blue-900/30">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-600 border border-purple-100">
                         <Car className="w-3.5 h-3.5" /> Pickup Scheduled
                     </span>
                 )
             case "reached_collection_centre":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-900/20 text-purple-400 border border-purple-900/30">
-                        <CheckCircle className="w-3.5 h-3.5" /> Reached Collection Centre
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100">
+                        <CheckCircle className="w-3.5 h-3.5" /> Reached CC
                     </span>
                 )
             case "car_scrapped":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-900/20 text-red-400 border border-red-900/30">
-                        <CheckCircle className="w-3.5 h-3.5" /> Vehicle Scrapped Successfully
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-650 border border-red-100">
+                        <CheckCircle className="w-3.5 h-3.5" /> Scrapped
                     </span>
                 )
             case "completed":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-900/20 text-green-400 border border-green-900/30">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
                         <CheckCircle className="w-3.5 h-3.5" /> Completed
                     </span>
                 )
             case "rejected":
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-900/20 text-red-400 border border-red-900/30">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
                         <X className="w-3.5 h-3.5" /> Rejected
                     </span>
                 )
             default:
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-gray-300 border border-slate-700">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-600 border border-slate-200">
                         {status}
                     </span>
                 )
@@ -165,14 +165,14 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
     const getTypeColor = (type: string) => {
         switch (type) {
             case 'valuation': 
-            case 'scrap': return { bg: "bg-blue-900/20", text: "text-blue-400", border: "border-blue-900/30", hoverBg: "group-hover:bg-blue-900/30", hoverText: "group-hover:text-blue-300", solid: "bg-blue-600" }
+            case 'scrap': return { bg: "bg-blue-50", text: "text-blue-600", border: "border-blue-100", hoverBg: "group-hover:bg-blue-100", hoverText: "group-hover:text-blue-700", solid: "bg-blue-600" }
             case 'sell': 
-            case 'wizard-sell': return { bg: "bg-green-900/20", text: "text-green-400", border: "border-green-900/30", hoverBg: "group-hover:bg-green-900/30", hoverText: "group-hover:text-green-300", solid: "bg-green-600" }
+            case 'wizard-sell': return { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-100", hoverBg: "group-hover:bg-emerald-100", hoverText: "group-hover:text-emerald-700", solid: "bg-emerald-600" }
             case 'exchange': 
-            case 'scrap-buy': return { bg: "bg-purple-900/20", text: "text-purple-400", border: "border-purple-900/30", hoverBg: "group-hover:bg-purple-900/30", hoverText: "group-hover:text-purple-300", solid: "bg-purple-600" }
+            case 'scrap-buy': return { bg: "bg-purple-50", text: "text-purple-600", border: "border-purple-100", hoverBg: "group-hover:bg-purple-100", hoverText: "group-hover:text-purple-700", solid: "bg-purple-600" }
             case 'buy': 
-            case 'wizard-buy': return { bg: "bg-orange-900/20", text: "text-orange-400", border: "border-orange-900/30", hoverBg: "group-hover:bg-orange-900/30", hoverText: "group-hover:text-orange-300", solid: "bg-orange-600" }
-            default: return { bg: "bg-slate-800", text: "text-slate-400", border: "border-slate-700", hoverBg: "group-hover:bg-slate-700", hoverText: "group-hover:text-slate-300", solid: "bg-slate-800" }
+            case 'wizard-buy': return { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-100", hoverBg: "group-hover:bg-orange-100", hoverText: "group-hover:text-orange-700", solid: "bg-orange-600" }
+            default: return { bg: "bg-slate-100", text: "text-slate-600", border: "border-slate-200", hoverBg: "group-hover:bg-slate-200", hoverText: "group-hover:text-slate-700", solid: "bg-slate-800" }
         }
     }
 
@@ -220,31 +220,31 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                             key={req._id}
                             layoutId={req._id}
                             onClick={() => setSelectedRequest(req)}
-                            className="bg-[#0E192D] rounded-2xl p-6 shadow-sm shadow-black/20 border border-slate-800 hover:shadow-md hover:border-slate-700 transition-all cursor-pointer group"
+                            className="bg-white rounded-2xl p-5 sm:p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-slate-100 hover:border-red-200/50 hover:shadow-[0_15px_35px_rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer group"
                         >
                             <div className="flex justify-between items-start">
                                 <div className="flex items-start gap-4">
-                                    <div className={`p-3 rounded-xl transition-colors ${colors.bg} ${colors.text} ${colors.hoverBg} ${colors.hoverText}`}>
+                                    <div className={`p-3 rounded-xl transition-colors ${colors.bg} ${colors.text} ${colors.hoverBg} ${colors.hoverText} border ${colors.border}`}>
                                         {getTypeIcon(req.type)}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-white text-lg flex items-center gap-2">
+                                        <h3 className="font-bold text-slate-800 text-base sm:text-lg flex items-center gap-2">
                                             {getRequestTitle(req)}
-                                            <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md font-black ${colors.bg} ${colors.text}`}>
+                                            <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md font-black border ${colors.border} ${colors.bg} ${colors.text}`}>
                                                 {getTypeDisplayName(req.type)}
                                             </span>
                                         </h3>
-                                        <p className="text-sm text-gray-400 font-mono mt-0.5">{getRequestSubtitle(req)}</p>
-                                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                                            <Calendar className="w-3 h-3" />
+                                        <p className="text-xs sm:text-sm text-slate-500 font-mono mt-0.5">{getRequestSubtitle(req)}</p>
+                                        <p className="text-xs text-slate-400 mt-2 flex items-center gap-1.5 font-medium">
+                                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
                                             {mounted ? new Date(req.createdAt).toLocaleDateString() : "Loading..."}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-3">
+                                <div className="flex flex-col items-end gap-3 shrink-0">
                                     {getStatusBadge(req.status)}
                                     {req.type === 'valuation' && req.estimatedValue != null && (
-                                        <div className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-900/20 px-2.5 py-1.5 rounded-lg border border-emerald-900/30">
+                                        <div className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-100 shadow-sm">
                                             ₹{(req.estimatedValue * 0.8).toLocaleString('en-IN')} - ₹{(req.estimatedValue * 1.2).toLocaleString('en-IN')}
                                         </div>
                                     )}
@@ -252,18 +252,18 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                             </div>
 
                             {/* Action Buttons Section directly on the request card */}
-                            <div className="mt-5 pt-4 border-t border-slate-800/60 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                                <p className="text-[11px] text-gray-400 font-medium">
+                            <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                                <p className="text-[11px] text-slate-500 font-medium">
                                     {req.ekycStatus === "verified" ? (
-                                        <span className="text-emerald-400 flex items-center gap-1 font-bold">
-                                            <CheckCircle className="w-3.5 h-3.5" /> eKYC Completed & Verified
+                                        <span className="text-emerald-600 flex items-center gap-1.5 font-bold">
+                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-550" /> eKYC Completed & Verified
                                         </span>
                                     ) : req.ekycStatus === "reviewing" || req.ekycStatus === "submitted" ? (
-                                        <span className="text-blue-400 flex items-center gap-1 font-bold animate-pulse">
-                                            <Clock className="w-3.5 h-3.5" /> eKYC Documents Under Review
+                                        <span className="text-blue-600 flex items-center gap-1.5 font-bold animate-pulse">
+                                            <Clock className="w-3.5 h-3.5 text-blue-550" /> eKYC Documents Under Review
                                         </span>
                                     ) : (
-                                        <span className="text-gray-400">Complete verification to unlock benefits</span>
+                                        <span className="text-slate-400">Complete verification to unlock benefits</span>
                                     )}
                                 </p>
                                 <div className="flex items-center gap-2.5 w-full sm:w-auto mt-2 sm:mt-0">
@@ -271,9 +271,16 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                     {req.ekycStatus === "verified" ? (
                                         <button
                                             disabled
-                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-emerald-950/40 text-emerald-400 border border-emerald-900/30 rounded-xl flex items-center gap-1.5 cursor-not-allowed opacity-80"
+                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl flex items-center gap-1.5 cursor-not-allowed opacity-85"
                                         >
                                             <CheckCircle className="w-3.5 h-3.5" /> Verified
+                                        </button>
+                                    ) : req.ekycStatus === "submitted" || req.ekycStatus === "reviewing" ? (
+                                        <button
+                                            disabled
+                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100 rounded-xl flex items-center gap-1.5 cursor-not-allowed opacity-85"
+                                        >
+                                            <Clock className="w-3.5 h-3.5" /> Under Review
                                         </button>
                                     ) : (
                                         <button
@@ -289,7 +296,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                         <Link
                                             href={`/profile/chat/${req.chatThreadId}`}
                                             onClick={(e) => e.stopPropagation()}
-                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-[#0E192D] border border-slate-700 hover:bg-slate-800 text-white rounded-xl flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all whitespace-nowrap"
+                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 rounded-xl flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all whitespace-nowrap"
                                         >
                                             <MessageSquare className="w-3.5 h-3.5 text-red-500 animate-pulse" /> Chat & Negotiate
                                         </Link>
@@ -299,7 +306,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                                 e.stopPropagation()
                                                 setSelectedRequest(req)
                                             }}
-                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-[#0E192D] border border-slate-700 hover:bg-slate-800 text-white rounded-xl flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all whitespace-nowrap"
+                                            className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 rounded-xl flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all whitespace-nowrap"
                                         >
                                             <FileText className="w-3.5 h-3.5" /> Details
                                         </button>
@@ -320,14 +327,14 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-[#0E192D] rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden relative border border-slate-800 flex flex-col max-h-[90vh]"
+                            className="bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.12)] w-full max-w-md mx-auto overflow-hidden relative border border-slate-100 flex flex-col max-h-[90vh]"
                         >
                             {/* Close Button */}
                             <button
                                 onClick={() => setSelectedRequest(null)}
-                                className="absolute top-4 right-4 p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors z-10"
+                                className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-colors z-15"
                             >
-                                <X className="w-5 h-5 text-gray-400" />
+                                <X className="w-5 h-5" />
                             </button>
 
                             {/* Modal Header */}
@@ -347,24 +354,24 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                             <div className="p-5 sm:p-6 space-y-6 overflow-y-auto scrollbar-hide">
                                 {/* Estimated Value Banner - valuation only */}
                                 {selectedRequest.type === 'valuation' && selectedRequest.estimatedValue != null && (
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-emerald-900/20 rounded-2xl border border-emerald-900/30 gap-2">
-                                        <span className="text-xs sm:text-sm font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-2">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-emerald-50 rounded-2xl border border-emerald-100 gap-2">
+                                        <span className="text-xs sm:text-sm font-bold text-emerald-700 uppercase tracking-wide flex items-center gap-2">
                                             Estimated Scrap Value
                                         </span>
-                                        <span className="text-xl sm:text-2xl font-black text-emerald-300">
+                                        <span className="text-xl sm:text-2xl font-black text-emerald-600">
                                             ₹{(selectedRequest.estimatedValue * 0.8).toLocaleString('en-IN')} - ₹{(selectedRequest.estimatedValue * 1.2).toLocaleString('en-IN')}
                                         </span>
                                     </div>
                                 )}
 
                                 {/* Status Timeline Section */}
-                                <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800">
+                                <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-100">
                                     <div className="flex items-center justify-between mb-6">
-                                        <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">Status Tracking</span>
+                                        <span className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wide">Status Tracking</span>
                                         {getStatusBadge(selectedRequest.status)}
                                     </div>
                                     
-                                    <div className="relative border-l-2 border-slate-700 ml-3 space-y-6">
+                                    <div className="relative border-l-2 border-slate-200 ml-3 space-y-6">
                                         {(() => {
                                             const steps = [
                                                 { id: 'pending', label: 'Request Submitted', description: 'Customer requested service.', icon: <Clock className="w-4 h-4" />, date: selectedRequest.createdAt },
@@ -386,22 +393,22 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                                 return (
                                                     <div key={step.id} className="relative pl-8">
                                                         <div 
-                                                            className={`absolute -left-[17px] top-0 w-8 h-8 rounded-full border-4 border-[#0E192D] flex items-center justify-center transition-colors
-                                                                ${isCompleted ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]' : 'bg-slate-800 text-slate-500'}
+                                                            className={`absolute -left-[17px] top-0 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center transition-colors
+                                                                ${isCompleted ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.25)]' : 'bg-slate-200 text-slate-400'}
                                                             `}
                                                         >
-                                                            {isCompleted ? <CheckCircle className="w-3.5 h-3.5" /> : step.icon}
+                                                            {isCompleted ? <CheckCircle className="w-3.5 h-3.5" /> : React.cloneElement(step.icon as React.ReactElement, { className: "w-3.5 h-3.5" })}
                                                         </div>
                                                         <div>
-                                                            <h4 className={`text-sm font-bold ${isCompleted ? 'text-white' : 'text-slate-500'}`}>
+                                                            <h4 className={`text-sm font-bold ${isCompleted ? 'text-slate-800' : 'text-slate-400'}`}>
                                                                 {step.label}
                                                             </h4>
-                                                            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                                                            <p className={`text-xs mt-1 leading-relaxed ${isCompleted ? 'text-slate-500' : 'text-slate-400'}`}>
                                                                 {step.description}
                                                             </p>
                                                             {isCompleted && step.date && index < 2 && (
-                                                                <p className="text-[10px] font-bold text-blue-400 mt-2 uppercase tracking-widest flex items-center gap-1">
-                                                                    <Calendar className="w-3 h-3" />
+                                                                <p className="text-[10px] font-bold text-blue-600 mt-2 uppercase tracking-widest flex items-center gap-1.5">
+                                                                    <Calendar className="w-3 h-3 text-blue-500" />
                                                                     {new Date(step.date).toLocaleDateString()}
                                                                 </p>
                                                             )}
@@ -414,7 +421,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 </div>
 
                                 {/* Details Grid - Dynamic based on type */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     {selectedRequest.type === 'valuation' && (
                                         <>
                                             <DetailItem icon={<Car />} label="Vehicle Type" value={selectedRequest.vehicleType} />
@@ -503,27 +510,27 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 </div>
 
                                 {/* Contact Information */}
-                                <div className="pt-5 border-t border-slate-800">
-                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Contact Information</p>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-orange-900/10 p-4 sm:p-5 rounded-2xl border border-orange-900/20">
+                                <div className="pt-5 border-t border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contact Information</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100/85">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-orange-500">
+                                            <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm text-[#E31E24] shrink-0">
                                                 <UserIcon className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-bold text-gray-500">Name</p>
-                                                <p className="text-sm font-bold text-white">
+                                                <p className="text-[10px] font-bold text-slate-400">Name</p>
+                                                <p className="text-sm font-bold text-slate-800">
                                                     {selectedRequest.type === 'valuation' ? selectedRequest.contact?.name : selectedRequest.name || selectedRequest.customerName}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-orange-500">
+                                            <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm text-[#E31E24] shrink-0">
                                                 <Smartphone className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-bold text-gray-500">Phone</p>
-                                                <p className="text-sm font-bold text-white">
+                                                <p className="text-[10px] font-bold text-slate-400">Phone</p>
+                                                <p className="text-sm font-bold text-slate-800">
                                                     {selectedRequest.type === 'valuation' ? selectedRequest.contact?.phone : selectedRequest.phone || selectedRequest.customerPhone}
                                                 </p>
                                             </div>
@@ -533,12 +540,12 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
 
                                 {/* Footer Note */}
                                 <div className="pt-4 text-center">
-                                    <p className="text-xs text-gray-400 italic">Submitted on {mounted ? new Date(selectedRequest.createdAt).toLocaleString() : "..."}</p>
+                                    <p className="text-xs text-slate-400 italic">Submitted on {mounted ? new Date(selectedRequest.createdAt).toLocaleString() : "..."}</p>
                                 </div>
                             </div>
 
                             {/* Action Button */}
-                            <div className="p-4 sm:p-5 bg-slate-900 border-t border-slate-800 shrink-0 space-y-3">
+                            <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 shrink-0 space-y-3">
                                 {selectedRequest.chatThreadId && (
                                     <Link
                                         href={`/profile/chat/${selectedRequest.chatThreadId}`}
@@ -549,7 +556,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 )}
                                 <button
                                     onClick={() => setSelectedRequest(null)}
-                                    className="w-full bg-slate-850 hover:bg-slate-800 text-white font-bold py-3 sm:py-3.5 rounded-xl transition-all border border-slate-800 active:scale-[0.98]"
+                                    className="w-full bg-white hover:bg-slate-100 text-slate-700 font-bold py-3 sm:py-3.5 rounded-xl transition-all border border-slate-200 active:scale-[0.98]"
                                 >
                                     Close Details
                                 </button>
@@ -564,11 +571,11 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
 
 function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | undefined }) {
     return (
-        <div className="space-y-1">
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                {icon} {label}
+        <div className="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100/80">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                {icon && React.cloneElement(icon as React.ReactElement, { className: "w-3 h-3 text-[#E31E24]" })} {label}
             </p>
-            <p className="text-sm font-bold text-white">{value || "N/A"}</p>
+            <p className="text-xs font-bold text-slate-800">{value || "N/A"}</p>
         </div>
     )
 }

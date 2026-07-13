@@ -189,8 +189,8 @@ export default function HomexHero() {
             // Dispatch event to wizard with fetched data
             window.dispatchEvent(new CustomEvent('hero-vehicle-data', { detail: vehicleInfo }));
             
-            // Smooth scroll to services section
-            const servicesEl = document.getElementById('services');
+            // Smooth scroll to valuation wizard card
+            const servicesEl = document.getElementById('valuation-card');
             if (servicesEl) {
                 servicesEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -200,7 +200,7 @@ export default function HomexHero() {
                 regNo: vehicleNumber,
                 brand: "", model: "", year: "", weight: "", fuel: ""
             }}));
-            const servicesEl = document.getElementById('services');
+            const servicesEl = document.getElementById('valuation-card');
             if (servicesEl) {
                 servicesEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -260,14 +260,14 @@ export default function HomexHero() {
                 />
             </div>
 
-            <div className={`relative z-20 container mx-auto px-4 sm:px-6 lg:pl-24 flex-1 flex flex-col items-center lg:items-start justify-center ${isLeadVisible ? "pt-24 sm:pt-28 pb-4 lg:pt-24 lg:pb-0" : "pt-20 sm:pt-24 pb-8 lg:pt-20 lg:pb-0"}`}>
+            <div className={`relative z-20 container mx-auto px-4 sm:px-6 lg:pl-24 flex-1 flex flex-col items-center lg:items-start justify-center ${isLeadVisible ? "pt-32 sm:pt-28 pb-4 lg:pt-24 lg:pb-0" : "pt-28 sm:pt-24 pb-8 lg:pt-20 lg:pb-0"}`}>
                 {/* Content Area - Aligned to Left */}
                 <div className="max-w-4xl lg:text-left text-center">
                     <motion.h1 
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
-                        className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-[3.5rem] xl:text-[4rem] 2xl:text-[5rem] font-bebas font-bold text-[#1A1A1A] leading-[0.95] mb-3 xl:mb-4 tracking-[0.03em] uppercase"
+                        className="text-[2.75rem] xs:text-[3rem] sm:text-5xl md:text-6xl lg:text-[3.5rem] xl:text-[4rem] 2xl:text-[5rem] font-bebas font-bold text-[#1A1A1A] leading-[0.95] mb-3 xl:mb-4 tracking-[0.03em] uppercase"
                     >
                         <span className="text-[#E31E24]">India&apos;s</span> largest <br />
                         capacity <span className="relative inline-block">
@@ -355,7 +355,7 @@ export default function HomexHero() {
 
                                         {/* Actions Bar */}
                                         <div className="flex gap-2 pt-0.5">
-                                            {latestLead.ekycStatus === 'verified' ? (
+                                            {latestLead.ekycStatus === 'verified' || latestLead.ekycStatus === 'submitted' || latestLead.ekycStatus === 'reviewing' ? (
                                                 <Link
                                                     href={`/profile?leadId=${latestLead.id}`}
                                                     className="c-button--gooey flex-1 bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[10px] sm:text-[11px] py-1.5 rounded-lg text-center flex items-center justify-center gap-1 transition-all active:scale-[0.98] shadow-sm relative overflow-hidden"
@@ -478,7 +478,7 @@ export default function HomexHero() {
                                             <img src="/herologo.png" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" alt="Registration Logo" />
                                         </div>
                                         <div className="flex flex-col items-start overflow-hidden w-full">
-                                            <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Enter Registration Number</span>
+                                            <span className="text-[11px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Enter Registration Number</span>
                                             <input
                                                 type="text"
                                                 placeholder="E.g. DL1CAB1234"
@@ -492,12 +492,12 @@ export default function HomexHero() {
                                     <button
                                         type="submit"
                                         disabled={isFetching}
-                                        className="c-button--gooey w-full sm:w-auto h-10 px-4 sm:px-5 bg-[#E31E24] text-white font-bold text-xs sm:text-sm rounded-lg flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-red-500/10 active:scale-[0.98] disabled:opacity-70"
+                                        className="c-button--gooey w-full sm:w-auto h-10 px-4 sm:px-5 bg-[#E31E24] text-white font-bold text-sm rounded-lg flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-red-500/10 active:scale-[0.98] disabled:opacity-70"
                                         style={{ filter: 'none' }}
                                     >
                                         <span className="relative z-10 flex items-center gap-1.5">
                                             {isFetching ? "Fetching..." : "GET VALUATION"}
-                                            {!isFetching && <ArrowRight className="w-3.5 h-3.5 transition-transform" />}
+                                            {!isFetching && <ArrowRight className="w-4 h-4 transition-transform" />}
                                         </span>
                                         <div className="c-button__blobs" style={{ filter: 'url(#goo-hero)' }}>
                                             <div />
@@ -513,15 +513,15 @@ export default function HomexHero() {
                                 type="button"
                                 onClick={() => {
                                     window.dispatchEvent(new CustomEvent('hero-buy-click'))
-                                    const servicesEl = document.getElementById('services')
+                                    const servicesEl = document.getElementById('valuation-card')
                                     if (servicesEl) servicesEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
                                 }}
-                                className="mt-3 w-full flex items-center justify-center lg:justify-start gap-1 pl-0 lg:pl-8 group"
+                                className="mt-3 w-full flex items-center justify-start lg:justify-start gap-1 pl-2 lg:pl-8 group"
                             >
-                                <span className={`text-[12px] font-semibold transition-colors duration-500 underline underline-offset-2 group-hover:text-[#E31E24] ${isRed ? 'text-[#E31E24]' : 'text-slate-500'}`}>
+                                <span className={`text-[14px] font-semibold transition-colors duration-500 underline underline-offset-2 group-hover:text-[#E31E24] ${isRed ? 'text-[#E31E24]' : 'text-slate-500'}`}>
                                     Want to buy a new vehicle?
                                 </span>
-                                <ChevronRight className={`w-3.5 h-3.5 transition-all duration-500 group-hover:translate-x-0.5 group-hover:text-[#E31E24] ${isRed ? 'text-[#E31E24]' : 'text-slate-300'}`} />
+                                <ChevronRight className={`w-4 h-4 transition-all duration-500 group-hover:translate-x-0.5 group-hover:text-[#E31E24] ${isRed ? 'text-[#E31E24]' : 'text-slate-300'}`} />
                             </button>
 
                             {/* Toggle link back to latest lead */}
@@ -529,9 +529,9 @@ export default function HomexHero() {
                                 <button
                                     type="button"
                                     onClick={() => setShowLeadCard(true)}
-                                    className="mt-3 w-full flex items-center justify-center lg:justify-start gap-1 pl-0 lg:pl-8 text-[11px] font-bold text-[#E31E24] hover:underline"
+                                    className="mt-3 w-full flex items-center justify-start lg:justify-start gap-1.5 pl-2 lg:pl-8 text-[13px] font-bold text-[#E31E24] hover:underline"
                                 >
-                                    <FileCheck className="w-3.5 h-3.5" /> View status of your active lead
+                                    <FileCheck className="w-4 h-4" /> View status of your active lead
                                 </button>
                             )}
                         </motion.div>
@@ -546,7 +546,7 @@ export default function HomexHero() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className={`${plusJakartaSans.className} relative z-30 w-full max-w-[1400px] mx-auto px-4 sm:px-6 ${isLeadVisible ? "mt-3 mb-4 sm:mb-6 lg:mb-8" : "mt-4 sm:mt-6 lg:mt-8 mb-6 sm:mb-10 lg:mb-12"}`}
             >
-                <div className={`bg-white shadow-xl border border-slate-100/90 ${isLeadVisible ? "shadow-slate-200/50 rounded-2xl py-2 px-3 sm:py-3 sm:px-4 lg:py-4 lg:px-6" : "shadow-slate-200/60 rounded-[2rem] py-4 px-4 sm:py-5 sm:px-6 lg:py-6 lg:px-8"}`}>
+                <div className={`bg-white shadow-xl border border-slate-100/90 ${isLeadVisible ? "shadow-slate-200/50 rounded-2xl py-3 px-3 sm:py-3 sm:px-4 lg:py-4 lg:px-6" : "shadow-slate-200/60 rounded-[2rem] py-4 px-4 sm:py-5 sm:px-6 lg:py-6 lg:px-8"}`}>
                     <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 ${isLeadVisible ? "gap-2" : "gap-3 sm:gap-4 lg:gap-2"}`}>
                         {features.map((feature, idx) => (
                             <motion.div 
@@ -555,10 +555,10 @@ export default function HomexHero() {
                                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
                                 className={`flex flex-col items-center text-center px-1 py-2 group/card transition-all duration-300 hover:bg-red-50/30 cursor-pointer ${isLeadVisible ? "sm:py-3 rounded-xl" : "sm:py-4 rounded-2xl"}`}
                             >
-                                <div className={`rounded-full bg-red-50 flex items-center justify-center text-[#E31E24] border border-red-100 shadow-sm transition-all duration-300 ${isLeadVisible ? "w-8 h-8 sm:w-9 sm:h-9 mb-1.5 group-hover/card:scale-105 group-hover/card:bg-[#E31E24] group-hover/card:text-white" : "w-10 h-10 sm:w-11 sm:h-11 mb-2.5 group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50"}`}>
-                                    <feature.icon className={isLeadVisible ? "w-3.5 h-3.5 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 h-5"} />
+                                <div className={`rounded-full bg-red-50 flex items-center justify-center text-[#E31E24] border border-red-100 shadow-sm transition-all duration-300 ${isLeadVisible ? "w-9 h-9 sm:w-9 sm:h-9 mb-1.5 group-hover/card:scale-105 group-hover/card:bg-[#E31E24] group-hover/card:text-white" : "w-10 h-10 sm:w-11 sm:h-11 mb-2.5 group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50"}`}>
+                                    <feature.icon className={isLeadVisible ? "w-4 h-4 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 h-5"} />
                                 </div>
-                                <p className={`font-semibold text-slate-700 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300 max-w-[160px] ${isLeadVisible ? "text-[10px] sm:text-[11px] lg:text-[12px]" : "text-[11px] sm:text-xs lg:text-[13px]"}`}>
+                                <p className={`font-semibold text-slate-700 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300 max-w-[160px] ${isLeadVisible ? "text-[12px] sm:text-[11px] lg:text-[12px]" : "text-[13px] sm:text-xs lg:text-[13px]"}`}>
                                     {feature.text}
                                 </p>
                             </motion.div>

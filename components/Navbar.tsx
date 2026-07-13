@@ -260,7 +260,7 @@ export default function Navbar() {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" as const }}
-              className="lg:hidden overflow-hidden absolute top-full left-0 right-0 h-screen bg-white/98 backdrop-blur-md z-50"
+              className="lg:hidden overflow-hidden absolute top-full left-0 right-0 h-screen bg-white z-50"
             >
               <div className="py-4 px-4 h-full overflow-y-auto pb-20">
                 {navItems.map((item) => (
