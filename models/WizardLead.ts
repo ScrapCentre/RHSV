@@ -14,6 +14,7 @@ export interface IWizardLead {
   weight?: string;
   kms?: string;
   fuel?: string[]; // fuel can be multiple selections now in UI
+  ownerName?: string;
 
   // Customer Details
   name: string;
@@ -74,6 +75,7 @@ const WizardLeadSchema: Schema = new Schema(
     weight: { type: String },
     kms: { type: String },
     fuel: [{ type: String }],
+    ownerName: { type: String },
     name: { type: String, required: true },
     phone: { type: String, required: true },
     address: { type: String },

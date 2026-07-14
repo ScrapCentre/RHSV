@@ -3,7 +3,7 @@
 import React, { useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-    ArrowRight, ArrowLeft, CheckCircle, User, Calendar, 
+    ArrowRight, ArrowLeft, CheckCircle, User, Calendar,
     CreditCard, Smartphone, Camera, FileText, Upload,
     Car, Image as ImageIcon, MessageCircle, Loader2, Shield, MapPin
 } from "lucide-react"
@@ -237,7 +237,7 @@ export default function EKYCForm({
                 console.error("Failed to parse saved eKYC data", e)
             }
         }
-        
+
         const savedStep = localStorage.getItem("draft_ekyc_step")
         if (savedStep) {
             const stepNum = parseInt(savedStep, 10)
@@ -248,7 +248,8 @@ export default function EKYCForm({
 
         // Load saved files from IndexedDB on mount
         const loadFiles = async () => {
-            const keys: Array<keyof eKYCFormData> = [
+            type FileFields = Pick<eKYCFormData, "aadharFile" | "rcFile" | "photoFront" | "photoBack" | "photoLeft" | "photoRight">
+            const keys: Array<keyof FileFields> = [
                 "aadharFile",
                 "rcFile",
                 "photoFront",
@@ -256,7 +257,7 @@ export default function EKYCForm({
                 "photoLeft",
                 "photoRight"
             ]
-            const loadedFiles: Partial<eKYCFormData> = {}
+            const loadedFiles: Partial<FileFields> = {}
             for (const key of keys) {
                 const file = await getFileFromIndexedDB(key)
                 if (file) {
@@ -399,7 +400,7 @@ export default function EKYCForm({
         <div className={isPage ? "min-h-screen bg-slate-50 flex items-start justify-center pt-28 sm:pt-32 pb-12 px-4" : ""}>
             <div className="w-full max-w-2xl mx-auto">
                 <div className="bg-white border border-slate-200/80 rounded-[1.5rem] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)]">
- 
+
                     {/* Header */}
                     <div className="bg-slate-50/50 px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                         <button onClick={step === 0 ? onBack : prevStep} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#E31E24] hover:border-red-250 transition-all shadow-sm">
@@ -413,12 +414,12 @@ export default function EKYCForm({
                             {Math.round(((step + 1) / totalSteps) * 100)}%
                         </div>
                     </div>
- 
+
                     {/* Progress bar */}
                     <div className="w-full h-1 bg-slate-100">
                         <motion.div initial={{ width: 0 }} animate={{ width: `${((step + 1) / totalSteps) * 100}%` }} className="h-full bg-[#E31E24]" />
                     </div>
- 
+
                     {/* Step pills */}
                     <div className="flex px-4 pt-3 pb-0 gap-1 overflow-x-auto scrollbar-none">
                         {STEPS.map((s, i) => (
@@ -429,14 +430,14 @@ export default function EKYCForm({
                             </div>
                         ))}
                     </div>
- 
+
                     {/* Step Content */}
                     <div className="relative p-5 sm:p-6 md:p-8 min-h-[350px] sm:min-h-[370px] flex flex-col justify-center">
                         <AnimatePresence initial={false} custom={direction} mode="wait">
                             <motion.div key={step} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit"
                                 transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
                                 className="w-full">
- 
+
                                 {/* Step 0: Personal Details */}
                                 {step === 0 && (
                                     <div className="space-y-4 text-center">
@@ -564,7 +565,7 @@ export default function EKYCForm({
                                                     required
                                                 />
                                             </div>
-                                            
+
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div className="space-y-1">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">State</label>
@@ -580,7 +581,7 @@ export default function EKYCForm({
                                                         ))}
                                                     </select>
                                                 </div>
-                                                
+
                                                 <div className="space-y-1">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">City</label>
                                                     <select

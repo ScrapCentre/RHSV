@@ -49,8 +49,14 @@ export async function GET(
             wizardLead.status = "reviewing"
         }
 
-        // Return the raw WizardLead data so the detail page can render both scrap + buy sections
-        return NextResponse.json(wizardLead)
+        // Return the raw WizardLead data with compatibility keys so the detail page can render both scrap + buy sections
+        const responseData = {
+            ...wizardLead,
+            registrationNo: wizardLead.regNo || "N/A",
+            fuelType: Array.isArray(wizardLead.fuel) ? wizardLead.fuel.join(", ") : (wizardLead.fuel || "N/A"),
+            streetAddress: wizardLead.address || ""
+        };
+        return NextResponse.json(responseData)
     } catch (error) {
         console.error("Error fetching scrap-buy lead:", error)
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })

@@ -132,6 +132,7 @@ export const wizardLeadSchema = z.object({
     desiredCompany: z.string().trim().max(100).optional(),
     desiredModel: z.string().trim().max(100).optional(),
     carPhoto: z.string().url().optional(),
+    ownerName: z.string().trim().max(100).optional(),
 });
 
 /** Admin: create scrap centre user */

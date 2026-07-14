@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
       "desiredCompany",
       "desiredModel",
       "carPhoto",
+      "ownerName",
     ];
     for (const field of optionalStringFields) {
       if (sanitizedBody[field] === "") {
@@ -130,6 +131,7 @@ export async function POST(req: NextRequest) {
       desiredCompany: data.desiredCompany,
       desiredModel: data.desiredModel,
       carPhoto: data.carPhoto,
+      ownerName: data.ownerName,
     });
 
     const savedLead = await newLead.save();

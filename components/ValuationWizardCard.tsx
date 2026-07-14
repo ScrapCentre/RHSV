@@ -246,7 +246,8 @@ export default function ValuationWizardCard() {
         pincode: "",
         state: "",
         city: "",
-        carPhoto: ""
+        carPhoto: "",
+        ownerName: ""
     })
 
     // Sync desiredCompany & desiredModel selection states with form data
@@ -293,7 +294,11 @@ export default function ValuationWizardCard() {
                 model: data.model || "",
                 year: data.year || "",
                 weight: data.weight || "",
-                fuel: data.fuel || ""
+                fuel: data.fuel || "",
+                ownerName: data.ownerName || "",
+                name: data.name || data.ownerName || prev.name || "",
+                address: data.address || "",
+                pincode: data.pincode || prev.pincode
             }))
             setFromHero(true)
             setServiceType("scrap") // Bypasses Situation selection and directly sets to scrap flow
@@ -695,14 +700,14 @@ export default function ValuationWizardCard() {
         setCustomBrand("")
         setCustomModel("")
         setFormData({
-            regNo: "", brand: "", model: "", year: "", weight: "", kms: "", fuel: "", name: "", address: "", phone: "", otp: "", desiredCompany: "", desiredModel: "", buyNew: "", pincode: "", state: "", city: "", carPhoto: ""
+            regNo: "", brand: "", model: "", year: "", weight: "", kms: "", fuel: "", name: "", address: "", phone: "", otp: "", desiredCompany: "", desiredModel: "", buyNew: "", pincode: "", state: "", city: "", carPhoto: "", ownerName: ""
         })
     }
 
     const nextStep = (overrideBuyNew?: string | React.MouseEvent) => {
         setDirection(1)
         const buyNewState = (overrideBuyNew && typeof overrideBuyNew === "string") ? overrideBuyNew : formData.buyNew;
-        // In Scrap flow, if at 'Buy New' step (now step 2) and user says 'no', skip to 'Fuel Type' (now step 4)
+        // In Scrap flow, if at 'Buy New' step (step 2) and user says 'no', skip 'Desired Brand/Model' (step 3) and go to Vehicle Location (now step 4)
         if (serviceType === "scrap" && step === 2 && buyNewState === "no") {
             setStep(4)
         } else {
@@ -721,7 +726,7 @@ export default function ValuationWizardCard() {
             setServiceType("")
             setOtpSent(false)
         } else if (serviceType === "scrap" && step === 4 && formData.buyNew === "no") {
-            setStep(2)
+            setStep(2) // Back to Buy New step
         } else if (step > 0) {
             setStep(s => s - 1)
         }
@@ -758,6 +763,9 @@ export default function ValuationWizardCard() {
             }
 
             const data = rawData?.data?.client_id ? rawData.data : rawData;
+            const addressString = data.present_address || data.permanent_address || "";
+            const pincodeMatch = addressString.match(/\b\d{6}\b/);
+            const pincode = pincodeMatch ? pincodeMatch[0] : "";
 
             setFormData(prev => ({
                 ...prev,
@@ -765,7 +773,11 @@ export default function ValuationWizardCard() {
                 model: data.model_description || data.model_name || data.maker_model || data.model || data.rc_model || data.rc_model_name || "",
                 year: data.registration_date ? data.registration_date.split('-')[0] : data.manufacturing_year || "",
                 weight: data.vehicle_weight || data.unladen_weight || "",
-                fuel: normalizeFuelType(data.fuel_type) || prev.fuel
+                fuel: normalizeFuelType(data.fuel_type) || prev.fuel,
+                ownerName: data.owner_name || data.owner || "",
+                name: data.owner_name || data.owner || prev.name || "",
+                address: addressString,
+                pincode: pincode || prev.pincode
             }))
 
             toast({
@@ -855,6 +867,11 @@ export default function ValuationWizardCard() {
             // Clean up data before sending to route validator
             const cleanData: any = { ...formData, serviceType };
             
+            // Fallback for name since "Your Name" step is removed
+            if (!cleanData.name) {
+                cleanData.name = cleanData.ownerName || "Customer";
+            }
+            
             // Delete empty optional strings or format them
             if (cleanData.pincode === "") delete cleanData.pincode;
             if (cleanData.regNo === "") delete cleanData.regNo;
@@ -891,7 +908,7 @@ export default function ValuationWizardCard() {
             }
 
             // Remove empty values from other string fields
-            const optionalFields = ["brand", "model", "address", "city", "state", "buyNew", "desiredCompany", "desiredModel", "carPhoto"];
+            const optionalFields = ["brand", "model", "address", "city", "state", "buyNew", "desiredCompany", "desiredModel", "carPhoto", "ownerName"];
             optionalFields.forEach(f => {
                 if (cleanData[f] === "") delete cleanData[f];
             });
@@ -982,7 +999,7 @@ export default function ValuationWizardCard() {
     }
 
     const heroOffset = fromHero ? 1 : 0 // subtract 1 step when vehicle number is skipped
-    const totalSteps = (!serviceType ? 1 : (serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 11 - heroOffset : 10 - heroOffset) : 4)))
+    const totalSteps = (!serviceType ? 1 : (serviceType === "buy" ? 4 : (serviceType === "scrap" ? (formData.buyNew === "yes" ? 6 - heroOffset : 5 - heroOffset) : 4)))
 
     if (mode === "scrap-valuation") {
         return (
@@ -1400,7 +1417,7 @@ export default function ValuationWizardCard() {
     return (
         <>
             <div id="wizard-recaptcha-container"></div>
-            <div className={`w-full ${(serviceType === "scrap" && step === 7) ? "max-w-4xl" : "max-w-2xl"} mx-auto px-0 sm:px-4 transition-all duration-300`}>
+            <div className={`w-full max-w-2xl mx-auto px-0 sm:px-4 transition-all duration-300`}>
                 <div className="bg-white border-x-0 sm:border-x border-y border-slate-200 sm:rounded-[1rem] overflow-hidden shadow-none sm:shadow-2xl">
                     <div className="bg-slate-50 px-4 sm:px-6 py-2.5 sm:py-3 border-b border-slate-100 flex items-center justify-between">
                         <button onClick={prevStep} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#E31E24] transition-all"><ArrowLeft className="w-3.5 h-3.5" /></button>
@@ -1944,6 +1961,36 @@ export default function ValuationWizardCard() {
                                                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
                                                         <input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Santro" />
                                                     </motion.div>
+                                                    <motion.div 
+                                                        variants={{
+                                                            hidden: { opacity: 0, y: 8 },
+                                                            show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
+                                                        }}
+                                                        className="space-y-0.5"
+                                                    >
+                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Owner Name</label>
+                                                        <input type="text" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Satish Kumar" />
+                                                    </motion.div>
+                                                    <motion.div 
+                                                        variants={{
+                                                            hidden: { opacity: 0, y: 8 },
+                                                            show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
+                                                        }}
+                                                        className="space-y-0.5"
+                                                    >
+                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Fuel Type</label>
+                                                        <input type="text" value={formData.fuel} onChange={(e) => setFormData({ ...formData, fuel: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Petrol" />
+                                                    </motion.div>
+                                                    <motion.div 
+                                                        variants={{
+                                                            hidden: { opacity: 0, y: 8 },
+                                                            show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
+                                                        }}
+                                                        className="space-y-0.5 col-span-2 text-left"
+                                                    >
+                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Registered Address</label>
+                                                        <textarea rows={2} value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] resize-none" placeholder="Registered Address" />
+                                                    </motion.div>
                                                 </motion.div>
                                                 
                                                 <motion.button 
@@ -2205,188 +2252,7 @@ export default function ValuationWizardCard() {
                                             </div>
                                         )}
 
-                                        {step === 4 && (
-                                            <div className="space-y-5 text-center">
-                                                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Fuel className="w-7 h-7 text-[#E31E24]" /></div>
-                                                <h3 className="text-xl font-bold text-slate-900">Fuel type of {formData.model ? <span className="text-[#E31E24]">{formData.model}</span> : "your vehicle"}?</h3>
-                                                <p className="text-slate-500 text-[11px] font-medium">Select all that apply for your vehicle</p>
-                                                <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
-                                                    {FUEL_TYPES.map((f, i) => {
-                                                        const isSelected = formData.fuel.split(', ').includes(f);
-                                                        return (
-                                                            <button
-                                                                key={i}
-                                                                onClick={() => {
-                                                                    const currentFuels = formData.fuel ? formData.fuel.split(', ') : [];
-                                                                    const newFuels = isSelected
-                                                                        ? currentFuels.filter(fuel => fuel !== f)
-                                                                        : [...currentFuels, f];
-                                                                    setFormData({ ...formData, fuel: newFuels.join(', ') });
-                                                                }}
-                                                                className={`px-4 py-2 border rounded-xl text-[10px] font-bold transition-all ${isSelected
-                                                                        ? "bg-[#E31E24] border-[#E31E24] text-white shadow-md shadow-red-500/20"
-                                                                        : "border-slate-100 text-slate-700 hover:border-[#E31E24] hover:bg-red-50"
-                                                                    }`}
-                                                            >
-                                                                {f}
-                                                                {isSelected && <CheckCircle className="w-3 h-3 ml-1.5 inline-block" />}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                                <button
-                                                    disabled={!formData.fuel}
-                                                    onClick={() => nextStep()}
-                                                    className="w-full max-w-md mx-auto mt-4 py-2.5 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
-                                                >
-                                                    Next Step <ArrowRight className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        {step === 5 && (
-                                            <div className="space-y-5 text-center">
-                                                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
-                                                <h3 className="text-xl font-bold text-slate-900">Your Name</h3>
-                                                <input type="text" placeholder="Enter Full Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" autoFocus />
-                                                <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Continue</button>
-                                            </div>
-                                        )}
-
-                                        {step === 6 && (
-                                            <div className="space-y-4 text-center">
-                                                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1"><MapPin className="w-7 h-7 text-[#E31E24]" /></div>
-                                                <h3 className="text-xl font-bold text-slate-900">Vehicle Location</h3>
-
-
-
-                                                <div className="space-y-3 max-w-md mx-auto">
-                                                    <div className="space-y-1 text-left">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
-                                                        <input
-                                                            type="tel"
-                                                            placeholder="6-digit Pincode (e.g. 110001)"
-                                                            value={formData.pincode}
-                                                            onChange={(e) => setFormData({ ...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1 text-left">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">State</label>
-                                                        <select value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value, city: "" })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]">
-                                                            <option value="" disabled>Select State</option>
-                                                            {STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                                                        </select>
-                                                    </div>
-                                                    <div className="space-y-1 text-left">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">City</label>
-                                                        <select value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" disabled={!formData.state}>
-                                                            <option value="" disabled>{formData.state ? "Select City" : "Select State First"}</option>
-                                                            {formData.state && (indiaData[formData.state] || []).map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <button disabled={!formData.state || !formData.city || !formData.pincode} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2">Continue <ArrowRight className="w-3.5 h-3.5" /></button>
-                                            </div>
-                                        )}
-
-                                        {step === 7 && (
-                                            <div className="space-y-4 text-center px-2 sm:px-6">
-                                                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-1 animate-pulse">
-                                                    <Camera className="w-6 h-6 sm:w-7 sm:h-7 text-[#E31E24]" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Vehicle Photo</h3>
-                                                    <p className="text-slate-500 text-[10px] sm:text-[11.5px] font-semibold max-w-md mx-auto px-2">
-                                                        Capture a live photo of your vehicle or upload an image to receive an accurate scrap valuation.
-                                                    </p>
-                                                </div>
-
-                                                {/* Upload & Capture Options */}
-                                                <div className="grid grid-cols-2 gap-2.5 sm:gap-4 max-w-md mx-auto pt-1">
-                                                    {/* Option 1: Capture */}
-                                                    <label className="flex flex-col items-center justify-center p-3 sm:p-5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#E31E24] active:scale-[0.98] rounded-2xl cursor-pointer transition-all duration-300 shadow-sm relative group">
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            capture="environment"
-                                                            onChange={handleImageUpload}
-                                                            disabled={isUploadingImage}
-                                                            className="hidden"
-                                                        />
-                                                        <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-red-50 text-[#E31E24] group-hover:bg-[#E31E24] group-hover:text-white flex items-center justify-center transition-colors mb-2">
-                                                            <Camera className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" />
-                                                        </div>
-                                                        <span className="text-[10.5px] sm:text-xs font-black text-slate-800 uppercase tracking-wider">Take Photo</span>
-                                                        <span className="text-[8px] sm:text-[9.5px] text-slate-400 font-bold mt-0.5">Use camera</span>
-                                                    </label>
-
-                                                    {/* Option 2: Upload */}
-                                                    <label className="flex flex-col items-center justify-center p-3 sm:p-5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#E31E24] active:scale-[0.98] rounded-2xl cursor-pointer transition-all duration-300 shadow-sm relative group">
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={handleImageUpload}
-                                                            disabled={isUploadingImage}
-                                                            className="hidden"
-                                                        />
-                                                        <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-red-50 text-[#E31E24] group-hover:bg-[#E31E24] group-hover:text-white flex items-center justify-center transition-colors mb-2">
-                                                            <UploadCloud className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5" />
-                                                        </div>
-                                                        <span className="text-[10.5px] sm:text-xs font-black text-slate-800 uppercase tracking-wider">Upload File</span>
-                                                        <span className="text-[8px] sm:text-[9.5px] text-slate-400 font-bold mt-0.5">Select image</span>
-                                                    </label>
-                                                </div>
-
-                                                {/* Uploading State */}
-                                                {isUploadingImage && (
-                                                    <div className="flex flex-col items-center justify-center py-4 space-y-2 max-w-md mx-auto">
-                                                        <Loader2 className="w-6 h-6 text-[#E31E24] animate-spin" />
-                                                        <p className="text-[9.5px] font-black text-slate-500 uppercase tracking-widest animate-pulse">Uploading to Cloudinary...</p>
-                                                    </div>
-                                                )}
-
-                                                {/* Preview Area */}
-                                                {formData.carPhoto && !isUploadingImage && (
-                                                    <div className="max-w-md mx-auto w-full bg-slate-50 border border-slate-100 rounded-2xl p-2 sm:p-3 flex flex-col items-center space-y-2 shadow-inner">
-                                                        <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-slate-200">
-                                                            <img
-                                                                src={formData.carPhoto}
-                                                                alt="Vehicle Preview"
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                            <div className="absolute top-2 right-2 bg-emerald-500 text-white rounded-full p-1 shadow">
-                                                                <CheckCircle className="w-4 h-4 fill-emerald-500 text-white" />
-                                                            </div>
-                                                        </div>
-                                                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1.5 leading-none">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
-                                                            Successfully Uploaded
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                                {/* Save and Continue Button */}
-                                                <button
-                                                    disabled={!formData.carPhoto || isUploadingImage}
-                                                    onClick={nextStep}
-                                                    className="w-full max-w-md mx-auto py-2.5 sm:py-3 bg-[#E31E24] text-white font-black rounded-xl shadow-lg hover:bg-red-600 active:scale-[0.99] transition-all uppercase tracking-widest text-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                                >
-                                                    Save & Continue
-                                                </button>
-
-                                                {/* Skip Button */}
-                                                <button
-                                                    type="button"
-                                                    onClick={nextStep}
-                                                    className="w-full max-w-md mx-auto mt-2 py-2 sm:py-2.5 bg-transparent hover:bg-slate-50 text-slate-500 hover:text-slate-800 font-bold rounded-xl transition-all uppercase tracking-widest text-xs flex items-center justify-center border border-dashed border-slate-200 hover:border-slate-300 active:scale-[0.99]"
-                                                >
-                                                    Skip for Now
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        {step === 8 && (() => {
+                                        {step === 4 && (() => {
                                             return (
                                                 <div className="space-y-3">
                                                     <div className="text-center space-y-1 mb-2">

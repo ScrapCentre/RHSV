@@ -46,6 +46,8 @@ export async function GET(
                 year: wizardLead.year,
                 vehicleNumber: wizardLead.regNo || "N/A",
                 vehicleWeight: wizardLead.weight,
+                ownerName: wizardLead.ownerName,
+                fuelType: Array.isArray(wizardLead.fuel) ? wizardLead.fuel.join(", ") : (wizardLead.fuel || "N/A"),
                 contact: {
                     name: wizardLead.name,
                     phone: wizardLead.phone
@@ -53,7 +55,8 @@ export async function GET(
                 address: {
                     pincode: wizardLead.pincode,
                     city: wizardLead.city,
-                    state: wizardLead.state
+                    state: wizardLead.state,
+                    street: wizardLead.address
                 },
                 aadharFile: wizardLead.aadharFile,
                 rcFile: wizardLead.rcFile,

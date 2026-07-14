@@ -269,6 +269,8 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                                 { icon: Calendar, label: "Year", value: request.year },
                                 { icon: Hash, label: "Registration No.", value: request.vehicleNumber },
                                 { icon: Scale, label: "Weight", value: request.vehicleWeight },
+                                { icon: User, label: "Owner Name", value: request.ownerName },
+                                { icon: Fuel, label: "Fuel Type", value: request.fuelType },
                             ].map(({ icon: IconComponent, label, value }, index) => (
                                 <div 
                                     key={label} 
@@ -310,7 +312,8 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                                 { icon: Phone, label: "Phone", value: request.contact?.phone, type: "phone" },
                                 { icon: MapPin, label: "Pincode", value: request.address?.pincode },
                                 { icon: Building, label: "City", value: request.address?.city },
-                                { icon: Globe, label: "State", value: request.address?.state }
+                                { icon: Globe, label: "State", value: request.address?.state },
+                                { icon: MapPin, label: "Registered Address", value: request.address?.street },
                             ].map(({ icon: IconComponent, label, value, type }, index) => (
                                 <div 
                                     key={label} 
@@ -325,7 +328,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                                         <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{label}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs text-slate-800 dark:text-slate-200 font-black uppercase tracking-wide group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                        <span className="text-xs text-slate-800 dark:text-slate-200 font-black uppercase tracking-wide group-hover:text-orange-650 dark:group-hover:text-orange-400 transition-colors">
                                             {value || "N/A"}
                                         </span>
                                         {type === "phone" && value && (
@@ -477,12 +480,13 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
 
                         <div className="space-y-1 mt-2.5">
                             {[
-                                { icon: Hash, label: "Registration No.", value: request.registrationNo },
+                                { icon: Hash, label: "Registration No.", value: request.regNo || request.registrationNo },
                                 { icon: Car, label: "Brand", value: request.brand },
                                 { icon: Car, label: "Model", value: request.model },
                                 { icon: Calendar, label: "Year", value: request.year },
-                                { icon: Weight, label: "Weight", value: request.vehicleWeight },
-                                { icon: Fuel, label: "Fuel Type", value: request.fuelType },
+                                { icon: Scale, label: "Weight", value: request.weight || request.vehicleWeight },
+                                { icon: Fuel, label: "Fuel Type", value: Array.isArray(request.fuel) ? request.fuel.join(", ") : (request.fuel || request.fuelType) },
+                                { icon: User, label: "Owner Name", value: request.ownerName },
                             ].map(({ icon: IconComponent, label, value }, index) => (
                                 <div 
                                     key={label} 
@@ -563,7 +567,8 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                                 { icon: Phone, label: "Phone", value: request.phone, type: "phone" },
                                 { icon: MapPin, label: "Pincode", value: request.pincode },
                                 { icon: Building, label: "City", value: request.city },
-                                { icon: Globe, label: "State", value: request.state }
+                                { icon: Globe, label: "State", value: request.state },
+                                { icon: MapPin, label: "Registered Address", value: request.address || request.streetAddress },
                             ].map(({ icon: IconComponent, label, value, type }, index) => (
                                 <div 
                                     key={label} 
@@ -578,7 +583,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
                                         <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{label}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs text-slate-800 dark:text-slate-200 font-black uppercase tracking-wide group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                        <span className="text-xs text-slate-805 dark:text-slate-200 font-black uppercase tracking-wide group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                             {value || "N/A"}
                                         </span>
                                         {type === "phone" && value && (

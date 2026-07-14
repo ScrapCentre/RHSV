@@ -397,7 +397,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                                                 ${isCompleted ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.25)]' : 'bg-slate-200 text-slate-400'}
                                                             `}
                                                         >
-                                                            {isCompleted ? <CheckCircle className="w-3.5 h-3.5" /> : React.cloneElement(step.icon as React.ReactElement, { className: "w-3.5 h-3.5" })}
+                                                            {isCompleted ? <CheckCircle className="w-3.5 h-3.5" /> : React.cloneElement(step.icon as React.ReactElement<any>, { className: "w-3.5 h-3.5" })}
                                                         </div>
                                                         <div>
                                                             <h4 className={`text-sm font-bold ${isCompleted ? 'text-slate-800' : 'text-slate-400'}`}>
@@ -478,6 +478,10 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                             <DetailItem icon={<Calendar />} label="Model Year" value={selectedRequest.year} />
                                             <DetailItem icon={<Scale />} label="Approx Weight" value={`${selectedRequest.weight} kg`} />
                                             <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                            {selectedRequest.ownerName && <DetailItem icon={<UserIcon />} label="Owner Name" value={selectedRequest.ownerName} />}
+                                            {selectedRequest.fuel && selectedRequest.fuel.length > 0 && (
+                                                <DetailItem icon={<Fuel />} label="Fuel Type" value={Array.isArray(selectedRequest.fuel) ? selectedRequest.fuel.join(", ") : selectedRequest.fuel} />
+                                            )}
                                         </>
                                     )}
 
@@ -488,6 +492,10 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                             <DetailItem icon={<ShoppingCart />} label="Desired Brand" value={selectedRequest.desiredCompany} />
                                             <DetailItem icon={<Box />} label="Desired Model" value={selectedRequest.desiredModel} />
                                             <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                            {selectedRequest.ownerName && <DetailItem icon={<UserIcon />} label="Owner Name" value={selectedRequest.ownerName} />}
+                                            {selectedRequest.fuel && selectedRequest.fuel.length > 0 && (
+                                                <DetailItem icon={<Fuel />} label="Fuel Type" value={Array.isArray(selectedRequest.fuel) ? selectedRequest.fuel.join(", ") : selectedRequest.fuel} />
+                                            )}
                                         </>
                                     )}
 
@@ -573,7 +581,7 @@ function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: stri
     return (
         <div className="space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100/80">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                {icon && React.cloneElement(icon as React.ReactElement, { className: "w-3 h-3 text-[#E31E24]" })} {label}
+                {icon && React.cloneElement(icon as React.ReactElement<any>, { className: "w-3 h-3 text-[#E31E24]" })} {label}
             </p>
             <p className="text-xs font-bold text-slate-800">{value || "N/A"}</p>
         </div>

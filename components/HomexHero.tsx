@@ -160,31 +160,24 @@ export default function HomexHero() {
         setIsFetching(true)
         
         try {
-            // Demo fallback for local testing
-            let vehicleInfo: any = null;
-            if (vehicleNumber.includes("1234") || vehicleNumber.includes("TEST")) {
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                vehicleInfo = {
-                    regNo: vehicleNumber,
-                    brand: "Maruti Suzuki",
-                    model: "Swift VXI",
-                    year: "2018",
-                    weight: "1250",
-                    fuel: "Petrol"
-                };
-            } else {
-                const rawData = await lookupVehicle(vehicleNumber);
-                if (rawData.error) throw new Error(rawData.error);
-                const data = rawData?.data?.client_id ? rawData.data : rawData;
-                vehicleInfo = {
-                    regNo: vehicleNumber,
-                    brand: data.maker_description || data.maker_name || data.maker || data.rc_maker || "",
-                    model: data.model_description || data.model_name || data.maker_model || data.model || data.rc_model || data.rc_model_name || "",
-                    year: data.registration_date ? data.registration_date.split('-')[0] : data.manufacturing_year || "",
-                    weight: data.vehicle_weight || data.unladen_weight || "",
-                    fuel: normalizeFuelType(data.fuel_type)
-                };
-            }
+            const rawData = await lookupVehicle(vehicleNumber);
+            if (rawData.error) throw new Error(rawData.error);
+            const data = rawData?.data?.client_id ? rawData.data : rawData;
+            const addressString = data.present_address || data.permanent_address || "";
+            const pincodeMatch = addressString.match(/\b\d{6}\b/);
+            const pincode = pincodeMatch ? pincodeMatch[0] : "";
+            
+            const vehicleInfo = {
+                regNo: vehicleNumber,
+                brand: data.maker_description || data.maker_name || data.maker || data.rc_maker || "",
+                model: data.model_description || data.model_name || data.maker_model || data.model || data.rc_model || data.rc_model_name || "",
+                year: data.registration_date ? data.registration_date.split('-')[0] : data.manufacturing_year || "",
+                weight: data.vehicle_weight || data.unladen_weight || "",
+                fuel: normalizeFuelType(data.fuel_type),
+                ownerName: data.owner_name || data.owner || "",
+                address: addressString,
+                pincode: pincode
+            };
 
             // Dispatch event to wizard with fetched data
             window.dispatchEvent(new CustomEvent('hero-vehicle-data', { detail: vehicleInfo }));
@@ -198,7 +191,7 @@ export default function HomexHero() {
             // On error, still scroll down but with just the reg number
             window.dispatchEvent(new CustomEvent('hero-vehicle-data', { detail: {
                 regNo: vehicleNumber,
-                brand: "", model: "", year: "", weight: "", fuel: ""
+                brand: "", model: "", year: "", weight: "", fuel: "", ownerName: "", address: "", pincode: ""
             }}));
             const servicesEl = document.getElementById('valuation-card');
             if (servicesEl) {

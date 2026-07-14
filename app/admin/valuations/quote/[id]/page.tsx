@@ -460,6 +460,8 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                             { icon: Calendar, label: "Year", value: request.year },
                             { icon: Hash, label: "Registration No.", value: request.vehicleNumber },
                             { icon: Scale, label: "Weight", value: request.vehicleWeight },
+                            { icon: User, label: "Owner Name", value: request.ownerName },
+                            { icon: Fuel, label: "Fuel Type", value: request.fuelType },
                         ].map(({ icon: IconComponent, label, value }, index) => (
                             <div 
                                 key={label} 
@@ -512,7 +514,8 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                             { icon: Phone, label: "Phone", value: request.contact?.phone, type: "phone" },
                             { icon: MapPin, label: "Pincode", value: request.address?.pincode },
                             { icon: Building, label: "City", value: request.address?.city },
-                            { icon: Globe, label: "State", value: request.address?.state }
+                            { icon: Globe, label: "State", value: request.address?.state },
+                            { icon: MapPin, label: "Registered Address", value: request.address?.street }
                         ].map(({ icon: IconComponent, label, value, type }, index) => (
                             <div 
                                 key={label} 

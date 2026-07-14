@@ -450,12 +450,13 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
 
                     <div className="space-y-1 mt-2.5">
                         {[
-                            { icon: Hash, label: "Registration No.", value: request.regNo },
+                            { icon: Hash, label: "Registration No.", value: request.regNo || request.registrationNo },
                             { icon: Car, label: "Brand", value: request.brand },
                             { icon: Car, label: "Model", value: request.model },
                             { icon: Calendar, label: "Year", value: request.year },
-                            { icon: Scale, label: "Weight", value: request.weight },
-                            { icon: Fuel, label: "Fuel Type", value: Array.isArray(request.fuel) ? request.fuel.join(", ") : request.fuel },
+                            { icon: Scale, label: "Weight", value: request.weight || request.vehicleWeight },
+                            { icon: Fuel, label: "Fuel Type", value: Array.isArray(request.fuel) ? request.fuel.join(", ") : (request.fuel || request.fuelType) },
+                            { icon: User, label: "Owner Name", value: request.ownerName },
                         ].map(({ icon: IconComponent, label, value }, index) => (
                             <div 
                                 key={label} 
@@ -481,7 +482,7 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                 <div className="bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800/80 p-4 md:p-5 shadow-sm transition-all duration-300">
                     <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
                         <div className="flex items-center gap-2.5">
-                            <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-lg">
+                            <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-650 dark:text-purple-400 rounded-lg">
                                 <ShoppingCart className="w-4.5 h-4.5" />
                             </div>
                             <div>
@@ -494,7 +495,7 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                         {isAdmin && (
                             <button
                                 onClick={() => openEditModal("desired_vehicle")}
-                                className="p-1.5 text-slate-400 hover:text-purple-650 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                className="p-1.5 text-slate-400 hover:text-purple-655 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
                                 title="Edit Desired Vehicle Info"
                             >
                                 <Pencil className="w-4 h-4" />
@@ -559,7 +560,8 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                             { icon: Phone, label: "Phone", value: request.phone, type: "phone" },
                             { icon: MapPin, label: "Pincode", value: request.pincode },
                             { icon: Building, label: "City", value: request.city },
-                            { icon: Globe, label: "State", value: request.state }
+                            { icon: Globe, label: "State", value: request.state },
+                            { icon: MapPin, label: "Registered Address", value: request.address || request.streetAddress },
                         ].map(({ icon: IconComponent, label, value, type }, index) => (
                             <div 
                                 key={label} 
@@ -574,7 +576,7 @@ export default function ScrapBuyDetailPage({ params }: { params: Promise<{ id: s
                                     <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{label}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-slate-800 dark:text-slate-200 font-black uppercase tracking-wide group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                    <span className="text-xs text-slate-800 dark:text-slate-200 font-black uppercase tracking-wide group-hover:text-orange-655 dark:group-hover:text-orange-400 transition-colors">
                                         {value || "N/A"}
                                     </span>
                                     {type === "phone" && value && (
