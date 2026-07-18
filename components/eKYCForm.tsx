@@ -5,10 +5,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
     ArrowRight, ArrowLeft, CheckCircle, User, Calendar,
     CreditCard, Smartphone, Camera, FileText, Upload,
-    Car, Image as ImageIcon, MessageCircle, Loader2, Shield, MapPin
+    Car, Image as ImageIcon, MessageCircle, Loader2, Shield
 } from "lucide-react"
 import Link from "next/link"
-import { indiaData, states } from "@/lib/india-data"
 
 interface VehicleFormData {
     registrationNumber?: string
@@ -32,7 +31,6 @@ interface eKYCFormData {
     firstName: string
     dob: string
     aadharNumber: string
-    aadharFile: File | null
     rcFile: File | null
     photoFront: File | null
     photoBack: File | null
@@ -40,19 +38,12 @@ interface eKYCFormData {
     photoRight: File | null
     whatsapp: string
     agreeTC: boolean
-    fullAddress: string
-    state: string
-    city: string
-    pincode: string
 }
 
 const STEPS = [
     { label: "Personal", icon: User },
-    { label: "Aadhaar", icon: CreditCard },
     { label: "RC Doc", icon: FileText },
     { label: "Photos", icon: Camera },
-    { label: "Address", icon: MapPin },
-    { label: "WhatsApp", icon: MessageCircle },
     { label: "Submit", icon: Shield },
 ]
 
@@ -199,7 +190,6 @@ export default function EKYCForm({
         firstName: formData.name || "",
         dob: "",
         aadharNumber: "",
-        aadharFile: null,
         rcFile: null,
         photoFront: null,
         photoBack: null,
@@ -207,10 +197,6 @@ export default function EKYCForm({
         photoRight: null,
         whatsapp: formData.phone || "",
         agreeTC: false,
-        fullAddress: "",
-        state: formData.state || "",
-        city: formData.city || "",
-        pincode: formData.pincode || "",
     })
 
     const totalSteps = STEPS.length
@@ -228,10 +214,6 @@ export default function EKYCForm({
                     aadharNumber: parsed.aadharNumber || prev.aadharNumber,
                     whatsapp: parsed.whatsapp || prev.whatsapp,
                     agreeTC: parsed.agreeTC ?? prev.agreeTC,
-                    fullAddress: parsed.fullAddress || prev.fullAddress,
-                    state: parsed.state || prev.state,
-                    city: parsed.city || prev.city,
-                    pincode: parsed.pincode || prev.pincode,
                 }))
             } catch (e) {
                 console.error("Failed to parse saved eKYC data", e)
@@ -248,9 +230,8 @@ export default function EKYCForm({
 
         // Load saved files from IndexedDB on mount
         const loadFiles = async () => {
-            type FileFields = Pick<eKYCFormData, "aadharFile" | "rcFile" | "photoFront" | "photoBack" | "photoLeft" | "photoRight">
+            type FileFields = Pick<eKYCFormData, "rcFile" | "photoFront" | "photoBack" | "photoLeft" | "photoRight">
             const keys: Array<keyof FileFields> = [
-                "aadharFile",
                 "rcFile",
                 "photoFront",
                 "photoBack",
@@ -276,7 +257,7 @@ export default function EKYCForm({
 
     // Save text fields when they change
     React.useEffect(() => {
-        const { aadharFile, rcFile, photoFront, photoBack, photoLeft, photoRight, ...textData } = data
+        const { rcFile, photoFront, photoBack, photoLeft, photoRight, ...textData } = data
         localStorage.setItem("draft_ekyc_data", JSON.stringify(textData))
     }, [data])
 
@@ -286,10 +267,6 @@ export default function EKYCForm({
     }, [step])
 
     // Save files to IndexedDB when they change in state
-    React.useEffect(() => {
-        saveFileToIndexedDB("aadharFile", data.aadharFile)
-    }, [data.aadharFile])
-
     React.useEffect(() => {
         saveFileToIndexedDB("rcFile", data.rcFile)
     }, [data.rcFile])
@@ -331,11 +308,6 @@ export default function EKYCForm({
             fd.append("dob", data.dob)
             fd.append("aadharNumber", data.aadharNumber.replace(/\D/g, ""))
             fd.append("whatsapp", data.whatsapp)
-            fd.append("fullAddress", data.fullAddress)
-            fd.append("state", data.state)
-            fd.append("city", data.city)
-            fd.append("pincode", data.pincode)
-            if (data.aadharFile) fd.append("aadharFile", data.aadharFile)
             if (data.rcFile) fd.append("rcFile", data.rcFile)
             if (data.photoFront) fd.append("photoFront", data.photoFront)
             if (data.photoBack) fd.append("photoBack", data.photoBack)
@@ -368,31 +340,77 @@ export default function EKYCForm({
 
     if (showSuccess) {
         return (
-            <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="bg-white border border-slate-200 rounded-[2rem] p-12 text-center shadow-2xl relative overflow-hidden max-w-xl mx-auto"
-            >
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#E31E24] to-red-400" />
-                <div className="absolute -top-16 -right-16 w-48 h-48 bg-red-50 rounded-full opacity-60" />
-                <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-red-50 rounded-full opacity-60" />
-                <div className="relative z-10">
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
-                        className="w-28 h-28 bg-gradient-to-br from-red-50 to-red-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
-                        <CheckCircle className="w-14 h-14 text-[#E31E24]" />
+            <div className={isPage ? "min-h-screen bg-slate-50 flex items-start justify-center pt-28 sm:pt-32 pb-12 px-4" : ""}>
+                <div className="w-full max-w-xl mx-auto">
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-white border border-slate-200 rounded-[2rem] p-8 text-center shadow-2xl relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#E31E24] to-red-400" />
+                        <div className="absolute -top-16 -right-16 w-48 h-48 bg-red-50 rounded-full opacity-50" />
+                        <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-red-50 rounded-full opacity-50" />
+                        <div className="relative z-10">
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
+                                className="w-20 h-20 bg-gradient-to-br from-green-50 to-green-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg border-4 border-green-200">
+                                <CheckCircle className="w-10 h-10 text-green-500" />
+                            </motion.div>
+                            <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em] mb-1">✅ eKYC Submitted Successfully</p>
+                            <h2 className="text-2xl font-black text-slate-900 mb-1">Documents Received!</h2>
+                            <p className="text-slate-400 text-xs font-medium mb-6">Here's what happens next</p>
+
+                            {/* Next Steps Timeline */}
+                            <div className="text-left space-y-0 mb-6 max-w-xs mx-auto">
+                                {/* Step 1 */}
+                                <div className="flex gap-3">
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-8 h-8 rounded-full bg-[#E31E24] flex items-center justify-center flex-shrink-0 shadow-sm shadow-red-200">
+                                            <span className="text-white text-[10px] font-black">1</span>
+                                        </div>
+                                        <div className="w-0.5 h-8 bg-slate-200 my-1" />
+                                    </div>
+                                    <div className="pb-4 pt-1">
+                                        <p className="text-xs font-black text-slate-800">Document Verification</p>
+                                        <p className="text-[10px] text-slate-400 font-medium leading-relaxed">Our team reviews your Aadhaar, RC & vehicle photos</p>
+                                    </div>
+                                </div>
+                                {/* Step 2 */}
+                                <div className="flex gap-3">
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-8 h-8 rounded-full bg-[#E31E24] flex items-center justify-center flex-shrink-0 shadow-sm shadow-red-200">
+                                            <span className="text-white text-[10px] font-black">2</span>
+                                        </div>
+                                        <div className="w-0.5 h-8 bg-slate-200 my-1" />
+                                    </div>
+                                    <div className="pb-4 pt-1">
+                                        <p className="text-xs font-black text-slate-800">CC Contacts You for Negotiation 📞</p>
+                                        <p className="text-[10px] text-slate-400 font-medium leading-relaxed">Our Customer Champion will call you on WhatsApp to discuss the final price</p>
+                                    </div>
+                                </div>
+                                {/* Step 3 */}
+                                <div className="flex gap-3">
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-8 h-8 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-slate-400 text-[10px] font-black">3</span>
+                                        </div>
+                                    </div>
+                                    <div className="pt-1">
+                                        <p className="text-xs font-black text-slate-400">Deal Finalized & Pickup Scheduled 🚗</p>
+                                        <p className="text-[10px] text-slate-300 font-medium leading-relaxed">Vehicle picked up & payment processed</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onClick={() => window.location.href = "/profile"} className="w-full py-3 bg-[#E31E24] text-white font-black rounded-2xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-xs">
+                                View My Profile
+                            </button>
+                        </div>
                     </motion.div>
-                    <p className="text-xs font-bold text-[#E31E24] uppercase tracking-[0.3em] mb-3">🎉 eKYC Submitted</p>
-                    <h2 className="text-4xl font-black text-slate-900 mb-4">You're All Set!</h2>
-                    <p className="text-slate-500 text-base font-medium max-w-sm mx-auto leading-relaxed mb-8">
-                        Your documents have been received. Our team will verify and contact you <span className="font-bold text-slate-700">within 24 hours</span>.
-                    </p>
-                    <button onClick={() => window.location.href = "/"} className="w-full py-5 bg-[#E31E24] text-white font-black rounded-2xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-sm">
-                        Back to Home
-                    </button>
                 </div>
-            </motion.div>
+            </div>
         )
     }
+
 
     // ── Wizard ─────────────────────────────────────────────────────────────────
 
@@ -446,53 +464,50 @@ export default function EKYCForm({
                                             <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-tight">Personal Details</h3>
                                             <p className="text-slate-400 text-[10px] sm:text-[11px] font-medium mt-0.5">As mentioned on your Aadhaar card</p>
                                         </div>
-                                        <div className="space-y-2.5 max-w-sm mx-auto text-left">
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                                                <input type="text" value={data.firstName} onChange={(e) => setData({ ...data, firstName: e.target.value })} placeholder="As per Aadhaar" className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all placeholder:text-slate-400" />
+                                        <div className="max-w-md mx-auto text-left space-y-2.5">
+                                            <div className="grid grid-cols-2 gap-2.5">
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                                                    <input type="text" value={data.firstName} onChange={(e) => setData({ ...data, firstName: e.target.value })} placeholder="As per Aadhaar" className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all placeholder:text-slate-400" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Date of Birth</label>
+                                                    <input type="date" value={data.dob} onChange={(e) => setData({ ...data, dob: e.target.value })} className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all" />
+                                                </div>
                                             </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Date of Birth</label>
-                                                <input type="date" value={data.dob} onChange={(e) => setData({ ...data, dob: e.target.value })} className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Aadhaar Number</label>
-                                                <input type="text" value={data.aadharNumber}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value.replace(/\D/g, "").slice(0, 12)
-                                                        setData({ ...data, aadharNumber: v.replace(/(\d{4})(?=\d)/g, "$1-") })
-                                                    }}
-                                                    placeholder="XXXX-XXXX-XXXX" maxLength={14}
-                                                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all tracking-widest placeholder:text-slate-400" />
+                                            <div className="grid grid-cols-2 gap-2.5">
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Aadhaar Number</label>
+                                                    <input type="text" value={data.aadharNumber}
+                                                        onChange={(e) => {
+                                                            const v = e.target.value.replace(/\D/g, "").slice(0, 12)
+                                                            setData({ ...data, aadharNumber: v.replace(/(\d{4})(?=\d)/g, "$1-") })
+                                                        }}
+                                                        placeholder="XXXX-XXXX-XXXX" maxLength={14}
+                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all tracking-widest placeholder:text-slate-400" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone / WhatsApp</label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">+91</span>
+                                                        <input type="tel" value={data.whatsapp}
+                                                            onChange={(e) => setData({ ...data, whatsapp: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                                                            placeholder="10-digit" maxLength={10}
+                                                            className="w-full pl-9 pr-2 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all tracking-widest placeholder:text-slate-400" />
+                                                    </div>
+                                                    <p className="text-[9px] text-slate-400 ml-1">💬 WhatsApp updates</p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <button disabled={!data.firstName || !data.dob || !data.aadharNumber} onClick={nextStep}
+                                        <button disabled={!data.firstName || !data.dob || !data.aadharNumber || data.whatsapp.length !== 10} onClick={nextStep}
                                             className="w-full max-w-sm mx-auto py-2.5 mt-2 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-xl shadow-md hover:scale-[1.01] active:scale-[0.97] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 disabled:opacity-40">
                                             Continue <ArrowRight className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
                                 )}
 
-                                {/* Step 1: Aadhaar Photo */}
+                                {/* Step 1: RC Photo */}
                                 {step === 1 && (
-                                    <div className="space-y-4 text-center">
-                                        <div>
-                                            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-2.5 border border-red-100"><CreditCard className="w-5 h-5 text-[#E31E24]" /></div>
-                                            <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-tight">Aadhaar Card Photo</h3>
-                                            <p className="text-slate-400 text-[10px] sm:text-[11px] font-medium mt-0.5">Upload a clear photo of your Aadhaar card (front side)</p>
-                                        </div>
-                                        <div className="max-w-xs mx-auto">
-                                            <UploadBox label="Tap to upload Aadhaar" sublabel="JPG / PNG, clear & readable" file={data.aadharFile} onChange={(f) => setData({ ...data, aadharFile: f })} />
-                                        </div>
-                                        <button disabled={!data.aadharFile} onClick={nextStep}
-                                            className="w-full max-w-sm mx-auto py-2.5 mt-2 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-xl shadow-md hover:scale-[1.01] active:scale-[0.97] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 disabled:opacity-40">
-                                            {data.aadharFile ? "Looks Good →" : "Upload to Continue"}
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Step 2: RC Photo */}
-                                {step === 2 && (
                                     <div className="space-y-4 text-center">
                                         <div>
                                             <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-2.5 border border-red-100"><FileText className="w-5 h-5 text-[#E31E24]" /></div>
@@ -509,8 +524,8 @@ export default function EKYCForm({
                                     </div>
                                 )}
 
-                                {/* Step 3: 4 Vehicle Photos */}
-                                {step === 3 && (
+                                {/* Step 2: 4 Vehicle Photos */}
+                                {step === 2 && (
                                     <div className="space-y-4">
                                         <div className="text-center">
                                             <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-2.5 border border-red-100"><Car className="w-5 h-5 text-[#E31E24]" /></div>
@@ -544,112 +559,9 @@ export default function EKYCForm({
                                     </div>
                                 )}
 
-                                {/* Step 4: Pickup Address */}
-                                {step === 4 && (
-                                    <div className="space-y-4">
-                                        <div className="text-center">
-                                            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-2.5 border border-red-100">
-                                                <MapPin className="w-5 h-5 text-[#E31E24]" />
-                                            </div>
-                                            <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-tight">Pickup Address</h3>
-                                            <p className="text-slate-400 text-[10px] sm:text-[11px] font-medium mt-0.5">Provide address details for vehicle pickup</p>
-                                        </div>
-                                        <div className="space-y-2.5 max-w-sm mx-auto text-left">
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Address / House No, Street</label>
-                                                <textarea
-                                                    value={data.fullAddress}
-                                                    onChange={(e) => setData({ ...data, fullAddress: e.target.value })}
-                                                    placeholder="House No, Street, Locality/Landmark"
-                                                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all resize-none h-16 placeholder:text-slate-400"
-                                                    required
-                                                />
-                                            </div>
 
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div className="space-y-1">
-                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">State</label>
-                                                    <select
-                                                        value={data.state}
-                                                        onChange={(e) => setData({ ...data, state: e.target.value, city: "" })}
-                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all"
-                                                        required
-                                                    >
-                                                        <option value="">Select State</option>
-                                                        {states.map((state) => (
-                                                            <option key={state} value={state}>{state}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-
-                                                <div className="space-y-1">
-                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">City</label>
-                                                    <select
-                                                        value={data.city}
-                                                        onChange={(e) => setData({ ...data, city: e.target.value })}
-                                                        disabled={!data.state}
-                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all disabled:opacity-50"
-                                                        required
-                                                    >
-                                                        <option value="">Select City</option>
-                                                        {data.state && indiaData[data.state]?.map((city) => (
-                                                            <option key={city} value={city}>{city}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Pincode</label>
-                                                <input
-                                                    type="text"
-                                                    value={data.pincode}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value.replace(/\D/g, "").slice(0, 6)
-                                                        setData({ ...data, pincode: v })
-                                                    }}
-                                                    placeholder="6-digit Pincode"
-                                                    maxLength={6}
-                                                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all placeholder:text-slate-400"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-                                        <button
-                                            disabled={!data.fullAddress || !data.state || !data.city || data.pincode.length !== 6}
-                                            onClick={nextStep}
-                                            className="w-full max-w-sm mx-auto py-2.5 mt-2 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-xl shadow-md hover:scale-[1.01] active:scale-[0.97] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 disabled:opacity-40"
-                                        >
-                                            Continue <ArrowRight className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Step 5: WhatsApp Number */}
-                                {step === 5 && (
-                                    <div className="space-y-4 text-center">
-                                        <div>
-                                            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-2.5 border border-red-100"><MessageCircle className="w-5 h-5 text-[#E31E24]" /></div>
-                                            <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-tight">WhatsApp Number</h3>
-                                            <p className="text-slate-400 text-[10px] sm:text-[11px] font-medium mt-0.5">Our team will reach you on this number</p>
-                                        </div>
-                                        <div className="relative max-w-sm mx-auto">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">+91</span>
-                                            <input type="tel" placeholder="WhatsApp Number" value={data.whatsapp}
-                                                onChange={(e) => setData({ ...data, whatsapp: e.target.value.replace(/\D/g, "").slice(0, 10) })}
-                                                className="w-full pl-12 pr-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-base font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all placeholder:text-slate-400"
-                                                maxLength={10} autoFocus />
-                                        </div>
-                                        <p className="text-[10px] text-slate-400 font-semibold">💬 We'll send updates and pickup details on WhatsApp</p>
-                                        <button disabled={data.whatsapp.length !== 10} onClick={nextStep}
-                                            className="w-full max-w-sm mx-auto py-2.5 mt-2 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-xl shadow-md hover:scale-[1.01] active:scale-[0.97] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 disabled:opacity-40">
-                                            Continue <ArrowRight className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Step 6: Review & Submit */}
-                                {step === 6 && (
+                                {/* Step 3: Review & Submit */}
+                                {step === 3 && (
                                     <div className="space-y-4">
                                         <div className="text-center">
                                             <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center mx-auto mb-2.5 border border-red-100"><Shield className="w-5 h-5 text-[#E31E24]" /></div>
@@ -661,9 +573,7 @@ export default function EKYCForm({
                                                 { label: "Name", value: data.firstName },
                                                 { label: "Date of Birth", value: data.dob },
                                                 { label: "Aadhaar", value: data.aadharNumber },
-                                                { label: "Pickup Address", value: `${data.fullAddress}, ${data.city}, ${data.state} - ${data.pincode}` },
                                                 { label: "WhatsApp", value: `+91 ${data.whatsapp}` },
-                                                { label: "Aadhaar Photo", value: data.aadharFile?.name || "-" },
                                                 { label: "RC Photo", value: data.rcFile?.name || "-" },
                                                 { label: "Vehicle Photos", value: `${[data.photoFront, data.photoBack, data.photoLeft, data.photoRight].filter(Boolean).length} / 4 uploaded` },
                                             ].map((row, i) => (

@@ -76,32 +76,16 @@ export default function TermsPage() {
 
     // Helper to return badge color classes based on color name
     const getBadgeColors = (color: string) => {
-        switch (color) {
-            case "indigo": return "bg-indigo-50 text-indigo-600 border-indigo-100"
-            case "emerald": return "bg-emerald-50 text-emerald-600 border-emerald-100"
-            case "orange": return "bg-orange-50 text-orange-600 border-orange-100"
-            case "rose": return "bg-rose-50 text-rose-600 border-rose-100"
-            case "blue": return "bg-blue-50 text-blue-600 border-blue-100"
-            case "amber": return "bg-amber-50 text-amber-600 border-amber-100"
-            case "teal": return "bg-teal-50 text-teal-600 border-teal-100"
-            case "violet": return "bg-violet-50 text-violet-600 border-violet-100"
-            case "cyan": return "bg-cyan-50 text-cyan-600 border-cyan-100"
-            case "fuchsia": return "bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100"
-            case "pink": return "bg-pink-50 text-pink-600 border-pink-100"
-            case "purple": return "bg-purple-50 text-purple-600 border-purple-100"
-            case "sky": return "bg-sky-50 text-sky-600 border-sky-100"
-            default: return "bg-slate-50 text-slate-600 border-slate-100"
-        }
+        return "bg-red-50 text-[#E31E24] border-red-100/80";
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 relative overflow-hidden font-sans selection:bg-[#E31E24]/10 selection:text-[#E31E24]">
+        <div className="min-h-screen bg-neutral-50 text-neutral-800 relative overflow-hidden font-sans selection:bg-[#E31E24]/10 selection:text-[#E31E24]">
             {/* Background Header Decor */}
-            <div className="absolute top-0 left-0 w-full h-[520px] bg-gradient-to-b from-[#0E192D] to-slate-50 z-0"></div>
             <div className="absolute top-20 right-20 w-96 h-96 bg-[#E31E24]/5 rounded-full blur-3xl pointer-events-none z-0"></div>
 
             <div className="container mx-auto px-4 py-12 relative z-10 pt-32 xl:pl-24">
-                <Link href="/" className="inline-flex items-center gap-2 text-slate-300 hover:text-white mb-8 transition-colors group text-sm font-semibold">
+                <Link href="/" className="inline-flex items-center gap-2 text-neutral-500 hover:text-[#E31E24] mb-8 transition-colors group text-sm font-semibold">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     Back to Home
                 </Link>
@@ -116,20 +100,36 @@ export default function TermsPage() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", delay: 0.1 }}
-                            className="w-16 h-16 bg-[#E31E24]/10 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-white/10"
+                            className="w-16 h-16 bg-[#E31E24]/10 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-red-100"
                         >
                             <FileText className="w-8 h-8 text-[#E31E24]" />
                         </motion.div>
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4">Terms of Use</h1>
-                        <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-neutral-950 tracking-tight mb-4">Terms of Use</h1>
+                        <p className="text-neutral-500 text-sm sm:text-base leading-relaxed">
                             Welcome to Scrap Centre. Please review these Terms and Conditions carefully. They govern your access, registrations, and use of our vehicle valuation, recycling, and disposal services.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+                        {/* Mobile Navigation Dropdown (Sticky on Small Screens) */}
+                        <div className="block lg:hidden sticky top-[68px] z-20 bg-neutral-50/95 backdrop-blur-md py-3 border-b border-neutral-200 mb-2">
+                            <label className="text-[9px] font-black text-neutral-400 uppercase tracking-widest block mb-1.5 ml-1">Jump to Section</label>
+                            <select
+                                value={activeSection}
+                                onChange={(e) => handleScrollTo(e.target.value)}
+                                className="w-full px-3.5 py-2.5 bg-white border border-neutral-200 rounded-xl text-xs font-bold text-neutral-900 focus:outline-none focus:border-[#E31E24] focus:ring-4 focus:ring-red-500/10 transition-all shadow-sm"
+                            >
+                                {SECTIONS.map((sec) => (
+                                    <option key={sec.id} value={sec.id}>
+                                        {sec.num}. {sec.title}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
                         {/* Left Sidebar Table of Contents (Sticky on Large Screens) */}
                         <div className="hidden lg:block lg:col-span-1 sticky top-32 max-h-[calc(100vh-160px)] overflow-y-auto pr-2 scrollbar-thin">
-                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 pl-3">Table of Contents</h3>
+                            <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4 pl-3">Table of Contents</h3>
                             <div className="space-y-1">
                                 {SECTIONS.map((sec) => {
                                     const isActive = activeSection === sec.id
@@ -139,12 +139,12 @@ export default function TermsPage() {
                                             onClick={() => handleScrollTo(sec.id)}
                                             className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-3 ${
                                                 isActive
-                                                    ? "bg-white text-[#E31E24] shadow-md shadow-slate-200/50"
-                                                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                                                    ? "bg-neutral-950 text-white shadow-lg shadow-neutral-950/20"
+                                                    : "text-neutral-500 hover:text-neutral-950 hover:bg-neutral-100"
                                             }`}
                                         >
                                             <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${
-                                                isActive ? "bg-[#E31E24]/10 text-[#E31E24]" : "bg-slate-800 text-slate-500"
+                                                isActive ? "bg-[#E31E24] text-white" : "bg-neutral-100 text-neutral-500 border border-neutral-200"
                                             }`}>
                                                 {sec.num}
                                             </span>
@@ -156,17 +156,17 @@ export default function TermsPage() {
                         </div>
 
                         {/* Right Content Column */}
-                        <div className="lg:col-span-3 bg-white border border-slate-100 rounded-3xl shadow-xl shadow-slate-200/40 p-6 sm:p-10 md:p-12 space-y-12">
+                        <div className="lg:col-span-3 bg-white border border-neutral-200/80 rounded-3xl shadow-xl shadow-neutral-200/20 p-6 sm:p-10 md:p-12 space-y-12">
                             
                             {/* Section 1 */}
                             <section id="acceptance" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("indigo")}`}>
                                         01
                                     </span>
                                     Acceptance of Terms
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>1.1.</strong> Welcome to Scrap Centre or any associated services provided by Scrap Centre (the &ldquo;Company&rdquo;) through its website <Link href="https://www.scrapcentre.com/" className="text-[#E31E24] font-semibold hover:underline">https://www.scrapcentre.com/</Link> (hereinafter referred to as the &ldquo;Platform&rdquo; or &ldquo;Website&rdquo;). These Terms and Conditions (&ldquo;Terms&rdquo;) set forth the legal agreement between the user of the Platform (&ldquo;You&rdquo;, &ldquo;Your&rdquo;, &ldquo;User&rdquo;, or &ldquo;Client&rdquo;) and the Company (&ldquo;We&rdquo;, &ldquo;Us&rdquo;, or &ldquo;Our&rdquo;) governing Your access to and use of the Platform and the services made available therein, including but not limited to vehicle valuation, vehicle scrapping and recycling requests, end-of-life vehicle (ELV) management, vehicle collection coordination, documentation assistance, regulatory facilitation, customer support, and related services (collectively referred to as &ldquo;Services&rdquo;).
                                     </p>
@@ -184,39 +184,39 @@ export default function TermsPage() {
 
                             {/* Section 2 */}
                             <section id="definitions" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("emerald")}`}>
                                         02
                                     </span>
                                     Definitions
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>2.1.</strong> For the purposes of these Terms, the following terms shall have the meanings set forth below:
                                     </p>
-                                    <ul className="space-y-3 pl-4 list-none text-slate-600">
+                                    <ul className="space-y-3 pl-4 list-none text-neutral-600">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>2.1.1 &ldquo;User&rdquo;:</strong> means any person or entity accessing, browsing, registering on, or using the Website, including vehicle owners, authorised representatives, prospective customers, and any person submitting Service Requests through the Platform.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>2.1.2 &ldquo;Content&rdquo;:</strong> means and includes all text, graphics, images, photographs, logos, trademarks, service descriptions, valuation tools, databases, software, website interfaces, audio-visual material, and other materials made available on the Platform.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>2.1.3 &ldquo;Third Parties&rdquo;:</strong> means and refers to any individuals, businesses, service providers, governmental authorities, authorised vehicle scrapping facilities, recyclers, dismantlers, logistics providers, technology providers, payment processors, verification agencies, or external websites that are not directly owned or controlled by the Company.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>2.1.4 &ldquo;Services&rdquo;:</strong> means the services offered, facilitated, or made available through the Platform, including vehicle valuation, vehicle scrapping and recycling services, end-of-life vehicle management, vehicle collection coordination, documentation assistance, compliance support, and other related services.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>2.1.5 &ldquo;Service Request&rdquo;:</strong> means any enquiry, request, application, booking, valuation request, vehicle scrapping request, vehicle collection request, document submission, or other service-related request submitted by a User through the Platform.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>2.1.6 &ldquo;Vehicle Information&rdquo;:</strong> means any information relating to a vehicle provided by a User through the Platform, including registration details, ownership information, make, model, year of manufacture, condition, photographs, location, and supporting documentation.
                                         </li>
                                     </ul>
@@ -225,13 +225,13 @@ export default function TermsPage() {
 
                             {/* Section 3 */}
                             <section id="registration" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("orange")}`}>
                                         03
                                     </span>
                                     User Registration
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>3.1.</strong> Users may be required to provide accurate, current, and complete information while creating an account, submitting a Service Request, uploading documents, or otherwise using certain features of the Platform, and shall ensure that such information remains accurate and up to date.
                                     </p>
@@ -249,13 +249,13 @@ export default function TermsPage() {
 
                             {/* Section 4 */}
                             <section id="services" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("rose")}`}>
                                         04
                                     </span>
                                     Company Services
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>4.1. Scope of Services:</strong> The Company operates a technology-enabled platform that facilitates vehicle scrapping, recycling, and end-of-life vehicle (ELV) management services through a network of authorised vehicle scrapping facilities, recyclers, dismantlers, logistics partners, and other service providers. The Platform enables Users to submit vehicle details, obtain vehicle valuations, initiate scrapping requests, schedule vehicle collection, access documentation assistance, and avail other related services. The Company’s Services are intended to streamline the vehicle disposal process, promote environmentally responsible recycling practices, and assist Users in complying with applicable legal and regulatory requirements relating to vehicle scrapping and disposal.
                                     </p>
@@ -264,23 +264,23 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-3 pl-4 list-none">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>4.2.1. Vehicle Valuation Services:</strong> Enabling Users to submit Vehicle Information and receive indicative vehicle valuation estimates through the Platform, subject to verification, inspection, market conditions, vehicle condition, regulatory requirements, and other relevant factors.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>4.2.2. Vehicle Scrapping and Recycling Facilitation:</strong> Facilitating requests for vehicle scrapping, dismantling, recycling, and disposal through authorised service providers, subject to document verification, eligibility requirements, operational feasibility, and applicable laws.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>4.2.3. Vehicle Collection and Logistics Coordination:</strong> Assisting Users with vehicle pickup, transportation, and collection arrangements through authorised logistics or service partners, subject to location availability, operational constraints, and scheduling requirements.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>4.2.4. Documentation and Compliance Assistance:</strong> Facilitating processes relating to documentation review, ownership verification, scrapping-related formalities, regulatory submissions, and other compliance-related requirements associated with the Services.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>4.2.5. Digital Platform and Customer Support Services:</strong> Providing Users with access to account management features, service request tracking, customer support, informational resources, and other functionalities made available through the Platform.
                                         </li>
                                     </ul>
@@ -292,35 +292,35 @@ export default function TermsPage() {
 
                             {/* Section 5 */}
                             <section id="obligations" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("blue")}`}>
                                         05
                                     </span>
                                     User Obligations
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>5.1. Expectations from the Users:</strong> To maintain a secure, lawful, and efficient commercial environment on the Platform, all Users are obligated to:
                                     </p>
                                     <ul className="space-y-2.5 pl-4 list-none mb-4">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>5.1.1.</strong> Use the Platform in a lawful, responsible, and bona fide manner.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>5.1.2.</strong> Provide accurate, complete, and up-to-date information, documents, and Vehicle Information when using the Services.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>5.1.3.</strong> Ensure that they have the necessary rights, authority, and ownership to submit Vehicle Information, documentation, and Service Requests through the Platform.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>5.1.4.</strong> Maintain the confidentiality of their account credentials and promptly notify the Company of any unauthorised access or security breach.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>5.1.5.</strong> Cooperate with reasonable requests for information, documentation, verification, or clarification required for the provision of Services.
                                         </li>
                                     </ul>
@@ -329,23 +329,23 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-2.5 pl-4 list-none">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-red-500 rounded-sm" />
+                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-[#E31E24] rounded-sm" />
                                             <strong>5.2.1.</strong> Submit false, inaccurate, misleading, fraudulent, or forged information or documents.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-red-500 rounded-sm" />
+                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-[#E31E24] rounded-sm" />
                                             <strong>5.2.2.</strong> Use the platform for any unlawful, fraudulent, or unauthorised purpose.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-red-500 rounded-sm" />
+                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-[#E31E24] rounded-sm" />
                                             <strong>5.2.3.</strong> Interfere with, disrupt, compromise, or attempt to gain unauthorised access to the platform, its systems, accounts, or data.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-red-500 rounded-sm" />
+                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-[#E31E24] rounded-sm" />
                                             <strong>5.2.4.</strong> Copy, reproduce, distribute, modify, reverse engineer, or otherwise exploit any content except as expressly permitted by law or the company.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-red-500 rounded-sm" />
+                                            <span className="absolute left-0 top-2 w-1.5 h-1.5 bg-[#E31E24] rounded-sm" />
                                             <strong>5.2.5.</strong> Impersonate any person, misrepresent ownership of a vehicle, or otherwise misuse the services.
                                         </li>
                                     </ul>
@@ -357,13 +357,13 @@ export default function TermsPage() {
 
                             {/* Section 6 */}
                             <section id="use-disclaimers" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("amber")}`}>
                                         06
                                     </span>
                                     Website Use, Interactions, and Disclaimers
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>6.1.</strong> The Platform is provided for informational and service facilitation purposes only and enables Users to access information relating to vehicle valuation, vehicle scrapping, recycling, collection, documentation assistance, and related Services.
                                     </p>
@@ -375,15 +375,15 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none mb-3">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>6.3.1.</strong> the accuracy, legality, and completeness of all information and documents submitted through the Platform.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>6.3.2.</strong> independently evaluating the suitability of any Services before proceeding with a transaction.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>6.3.3.</strong> ensuring that the vehicle and related documentation comply with applicable legal and regulatory requirements.
                                         </li>
                                     </ul>
@@ -395,19 +395,19 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>6.5.1.</strong> service availability may vary based on location, vehicle condition, documentation status, partner availability, and operational constraints.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>6.5.2.</strong> vehicle valuations and service outcomes may change following inspection, verification, or assessment by the relevant service provider.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>6.5.3.</strong> delays or disruptions may occur due to circumstances beyond the Company's reasonable control, including actions of Third Parties, regulatory authorities, technical failures, or force majeure events.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>6.5.4.</strong> the Company does not guarantee that the Platform will be uninterrupted, error-free, secure, or available at all times.
                                         </li>
                                     </ul>
@@ -422,13 +422,13 @@ export default function TermsPage() {
 
                             {/* Section 7 */}
                             <section id="privacy" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("teal")}`}>
                                         07
                                     </span>
                                     Data Privacy & Security
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>7.1.</strong> All User data collection, processing, and storage practices comply with the provisions of the Information Technology Act, 2000, and the Digital Personal Data Protection Act, 2023. The Company’s practices for handling and protecting User information are set out in the separate Privacy Policy, which forms part of these Terms and Conditions by reference.
                                     </p>
@@ -455,39 +455,39 @@ export default function TermsPage() {
 
                             {/* Section 8 */}
                             <section id="suspension-termination" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("violet")}`}>
                                         08
                                     </span>
                                     Account Suspension/Termination
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>8.1. Grounds for Suspension or Termination:</strong> The Company reserves the right to suspend, restrict, or terminate a User's account, access to the Platform, or availability of Services at its sole discretion where:
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none mb-4">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.1.1.</strong> the User breaches these Terms, any applicable Policies, or applicable law.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.1.2.</strong> the User provides false, inaccurate, misleading, fraudulent, or incomplete information or documentation.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.1.3.</strong> the User engages in fraudulent, abusive, unlawful, or suspicious activity, including misuse of the Platform or Services.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.1.4.</strong> the Company is unable to verify information, documentation, vehicle ownership, or the User's authority to avail the Services.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.1.5.</strong> such action is necessary to protect the security, integrity, operation, or reputation of the Platform, the Company, its service providers, or other Users.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.1.6.</strong> the Company is required to do so pursuant to legal, regulatory, or governmental requirements.
                                         </li>
                                     </ul>
@@ -496,15 +496,15 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none mb-3">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.2.1.</strong> the User's access to the Platform or certain Services may be immediately restricted or revoked.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.2.2.</strong> the Company may reject, cancel, suspend, or discontinue any pending Service Requests or transactions.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>8.2.3.</strong> the Company shall not be liable for any loss, cost, expense, or consequence arising from such suspension or termination, except as required under applicable law.
                                         </li>
                                     </ul>
@@ -522,13 +522,13 @@ export default function TermsPage() {
 
                             {/* Section 9 */}
                             <section id="payments-refunds" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("cyan")}`}>
                                         09
                                     </span>
                                     Payments and Refunds
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>9.1.</strong> Where any fees, charges, deposits, service fees, transportation charges, or other amounts are payable in connection with the Services, such amounts shall be communicated to the User through the Platform, quotations, invoices, or other written communication.
                                     </p>
@@ -552,13 +552,13 @@ export default function TermsPage() {
 
                             {/* Section 10 */}
                             <section id="provision-disclaimers" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("fuchsia")}`}>
                                         10
                                     </span>
                                     Provision of Services and Disclaimers
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>10.1.</strong> The Company shall use reasonable efforts to facilitate the Services through the Platform; however, all valuations, timelines, collection schedules, service availability, processing periods, and other estimates are indicative only and shall not constitute a guarantee or binding commitment.
                                     </p>
@@ -567,27 +567,27 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none mb-4">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.2.1.</strong> inaccurate, incomplete, misleading, or outdated information, documents, or Vehicle Information provided by the User.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.2.2.</strong> failure of the User to provide required approvals, documentation, verifications, or cooperation necessary for the Services.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.2.3.</strong> technical failures, system outages, maintenance activities, cybersecurity incidents, or disruptions affecting the Platform or related systems.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.2.4.</strong> changes in vehicle condition, ownership records, documentation status, inspection findings, regulatory requirements, or eligibility criteria.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.2.5.</strong> acts, omissions, delays, or failures of Third Parties, including authorised vehicle scrapping facilities, recyclers, logistics providers, payment processors, verification agencies, or governmental authorities.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.2.6.</strong> any force majeure event or circumstance beyond the reasonable control of the Company.
                                         </li>
                                     </ul>
@@ -596,15 +596,15 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none mb-3">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.3.1.</strong> that every vehicle submitted through the Platform will qualify for the Services.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.3.2.</strong> that a Service Request will be accepted, approved, completed, or processed within any specific timeframe.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-fuchsia-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>10.3.3.</strong> that the Platform or Services will be available uninterrupted, error-free, or free from technical issues at all times.
                                         </li>
                                     </ul>
@@ -616,13 +616,13 @@ export default function TermsPage() {
 
                             {/* Section 11 */}
                             <section id="intellectual-property" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("pink")}`}>
                                         11
                                     </span>
                                     Intellectual Property
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>11.1.</strong> All rights, title, and interest in and to the Platform, including its Content, software, databases, trademarks, logos, trade names, designs, website layout, graphics, text, valuation tools, and other materials made available through the Platform, are owned by or licensed to the Company and are protected under applicable intellectual property laws.
                                     </p>
@@ -640,13 +640,13 @@ export default function TermsPage() {
 
                             {/* Section 12 */}
                             <section id="limitation-liability" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("purple")}`}>
                                         12
                                     </span>
                                     Limitation of Liability
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>12.1.</strong> To the maximum extent permitted under applicable law, the Company shall not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, including loss of profits, revenue, business opportunity, goodwill, data, or anticipated savings, arising out of or in connection with the use of, inability to use, or reliance upon the Platform or Services.
                                     </p>
@@ -655,19 +655,19 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none mb-3">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>12.2.1.</strong> any decisions, actions, or outcomes based on information, estimates, valuations, or content made available through the Platform.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>12.2.2.</strong> any delays, disruptions, service failures, or inaccuracies attributable to Users, Third Parties, service providers, regulatory authorities, or circumstances beyond the Company's reasonable control.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>12.2.3.</strong> any interruption, unavailability, technical malfunction, security incident, or failure of the Platform.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>12.2.4.</strong> any act, omission, or service deficiency of any authorised vehicle scrapping facility, recycler, transporter, payment processor, verification agency, or other Third Party.
                                         </li>
                                     </ul>
@@ -682,35 +682,35 @@ export default function TermsPage() {
 
                             {/* Section 13 */}
                             <section id="indemnification" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("sky")}`}>
                                         13
                                     </span>
                                     Indemnification
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>13.1.</strong> The User agrees to indemnify, defend, and hold harmless the Company, its affiliates, directors, officers, employees, representatives, agents, service providers, and business partners from and against any claims, actions, demands, losses, damages, liabilities, costs, or expenses (including reasonable legal fees) arising out of or relating to:
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none mb-3">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-sky-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>13.1.1.</strong> the User's breach of these Terms, the Privacy Policy, or applicable law.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-sky-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>13.1.2.</strong> the User's misuse of the Platform or Services.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-sky-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>13.1.3.</strong> any false, inaccurate, misleading, fraudulent, or unauthorised information, documentation, or Vehicle Information submitted by the User.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-sky-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>13.1.4.</strong> any dispute relating to vehicle ownership, authority to dispose of a vehicle, regulatory compliance, or rights in respect of a vehicle submitted through the Platform.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-sky-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>13.1.5.</strong> the infringement of any third-party rights by the User.
                                         </li>
                                     </ul>
@@ -722,13 +722,13 @@ export default function TermsPage() {
 
                             {/* Section 14 */}
                             <section id="dispute-resolution" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("emerald")}`}>
                                         14
                                     </span>
                                     Dispute Resolution
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>14.1. Resolution of Concerns:</strong> In the event of any dispute, claim, grievance, or controversy arising out of or in connection with the Platform, Services, Service Requests, transactions, or these Terms, the User shall first notify the Company in writing and the Parties shall endeavour to resolve the matter amicably through good-faith discussions.
                                     </p>
@@ -752,13 +752,13 @@ export default function TermsPage() {
 
                             {/* Section 15 */}
                             <section id="governing-law" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("indigo")}`}>
                                         15
                                     </span>
                                     Governing Law
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>15.1.</strong> These Terms shall be governed by and construed in accordance with the laws of India.
                                     </p>
@@ -767,13 +767,13 @@ export default function TermsPage() {
 
                             {/* Section 16 */}
                             <section id="modifications" className="scroll-mt-32 space-y-4">
-                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-slate-800 border-b border-slate-100 pb-3">
+                                <h2 className="flex items-center gap-3 text-lg sm:text-xl md:text-2xl font-black text-neutral-800 border-b border-neutral-200 pb-3">
                                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black border ${getBadgeColors("rose")}`}>
                                         16
                                     </span>
                                     Modifications
                                 </h2>
-                                <div className="space-y-3.5 text-slate-600 leading-relaxed text-sm sm:text-base">
+                                <div className="space-y-3.5 text-neutral-600 leading-relaxed text-sm sm:text-base">
                                     <p>
                                         <strong>16.1. Right to Amend Terms:</strong> The Company reserves the right to revise, amend, update, or modify these Terms at any time to reflect changes in the Platform, Services, or applicable laws.
                                     </p>
@@ -782,11 +782,11 @@ export default function TermsPage() {
                                     </p>
                                     <ul className="space-y-2 pl-4 list-none mb-3">
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>16.2.1.</strong> The Platform notifications.
                                         </li>
                                         <li className="relative pl-6">
-                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#E31E24]" />
                                             <strong>16.2.2.</strong> Emails sent to the registered email address provided by the User.
                                         </li>
                                     </ul>
@@ -796,26 +796,26 @@ export default function TermsPage() {
                                     <p>
                                         <strong>16.4. Effective Date of Changes:</strong> Unless otherwise specified, all modifications shall become effective immediately upon being updated or published on the Platform and shall apply to all ongoing and future use of the Services.
                                     </p>
-                                    <p className="mt-6 font-bold text-slate-700 bg-slate-50 p-4 border border-slate-100 rounded-2xl text-xs sm:text-sm">
+                                    <p className="mt-6 font-bold text-neutral-700 bg-neutral-50 p-4 border border-neutral-200 rounded-2xl text-xs sm:text-sm">
                                         Your use of this Website constitutes your acceptance of these Terms and Conditions in full. If you disagree with any part, please do not use the Website.
                                     </p>
                                 </div>
                             </section>
 
                             {/* Privacy Policy Callout Card */}
-                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex gap-4 items-start relative overflow-hidden group">
+                            <div className="p-6 bg-neutral-50 rounded-2xl border border-neutral-200 flex gap-4 items-start relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#E31E24]/5 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500" />
                                 <Shield className="w-6 h-6 text-[#E31E24] shrink-0 mt-1" />
                                 <div className="relative z-10">
-                                    <h4 className="font-bold text-slate-800 mb-1 text-sm sm:text-base">Privacy Policy</h4>
-                                    <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                                    <h4 className="font-bold text-neutral-800 mb-1 text-sm sm:text-base">Privacy Policy</h4>
+                                    <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
                                         Your privacy is extremely important to us. Please review our <Link href="/privacy" className="text-[#E31E24] font-semibold hover:underline">Privacy Policy</Link> to understand how we securely collect, process, and protect your information.
                                     </p>
                                 </div>
                             </div>
 
                             {/* Footer timestamp */}
-                            <div className="pt-8 border-t border-slate-100 text-center text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                            <div className="pt-8 border-t border-neutral-200 text-center text-neutral-400 text-xs font-semibold uppercase tracking-wider">
                                 Last updated: June 2026
                             </div>
 

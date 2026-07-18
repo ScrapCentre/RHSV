@@ -69,7 +69,7 @@ const normalizeFuelType = (fuel?: string): string => {
     if (cleanFuel.includes("CNG") || cleanFuel.includes("LPG")) fuels.push("CNG");
     if (cleanFuel.includes("ELECTRIC") || cleanFuel.includes("EV")) fuels.push("Electric");
     if (cleanFuel.includes("HYBRID")) fuels.push("Hybrid");
-    
+
     if (fuels.length > 0) return fuels.join(", ");
     return fuel.charAt(0).toUpperCase() + fuel.slice(1).toLowerCase();
 };
@@ -210,7 +210,7 @@ export default function ValuationWizardCard() {
     const [direction, setDirection] = useState(1)
     const [fromHero, setFromHero] = useState(false)
     const [quoteId, setQuoteId] = useState("")
-    
+
     // Brand & Model selection states
     const [selectedBrand, setSelectedBrand] = useState("")
     const [selectedModel, setSelectedModel] = useState("")
@@ -784,7 +784,7 @@ export default function ValuationWizardCard() {
                 title: "Details Fetched",
                 description: "We've auto-filled the vehicle info for you."
             })
-            
+
             // Enforce minimum 2-second delay for the loading animation
             const elapsed = Date.now() - startTime;
             if (elapsed < 2000) {
@@ -866,16 +866,16 @@ export default function ValuationWizardCard() {
         try {
             // Clean up data before sending to route validator
             const cleanData: any = { ...formData, serviceType };
-            
+
             // Fallback for name since "Your Name" step is removed
             if (!cleanData.name) {
                 cleanData.name = cleanData.ownerName || "Customer";
             }
-            
+
             // Delete empty optional strings or format them
             if (cleanData.pincode === "") delete cleanData.pincode;
             if (cleanData.regNo === "") delete cleanData.regNo;
-            
+
             if (cleanData.year === "") {
                 delete cleanData.year;
             } else if (cleanData.year) {
@@ -923,7 +923,7 @@ export default function ValuationWizardCard() {
                 try {
                     const errData = await res.json();
                     if (errData && errData.error) errMsg = errData.error;
-                } catch (e) {}
+                } catch (e) { }
                 throw new Error(errMsg);
             }
             const ct = res.headers.get("content-type");
@@ -1500,7 +1500,7 @@ export default function ValuationWizardCard() {
                                 {/* ── BUY FLOW ── */}
                                 {serviceType === "buy" && (
                                     <>
-                        {step === 0 && (
+                                        {step === 0 && (
                                             <div className="space-y-5 text-center">
                                                 <h3 className="text-xl font-bold text-slate-900">Which vehicle do you want to buy?</h3>
                                                 <div className="space-y-3 max-w-md mx-auto">
@@ -1522,13 +1522,12 @@ export default function ValuationWizardCard() {
                                                                                 desiredModel: ""
                                                                             }));
                                                                         }}
-                                                                        className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${
-                                                                            formData.desiredCompany === b 
-                                                                                ? 'border-[#E31E24] bg-red-50 shadow-sm' 
+                                                                        className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${formData.desiredCompany === b
+                                                                                ? 'border-[#E31E24] bg-red-50 shadow-sm'
                                                                                 : b === "Other"
                                                                                     ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30'
                                                                                     : 'border-slate-100 bg-white hover:border-red-200 hover:bg-red-50/50'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {BRAND_LOGOS[b] ? (
                                                                             <img src={BRAND_LOGOS[b]} alt={b} className="w-8 h-8 sm:w-10 sm:h-10 object-contain mb-1 sm:mb-1.5 drop-shadow-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
@@ -1548,116 +1547,115 @@ export default function ValuationWizardCard() {
                                                     ) : (
                                                         <>
                                                             {/* Selected Brand Header */}
-                                                             <div className="flex items-center justify-between bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 shadow-sm text-left">
-                                                                 <div className="flex items-center gap-2">
-                                                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Brand:</span>
-                                                                     <span className="text-xs font-black text-slate-800">
-                                                                         {selectedBrand === "Other" && customBrand ? customBrand : (selectedBrand === "Other" ? "Other" : selectedBrand)}
-                                                                     </span>
-                                                                 </div>
-                                                                 <button
-                                                                     type="button"
-                                                                     onClick={() => {
-                                                                         setSelectedBrand("");
-                                                                         setSelectedModel("");
-                                                                         setCustomBrand("");
-                                                                         setCustomModel("");
-                                                                         setFormData(prev => ({
-                                                                             ...prev,
-                                                                             desiredCompany: "",
-                                                                             desiredModel: ""
-                                                                         }));
-                                                                     }}
-                                                                     className="text-[9px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
-                                                                 >
-                                                                     Change
-                                                                 </button>
-                                                             </div>
+                                                            <div className="flex items-center justify-between bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 shadow-sm text-left">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Brand:</span>
+                                                                    <span className="text-xs font-black text-slate-800">
+                                                                        {selectedBrand === "Other" && customBrand ? customBrand : (selectedBrand === "Other" ? "Other" : selectedBrand)}
+                                                                    </span>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setSelectedBrand("");
+                                                                        setSelectedModel("");
+                                                                        setCustomBrand("");
+                                                                        setCustomModel("");
+                                                                        setFormData(prev => ({
+                                                                            ...prev,
+                                                                            desiredCompany: "",
+                                                                            desiredModel: ""
+                                                                        }));
+                                                                    }}
+                                                                    className="text-[9px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
+                                                                >
+                                                                    Change
+                                                                </button>
+                                                            </div>
 
-                                                             {/* Custom Brand Input (if "Other" brand is selected) */}
-                                                             {selectedBrand === "Other" && (
-                                                                 <div className="space-y-1 text-left">
-                                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Brand Name</label>
-                                                                     <input 
-                                                                         type="text" 
-                                                                         placeholder="e.g. Ford, Chevrolet, etc." 
-                                                                         value={customBrand} 
-                                                                         onChange={(e) => {
-                                                                             const val = e.target.value;
-                                                                             setCustomBrand(val);
-                                                                             setFormData(prev => ({ ...prev, desiredCompany: val || "Other" }));
-                                                                         }} 
-                                                                         className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-[#E31E24]" 
-                                                                     />
-                                                                 </div>
-                                                             )}
+                                                            {/* Custom Brand Input (if "Other" brand is selected) */}
+                                                            {selectedBrand === "Other" && (
+                                                                <div className="space-y-1 text-left">
+                                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Brand Name</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="e.g. Ford, Chevrolet, etc."
+                                                                        value={customBrand}
+                                                                        onChange={(e) => {
+                                                                            const val = e.target.value;
+                                                                            setCustomBrand(val);
+                                                                            setFormData(prev => ({ ...prev, desiredCompany: val || "Other" }));
+                                                                        }}
+                                                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-[#E31E24]"
+                                                                    />
+                                                                </div>
+                                                            )}
 
-                                                             {/* Model Selection (based on selected brand) */}
-                                                             <div className="space-y-1.5 text-left">
-                                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Model</label>
-                                                                 {selectedBrand !== "Other" && BRAND_MODELS[selectedBrand] ? (
-                                                                     <>
-                                                                         <div className="grid grid-cols-3 gap-2">
-                                                                             {BRAND_MODELS[selectedBrand].map((m) => (
-                                                                                 <button
-                                                                                     key={m}
-                                                                                     type="button"
-                                                                                     onClick={() => {
-                                                                                         setSelectedModel(m);
-                                                                                         setFormData(prev => ({
-                                                                                             ...prev,
-                                                                                             desiredModel: m === "Other" ? customModel : m
-                                                                                         }));
-                                                                                     }}
-                                                                                     className={`py-2 px-1 rounded-xl border text-[10px] sm:text-xs font-semibold text-center transition-all ${
-                                                                                         selectedModel === m 
-                                                                                             ? 'border-[#E31E24] bg-red-50 text-[#E31E24] font-bold shadow-sm' 
-                                                                                             : m === "Other"
-                                                                                                 ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30 text-slate-500 hover:text-[#E31E24]'
-                                                                                                 : 'border-slate-100 bg-white hover:border-red-100 hover:bg-red-50/20 text-slate-600'
-                                                                                     }`}
-                                                                                 >
-                                                                                     {m === "Other" ? (
-                                                                                         <span className="flex items-center justify-center gap-1.5">
-                                                                                             {m}
-                                                                                             <span className={`w-1.5 h-1.5 rounded-full transition-all ${selectedModel === m ? 'bg-[#E31E24] scale-125' : 'bg-red-400'}`} />
-                                                                                         </span>
-                                                                                     ) : (
-                                                                                         m
-                                                                                     )}
-                                                                                 </button>
-                                                                             ))}
-                                                                         </div>
-                                                                         
-                                                                         {/* Custom Model Input (if "Other" model is selected from grid) */}
-                                                                         {selectedModel === "Other" && (
-                                                                             <div className="mt-2.5 space-y-1">
-                                                                                 <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Enter Model Name</label>
-                                                                                 <input 
-                                                                                     type="text" 
-                                                                                     placeholder="e.g. Nexon, Creta, etc." 
-                                                                                     value={customModel} 
-                                                                                     onChange={(e) => {
-                                                                                         const val = e.target.value;
-                                                                                         setCustomModel(val);
-                                                                                         setFormData(prev => ({ ...prev, desiredModel: val }));
-                                                                                     }} 
-                                                                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
-                                                                                 />
-                                                                             </div>
-                                                                         )}
-                                                                     </>
-                                                                 ) : (
-                                                                     /* Fallback text input for custom brands */
-                                                                     <input 
-                                                                         type="text" 
-                                                                         placeholder="e.g. Swift" 
-                                                                         value={formData.desiredModel} 
-                                                                         onChange={(e) => setFormData({ ...formData, desiredModel: e.target.value })} 
-                                                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" 
-                                                                     />
-                                                                 )}
-                                                             </div>
+                                                            {/* Model Selection (based on selected brand) */}
+                                                            <div className="space-y-1.5 text-left">
+                                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Model</label>
+                                                                {selectedBrand !== "Other" && BRAND_MODELS[selectedBrand] ? (
+                                                                    <>
+                                                                        <div className="grid grid-cols-3 gap-2">
+                                                                            {BRAND_MODELS[selectedBrand].map((m) => (
+                                                                                <button
+                                                                                    key={m}
+                                                                                    type="button"
+                                                                                    onClick={() => {
+                                                                                        setSelectedModel(m);
+                                                                                        setFormData(prev => ({
+                                                                                            ...prev,
+                                                                                            desiredModel: m === "Other" ? customModel : m
+                                                                                        }));
+                                                                                    }}
+                                                                                    className={`py-2 px-1 rounded-xl border text-[10px] sm:text-xs font-semibold text-center transition-all ${selectedModel === m
+                                                                                            ? 'border-[#E31E24] bg-red-50 text-[#E31E24] font-bold shadow-sm'
+                                                                                            : m === "Other"
+                                                                                                ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30 text-slate-500 hover:text-[#E31E24]'
+                                                                                                : 'border-slate-100 bg-white hover:border-red-100 hover:bg-red-50/20 text-slate-600'
+                                                                                        }`}
+                                                                                >
+                                                                                    {m === "Other" ? (
+                                                                                        <span className="flex items-center justify-center gap-1.5">
+                                                                                            {m}
+                                                                                            <span className={`w-1.5 h-1.5 rounded-full transition-all ${selectedModel === m ? 'bg-[#E31E24] scale-125' : 'bg-red-400'}`} />
+                                                                                        </span>
+                                                                                    ) : (
+                                                                                        m
+                                                                                    )}
+                                                                                </button>
+                                                                            ))}
+                                                                        </div>
+
+                                                                        {/* Custom Model Input (if "Other" model is selected from grid) */}
+                                                                        {selectedModel === "Other" && (
+                                                                            <div className="mt-2.5 space-y-1">
+                                                                                <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Enter Model Name</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    placeholder="e.g. Nexon, Creta, etc."
+                                                                                    value={customModel}
+                                                                                    onChange={(e) => {
+                                                                                        const val = e.target.value;
+                                                                                        setCustomModel(val);
+                                                                                        setFormData(prev => ({ ...prev, desiredModel: val }));
+                                                                                    }}
+                                                                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                ) : (
+                                                                    /* Fallback text input for custom brands */
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="e.g. Swift"
+                                                                        value={formData.desiredModel}
+                                                                        onChange={(e) => setFormData({ ...formData, desiredModel: e.target.value })}
+                                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]"
+                                                                    />
+                                                                )}
+                                                            </div>
                                                         </>
                                                     )}
                                                 </div>
@@ -1756,19 +1754,19 @@ export default function ValuationWizardCard() {
                                                     <div className="relative w-64 h-28 flex flex-col items-center justify-center overflow-hidden bg-slate-50/50 rounded-2xl border border-slate-100">
                                                         {/* Wind/Speed lines moving fast */}
                                                         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                                                            <motion.div 
+                                                            <motion.div
                                                                 className="absolute h-[1.5px] bg-[#E31E24]/20 w-8 rounded-full"
                                                                 style={{ top: "20%", right: -40 }}
                                                                 animate={{ x: [0, -320] }}
                                                                 transition={{ repeat: Infinity, duration: 0.5, ease: "linear" }}
                                                             />
-                                                            <motion.div 
+                                                            <motion.div
                                                                 className="absolute h-[1.5px] bg-slate-300/60 w-12 rounded-full"
                                                                 style={{ top: "45%", right: -40 }}
                                                                 animate={{ x: [0, -320] }}
                                                                 transition={{ repeat: Infinity, duration: 0.7, ease: "linear", delay: 0.15 }}
                                                             />
-                                                            <motion.div 
+                                                            <motion.div
                                                                 className="absolute h-[1.5px] bg-slate-400/20 w-10 rounded-full"
                                                                 style={{ top: "70%", right: -40 }}
                                                                 animate={{ x: [0, -320] }}
@@ -1777,16 +1775,16 @@ export default function ValuationWizardCard() {
                                                         </div>
 
                                                         {/* Bouncing Driving Sedan */}
-                                                        <motion.div 
+                                                        <motion.div
                                                             className="relative z-10"
-                                                            animate={{ 
+                                                            animate={{
                                                                 y: [0, -3, 0],
                                                                 rotate: [0, -0.5, 0.5, 0]
                                                             }}
-                                                            transition={{ 
-                                                                repeat: Infinity, 
-                                                                duration: 0.45, 
-                                                                ease: "easeInOut" 
+                                                            transition={{
+                                                                repeat: Infinity,
+                                                                duration: 0.45,
+                                                                ease: "easeInOut"
                                                             }}
                                                         >
                                                             <Car className="w-14 h-14 text-[#E31E24] filter drop-shadow-[0_4px_6px_rgba(227,30,36,0.3)]" />
@@ -1794,13 +1792,13 @@ export default function ValuationWizardCard() {
 
                                                         {/* Road Dash lines underneath */}
                                                         <div className="w-44 h-[3px] bg-slate-200/80 rounded-full relative overflow-hidden flex items-center mt-2.5">
-                                                            <motion.div 
+                                                            <motion.div
                                                                 className="absolute h-[2px] bg-slate-400/80 w-10 rounded-full"
                                                                 initial={{ x: 180 }}
                                                                 animate={{ x: -50 }}
                                                                 transition={{ repeat: Infinity, duration: 0.45, ease: "linear" }}
                                                             />
-                                                            <motion.div 
+                                                            <motion.div
                                                                 className="absolute h-[2px] bg-slate-400/80 w-10 rounded-full"
                                                                 initial={{ x: 90 }}
                                                                 animate={{ x: -140 }}
@@ -1826,7 +1824,7 @@ export default function ValuationWizardCard() {
                                                 <div className="space-y-4 sm:space-y-6 text-center py-4 sm:py-6 animate-fadeIn relative overflow-hidden rounded-2xl">
                                                     {/* Animated Background Gradients */}
                                                     <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-                                                        <motion.div 
+                                                        <motion.div
                                                             className="absolute -top-12 -left-12 w-44 h-44 bg-red-500/5 rounded-full blur-2xl"
                                                             animate={{
                                                                 x: [0, 20, 0],
@@ -1838,7 +1836,7 @@ export default function ValuationWizardCard() {
                                                                 ease: "easeInOut"
                                                             }}
                                                         />
-                                                        <motion.div 
+                                                        <motion.div
                                                             className="absolute -bottom-12 -right-12 w-44 h-44 bg-amber-500/5 rounded-full blur-2xl"
                                                             animate={{
                                                                 x: [0, -20, 0],
@@ -1897,7 +1895,7 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-4 relative overflow-hidden rounded-2xl py-2">
                                                 {/* Animated Background Gradients */}
                                                 <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-                                                    <motion.div 
+                                                    <motion.div
                                                         className="absolute -top-12 -left-12 w-44 h-44 bg-red-500/5 rounded-full blur-2xl"
                                                         animate={{
                                                             x: [0, 20, 0],
@@ -1909,7 +1907,7 @@ export default function ValuationWizardCard() {
                                                             ease: "easeInOut"
                                                         }}
                                                     />
-                                                    <motion.div 
+                                                    <motion.div
                                                         className="absolute -bottom-12 -right-12 w-44 h-44 bg-amber-500/5 rounded-full blur-2xl"
                                                         animate={{
                                                             x: [0, -20, 0],
@@ -1929,7 +1927,7 @@ export default function ValuationWizardCard() {
                                                     <p className="text-slate-500 text-[11px] font-medium">Auto-filled based on your registration</p>
                                                 </div>
 
-                                                <motion.div 
+                                                <motion.div
                                                     variants={{
                                                         hidden: { opacity: 0 },
                                                         show: {
@@ -1941,7 +1939,7 @@ export default function ValuationWizardCard() {
                                                     animate="show"
                                                     className="grid grid-cols-2 gap-2.5 max-w-md mx-auto relative z-10"
                                                 >
-                                                    <motion.div 
+                                                    <motion.div
                                                         variants={{
                                                             hidden: { opacity: 0, y: 8 },
                                                             show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
@@ -1951,7 +1949,7 @@ export default function ValuationWizardCard() {
                                                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Company / Brand</label>
                                                         <input type="text" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                     </motion.div>
-                                                    <motion.div 
+                                                    <motion.div
                                                         variants={{
                                                             hidden: { opacity: 0, y: 8 },
                                                             show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
@@ -1961,7 +1959,7 @@ export default function ValuationWizardCard() {
                                                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
                                                         <input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Santro" />
                                                     </motion.div>
-                                                    <motion.div 
+                                                    <motion.div
                                                         variants={{
                                                             hidden: { opacity: 0, y: 8 },
                                                             show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
@@ -1971,7 +1969,7 @@ export default function ValuationWizardCard() {
                                                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Owner Name</label>
                                                         <input type="text" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Satish Kumar" />
                                                     </motion.div>
-                                                    <motion.div 
+                                                    <motion.div
                                                         variants={{
                                                             hidden: { opacity: 0, y: 8 },
                                                             show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
@@ -1981,7 +1979,7 @@ export default function ValuationWizardCard() {
                                                         <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Fuel Type</label>
                                                         <input type="text" value={formData.fuel} onChange={(e) => setFormData({ ...formData, fuel: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Petrol" />
                                                     </motion.div>
-                                                    <motion.div 
+                                                    <motion.div
                                                         variants={{
                                                             hidden: { opacity: 0, y: 8 },
                                                             show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }
@@ -1992,12 +1990,12 @@ export default function ValuationWizardCard() {
                                                         <textarea rows={2} value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24] resize-none" placeholder="Registered Address" />
                                                     </motion.div>
                                                 </motion.div>
-                                                
-                                                <motion.button 
+
+                                                <motion.button
                                                     initial={{ opacity: 0, y: 12 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 22 }}
-                                                    onClick={nextStep} 
+                                                    onClick={nextStep}
                                                     className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center relative z-10"
                                                 >
                                                     Confirm & Continue
@@ -2021,7 +2019,7 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-5 text-center relative overflow-hidden rounded-2xl py-3">
                                                 {/* Animated Background Gradients */}
                                                 <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-                                                    <motion.div 
+                                                    <motion.div
                                                         className="absolute -top-12 -left-12 w-44 h-44 bg-red-500/5 rounded-full blur-2xl"
                                                         animate={{
                                                             x: [0, 20, 0],
@@ -2033,7 +2031,7 @@ export default function ValuationWizardCard() {
                                                             ease: "easeInOut"
                                                         }}
                                                     />
-                                                    <motion.div 
+                                                    <motion.div
                                                         className="absolute -bottom-12 -right-12 w-44 h-44 bg-amber-500/5 rounded-full blur-2xl"
                                                         animate={{
                                                             x: [0, -20, 0],
@@ -2057,7 +2055,7 @@ export default function ValuationWizardCard() {
                                                     {!selectedBrand ? (
                                                         <div className="space-y-1.5 text-left">
                                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Brand</label>
-                                                            <motion.div 
+                                                            <motion.div
                                                                 variants={{
                                                                     hidden: { opacity: 0 },
                                                                     show: {
@@ -2087,13 +2085,12 @@ export default function ValuationWizardCard() {
                                                                                 desiredModel: ""
                                                                             }));
                                                                         }}
-                                                                        className={`py-2 px-1 sm:py-2.5 sm:px-2 rounded-xl border text-[10px] sm:text-xs font-semibold text-center transition-all ${
-                                                                            selectedBrand === b 
-                                                                                ? 'border-[#E31E24] bg-red-50 text-[#E31E24] font-bold shadow-sm' 
+                                                                        className={`py-2 px-1 sm:py-2.5 sm:px-2 rounded-xl border text-[10px] sm:text-xs font-semibold text-center transition-all ${selectedBrand === b
+                                                                                ? 'border-[#E31E24] bg-red-50 text-[#E31E24] font-bold shadow-sm'
                                                                                 : b === "Other"
                                                                                     ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30 text-slate-500 hover:text-[#E31E24]'
                                                                                     : 'border-slate-100 bg-white hover:border-red-100 hover:bg-red-50/20 text-slate-600'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {b === "Other" ? (
                                                                             <span className="flex items-center justify-center gap-1.5">
@@ -2136,34 +2133,34 @@ export default function ValuationWizardCard() {
 
                                                             {/* Custom Brand Input (if "Other" brand is selected) */}
                                                             {selectedBrand === "Other" && (
-                                                                <motion.div 
+                                                                <motion.div
                                                                     initial={{ opacity: 0, y: 5 }}
                                                                     animate={{ opacity: 1, y: 0 }}
                                                                     className="mt-1.5 space-y-1 text-left"
                                                                 >
                                                                     <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Enter Brand Name</label>
-                                                                    <input 
-                                                                        type="text" 
-                                                                        placeholder="e.g. Ford, Chevrolet, etc." 
-                                                                        value={customBrand} 
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="e.g. Ford, Chevrolet, etc."
+                                                                        value={customBrand}
                                                                         onChange={(e) => {
                                                                             const val = e.target.value;
                                                                             setCustomBrand(val);
                                                                             setFormData(prev => ({ ...prev, desiredCompany: val }));
-                                                                        }} 
-                                                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-150 focus:bg-white focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]" 
+                                                                        }}
+                                                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-150 focus:bg-white focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
                                                                     />
                                                                 </motion.div>
                                                             )}
 
                                                             {/* Model Selection (based on selected brand) */}
-                                                            <motion.div 
+                                                            <motion.div
                                                                 initial={{ opacity: 0, y: 8 }}
                                                                 animate={{ opacity: 1, y: 0 }}
                                                                 className="space-y-1.5 text-left pt-1"
                                                             >
                                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Model</label>
-                                                                
+
                                                                 {selectedBrand !== "Other" && BRAND_MODELS[selectedBrand] ? (
                                                                     <>
                                                                         <div className="grid grid-cols-3 gap-2">
@@ -2178,13 +2175,12 @@ export default function ValuationWizardCard() {
                                                                                             desiredModel: m === "Other" ? customModel : m
                                                                                         }));
                                                                                     }}
-                                                                                    className={`py-2 px-1 rounded-xl border text-[10px] sm:text-xs font-semibold text-center transition-all ${
-                                                                                        selectedModel === m 
-                                                                                            ? 'border-[#E31E24] bg-red-50 text-[#E31E24] font-bold shadow-sm' 
+                                                                                    className={`py-2 px-1 rounded-xl border text-[10px] sm:text-xs font-semibold text-center transition-all ${selectedModel === m
+                                                                                            ? 'border-[#E31E24] bg-red-50 text-[#E31E24] font-bold shadow-sm'
                                                                                             : m === "Other"
                                                                                                 ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30 text-slate-500 hover:text-[#E31E24]'
                                                                                                 : 'border-slate-100 bg-white hover:border-red-100 hover:bg-red-50/20 text-slate-600'
-                                                                                    }`}
+                                                                                        }`}
                                                                                 >
                                                                                     {m === "Other" ? (
                                                                                         <span className="flex items-center justify-center gap-1.5">
@@ -2197,41 +2193,41 @@ export default function ValuationWizardCard() {
                                                                                 </button>
                                                                             ))}
                                                                         </div>
-                                                                        
+
                                                                         {/* Custom Model Input (if "Other" model is selected from grid) */}
                                                                         {selectedModel === "Other" && (
-                                                                            <motion.div 
+                                                                            <motion.div
                                                                                 initial={{ opacity: 0, y: 5 }}
                                                                                 animate={{ opacity: 1, y: 0 }}
                                                                                 className="mt-2.5 space-y-1"
                                                                             >
                                                                                 <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Enter Model Name</label>
-                                                                                <input 
-                                                                                    type="text" 
-                                                                                    placeholder="e.g. Nexon, Creta, etc." 
-                                                                                    value={customModel} 
+                                                                                <input
+                                                                                    type="text"
+                                                                                    placeholder="e.g. Nexon, Creta, etc."
+                                                                                    value={customModel}
                                                                                     onChange={(e) => {
                                                                                         const val = e.target.value;
                                                                                         setCustomModel(val);
                                                                                         setFormData(prev => ({ ...prev, desiredModel: val }));
-                                                                                    }} 
-                                                                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-150 focus:bg-white focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]" 
+                                                                                    }}
+                                                                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-150 focus:bg-white focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
                                                                                 />
                                                                             </motion.div>
                                                                         )}
                                                                     </>
                                                                 ) : (
                                                                     /* Direct custom model input if brand is custom */
-                                                                    <input 
-                                                                        type="text" 
-                                                                        placeholder="e.g. Mustang, Civic, etc." 
-                                                                        value={customModel} 
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="e.g. Mustang, Civic, etc."
+                                                                        value={customModel}
                                                                         onChange={(e) => {
                                                                             const val = e.target.value;
                                                                             setCustomModel(val);
                                                                             setFormData(prev => ({ ...prev, desiredModel: val }));
-                                                                        }} 
-                                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-150 focus:bg-white focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 rounded-xl text-center text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]" 
+                                                                        }}
+                                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-150 focus:bg-white focus:border-[#E31E24] focus:ring-4 focus:ring-[#E31E24]/10 rounded-xl text-center text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none transition-all duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
                                                                     />
                                                                 )}
                                                             </motion.div>
@@ -2239,12 +2235,12 @@ export default function ValuationWizardCard() {
                                                     )}
                                                 </div>
 
-                                                <motion.button 
+                                                <motion.button
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: 0.35, type: "spring", stiffness: 260, damping: 22 }}
-                                                    disabled={!formData.desiredCompany || !formData.desiredModel} 
-                                                    onClick={() => nextStep()} 
+                                                    disabled={!formData.desiredCompany || !formData.desiredModel}
+                                                    onClick={() => nextStep()}
                                                     className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] relative z-10"
                                                 >
                                                     Continue
@@ -2264,7 +2260,7 @@ export default function ValuationWizardCard() {
                                                             {/* Phone Verification Card */}
                                                             <div className="w-full max-w-md bg-white border border-slate-200/80 rounded-[1rem] p-5 sm:p-6 flex flex-col justify-center items-center shadow-sm relative overflow-hidden">
                                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-2xl pointer-events-none" />
-                                                                
+
                                                                 {/* Phone Verification / OTP */}
                                                                 <div className="w-full flex flex-col items-center text-center space-y-3.5">
                                                                     <div>
@@ -2272,10 +2268,10 @@ export default function ValuationWizardCard() {
                                                                             {otpSent ? "VERIFY IDENTITY" : (formData.buyNew === "no" ? "UNLOCK VALUATION & BENEFITS" : "UNLOCK CD BENEFITS")}
                                                                         </h4>
                                                                         <p className="text-[11px] text-slate-500 font-semibold leading-relaxed max-w-xs mx-auto">
-                                                                            {otpSent 
-                                                                                ? "Enter the OTP sent to your phone." 
-                                                                                : (formData.buyNew === "no" 
-                                                                                    ? "Enter your phone number to unlock your scrap valuation and partner benefits." 
+                                                                            {otpSent
+                                                                                ? "Enter the OTP sent to your phone."
+                                                                                : (formData.buyNew === "no"
+                                                                                    ? "Enter your phone number to unlock your scrap valuation and partner benefits."
                                                                                     : "Enter your phone number to unlock your CD certificate and partner benefits.")}
                                                                         </p>
                                                                     </div>
