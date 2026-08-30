@@ -8,6 +8,7 @@ import AuthProvider from "@/components/AuthProvider"
 import AdminAwareLayout from "@/components/AdminAwareLayout"
 import GoogleAnalytics from "@/components/GoogleAnalytics"
 import GoogleTag from "@/components/GoogleTag"
+import GoogleTagManager from "@/components/GoogleTagManager"
 
 
 const inter = Inter({ subsets: ["latin"] })
@@ -98,6 +99,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
+        <GoogleTagManager />
         <GoogleAnalytics />
         <GoogleTag />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
