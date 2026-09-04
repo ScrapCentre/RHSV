@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, ArrowUp, ChevronRight, ShieldCheck, Leaf, BadgeCheck, Headphones, Heart } from "lucide-react"
+import { Facebook, Instagram, Linkedin, Mail, Phone, MapPin, ArrowUp, ChevronRight, ShieldCheck, Leaf, BadgeCheck, Headphones, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -47,9 +47,20 @@ export default function Footer() {
               Your trusted partner for responsible vehicle recycling. We turn your old vehicles into cash while protecting the environment.
             </p>
             <div className="flex gap-3">
-              {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
-                <Link key={i} href="#" className="w-11 h-11 rounded-xl bg-red-50/50 text-[#E31E24] flex items-center justify-center hover:bg-[#E31E24] hover:text-white transition-all hover:-translate-y-1">
-                  <Icon size={20} />
+              {[
+                { icon: Facebook, href: "https://www.facebook.com/ScrapCentreOfficial", label: "Facebook" },
+                { icon: Instagram, href: "https://www.instagram.com/scrapcentre_official/", label: "Instagram" },
+                { icon: Linkedin, href: "https://www.linkedin.com/company/scrapcentre/", label: "LinkedIn" },
+              ].map((item, i) => (
+                <Link
+                  key={i}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={item.label}
+                  className="w-11 h-11 rounded-xl bg-red-50/50 text-[#E31E24] flex items-center justify-center hover:bg-[#E31E24] hover:text-white transition-all hover:-translate-y-1"
+                >
+                  <item.icon size={20} />
                 </Link>
               ))}
             </div>
