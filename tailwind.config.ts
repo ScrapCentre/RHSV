@@ -66,6 +66,8 @@ const config: Config = {
         },
       },
       fontFamily: {
+        sans: ["var(--font-latin)", "sans-serif"],
+        devanagari: ["var(--font-devanagari)", "sans-serif"],
         bebas: ["var(--font-bebas)", "sans-serif"],
       },
       borderRadius: {

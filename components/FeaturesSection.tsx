@@ -1,54 +1,20 @@
 "use client"
 
 import { motion, LayoutGroup } from "framer-motion"
-import { Shield, Zap, Truck, BadgeCheck, Leaf, Coins, Smile, Car, MapPin, ShieldCheck, PlayCircle, ArrowRight, Play } from "lucide-react"
+import { Shield, Zap, Truck, BadgeCheck, Leaf, Coins, Smile, Car, MapPin, ShieldCheck, Play, ArrowRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function FeaturesSection() {
+  const t = useTranslations("HomePage.features")
 
   const features = [
-    {
-      id: 1,
-      icon: Shield,
-      title: "100% Secure",
-      summary: "Enterprise-grade security.",
-      description: "Advanced encryption and secure payment gateways ensure your data and financial transactions are protected.",
-    },
-    {
-      id: 2,
-      icon: Zap,
-      title: "Instant Payment",
-      summary: "Paid instantly via bank/UPI.",
-      description: "Experience the fastest payment processing. Money is transferred directly to your bank account instantly.",
-    },
-    {
-      id: 3,
-      icon: Truck,
-      title: "Free Pickup",
-      summary: "Doorstep pickup at no cost.",
-      description: "We come to your registered address with a tow truck to pick up the vehicle, completely free of charge.",
-    },
-    {
-      id: 4,
-      icon: BadgeCheck,
-      title: "RTO Handling",
-      summary: "We handle all paperwork.",
-      description: "We take care of all RTO formalities, de-registration, and documentation required to legally scrap your vehicle.",
-    },
-    {
-      id: 5,
-      icon: Leaf,
-      title: "Eco-Friendly",
-      summary: "Responsible scrapping.",
-      description: "We follow strict environmental guidelines. Hazardous fluids are drained safely and parts are recycled.",
-    },
-    {
-      id: 6,
-      icon: Coins,
-      title: "Best Price",
-      summary: "Highest value guaranteed.",
-      description: "Our AI pricing algorithm analyzes real-time market data to offer you the most competitive price.",
-    },
-  ]
+    { id: 1, icon: Shield,      key: "secure" },
+    { id: 2, icon: Zap,         key: "payment" },
+    { id: 3, icon: Truck,       key: "pickup" },
+    { id: 4, icon: BadgeCheck,  key: "rto" },
+    { id: 5, icon: Leaf,        key: "eco" },
+    { id: 6, icon: Coins,       key: "price" },
+  ] as const
 
   return (
     <section className="py-10 relative overflow-hidden text-slate-900 bg-white features-section">
@@ -60,9 +26,6 @@ export default function FeaturesSection() {
           className="w-full h-full object-cover"
         />
       </div>
-      {/* Background Pattern Removed */}
-      
-      {/* Animated Elements Removed */}
  
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Centered Heading at Top */}
@@ -74,13 +37,14 @@ export default function FeaturesSection() {
           transition={{ duration: 0.7, ease: "easeOut" as const }}
         >
           <span className="text-[#E31E24] font-bold uppercase tracking-[0.2em] mb-2 block text-sm">
-            Why Choose ScrapCenter
+            {t("tagline")}
           </span>
           <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
-            Premium <span className="text-[#E31E24]">Features</span>
+            {t("heading").split(" ").slice(0, -1).join(" ")}{" "}
+            <span className="text-[#E31E24]">{t("heading").split(" ").at(-1)}</span>
           </h2>
           <p className="text-slate-600 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
-            Experience a hassle-free car scrapping process with our exclusive services designed for your absolute convenience and trust.
+            {t("description")}
           </p>
         </motion.div>
 
@@ -145,12 +109,12 @@ export default function FeaturesSection() {
 
                           <div className="flex flex-col items-center max-w-[90%]" style={{ transform: "translateZ(35px)" }}>
                             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 group-hover:text-[#E31E24] transition-colors mb-2">
-                              {feature.title}
+                              {t(`cards.${feature.key}.title`)}
                             </h3>
                             
                             {/* Subheading */}
                             <motion.p layout className="text-xs text-slate-500 mb-1 font-medium leading-relaxed">
-                              {feature.summary}
+                              {t(`cards.${feature.key}.summary`)}
                             </motion.p>
 
                             {/* Red Accent Line */}
@@ -186,7 +150,7 @@ export default function FeaturesSection() {
               </div>
               <div className="shrink-0">
                 <div className="text-white text-xl md:text-2xl font-black leading-none mb-1">10K+</div>
-                <div className="text-white/70 text-[9px] font-bold uppercase tracking-widest">Happy Customers</div>
+                <div className="text-white/70 text-[9px] font-bold uppercase tracking-widest">{t("stats.happyCustomers")}</div>
               </div>
             </div>
 
@@ -200,7 +164,7 @@ export default function FeaturesSection() {
               </div>
               <div className="shrink-0">
                 <div className="text-white text-xl md:text-2xl font-black leading-none mb-1">15K+</div>
-                <div className="text-white/70 text-[9px] font-bold uppercase tracking-widest">Cars Scrapped</div>
+                <div className="text-white/70 text-[9px] font-bold uppercase tracking-widest">{t("stats.carsScrapped")}</div>
               </div>
             </div>
 
@@ -214,7 +178,7 @@ export default function FeaturesSection() {
               </div>
               <div className="shrink-0">
                 <div className="text-white text-xl md:text-2xl font-black leading-none mb-1">500+</div>
-                <div className="text-white/70 text-[9px] font-bold uppercase tracking-widest">Cities Covered</div>
+                <div className="text-white/70 text-[9px] font-bold uppercase tracking-widest">{t("stats.citiesCovered")}</div>
               </div>
             </div>
 
@@ -228,7 +192,7 @@ export default function FeaturesSection() {
               </div>
               <div className="shrink-0">
                 <div className="text-white text-xl md:text-2xl font-black leading-none mb-1">100%</div>
-                <div className="text-white/70 text-[9px] font-bold uppercase tracking-widest">Safe & Secure</div>
+                <div className="text-white/70 text-[9px] font-bold uppercase tracking-widest">{t("stats.safeSecure")}</div>
               </div>
             </div>
           </div>
@@ -238,7 +202,7 @@ export default function FeaturesSection() {
             <div className="relative group">
               {/* Handwritten Indicator */}
               <div className="hidden sm:flex absolute -top-9 -left-4 lg:-left-10 flex-col items-center -rotate-6 pointer-events-none">
-                <span className="text-[#E31E24] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap italic opacity-80" style={{ fontFamily: 'var(--font-geist-sans)' }}>See how it works</span>
+                <span className="text-[#E31E24] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap italic opacity-80" style={{ fontFamily: 'var(--font-geist-sans)' }}>{t("seeHowItWorks")}</span>
                 <svg width="30" height="15" viewBox="0 0 40 20" fill="none" className="text-[#E31E24] opacity-60">
                   <path d="M5 5C10 15 30 15 35 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <path d="M30 7L35 10L32 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -251,18 +215,16 @@ export default function FeaturesSection() {
                     <Play size={14} fill="currentColor" />
                     <div className="absolute inset-0 bg-white/40 rounded-full animate-ping"></div>
                   </div>
-                  <span>Watch Our Process</span>
+                  <span>{t("watchProcess")}</span>
                 </div>
                 <div className="c-button__blobs">
-                  <div />
-                  <div />
-                  <div />
+                  <div /><div /><div />
                 </div>
               </button>
             </div>
 
             <button className="group flex items-center gap-2 text-slate-500 hover:text-[#E31E24] transition-colors font-bold uppercase tracking-wider px-4 py-1.5 text-xs">
-              <span className="border-b-2 border-transparent group-hover:border-[#E31E24] transition-all">Learn More About Us</span>
+              <span className="border-b-2 border-transparent group-hover:border-[#E31E24] transition-all">{t("learnMore")}</span>
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </button>
           </div>
@@ -271,4 +233,3 @@ export default function FeaturesSection() {
     </section>
   )
 }
-

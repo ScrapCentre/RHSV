@@ -6,14 +6,28 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from "lucide-react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link" // Import Link for navigation
+import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname, useParams } from "next/navigation"
+import LanguageToggle from "@/components/LanguageToggle"
+import enMessages from "@/messages/en.json"
+import hiMessages from "@/messages/hi.json"
 gsap.registerPlugin(ScrollTrigger)
 
 
 
 export default function Navbar() {
+  // Detect locale from the [locale] route param (present on /en/*, /hi/*).
+  // On non-localized routes (/login, /register, /admin, etc.) useParams()
+  // returns an empty object — default to 'en'. This is a pure client-side
+  // read: no headers(), no server calls, zero effect on rendering mode.
+  const params = useParams()
+  const locale = (params?.locale as string) ?? "en"
+  const nav = locale === "hi" ? hiMessages.Nav : enMessages.Nav
+
+  const localizedHref = (path: string) =>
+    locale === "hi" ? `/hi${path === "/" ? "" : path}` : path
+
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
@@ -29,10 +43,10 @@ export default function Navbar() {
   }, [pathname])
 
   const navItems = [
-    { name: "About", href: "/about" },
-    { name: "Free Valuation", href: "#services" },
-    { name: "RVSF", href: "/rvsf/apply" },
-    { name: "Contact", href: "/contact" },
+    { name: nav.about,         href: localizedHref("/about") },
+    { name: nav.freeValuation, href: "#services" },
+    { name: nav.rvsf,         href: "/rvsf/apply" },
+    { name: nav.contact,      href: localizedHref("/contact") },
   ]
 
   useEffect(() => {
@@ -113,25 +127,28 @@ export default function Navbar() {
   const handleNavClick = (href: string) => {
     setIsOpen(false)
 
-    if (href === "/") {
-      router.push("/")
-    } else if (href.startsWith("#")) {
-      if (window.location.pathname === "/") {
+    if (href.startsWith("#")) {
+      const isHome = pathname === "/" || pathname === "/hi" || pathname === "/homex"
+      if (isHome) {
         const element = document.querySelector(href)
         if (element) {
           element.scrollIntoView({ behavior: "smooth" })
         }
       } else {
-        router.push("/" + href)
+        router.push(localizedHref("/") + href)
       }
-    } else {
-      router.push(href)
+      return
     }
+
+    const targetHref =
+      href === "/" || href === "/about" || href === "/contact" || href === "/profile"
+        ? localizedHref(href)
+        : href
+
+    router.push(targetHref)
   }
 
-
-
-  const isTransparent = (pathname === "/homex" || pathname === "/") && !isScrolled
+  const isTransparent = (pathname === "/homex" || pathname === "/" || pathname === "/hi") && !isScrolled
 
   return (
     <nav
@@ -139,14 +156,14 @@ export default function Navbar() {
         isTransparent ? "bg-transparent" : "bg-white shadow-md"
       } ${
         isVisible ? "translate-y-0" : "-translate-y-full"
-      }`}
+      } ${locale === "hi" ? "lang-hi" : ""}`}
     >
       <div className="container mx-auto px-6">
         {/* Desktop Layout - Single Row */}
         <div className="hidden lg:flex items-center py-2">
           
           {/* Logo Section */}
-          <div className="flex items-center gap-3 cursor-pointer lg:mr-16 xl:mr-24 2xl:mr-48" onClick={() => handleNavClick("/")}>
+          <div className="flex items-center gap-3 cursor-pointer lg:mr-16 xl:mr-24 2xl:mr-48" onClick={() => handleNavClick(localizedHref("/"))}>
             <Image 
               src="/logo.png" 
               alt="ScrapCentre Logo" 
@@ -180,8 +197,9 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right Side: Login */}
-          <div className="flex items-center gap-4 lg:gap-5 xl:gap-8 ml-auto mr-12 lg:mr-16 xl:mr-20 2xl:mr-24">
+          {/* Right Side: Language Toggle + Login */}
+          <div className="flex items-center gap-3 lg:gap-4 ml-auto mr-12 lg:mr-16 xl:mr-20 2xl:mr-24">
+            <LanguageToggle />
             {session ? (
               <div className="relative group">
                 <button className="flex items-center gap-2.5 px-3 py-1.5 rounded-full hover:bg-slate-50 transition-all duration-300 group/btn border border-transparent hover:border-slate-100">
@@ -200,10 +218,10 @@ export default function Navbar() {
                     <p className="text-xs text-slate-500 truncate">{session.user?.email}</p>
                   </div>
                   {(session.user as any).role === "admin" && (
-                    <Link href="/admin" className="block px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-700">Admin Dashboard</Link>
+                    <Link href="/admin" className="block px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-700">{nav.adminDashboard}</Link>
                   )}
-                  <Link href="/profile" className="block px-4 py-2 text-sm text-slate-700 hover:bg-red-50">Profile</Link>
-                  <button onClick={() => signOut({ callbackUrl: "/" })} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign out</button>
+                  <Link href={localizedHref("/profile")} className="block px-4 py-2 text-sm text-slate-700 hover:bg-red-50">{nav.profile}</Link>
+                  <button onClick={() => signOut({ callbackUrl: "/" })} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">{nav.signOut}</button>
                 </div>
               </div>
             ) : (
@@ -211,7 +229,7 @@ export default function Navbar() {
                 onClick={() => handleNavClick("/login")}
                 className="c-button--gooey px-6 py-2 lg:px-5 lg:py-2 xl:px-8 xl:py-2.5 bg-[#E31E24] text-white border-2 border-[#E31E24] rounded-xl text-xs xl:text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-lg shadow-red-500/20 relative overflow-hidden"
               >
-                <span className="relative z-10">Login / Sign up</span>
+                <span className="relative z-10">{nav.loginSignup}</span>
                 <div className="c-button__blobs">
                   <div />
                   <div />
@@ -224,7 +242,7 @@ export default function Navbar() {
 
         {/* Mobile Navigation Header */}
         <div className={`lg:hidden flex items-center justify-between w-full h-20 px-4 transition-colors duration-300 ${isTransparent ? "bg-transparent" : "bg-white border-b"}`}>
-          <div className="logo flex items-center cursor-pointer gap-2" onClick={() => handleNavClick("/")}>
+          <div className="logo flex items-center cursor-pointer gap-2" onClick={() => handleNavClick(localizedHref("/"))}>
             <Image 
               src="/logo.png" 
               alt="ScrapCentre Logo" 
@@ -295,10 +313,10 @@ export default function Navbar() {
                         <Link href="/admin">
                           <Button
                             variant="ghost"
-                            className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 h-12 text-base font-medium"
+                            className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 min-h-[3rem] py-2 text-base font-medium"
                             onClick={() => setIsOpen(false)}
                           >
-                            <LayoutDashboard className="w-5 h-5 mr-3" /> Admin Dashboard
+                            <LayoutDashboard className="w-5 h-5 mr-3" /> {nav.adminDashboard}
                           </Button>
                         </Link>
                       )}
@@ -309,20 +327,20 @@ export default function Navbar() {
                             <Link href="/partner-register">
                               <Button
                                 variant="ghost"
-                                className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 h-12 text-base font-medium"
+                                className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 min-h-[3rem] py-2 text-base font-medium"
                                 onClick={() => setIsOpen(false)}
                               >
-                                <User className="w-5 h-5 mr-3" /> Partner Login
+                                <User className="w-5 h-5 mr-3" /> {nav.partnerLogin}
                               </Button>
                             </Link>
                           )}
-                          <Link href="/profile">
+                          <Link href={localizedHref("/profile")}>
                             <Button
                               variant="ghost"
-                              className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 h-12 text-base font-medium"
+                              className="w-full justify-start text-gray-700 hover:text-[#E31E24] hover:bg-red-50 mb-2 min-h-[3rem] py-2 text-base font-medium"
                               onClick={() => setIsOpen(false)}
                             >
-                              <User className="w-5 h-5 mr-3" /> {(session.user as any).role === "partner" ? "Partner Dashboard" : "Profile"}
+                              <User className="w-5 h-5 mr-3" /> {(session.user as any).role === "partner" ? nav.partnerDashboard : nav.profile}
                             </Button>
                           </Link>
                         </>
@@ -330,21 +348,27 @@ export default function Navbar() {
 
                       <Button
                         variant="ghost"
-                        className="w-full text-red-600 hover:bg-red-50 justify-start h-12 text-base font-medium"
+                        className="w-full text-red-600 hover:bg-red-50 justify-start min-h-[3rem] py-2 text-base font-medium"
                         onClick={() => signOut({ callbackUrl: "/" })}
                       >
-                        <LogOut className="w-5 h-5 mr-3" /> Sign Out
+                        <LogOut className="w-5 h-5 mr-3" /> {nav.signOut}
                       </Button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-3">
+                      {/* Language switcher in mobile menu */}
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{nav.language}</span>
+                        <LanguageToggle />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
                       <Link href="/login" className="block">
                         <button
-                          className="c-button--gooey w-full flex items-center justify-center bg-[#E31E24] text-white rounded-xl h-11 text-sm font-bold uppercase tracking-wider shadow-lg shadow-red-500/20 transition-all relative overflow-hidden"
+                          className="c-button--gooey w-full flex items-center justify-center bg-[#E31E24] text-white rounded-xl min-h-[2.75rem] py-2 text-sm font-bold uppercase tracking-wider shadow-lg shadow-red-500/20 transition-all relative overflow-hidden"
                           onClick={() => setIsOpen(false)}
                         >
                           <span className="relative z-10 flex items-center">
-                            <User className="w-4 h-4 mr-2" /> Login
+                            <User className="w-4 h-4 mr-2" /> {nav.login}
                           </span>
                           <div className="c-button__blobs">
                             <div />
@@ -356,12 +380,13 @@ export default function Navbar() {
                       <Link href="/partner-register" className="block">
                         <Button
                           variant="outline"
-                          className="w-full justify-center text-gray-700 hover:text-[#E31E24] hover:bg-red-50 border-gray-200 h-12 text-sm font-medium px-2"
+                          className="w-full justify-center text-gray-700 hover:text-[#E31E24] hover:bg-red-50 border-gray-200 min-h-[3rem] py-2 text-sm font-medium px-2"
                           onClick={() => setIsOpen(false)}
                         >
-                          <User className="w-4 h-4 mr-1 sm:mr-2" /> Partner Login
+                          <User className="w-4 h-4 mr-1 sm:mr-2" /> {nav.partnerLogin}
                         </Button>
                       </Link>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Bebas_Neue } from "next/font/google"
+import { Inter, Bebas_Neue, Noto_Sans_Devanagari } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -11,7 +11,15 @@ import GoogleTag from "@/components/GoogleTag"
 import GoogleTagManager from "@/components/GoogleTagManager"
 
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-latin"
+})
+const notoSansDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-devanagari",
+})
 const bebasNeue = Bebas_Neue({ 
   weight: "400", 
   subsets: ["latin"], 
@@ -32,7 +40,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://scrapcenter.in"),
+  metadataBase: new URL("https://www.scrapcentre.com"),
   alternates: {
     canonical: "/",
   },
@@ -40,7 +48,7 @@ export const metadata: Metadata = {
     title: "ScrapCenter India - Vehicle Scrapping Services",
     description:
       "Official authorized vehicle scrapping center in India. Get best price for your old car, bike or vehicle.",
-    url: "https://scrapcenter.in",
+    url: "https://www.scrapcentre.com",
     siteName: "ScrapCenter India",
     images: [
       {
@@ -90,7 +98,6 @@ const organizationSchema = {
   "alternateName": "ScrapCenter India",
   "url": "https://www.scrapcentre.com/",
   "slogan": "India's Largest Capacity RVSF",
-  "priceRange": "₹₹",
   "logo": {
     "@type": "ImageObject",
     "@id": "https://www.scrapcentre.com/#logo",
@@ -107,6 +114,19 @@ const organizationSchema = {
     "postalCode": "208020",
     "addressCountry": "IN",
   },
+  "areaServed": { "@type": "Country", "name": "India" },
+  "sameAs": [
+    "https://www.facebook.com/ScrapCentreOfficial",
+    "https://www.linkedin.com/company/scrapcentre/",
+    "https://www.instagram.com/scrapcentre_official/",
+  ],
+  "knowsAbout": [
+    "Registered Vehicle Scrapping Facility (RVSF)",
+    "End-of-life vehicle (ELV) scrapping",
+    "Certificate of Deposit (COD) issuance",
+    "RTO vehicle deregistration",
+    "Eco-friendly vehicle recycling",
+  ],
 }
 
 const websiteSchema = {
@@ -116,7 +136,7 @@ const websiteSchema = {
   "url": "https://www.scrapcentre.com/",
   "name": "ScrapCentre",
   "publisher": { "@id": "https://www.scrapcentre.com/#organization" },
-  "inLanguage": "en-IN",
+  "inLanguage": ["en-IN", "hi-IN"],
 }
 
 export default function RootLayout({
@@ -125,6 +145,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
+    // lang defaults to "en". On Hindi pages, next-intl's middleware sets
+    // the locale in the request context, and [locale]/layout.tsx calls
+    // setRequestLocale(locale). The html lang attribute is supplemented
+    // by the metadata system and suppressHydrationWarning handles
+    // any client-side locale mismatch gracefully.
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
@@ -143,7 +168,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>
-      <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
+      <body className={`${inter.className} ${inter.variable} ${notoSansDevanagari.variable} ${bebasNeue.variable} font-sans antialiased`}>
         <GoogleTagManager />
         <GoogleAnalytics />
         <GoogleTag />

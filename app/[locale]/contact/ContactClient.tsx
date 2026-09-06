@@ -18,13 +18,16 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import LoadingScreen from "@/components/LoadingScreen"
+import { useTranslations, useLocale } from "next-intl"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
 })
 
-export default function ContactPage() {
+export default function ContactClient() {
+  const t = useTranslations("ContactPage")
+  const locale = useLocale()
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
     name: "",
@@ -37,9 +40,9 @@ export default function ContactPage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-    if (!formData.name) newErrors.name = "Full Name is required"
-    if (!formData.phone) newErrors.phone = "Phone number is required"
-    if (!formData.message) newErrors.message = "Message detail is required"
+    if (!formData.name) newErrors.name = t("form.errors.name")
+    if (!formData.phone) newErrors.phone = t("form.errors.phone")
+    if (!formData.message) newErrors.message = t("form.errors.message")
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -52,7 +55,7 @@ export default function ContactPage() {
     setIsSubmitting(true)
     await new Promise((resolve) => setTimeout(resolve, 2000))
     setIsSubmitting(false)
-    alert("Message sent successfully!")
+    alert(t("form.successAlert"))
     setFormData({ name: "", phone: "", message: "" })
   }
 
@@ -72,7 +75,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-[#F8FAFC] relative overflow-hidden pt-28 pb-16 ${plusJakartaSans.className}`}>
+    <div className={`min-h-screen bg-[#F8FAFC] relative overflow-hidden pt-28 pb-16 ${locale === "hi" ? "" : plusJakartaSans.className}`}>
       {/* Background Decorations */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
         <div className="absolute top-10 left-10 w-64 h-64 bg-red-500/5 rounded-full blur-3xl opacity-60"></div>
@@ -96,7 +99,7 @@ export default function ContactPage() {
             className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-full mb-4 shadow-sm border border-slate-100"
           >
             <Sparkles size={12} className="text-[#E31E24]" />
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#E31E24]">Get in Touch</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#E31E24]">{t("header.badge")}</span>
           </motion.div>
 
           <motion.h1
@@ -105,7 +108,7 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-3xl sm:text-4xl font-black text-slate-855 tracking-tight mb-4 uppercase leading-tight"
           >
-            Let&apos;s Build Something <span className="text-[#E31E24]">Great Together</span>
+            {t("header.title")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -113,7 +116,7 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-[11px] font-bold uppercase tracking-widest text-slate-400 max-w-md mx-auto leading-relaxed"
           >
-            Have a project in mind? Our specialist team is ready to help you with instant vehicle solutions.
+            {t("header.subtitle")}
           </motion.p>
         </div>
 
@@ -131,9 +134,9 @@ export default function ContactPage() {
                 <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-4">
                   <Phone size={20} className="text-white" />
                 </div>
-                <h2 className="text-2xl font-black uppercase tracking-tight leading-tight mb-3">Contact info</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tight leading-tight mb-3">{t("infoCard.title")}</h2>
                 <p className="text-red-100 text-[10px] font-semibold uppercase tracking-wider leading-normal">
-                  Fill out the form and our team will get back to you within 24 hours.
+                  {t("infoCard.subtitle")}
                 </p>
               </div>
 
@@ -143,8 +146,8 @@ export default function ContactPage() {
                     <Phone className="w-4 h-4 text-[#E31E24]" />
                   </div>
                   <div>
-                    <p className="text-[8px] font-black text-red-200 uppercase tracking-widest">Call Us</p>
-                    <p className="text-sm font-black text-white">+91-9839447733</p>
+                    <p className="text-[8px] font-black text-red-200 uppercase tracking-widest">{t("infoCard.callUs")}</p>
+                    <p className="text-sm font-black text-white">{t("infoCard.phone")}</p>
                   </div>
                 </div>
 
@@ -153,8 +156,8 @@ export default function ContactPage() {
                     <Mail className="w-4 h-4 text-[#E31E24]" />
                   </div>
                   <div>
-                    <p className="text-[8px] font-black text-red-200 uppercase tracking-widest">Email Us</p>
-                    <p className="text-sm font-black text-white">contact@scrapcentre.com</p>
+                    <p className="text-[8px] font-black text-red-200 uppercase tracking-widest">{t("infoCard.emailUs")}</p>
+                    <p className="text-sm font-black text-white">{t("infoCard.email")}</p>
                   </div>
                 </div>
 
@@ -163,8 +166,8 @@ export default function ContactPage() {
                     <MapPin className="w-4 h-4 text-[#E31E24]" />
                   </div>
                   <div>
-                    <p className="text-[8px] font-black text-red-200 uppercase tracking-widest">Office</p>
-                    <p className="text-xs font-black text-white leading-normal">21-E, Block Panki, Kanpur</p>
+                    <p className="text-[8px] font-black text-red-200 uppercase tracking-widest">{t("infoCard.office")}</p>
+                    <p className="text-xs font-black text-white leading-normal">{t("infoCard.address")}</p>
                   </div>
                 </div>
               </div>
@@ -172,7 +175,7 @@ export default function ContactPage() {
               {/* Trust Badge */}
               <div className="bg-white/10 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-white shrink-0" />
-                <p className="text-[8px] text-red-50 font-semibold leading-relaxed">Your data is safe and encrypted under high privacy standards.</p>
+                <p className="text-[8px] text-red-50 font-semibold leading-relaxed">{t("infoCard.privacyNote")}</p>
               </div>
             </div>
           </motion.div>
@@ -187,12 +190,12 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Full Name */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-800 uppercase tracking-wider ml-1">Full Name</label>
+                <label className="text-[10px] font-black text-slate-800 uppercase tracking-wider ml-1">{t("form.fullNameLabel")}</label>
                 <div className="relative group">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#E31E24] transition-colors w-4 h-4" />
                   <Input
                     className={`h-11 pl-10 bg-slate-50/50 border-slate-200/80 focus:bg-white transition-all rounded-xl focus:ring-4 focus:ring-red-500/5 focus:border-[#E31E24] text-xs font-semibold tracking-wide placeholder:text-slate-350 ${errors.name ? "border-red-500 bg-red-50" : ""}`}
-                    placeholder="Rohit Sharma"
+                    placeholder={t("form.fullNamePlaceholder")}
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                   />
@@ -202,12 +205,12 @@ export default function ContactPage() {
 
               {/* Phone Number */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-800 uppercase tracking-wider ml-1">Phone Number</label>
+                <label className="text-[10px] font-black text-slate-800 uppercase tracking-wider ml-1">{t("form.phoneLabel")}</label>
                 <div className="relative group">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#E31E24] transition-colors w-4 h-4" />
                   <Input
                     className={`h-11 pl-10 bg-slate-50/50 border-slate-200/80 focus:bg-white transition-all rounded-xl focus:ring-4 focus:ring-red-500/5 focus:border-[#E31E24] text-xs font-semibold tracking-wide placeholder:text-slate-355 ${errors.phone ? "border-red-500 bg-red-50" : ""}`}
-                    placeholder="+91 00000 00000"
+                    placeholder={t("form.phonePlaceholder")}
                     value={formData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                   />
@@ -217,14 +220,14 @@ export default function ContactPage() {
 
               {/* Message Detail */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-800 uppercase tracking-wider ml-1">Message Detail</label>
+                <label className="text-[10px] font-black text-slate-800 uppercase tracking-wider ml-1">{t("form.messageLabel")}</label>
                 <div className="relative group">
                   <div className="absolute left-3.5 top-3.5 text-slate-300 group-focus-within:text-[#E31E24] transition-colors">
                     <Send className="w-4 h-4 rotate-45" />
                   </div>
                   <Textarea
                     className={`min-h-[110px] pl-10 pt-3 bg-slate-50/50 border-slate-200/80 focus:bg-white transition-all rounded-xl focus:ring-4 focus:ring-red-500/5 focus:border-[#E31E24] text-xs font-semibold tracking-wide placeholder:text-slate-350 resize-none ${errors.message ? "border-red-500 bg-red-50" : ""}`}
-                    placeholder="Tell us about your requirements..."
+                    placeholder={t("form.messagePlaceholder")}
                     value={formData.message}
                     onChange={(e) => handleInputChange("message", e.target.value)}
                   />
@@ -245,18 +248,18 @@ export default function ContactPage() {
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Sending...</span>
+                      <span>{t("form.submittingButton")}</span>
                     </div>
                   ) : (
                     <div className="flex items-center justify-center gap-2">
                       <Send className="w-4 h-4" />
-                      <span>Send Message</span>
+                      <span>{t("form.submitButton")}</span>
                     </div>
                   )}
                 </Button>
                 <div className="mt-3.5 flex items-center justify-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">We typically respond within 24 hours</p>
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">{t("form.responseTime")}</p>
                 </div>
               </div>
             </form>

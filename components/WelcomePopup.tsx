@@ -4,8 +4,10 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle, X } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 export default function WelcomePopup() {
+    const t = useTranslations("HomePage.welcomePopup")
     const searchParams = useSearchParams()
     const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
@@ -41,9 +43,9 @@ export default function WelcomePopup() {
                             </div>
 
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900">Welcome to ScrapCenter!</h2>
+                                <h2 className="text-2xl font-bold text-gray-900">{t("heading")}</h2>
                                 <p className="text-gray-500 mt-2">
-                                    You have successfully logged in. We are excited to have you on board.
+                                    {t("message")}
                                 </p>
                             </div>
 
@@ -51,7 +53,7 @@ export default function WelcomePopup() {
                                 onClick={() => setIsOpen(false)}
                                 className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl transition-all"
                             >
-                                Get Started
+                                {t("button")}
                             </button>
                         </div>
                     </motion.div>

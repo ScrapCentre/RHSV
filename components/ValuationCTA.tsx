@@ -4,8 +4,10 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { Car, Truck, Bike, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 export default function ValuationCTA() {
+    const t = useTranslations("HomePage.valuationCTA")
     const [isHovered, setIsHovered] = useState(false)
 
     // Generate random positions and delays for the falling background icons
@@ -65,13 +67,13 @@ export default function ValuationCTA() {
                             transition={{ delay: 0.4 }}
                             className="inline-block py-1 px-3 rounded-full bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-wider mb-3 border border-red-100 shadow-sm transition-all duration-500"
                         >
-                            Free Service
+                            {t("badge")}
                         </motion.span>
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-4 uppercase tracking-tight leading-[0.95] transition-colors duration-500">
-                            Get <span className="text-red-600">Free</span> Valuation <br /> <span className="text-slate-400">Of Your Car</span>
+                            {t("heading")}
                         </h2>
                         <p className="text-slate-500 text-base md:text-lg font-medium max-w-md mx-auto md:mx-0 leading-snug transition-colors duration-500">
-                            Instantly check the current market scrap value of your vehicle with our AI-powered tool.
+                            {t("description")}
                         </p>
                     </div>
 
@@ -82,7 +84,7 @@ export default function ValuationCTA() {
                     >
                         <Link href="/quote" className="c-button--gooey group/btn relative inline-flex items-center gap-3 px-8 py-4 bg-red-600 text-white rounded-xl text-lg font-black shadow-[0_15px_30px_-5px_rgba(227,30,36,0.3)] hover:shadow-[0_20px_40px_-8px_rgba(227,30,36,0.4)] transition-all duration-500 overflow-hidden">
                             <span className="relative z-10 flex items-center gap-3">
-                                Check For Free
+                                {t("button")}
                                 <span className="bg-white/20 p-1 rounded-full transition-colors duration-300">
                                     <ArrowRight className="w-4 h-4" />
                                 </span>

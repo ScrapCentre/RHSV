@@ -5,8 +5,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { ArrowRight, Handshake, TrendingUp } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function GrowWithUs() {
+    const t = useTranslations("HomePage.growWithUs")
     const { data: session } = useSession()
 
     return (
@@ -42,31 +44,18 @@ export default function GrowWithUs() {
                                         <Handshake className="w-3 h-3 text-white" />
                                     </div>
                                     <span className="text-[10px] md:text-xs font-black text-red-600 uppercase tracking-widest">
-                                        Be Our Partner
+                                        {t("badge")}
                                     </span>
                                 </div>
 
                                 {/* Heading with Animated Underline */}
                                 <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-6 leading-tight">
-                                    <span className="relative inline-block">
-                                        Grow
-                                        <motion.div 
-                                            className="absolute -bottom-1 left-0 h-1 md:h-1.5 bg-red-600 rounded-full"
-                                            animate={{ 
-                                                width: ["0%", "100%", "0%"] 
-                                            }}
-                                            transition={{ 
-                                                duration: 3, 
-                                                repeat: Infinity,
-                                                ease: "easeInOut"
-                                            }}
-                                        />
-                                    </span> <span className="text-red-600">With</span> Us
+                                    {t("heading")}
                                 </h2>
 
                                 {/* Description */}
                                 <p className="text-slate-600 font-bold mb-6 md:mb-10 text-base md:text-lg lg:text-xl leading-snug">
-                                    Join our network of verified partners and expand your business with <span className="text-red-600">ScrapCenter India.</span>
+                                    {t("description")}
                                 </p>
 
                                 {/* Button */}
@@ -76,7 +65,7 @@ export default function GrowWithUs() {
                                         className="c-button--gooey group/btn relative inline-flex items-center gap-3 px-8 md:px-10 py-3 md:py-4 bg-red-600 text-white rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-lg shadow-red-500/30 transition-all duration-300"
                                     >
                                         <span className="relative z-10 flex items-center gap-3">
-                                            Apply For Partner
+                                            {t("button")}
                                             <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover/btn:translate-x-1 transition-transform" />
                                         </span>
                                         <div className="c-button__blobs">

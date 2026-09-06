@@ -1,0 +1,623 @@
+{
+  "Nav": {
+    "about": "About",
+    "freeValuation": "Free Valuation",
+    "rvsf": "RVSF",
+    "contact": "Contact",
+    "loginSignup": "Login / Sign up",
+    "language": "Language",
+    "login": "Login",
+    "partnerLogin": "Partner Login",
+    "profile": "Profile",
+    "partnerDashboard": "Partner Dashboard",
+    "adminDashboard": "Admin Dashboard",
+    "signOut": "Sign Out"
+  },
+  "HomePage": {
+    "meta": {
+      "title": "ScrapCentre | Authorized Vehicle Scrapping & Exchange India",
+      "description": "Get best scrap value, instant quote, free doorstep vehicle pickup, and official RVSF Certificate of Deposit (COD) with ScrapCentre India."
+    },
+    "hero": {
+      "title": "India's Largest Capacity RVSF",
+      "subtitle": "Restore Health Medicare Pvt Ltd",
+      "description": "Environmentally responsible scrapping with maximum value for your vehicle.",
+      "registrationLabel": "Enter Registration Number",
+      "registrationPlaceholder": "E.g. DL1CAB1234",
+      "getValuation": "GET VALUATION",
+      "fetching": "Fetching...",
+      "buyNewVehicle": "Want to buy a new vehicle?",
+      "viewActiveLead": "View status of your active lead"
+    },
+    "leadCard": {
+      "latestLeadStatus": "Latest Lead Status",
+      "vehicleRequest": "Vehicle Request",
+      "knowExactValue": "Know the exact value of your vehicle.",
+      "checkLeadStatus": "Check Lead Status",
+      "completeEkyc": "Complete Your eKYC",
+      "checkNewVehicle": "Check New Vehicle",
+      "negotiationLive": "Negotiation Live",
+      "active": "Active",
+      "chatStatus": "Chat Status",
+      "noMessages": "No messages yet. Click below to start negotiation.",
+      "startNegotiation": "Start Negotiation Chat",
+      "senderYou": "You",
+      "senderSystem": "System",
+      "senderPartner": "RVSF Partner"
+    },
+    "benefits": {
+      "discount": "Discount on registration fees for new vehicles.",
+      "cod": "Instant Certificate of Deposit (COD) issuance.",
+      "oem": "Exclusive OEM (Original Equipment Manufacturer) benefits.",
+      "buying": "Best-value vehicle buying & selling with COD support.",
+      "ev": "Affordable facility to convert your vehicle to an EV."
+    },
+    "services": {
+      "tagline": "Our Services",
+      "heading": "Tell us about your Situation",
+      "description": "Choose the option that best describes what you're looking for today. Our AI-powered platform ensures you get the most professional service.",
+      "support": "24/7 Expert Support Available",
+      "assistanceLink": "Need specialized assistance? Talk to an expert"
+    },
+    "features": {
+      "tagline": "Why Choose ScrapCenter",
+      "heading": "Premium Features",
+      "description": "Experience a hassle-free car scrapping process with our exclusive services designed for your absolute convenience and trust.",
+      "seeHowItWorks": "See how it works",
+      "watchProcess": "Watch Our Process",
+      "learnMore": "Learn More About Us",
+      "cards": {
+        "secure": {
+          "title": "100% Secure",
+          "summary": "Enterprise-grade security.",
+          "description": "Advanced encryption and secure payment gateways ensure your data and financial transactions are protected."
+        },
+        "payment": {
+          "title": "Instant Payment",
+          "summary": "Paid instantly via bank/UPI.",
+          "description": "Experience the fastest payment processing. Money is transferred directly to your bank account instantly."
+        },
+        "pickup": {
+          "title": "Free Pickup",
+          "summary": "Doorstep pickup at no cost.",
+          "description": "We come to your registered address with a tow truck to pick up the vehicle, completely free of charge."
+        },
+        "rto": {
+          "title": "RTO Handling",
+          "summary": "We handle all paperwork.",
+          "description": "We take care of all RTO formalities, de-registration, and documentation required to legally scrap your vehicle."
+        },
+        "eco": {
+          "title": "Eco-Friendly",
+          "summary": "Responsible scrapping.",
+          "description": "We follow strict environmental guidelines. Hazardous fluids are drained safely and parts are recycled."
+        },
+        "price": {
+          "title": "Best Price",
+          "summary": "Highest value guaranteed.",
+          "description": "Our AI pricing algorithm analyzes real-time market data to offer you the most competitive price."
+        }
+      },
+      "stats": {
+        "happyCustomers": "Happy Customers",
+        "carsScrapped": "Cars Scrapped",
+        "citiesCovered": "Cities Covered",
+        "safeSecure": "Safe & Secure"
+      }
+    },
+    "valuationCTA": {
+      "badge": "Free Service",
+      "heading": "Get Free Valuation Of Your Car",
+      "description": "Instantly check the current market scrap value of your vehicle with our AI-powered tool.",
+      "button": "Check For Free"
+    },
+    "growWithUs": {
+      "badge": "Be Our Partner",
+      "heading": "Grow With Us",
+      "description": "Join our network of verified partners and expand your business with ScrapCenter India.",
+      "button": "Apply For Partner"
+    },
+    "reviews": {
+      "tagline": "Testimonials",
+      "heading": "What Our Customers Say",
+      "description": "Trusted by thousands of vehicle owners across India. Reliability and transparency are our core values.",
+      "ratingLabel": "From 15K+ Reviews",
+      "googleRating": "Google Rating",
+      "googleReviewCount": "4.9/5 (15,000+ reviews)",
+      "verifiedCustomer": "Verified Customer",
+      "sold": "Sold",
+      "testimonials": {
+        "1": { "name": "Amit Patel", "content": "The process was quick, transparent and I got the best value for my old car. Highly recommended!", "car": "Hyundai i10" },
+        "2": { "name": "Neha Sharma", "content": "Very professional team and hassle-free documentation. Payment was done instantly. Great experience!", "car": "Maruti Swift" },
+        "3": { "name": "Rohit Verma", "content": "I compared many platforms but got the best price here. Super smooth and trustworthy service.", "car": "Honda City" },
+        "4": { "name": "Sandeep Singh", "content": "Excellent service. The team was very helpful and the whole process was completed within hours.", "car": "Toyota Innova" }
+      }
+    },
+    "faq": {
+      "tagline": "Support",
+      "heading": "Everything You Need to Know",
+      "description": "Find answers to common questions about our services, processes, and policies.",
+      "viewAll": "View All FAQs",
+      "questions": {
+        "1": { "question": "How does the vehicle scrapping process work?", "answer": "It's simple! Get a quote, schedule a free pickup, we collect your vehicle, complete the paperwork, and make instant payment." },
+        "2": { "question": "How do I get a quote for my vehicle?", "answer": "You can get an instant quote by entering your vehicle registration number on our homepage or by calling our support team." },
+        "3": { "question": "Do you offer free vehicle pickup?", "answer": "Yes, we provide free doorstep pickup for all vehicles being scrapped through our authorized centers." },
+        "4": { "question": "What documents are required for scrapping my vehicle?", "answer": "Typically, you'll need the RC (Registration Certificate), ID proof, and bank details. We handle all RTO documentation for you." },
+        "5": { "question": "How will I receive my payment?", "answer": "Payments are made instantly via Bank Transfer or UPI once the vehicle is collected and documents are verified." },
+        "6": { "question": "Can I sell a vehicle without RC or insurance?", "answer": "We require basic documentation to verify ownership. Please contact our support team to discuss specific cases." }
+      },
+      "supportFeatures": {
+        "support": { "title": "24/7 Support", "desc": "We're here to help you anytime." },
+        "secure": { "title": "Secure & Safe", "desc": "Your data and privacy are safe with us." },
+        "transparent": { "title": "Transparent Process", "desc": "Clear and simple process at every step." },
+        "expert": { "title": "Expert Team", "desc": "Experienced professionals at your service." }
+      }
+    },
+    "welcomePopup": {
+      "heading": "Welcome to ScrapCenter!",
+      "message": "You have successfully logged in. We are excited to have you on board.",
+      "button": "Get Started"
+    },
+    "valuationWizard": {
+      "stepIndicator": "Step {current} of {total}",
+      "serviceLabel": "{service} Service",
+      "getStarted": "Get Started",
+      "situation": {
+        "title": "What is your situation?",
+        "subtitle": "Choose what you're looking for today.",
+        "vehicleLoaded": "Vehicle {regNo} loaded",
+        "buy": {
+          "title": "Buy a new Vehicle",
+          "subtitle": "Exchange offers & OEM benefits on your next car"
+        },
+        "scrap": {
+          "title": "Scrap your Vehicle",
+          "subtitle": "Best scrap value with eco-friendly pickup"
+        },
+        "getStartedBtn": "Get Started"
+      },
+      "buyFlow": {
+        "title": "Which vehicle do you want to buy?",
+        "desiredBrand": "Desired Brand",
+        "brandLabel": "Brand:",
+        "change": "Change",
+        "brandName": "Brand Name",
+        "brandPlaceholder": "e.g. Ford, Chevrolet, etc.",
+        "desiredModel": "Desired Model",
+        "modelName": "Model Name",
+        "modelPlaceholder": "e.g. Mustang, Cruze, etc.",
+        "fuelAndBudget": "Fuel Type & Budget Preference",
+        "fuelType": "Fuel Type",
+        "budgetRange": "Budget Range",
+        "selectBudget": "Select Budget Range",
+        "location": "Your Location",
+        "pincode": "Pincode",
+        "city": "City",
+        "state": "State",
+        "address": "Address",
+        "phoneVerification": "Verify Your Mobile Number",
+        "phone": "Phone Number",
+        "enterOtp": "Enter OTP",
+        "sendOtp": "Send OTP",
+        "verifyOtp": "Verify & Submit",
+        "resendOtp": "Resend OTP"
+      },
+      "scrapFlow": {
+        "enterReg": "Enter Vehicle Registration",
+        "regNumber": "Vehicle Registration Number",
+        "regPlaceholder": "e.g. DL 01 AB 1234",
+        "fetchDetails": "Fetch Vehicle Details",
+        "fetching": "Fetching...",
+        "verifyTitle": "Verify Vehicle Details",
+        "isThisYourVehicle": "Is this your vehicle?",
+        "brand": "Brand",
+        "model": "Model",
+        "year": "Year",
+        "fuel": "Fuel",
+        "weight": "Weight",
+        "confirmAndContinue": "Confirm & Continue",
+        "editDetails": "Edit Details",
+        "buyNewQuestion": "Do you want to buy a new car?",
+        "buyNewSubtitle": "Choose an option to see applicable benefits",
+        "buyNewYesTitle": "Yes, I want to buy a new car",
+        "buyNewYesSubtitle": "Unlock maximum Certificate of Deposit (CD) benefits & dealer OEM discounts",
+        "buyNewNoTitle": "No, only scrapping",
+        "buyNewNoSubtitle": "Proceed with standard scrap payout and Certificate of Scrapping (COD)",
+        "desiredCarTitle": "Which new vehicle are you looking to buy?",
+        "locationTitle": "Vehicle Location",
+        "locationSubtitle": "Where should we pick up the vehicle?",
+        "conditionTitle": "Vehicle Condition & Photo",
+        "uploadPhoto": "Upload Vehicle Photo",
+        "takePhoto": "Take photo or upload",
+        "contactTitle": "Contact & Phone Verification",
+        "ownerName": "Owner Name",
+        "phone": "Phone Number",
+        "enterOtp": "Enter OTP",
+        "sendOtp": "Send OTP",
+        "verifyAndCalculate": "Verify & Get Valuation",
+        "readyTitle": "Your Scrap Valuation is Ready! 🎉",
+        "verifyIdentity": "VERIFY IDENTITY",
+        "unlockValuation": "UNLOCK VALUATION & BENEFITS",
+        "unlockCd": "UNLOCK CD BENEFITS",
+        "enterOtpSent": "Enter the OTP sent to your phone.",
+        "enterPhoneValuation": "Enter your phone number to unlock your scrap valuation and partner benefits.",
+        "enterPhoneCd": "Enter your phone number to unlock your CD certificate and partner benefits.",
+        "changeNumber": "Change Number",
+        "desiredCarSubtitle": "Details of the new vehicle you wish to buy."
+      },
+      "evaluationFinalized": {
+        "tag": "EVALUATION FINALIZED",
+        "title": "Your Vehicle's Scrap Worth",
+        "quoteId": "QUOTE ID: {id}",
+        "totalBenefit": "TOTAL POTENTIAL BENEFIT",
+        "upTo": "Up to ₹{amount}*",
+        "scrapValue": "SCRAP VALUE",
+        "cdCertificate": "CD CERTIFICATE",
+        "marketRate": "⚡ MARKET RATE: HIGH DEMAND",
+        "disclaimerNoBuy": "*Calculated using industrial scrap indices for {weight} and all partner benefits.",
+        "disclaimerBuy": "*Calculated using industrial scrap indices for {weight}, maximum CD Certificate redemption value, and all partner benefits.",
+        "preciseValuationBtn": "GET MORE PRECISE VALUATION",
+        "cdBenefit": {
+          "title": "CD CERTIFICATE",
+          "desc": "Registration & tax waiver"
+        },
+        "dealerBenefit": {
+          "title": "DEALER OEM DISCOUNT",
+          "desc": "Scrappage exchange benefits"
+        },
+        "roadTaxBenefit": {
+          "title": "ROAD TAX CONCESSION",
+          "desc": "Up to 25% motor vehicle tax rebate"
+        },
+        "metalBenefit": {
+          "title": "SCRAP METAL VALUE",
+          "desc": "Pure weight based payout"
+        },
+        "breakdown": {
+          "title": "Breakdown of Benefits",
+          "scrapValue": "Vehicle Scrappage Certificate Value",
+          "cdCertificate": "CD Certificate (New Car Discount)",
+          "dealerBonus": "Dealer OEM Exchange Bonus",
+          "roadTax": "Est. Road Tax Concession (State)",
+          "totalSavings": "Grand Total Potential Savings"
+        },
+        "speedUp": "⚡ Speed up your process",
+        "speedUpDesc": "Complete your eKYC now to get instant approval and faster pickup scheduling.",
+        "completeEkycBtn": "Complete eKYC",
+        "talkExpertsBtn": "Talk to our Experts",
+        "backHomeBtn": "Back to Home"
+      },
+      "success": {
+        "title": "Request Submitted Successfully!",
+        "subtitle": "Our automotive specialists will review your requirements and reach out to you within 24 hours.",
+        "speedUp": "⚡ Speed up your process",
+        "speedUpDesc": "Complete your eKYC now to get instant approval and faster pickup scheduling.",
+        "completeEkyc": "Complete eKYC",
+        "backHome": "Back to Home"
+      }
+    }
+  },
+  "AboutPage": {
+    "meta": {
+      "title": "About Us | ScrapCentre - Government Authorized RVSF India",
+      "description": "Learn about ScrapCentre, India's leading authorized Registered Vehicle Scrapping Facility (RVSF) committed to eco-friendly ELV recycling and COD benefits."
+    },
+    "hero": {
+      "headingPrefix": "Why Choose",
+      "headingBrand": "Scrap",
+      "headingCenter": "Centre",
+      "headingDomain": ".com?",
+      "description": "We bring you exclusive benefits that make your experience simple, valuable and rewarding.",
+      "stats": {
+        "clients": "Happy Clients",
+        "experience": "Years Experience",
+        "projects": "Projects Done"
+      }
+    },
+    "highlights": {
+      "item1": "Best Value for Your Vehicle",
+      "item2": "Instant COD Issuance",
+      "item3": "Trusted by Thousands Across India",
+      "item4": "Best Discounts on Insurance & Finance",
+      "item5": "Driving a Greener Tomorrow"
+    },
+    "mission": {
+      "badge": "Our Mission",
+      "heading": "Refining the Scrapping Experience",
+      "p1": "We’re not just a scrapyard; we’re a technology-driven recycling hub. We transform the complex, unorganized process of vehicle scrapping into a seamless, transparent, and rewarding experience for every car owner.",
+      "p2": "Sustainability drives our innovation. By integrating smart logistics and eco-friendly dismantling processes, we ensure maximum material recovery while minimizing environmental impact. Our goal is to create a circular economy where every end-of-life vehicle contributes to a greener future.",
+      "certification": {
+        "title": "Govt. Authorized",
+        "subtitle": "RVSF Facility",
+        "desc": "Fully compliant with Vehicle Scrappage Policy 2021. Certificate of Deposit (CD) issued instantly."
+      },
+      "features": {
+        "legal": {
+          "title": "Legal Assurance",
+          "desc": "Guaranteed de-registration and legal immunity."
+        },
+        "value": {
+          "title": "Best Value",
+          "desc": "Algorithmic pricing based on metal index."
+        },
+        "waste": {
+          "title": "0% Waste Policy",
+          "desc": "Every component is recycled or reused."
+        },
+        "tax": {
+          "title": "Tax Benefits",
+          "desc": "Get road tax rebates on your next vehicle."
+        }
+      }
+    },
+    "values": {
+      "badge": "Ethos & Values",
+      "heading": "Why Choose ScrapCentre.com?",
+      "subtitle": "Smart Choices. Better Value. Greener Tomorrow.",
+      "cards": {
+        "1": {
+          "title": "Best Value for Your Vehicle",
+          "desc": "Get the maximum value with fast and secure payments."
+        },
+        "2": {
+          "title": "Instant COD Issuance",
+          "desc": "Get your Certificate of Deposit instantly, hassle-free."
+        },
+        "3": {
+          "title": "Trusted & Reliable",
+          "desc": "OEM benefits, insurance discounts and more assured advantages."
+        },
+        "4": {
+          "title": "Smart Savings Everywhere",
+          "desc": "Special discounts on finance (Green Loans), insurance & more."
+        }
+      },
+      "grid": {
+        "1": {
+          "title": "Discounts on New Car",
+          "desc": "Extra benefits at partner dealerships."
+        },
+        "2": {
+          "title": "Quality Spare Parts",
+          "desc": "Refurbished & new spare parts at low prices."
+        },
+        "3": {
+          "title": "Exciting Gifts",
+          "desc": "Attractive & assured complimentary gifts."
+        },
+        "4": {
+          "title": "Buy & Sell Confidence",
+          "desc": "Vehicle buying & selling facility with COD."
+        },
+        "5": {
+          "title": "Go Green EV",
+          "desc": "Convert your vehicle into EV at affordable cost."
+        }
+      },
+      "banner": {
+        "title": "More Value. More Benefits. Better for You & the Planet.",
+        "desc": "Join thousands of smart vehicle owners who trust ScrapCentre.com for best value, benefits and a greener future.",
+        "button": "Get Started Today"
+      }
+    },
+    "valuationCTA": {
+      "badge": "Free Service",
+      "heading": "Get Free Valuation Of Your Car",
+      "description": "Instantly check the current market scrap value of your vehicle with our AI-powered tool.",
+      "button": "Check For Free"
+    },
+    "faq": {
+      "tagline": "Support",
+      "heading": "Everything You Need to Know",
+      "description": "Find answers to common questions about our services, processes, and policies.",
+      "viewAll": "View All FAQs",
+      "questions": {
+        "1": {
+          "question": "How does the vehicle scrapping process work?",
+          "answer": "It's simple! Get a quote, schedule a free pickup, we collect your vehicle, complete the paperwork, and make instant payment."
+        },
+        "2": {
+          "question": "How do I get a quote for my vehicle?",
+          "answer": "You can get an instant quote by entering your vehicle registration number on our homepage or by calling our support team."
+        },
+        "3": {
+          "question": "Do you offer free vehicle pickup?",
+          "answer": "Yes, we provide free doorstep pickup for all vehicles being scrapped through our authorized centers."
+        },
+        "4": {
+          "question": "What documents are required for scrapping my vehicle?",
+          "answer": "Typically, you'll need the RC (Registration Certificate), ID proof, and bank details. We handle all RTO documentation for you."
+        },
+        "5": {
+          "question": "How will I receive my payment?",
+          "answer": "Payments are made instantly via Bank Transfer or UPI once the vehicle is collected and documents are verified."
+        },
+        "6": {
+          "question": "Can I sell a vehicle without RC or insurance?",
+          "answer": "We require basic documentation to verify ownership. Please contact our support team to discuss specific cases."
+        }
+      },
+      "supportFeatures": {
+        "support": {
+          "title": "24/7 Support",
+          "desc": "We're here to help you anytime."
+        },
+        "secure": {
+          "title": "Secure & Safe",
+          "desc": "Your data and privacy are safe with us."
+        },
+        "transparent": {
+          "title": "Transparent Process",
+          "desc": "Clear and simple process at every step."
+        },
+        "expert": {
+          "title": "Expert Team",
+          "desc": "Experienced professionals at your service."
+        }
+      }
+    }
+  },
+  "ContactPage": {
+    "meta": {
+      "title": "Contact Us | ScrapCentre Vehicle Scrapping Support",
+      "description": "Contact ScrapCentre for vehicle scrapping assistance, RVSF inquiries, doorstep pickup scheduling, and customer support across India."
+    },
+    "header": {
+      "badge": "Get in Touch",
+      "title": "Let's Build Something Great Together",
+      "subtitle": "Have a project in mind? Our specialist team is ready to help you with instant vehicle solutions."
+    },
+    "infoCard": {
+      "title": "Contact info",
+      "subtitle": "Fill out the form and our team will get back to you within 24 hours.",
+      "callUs": "Call Us",
+      "phone": "+91-9839447733",
+      "emailUs": "Email Us",
+      "email": "contact@scrapcentre.com",
+      "office": "Office",
+      "address": "21-E, Block Panki, Kanpur",
+      "privacyNote": "Your data is safe and encrypted under high privacy standards."
+    },
+    "form": {
+      "fullNameLabel": "Full Name",
+      "fullNamePlaceholder": "Rohit Sharma",
+      "phoneLabel": "Phone Number",
+      "phonePlaceholder": "+91 00000 00000",
+      "messageLabel": "Message Detail",
+      "messagePlaceholder": "Tell us about your requirements...",
+      "submitButton": "Send Message",
+      "submittingButton": "Sending...",
+      "successAlert": "Message sent successfully!",
+      "responseTime": "We typically respond within 24 hours",
+      "errors": {
+        "name": "Full Name is required",
+        "phone": "Phone number is required",
+        "message": "Message detail is required"
+      }
+    }
+  },
+  "ProfilePage": {
+    "header": {
+      "title": "My Profile",
+      "subtitle": "Manage your requests and account settings."
+    },
+    "error": {
+      "title": "Oops! Something went wrong",
+      "message": "We couldn't load your profile information. Please try refreshing the page.",
+      "retry": "Retry Now"
+    },
+    "userCard": {
+      "admin": "Admin",
+      "totalRequests": "{count} Total Requests"
+    },
+    "negotiations": {
+      "title": "Active Negotiations",
+      "partner": "Partner: {name}",
+      "dealLocked": "Deal Locked: ₹{price}",
+      "negotiating": "Negotiating",
+      "lastMsg": "Last Msg:",
+      "noMessages": "No messages yet",
+      "openChat": "Open Chat & Negotiate"
+    },
+    "history": {
+      "title": "Request History",
+      "empty": "You haven't submitted any requests yet.",
+      "getStarted": "Get Started"
+    },
+    "requests": {
+      "statuses": {
+        "pending": "Pending",
+        "reviewing": "Reviewing",
+        "reviewed": "Reviewed",
+        "approved": "Approved",
+        "pickup_scheduled": "Pickup Scheduled",
+        "reached_collection_centre": "Reached CC",
+        "car_scrapped": "Scrapped",
+        "completed": "Completed",
+        "rejected": "Rejected"
+      },
+      "types": {
+        "valuation": "Get Free Quote",
+        "scrap": "Scrap Vehicle",
+        "scrapBuy": "Scrap & Buy New",
+        "sell": "Sell Old Vehicle",
+        "exchange": "Exchange Vehicle",
+        "buy": "Buy New Vehicle",
+        "default": "Vehicle Request"
+      },
+      "ekyc": {
+        "verified": "eKYC Completed & Verified",
+        "underReview": "eKYC Documents Under Review",
+        "unlockBenefits": "Complete verification to unlock benefits",
+        "btnVerified": "Verified",
+        "btnUnderReview": "Under Review",
+        "btnComplete": "Complete eKYC"
+      },
+      "actions": {
+        "chat": "Chat & Negotiate",
+        "details": "Details",
+        "close": "Close Details"
+      },
+      "modal": {
+        "estimatedValue": "Estimated Scrap Value",
+        "statusTracking": "Status Tracking",
+        "timeline": {
+          "pending": {
+            "title": "Request Submitted",
+            "desc": "Customer requested service."
+          },
+          "approved": {
+            "title": "Approved & Published",
+            "desc": "Verified by Admin/Executive and published to B2B marketplace."
+          },
+          "scheduled": {
+            "title": "Pickup Scheduled",
+            "desc": "A B2B Partner has accepted the lead."
+          },
+          "reached": {
+            "title": "Reached Collection Centre",
+            "desc": "Vehicle successfully arrived at ScrapCentre."
+          },
+          "scrapped": {
+            "title": "Vehicle Scrapped Successfully",
+            "desc": "Final processing completed."
+          }
+        },
+        "labels": {
+          "vehicleType": "Vehicle Type",
+          "modelYear": "Model Year",
+          "approxWeight": "Approx Weight",
+          "pincode": "Pincode",
+          "distance": "Distance",
+          "pickupCost": "Pickup Cost",
+          "freeCost": "Free (< 100km)",
+          "estimatedValue": "Estimated Value",
+          "regNumber": "Reg. Number",
+          "regYear": "Reg. Year",
+          "fuelType": "Fuel Type",
+          "pendingLoan": "Pending Loan",
+          "location": "Location",
+          "oldRegNo": "Old Reg. No",
+          "oldYear": "Old Year",
+          "oldFuel": "Old Fuel",
+          "newBrand": "New Brand",
+          "newModel": "New Model",
+          "budget": "Budget",
+          "fuelPreference": "Fuel Preference",
+          "desiredBrand": "Desired Brand",
+          "desiredModel": "Desired Model",
+          "kmsDriven": "Kms Driven",
+          "ownerName": "Owner Name",
+          "scrapRegNo": "Scrap Reg. No",
+          "scrapYear": "Scrap Year"
+        },
+        "contact": {
+          "title": "Contact Information",
+          "name": "Name",
+          "phone": "Phone"
+        },
+        "submittedOn": "Submitted on {date}"
+      }
+    }
+  }
+}

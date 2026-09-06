@@ -27,11 +27,14 @@ export default function GoogleTag() {
             return
         }
 
+        const contentLanguage = pathname.startsWith("/hi") ? "hi" : "en"
+
         // @ts-expect-error - gtag is added globally by the Google Tag script
         if (typeof window.gtag === "function") {
             // @ts-expect-error - gtag is added globally by the Google Tag script
             window.gtag("config", GA_MEASUREMENT_ID, {
                 page_path: pathname,
+                content_language: contentLanguage,
             })
         }
     }, [pathname])
@@ -66,6 +69,7 @@ export default function GoogleTag() {
 
                         gtag('config', '${GA_MEASUREMENT_ID}', {
                             page_path: window.location.pathname,
+                            content_language: window.location.pathname.startsWith('/hi') ? 'hi' : 'en',
                         });
                     `,
                 }}

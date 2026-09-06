@@ -13,13 +13,29 @@ import ChatThread from "@/models/ChatThread"
 import PersonalChatThread from "@/models/PersonalChatThread"
 import RVSFUser from "@/models/RVSFUser"
 import { User as UserIcon, Package, Clock, Calendar, CheckCircle, Car, Building2, AlertCircle, RefreshCw, ShoppingCart, Tag, MessageSquare, ArrowRight, DollarSign } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import UserRequestList from "@/components/UserRequestList"
 import mongoose from "mongoose"
+import type { Metadata } from "next"
+import { getTranslations, setRequestLocale } from "next-intl/server"
+
+export const metadata: Metadata = {
+    robots: {
+        index: false,
+        follow: false,
+    },
+}
 
 export const dynamic = "force-dynamic"
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+    params,
+}: {
+    params: Promise<{ locale: string }>
+}) {
+    const { locale } = await params
+    setRequestLocale(locale)
+    const t = await getTranslations({ locale, namespace: "ProfilePage" })
     const session = await getServerSession(authOptions)
 
     if (!session) {
@@ -204,9 +220,9 @@ export default async function ProfilePage() {
                     <div>
                         <h1 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight">
                             <UserIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                            My Profile
+                            {t("header.title")}
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Manage your requests and account settings.</p>
+                        <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">{t("header.subtitle")}</p>
                     </div>
                 </div>
                 {error ? (
@@ -215,14 +231,14 @@ export default async function ProfilePage() {
                             <AlertCircle className="w-10 h-10" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-white">Oops! Something went wrong</h1>
-                            <p className="text-gray-400 mt-2">We couldn&apos;t load your profile information. Please try refreshing the page.</p>
+                            <h1 className="text-2xl font-bold text-white">{t("error.title")}</h1>
+                            <p className="text-gray-400 mt-2">{t("error.message")}</p>
                         </div>
                         <Link
                             href="/profile"
                             className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20"
                         >
-                            <RefreshCw className="mr-2 h-5 w-5" /> Retry Now
+                            <RefreshCw className="mr-2 h-5 w-5" /> {t("error.retry")}
                         </Link>
                     </div>
                 ) : (
@@ -234,10 +250,10 @@ export default async function ProfilePage() {
                                 <UserIcon className="w-10 h-10" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{session.user?.name === "Novalytix Admin" ? "Admin" : session.user?.name}</h1>
+                                <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{session.user?.name === "Novalytix Admin" ? t("userCard.admin") : session.user?.name}</h1>
                                 <p className="text-gray-500 dark:text-gray-400 font-medium">{session.user?.email}</p>
                                 <div className="mt-3 inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-slate-700 uppercase tracking-wide">
-                                    {allRequests.length} Total Requests
+                                    {t("userCard.totalRequests", { count: allRequests.length })}
                                 </div>
                             </div>
                         </div>
@@ -251,7 +267,7 @@ export default async function ProfilePage() {
                                     <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-500">
                                         <MessageSquare className="w-6 h-6 animate-pulse" />
                                     </div>
-                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Active Negotiations</h2>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t("negotiations.title")}</h2>
                                 </div>
                                 
                                 <div className="grid gap-4 sm:grid-cols-2">
@@ -267,22 +283,22 @@ export default async function ProfilePage() {
                                                             {ct.vehicleInfo}
                                                         </h3>
                                                         <p className="text-[10px] text-gray-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                                                            Partner: {ct.rvsfName}
+                                                            {t("negotiations.partner", { name: ct.rvsfName })}
                                                         </p>
                                                     </div>
                                                     {ct.agreedPrice ? (
                                                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                            Deal Locked: ₹{ct.agreedPrice}
+                                                            {t("negotiations.dealLocked", { price: ct.agreedPrice })}
                                                         </span>
                                                     ) : (
                                                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                                                            Negotiating
+                                                            {t("negotiations.negotiating")}
                                                         </span>
                                                     )}
                                                 </div>
                                                 <div className="bg-gray-50 dark:bg-slate-900/50 p-3 rounded-xl border border-gray-100 dark:border-slate-800/80">
                                                     <p className="text-xs text-gray-500 dark:text-slate-400 font-semibold line-clamp-1">
-                                                        Last Msg: <span className="text-gray-700 dark:text-slate-200 font-bold italic">"{ct.lastMessage}"</span>
+                                                        {t("negotiations.lastMsg")} <span className="text-gray-700 dark:text-slate-200 font-bold italic">"{ct.lastMessage === "No messages yet" ? t("negotiations.noMessages") : ct.lastMessage}"</span>
                                                     </p>
                                                     <p className="text-[9px] text-gray-400 dark:text-slate-500 mt-1 font-mono">
                                                         {new Date(ct.lastMessageTime).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' })}
@@ -295,7 +311,7 @@ export default async function ProfilePage() {
                                                     href={`/profile/chat/${ct._id}`}
                                                     className="w-full bg-[#E31E24] hover:bg-red-700 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-md hover:shadow-red-600/10 flex items-center justify-center gap-1.5 active:scale-[0.98]"
                                                 >
-                                                    <MessageSquare className="w-3.5 h-3.5" /> Open Chat & Negotiate <ArrowRight className="w-3.5 h-3.5" />
+                                                    <MessageSquare className="w-3.5 h-3.5" /> {t("negotiations.openChat")} <ArrowRight className="w-3.5 h-3.5" />
                                                 </Link>
                                             </div>
                                         </div>
@@ -310,15 +326,15 @@ export default async function ProfilePage() {
                                 <div className="p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-orange-600 dark:text-orange-500">
                                     <Clock className="w-6 h-6" />
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Request History</h2>
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t("history.title")}</h2>
                             </div>
 
                             {allRequests.length === 0 ? (
                                 <div className="bg-[#0E192D] rounded-xl p-8 text-center border border-dashed border-slate-700">
                                     <Package className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                                    <p className="text-gray-400">You haven&apos;t submitted any requests yet.</p>
+                                    <p className="text-gray-400">{t("history.empty")}</p>
                                     <Link href="/" className="inline-block mt-4 text-orange-500 font-semibold hover:text-orange-400 hover:underline">
-                                        Get Started
+                                        {t("history.getStarted")}
                                     </Link>
                                 </div>
                             ) : (

@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronRight, Star, ShieldCheck, Zap, Award, Smartphone, Car, ArrowRight, Percent, FileCheck, MessageSquare, X } from "lucide-react"
+import { ChevronRight, ShieldCheck, Zap, Award, Smartphone, Car, ArrowRight, Percent, FileCheck, MessageSquare, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Plus_Jakarta_Sans } from "next/font/google"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { lookupVehicle } from "@/app/actions"
 import ChatContainer from "@/components/admin/ChatContainer"
+import { useTranslations } from "next-intl"
 
 
 
@@ -93,6 +94,7 @@ const getStatusBadge = (status: string) => {
 }
 
 export default function HomexHero() {
+    const t = useTranslations("HomePage")
     const [vehicleNumber, setVehicleNumber] = useState("")
     const router = useRouter()
 
@@ -203,26 +205,11 @@ export default function HomexHero() {
     }
 
     const features = [
-        { 
-            text: "Discount on registration fees for new vehicles.", 
-            icon: Percent,
-        },
-        { 
-            text: "Instant Certificate of Deposit (COD) issuance.", 
-            icon: FileCheck,
-        },
-        { 
-            text: "Exclusive OEM (Original Equipment Manufacturer) benefits.", 
-            icon: ShieldCheck,
-        },
-        { 
-            text: "Best-value vehicle buying & selling with COD support.", 
-            icon: Car,
-        },
-        { 
-            text: "Affordable facility to convert your vehicle to an EV.", 
-            icon: Zap,
-        }
+        { text: t("benefits.discount"), icon: Percent },
+        { text: t("benefits.cod"),      icon: FileCheck },
+        { text: t("benefits.oem"),      icon: ShieldCheck },
+        { text: t("benefits.buying"),   icon: Car },
+        { text: t("benefits.ev"),       icon: Zap },
     ]
 
     return (
@@ -285,7 +272,7 @@ export default function HomexHero() {
                         transition={{ duration: 0.8, delay: 0.3 }}
                         className="text-sm sm:text-base font-light text-slate-500 tracking-wide mb-3"
                     >
-                        Restore Health Medicare Pvt Ltd
+                        {t("hero.subtitle")}
                     </motion.div>
 
                     <motion.p 
@@ -294,7 +281,7 @@ export default function HomexHero() {
                         transition={{ duration: 0.8, delay: 0.4 }}
                         className="text-slate-600 text-sm sm:text-base font-medium mb-4 xl:mb-6 max-w-lg lg:mx-0 mx-auto"
                     >
-                        Environmentally responsible scrapping with maximum value for your vehicle.
+                        {t("hero.description")}
                     </motion.p>
 
                     {/* Main Input Card / Lead Status Card */}
@@ -318,7 +305,7 @@ export default function HomexHero() {
                                         <div className="space-y-2.5">
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="text-[8px] sm:text-[9px] font-black text-[#E31E24] uppercase tracking-widest bg-red-50 px-2 py-0.5 rounded border border-red-100/50">
-                                                    Latest Lead Status
+                                                    {t("leadCard.latestLeadStatus")}
                                                 </span>
                                                 <div className="shrink-0">
                                                     {getStatusBadge(latestLead.status)}
@@ -328,7 +315,7 @@ export default function HomexHero() {
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <Car className="w-3.5 h-3.5 text-slate-600 shrink-0" />
                                                 <h3 className="font-extrabold text-slate-800 text-xs sm:text-sm">
-                                                    {latestLead.brand || latestLead.model ? `${latestLead.brand} ${latestLead.model}` : "Vehicle Request"}
+                                                    {latestLead.brand || latestLead.model ? `${latestLead.brand} ${latestLead.model}` : t("leadCard.vehicleRequest")}
                                                 </h3>
                                                 {latestLead.regNo && (
                                                     <span className="text-[8px] sm:text-[9px] text-slate-400 font-mono tracking-wider uppercase bg-slate-50 border border-slate-100 rounded px-1.5 py-0.5">
@@ -341,7 +328,7 @@ export default function HomexHero() {
                                             <div className="py-1.5 px-2.5 bg-red-50/40 rounded-lg border border-red-100/25">
                                                 <p className="text-[9px] sm:text-[10px] text-slate-600 font-semibold flex items-center gap-1.5">
                                                     <span className="w-1 h-1 rounded-full bg-[#E31E24] animate-ping shrink-0" />
-                                                    Know the exact value of your vehicle.
+                                                    {t("leadCard.knowExactValue")}
                                                 </p>
                                             </div>
                                         </div>
@@ -355,12 +342,10 @@ export default function HomexHero() {
                                                     style={{ filter: 'none' }}
                                                 >
                                                     <span className="relative z-10 flex items-center justify-center gap-1">
-                                                        Check Lead Status <ChevronRight className="w-3 h-3" />
+                                                        {t("leadCard.checkLeadStatus")} <ChevronRight className="w-3 h-3" />
                                                     </span>
                                                     <div className="c-button__blobs" style={{ filter: 'url(#goo-hero)' }}>
-                                                        <div />
-                                                        <div />
-                                                        <div />
+                                                        <div /><div /><div />
                                                     </div>
                                                 </Link>
                                             ) : (
@@ -374,12 +359,10 @@ export default function HomexHero() {
                                                     style={{ filter: 'none' }}
                                                 >
                                                     <span className="relative z-10 flex items-center justify-center gap-1">
-                                                        Complete Your eKYC <ChevronRight className="w-3 h-3" />
+                                                        {t("leadCard.completeEkyc")} <ChevronRight className="w-3 h-3" />
                                                     </span>
                                                     <div className="c-button__blobs" style={{ filter: 'url(#goo-hero)' }}>
-                                                        <div />
-                                                        <div />
-                                                        <div />
+                                                        <div /><div /><div />
                                                     </div>
                                                 </Link>
                                             )}
@@ -389,7 +372,7 @@ export default function HomexHero() {
                                                 onClick={() => setShowLeadCard(false)}
                                                 className="px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg text-[9px] sm:text-[10px] font-bold py-1.5 transition-all active:scale-[0.98]"
                                             >
-                                                Check New Vehicle
+                                                {t("leadCard.checkNewVehicle")}
                                             </button>
                                         </div>
                                     </div>
@@ -400,11 +383,11 @@ export default function HomexHero() {
                                             <div className="space-y-2.5">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span className="text-[8px] sm:text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100/50">
-                                                        Negotiation Live
+                                                        {t("leadCard.negotiationLive")}
                                                     </span>
                                                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100 animate-pulse">
                                                         <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0" />
-                                                        Active
+                                                        {t("leadCard.active")}
                                                     </span>
                                                 </div>
 
@@ -414,7 +397,11 @@ export default function HomexHero() {
                                                         <div className="flex items-center justify-between gap-2 border-b border-emerald-500/10 pb-0.5">
                                                             <p className="text-[9px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1">
                                                                 <MessageSquare className="w-3 h-3 text-emerald-600 animate-pulse" />
-                                                                {latestLead.latestChatMessage.sender === "customer" ? "You" : latestLead.latestChatMessage.sender === "system" ? "System" : "RVSF Partner"}
+                                                                {latestLead.latestChatMessage.sender === "customer"
+                                                                    ? t("leadCard.senderYou")
+                                                                    : latestLead.latestChatMessage.sender === "system"
+                                                                    ? t("leadCard.senderSystem")
+                                                                    : t("leadCard.senderPartner")}
                                                             </p>
                                                             {latestLead.latestChatMessage.createdAt && (
                                                                 <span className="text-[8px] text-slate-400 font-semibold">
@@ -431,11 +418,11 @@ export default function HomexHero() {
                                                     <div className="py-1.5 px-2.5 bg-emerald-50/40 rounded-xl border border-emerald-100/25 space-y-1">
                                                         <p className="text-[9px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1">
                                                             <MessageSquare className="w-3 h-3 text-emerald-600" />
-                                                            Chat Status
+                                                            {t("leadCard.chatStatus")}
                                                         </p>
                                                         <p className="text-[10px] text-slate-600 font-semibold italic flex items-start gap-1">
                                                             <span className="shrink-0 text-emerald-500">💬</span>
-                                                            No messages yet. Click below to start negotiation.
+                                                            {t("leadCard.noMessages")}
                                                         </p>
                                                     </div>
                                                 )}
@@ -448,7 +435,7 @@ export default function HomexHero() {
                                                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] sm:text-[11px] py-1.5 rounded-lg text-center flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] shadow-sm shadow-emerald-600/15"
                                                 >
                                                     <MessageSquare className="w-3.5 h-3.5" />
-                                                    <span>Start Negotiation Chat</span>
+                                                    <span>{t("leadCard.startNegotiation")}</span>
                                                     <ChevronRight className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
@@ -471,10 +458,10 @@ export default function HomexHero() {
                                             <img src="/herologo.png" className="w-7 h-7 sm:w-8 sm:h-8 object-contain" alt="Registration Logo" />
                                         </div>
                                         <div className="flex flex-col items-start overflow-hidden w-full">
-                                            <span className="text-[11px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Enter Registration Number</span>
+                                            <span className="text-[11px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{t("hero.registrationLabel")}</span>
                                             <input
                                                 type="text"
-                                                placeholder="E.g. DL1CAB1234"
+                                                placeholder={t("hero.registrationPlaceholder")}
                                                 value={vehicleNumber}
                                                 onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
                                                 className="w-full bg-transparent text-slate-800 font-bold text-sm sm:text-base focus:outline-none uppercase tracking-[0.08em] placeholder:text-xs sm:placeholder:text-sm placeholder:text-slate-300 placeholder:font-medium"
@@ -489,13 +476,11 @@ export default function HomexHero() {
                                         style={{ filter: 'none' }}
                                     >
                                         <span className="relative z-10 flex items-center gap-1.5">
-                                            {isFetching ? "Fetching..." : "GET VALUATION"}
+                                            {isFetching ? t("hero.fetching") : t("hero.getValuation")}
                                             {!isFetching && <ArrowRight className="w-4 h-4 transition-transform" />}
                                         </span>
                                         <div className="c-button__blobs" style={{ filter: 'url(#goo-hero)' }}>
-                                            <div />
-                                            <div />
-                                            <div />
+                                            <div /><div /><div />
                                         </div>
                                     </button>
                                 </form>
@@ -512,7 +497,7 @@ export default function HomexHero() {
                                 className="mt-3 w-full flex items-center justify-start lg:justify-start gap-1 pl-2 lg:pl-8 group"
                             >
                                 <span className={`text-[14px] font-semibold transition-colors duration-500 underline underline-offset-2 group-hover:text-[#E31E24] ${isRed ? 'text-[#E31E24]' : 'text-slate-500'}`}>
-                                    Want to buy a new vehicle?
+                                    {t("hero.buyNewVehicle")}
                                 </span>
                                 <ChevronRight className={`w-4 h-4 transition-all duration-500 group-hover:translate-x-0.5 group-hover:text-[#E31E24] ${isRed ? 'text-[#E31E24]' : 'text-slate-300'}`} />
                             </button>
@@ -524,7 +509,7 @@ export default function HomexHero() {
                                     onClick={() => setShowLeadCard(true)}
                                     className="mt-3 w-full flex items-center justify-start lg:justify-start gap-1.5 pl-2 lg:pl-8 text-[13px] font-bold text-[#E31E24] hover:underline"
                                 >
-                                    <FileCheck className="w-4 h-4" /> View status of your active lead
+                                    <FileCheck className="w-4 h-4" /> {t("hero.viewActiveLead")}
                                 </button>
                             )}
                         </motion.div>
@@ -590,4 +575,3 @@ export default function HomexHero() {
         </div>
     )
 }
-

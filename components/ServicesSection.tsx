@@ -3,8 +3,10 @@ import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { ArrowRight } from "lucide-react"
 import ValuationWizardCard from "./ValuationWizardCard"
+import { useTranslations } from "next-intl"
 
 export default function ServicesSection() {
+  const t = useTranslations("HomePage.services")
   const containerRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(containerRef, { once: false, amount: 0.1 })
 
@@ -66,7 +68,7 @@ export default function ServicesSection() {
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
                 />
               </div>
-              <span className="text-[#E31E24] font-bold text-[10px] uppercase tracking-[0.3em]">Our Services</span>
+              <span className="text-[#E31E24] font-bold text-[10px] uppercase tracking-[0.3em]">{t("tagline")}</span>
             </motion.div>
 
             <motion.h2
@@ -75,10 +77,7 @@ export default function ServicesSection() {
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              Tell us about your{" "}
-              <span className="text-[#E31E24]">
-                Situation
-              </span>
+              {t("heading")}
             </motion.h2>
             
             <motion.p
@@ -87,7 +86,7 @@ export default function ServicesSection() {
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Choose the option that <span className="text-blue-500 font-semibold">best describes</span> what you&apos;re looking for today. Our AI-powered platform ensures you get the most professional service.
+              {t("description")}
             </motion.p>
           </div>
 
@@ -126,14 +125,14 @@ export default function ServicesSection() {
         >
           <div className="flex items-center gap-4 text-slate-500 text-sm font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            24/7 Expert Support Available
+            {t("support")}
           </div>
           
           <a 
             href="/contact" 
             className="group flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-lg font-bold text-sm transition-all hover:bg-[#E31E24] shadow-lg shadow-slate-900/10 hover:shadow-red-500/20"
           >
-            Need specialized assistance? Talk to an expert
+            {t("assistanceLink")}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </a>
         </motion.div>

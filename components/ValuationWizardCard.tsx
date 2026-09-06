@@ -10,6 +10,7 @@ import {
     Camera, UploadCloud
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { getFirebaseAuth } from "@/lib/firebase"
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth"
 import { signIn } from "next-auth/react"
@@ -202,6 +203,7 @@ const triggerConfetti = (durationSeconds: number) => {
 // ─── Wizard Component ─────────────────────────────────────────────────────────
 
 export default function ValuationWizardCard() {
+    const t = useTranslations("HomePage.valuationWizard")
     const router = useRouter()
     const { toast } = useToast()
     const [mode, setMode] = useState<"options" | "wizard" | "success" | "scrap-valuation">("wizard")
@@ -1023,13 +1025,13 @@ export default function ValuationWizardCard() {
                                     </div>
                                     <div>
                                         <p className="text-[9px] sm:text-[10px] font-black text-green-600 uppercase tracking-[0.2em] mb-0.5 flex items-center gap-1.5">
-                                            EVALUATION FINALIZED
+                                            {t("evaluationFinalized.tag")}
                                         </p>
-                                        <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight">Your Vehicle's Scrap Worth</h2>
+                                        <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight">{t("evaluationFinalized.title")}</h2>
                                     </div>
                                 </div>
                                 <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-slate-950 rounded-full shadow-md border border-slate-800 flex items-center self-start sm:self-auto">
-                                    <p className="text-[8px] sm:text-[9px] font-black text-white uppercase tracking-widest">QUOTE ID: {quoteId || "SC-XXXXXX"}</p>
+                                    <p className="text-[8px] sm:text-[9px] font-black text-white uppercase tracking-widest">{t("evaluationFinalized.quoteId", { id: quoteId || "SC-XXXXXX" })}</p>
                                 </div>
                             </div>
 
@@ -1040,22 +1042,22 @@ export default function ValuationWizardCard() {
                                     {/* Total Potential Benefit Box */}
                                     <div className="bg-gradient-to-br from-[#122333] to-[#0c1622] rounded-[1rem] p-3 sm:p-4 text-white relative overflow-hidden shadow-lg border border-slate-800">
                                         <p className="text-[8px] sm:text-[9px] font-black text-emerald-400 uppercase tracking-[0.15em] mb-1 flex items-center gap-1.5">
-                                            <Zap className="w-3 h-3 fill-emerald-400 text-emerald-400" /> TOTAL POTENTIAL BENEFIT
+                                            <Zap className="w-3 h-3 fill-emerald-400 text-emerald-400" /> {t("evaluationFinalized.totalBenefit")}
                                         </p>
                                         <div className="relative z-10">
                                             <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-none tracking-tight mb-2.5">
-                                                Up to ₹{formatCurrency(grandTotalBenefit)}*
+                                                {t("evaluationFinalized.upTo", { amount: formatCurrency(grandTotalBenefit) })}
                                             </h3>
 
                                             {/* Breakdown Box */}
                                             <div className={`grid ${formData.buyNew === "no" ? "grid-cols-1" : "grid-cols-2"} gap-2 sm:gap-3 mb-2 sm:mb-3`}>
                                                 <div className="border border-white/10 bg-white/[0.02] rounded-xl p-2 sm:p-3">
-                                                    <p className="text-[7.5px] sm:text-[8px] font-bold text-slate-400 uppercase tracking-wider">SCRAP VALUE</p>
+                                                    <p className="text-[7.5px] sm:text-[8px] font-bold text-slate-400 uppercase tracking-wider">{t("evaluationFinalized.scrapValue")}</p>
                                                     <p className="text-[11px] sm:text-xs font-black text-white mt-0.5">₹{formatCurrency(minScrapValue)} - ₹{formatCurrency(maxScrapValue)}</p>
                                                 </div>
                                                 {formData.buyNew !== "no" && (
                                                     <div className="border border-emerald-500/10 bg-emerald-500/[0.02] rounded-xl p-2 sm:p-3">
-                                                        <p className="text-[7.5px] sm:text-[8px] font-bold text-emerald-400 uppercase tracking-wider">CD CERTIFICATE</p>
+                                                        <p className="text-[7.5px] sm:text-[8px] font-bold text-emerald-400 uppercase tracking-wider">{t("evaluationFinalized.cdCertificate")}</p>
                                                         <p className="text-[11px] sm:text-xs font-black text-emerald-400 mt-0.5">
                                                             {formData.buyNew === "yes" && cdDiscount === null ? (
                                                                 <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400 inline" />
@@ -1066,13 +1068,13 @@ export default function ValuationWizardCard() {
                                             </div>
 
                                             <span className="inline-block px-2 py-0.5 bg-black/40 border border-white/10 text-slate-200 text-[7px] sm:text-[7.5px] font-bold rounded-full tracking-wider uppercase mb-1">
-                                                ⚡ MARKET RATE: HIGH DEMAND
+                                                {t("evaluationFinalized.marketRate")}
                                             </span>
 
                                             <p className="text-slate-400 text-[7.5px] sm:text-[8px] leading-normal italic mt-0.5">
                                                 {formData.buyNew === "no"
-                                                    ? `*Calculated using industrial scrap indices for ${weightNum} and all partner benefits.`
-                                                    : `*Calculated using industrial scrap indices for ${weightNum}, maximum CD Certificate redemption value, and all partner benefits.`}
+                                                    ? t("evaluationFinalized.disclaimerNoBuy", { weight: weightNum })
+                                                    : t("evaluationFinalized.disclaimerBuy", { weight: weightNum })}
                                             </p>
                                         </div>
                                     </div>
@@ -1302,7 +1304,7 @@ export default function ValuationWizardCard() {
                                             );
                                         })}
                                     </div>
-                                    <span className="relative z-10">GET MORE PRECISE VALUATION</span>
+                                    <span className="relative z-10">{t("evaluationFinalized.preciseValuationBtn")}</span>
                                 </a>
                             </div>
 
@@ -1345,13 +1347,13 @@ export default function ValuationWizardCard() {
                             {/* Headline */}
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                                 <p className="text-[9px] font-bold text-[#E31E24] uppercase tracking-[0.2em] mb-1.5">
-                                    🎉 Request Submitted
+                                    {t("success.title")}
                                 </p>
                                 <h2 className="text-2xl lg:text-3xl font-black text-slate-900 mb-2 tracking-tight leading-tight">
                                     Congratulations!
                                 </h2>
                                 <p className="text-slate-500 text-[11px] font-medium max-w-sm mx-auto leading-relaxed mb-4">
-                                    Our expert team will reach out to you <span className="font-bold text-slate-700">shortly</span> to finalise the best deal for your vehicle.
+                                    {t("success.subtitle")}
                                 </p>
                             </motion.div>
 
@@ -1378,8 +1380,8 @@ export default function ValuationWizardCard() {
                                 ) : (
                                     <>
                                         <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 text-left mb-4">
-                                            <p className="text-amber-800 text-[9px] font-bold uppercase tracking-wider mb-0.5">⚡ Speed up your process</p>
-                                            <p className="text-amber-700 text-[10px] font-medium">Complete your eKYC now to get instant approval and faster pickup scheduling.</p>
+                                            <p className="text-amber-800 text-[9px] font-bold uppercase tracking-wider mb-0.5">{t("success.speedUp")}</p>
+                                            <p className="text-amber-700 text-[10px] font-medium">{t("success.speedUpDesc")}</p>
                                         </div>
 
                                         <a
@@ -1390,7 +1392,7 @@ export default function ValuationWizardCard() {
                                             }}
                                             className="w-full flex items-center justify-center gap-2 py-3 bg-[#E31E24] text-white font-black rounded-xl shadow-lg shadow-red-500/25 hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] group"
                                         >
-                                            Complete eKYC
+                                            {t("success.completeEkyc")}
                                             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                                         </a>
                                     </>
@@ -1404,7 +1406,7 @@ export default function ValuationWizardCard() {
                                     }}
                                     className="w-full py-2.5 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-50 transition-all uppercase tracking-widest text-[9px]"
                                 >
-                                    Back to Home
+                                    {t("success.backHome")}
                                 </button>
                             </motion.div>
                         </div>
@@ -1422,8 +1424,8 @@ export default function ValuationWizardCard() {
                     <div className="bg-slate-50 px-4 sm:px-6 py-2.5 sm:py-3 border-b border-slate-100 flex items-center justify-between">
                         <button onClick={prevStep} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#E31E24] transition-all"><ArrowLeft className="w-3.5 h-3.5" /></button>
                         <div className="flex flex-col items-center">
-                            <span className="text-[9px] font-bold text-[#E31E24] uppercase tracking-widest mb-0.5">Step {currentStepDisplay()} of {totalSteps}</span>
-                            <h4 className="text-slate-900 font-bold text-xs uppercase tracking-tighter">{serviceType ? `${serviceType} Service` : "Get Started"}</h4>
+                            <span className="text-[9px] font-bold text-[#E31E24] uppercase tracking-widest mb-0.5">{t("stepIndicator", { current: currentStepDisplay(), total: totalSteps })}</span>
+                            <h4 className="text-slate-900 font-bold text-xs uppercase tracking-tighter">{serviceType ? t("serviceLabel", { service: serviceType }) : t("getStarted")}</h4>
                         </div>
                         <div className="w-8 h-8 flex items-center justify-center text-[#E31E24] font-bold text-[10px] bg-red-50 rounded-full">{Math.round(((currentStepDisplay()) / totalSteps) * 100)}%</div>
                     </div>
@@ -1440,14 +1442,14 @@ export default function ValuationWizardCard() {
                                 {!serviceType && (
                                     <div className="space-y-5 text-center">
                                         <div className="space-y-1">
-                                            <h3 className="text-lg font-bold text-slate-800">What is your situation?</h3>
-                                            <p className="text-slate-400 text-[11px]">Choose what you&apos;re looking for today.</p>
+                                            <h3 className="text-lg font-bold text-slate-800">{t("situation.title")}</h3>
+                                            <p className="text-slate-400 text-[11px]">{t("situation.subtitle")}</p>
                                         </div>
 
                                         {fromHero && formData.regNo && (
                                             <div className="flex items-center justify-center gap-2 px-4 py-2 bg-red-50 border border-red-100 rounded-xl max-w-xs mx-auto">
                                                 <CheckCircle className="w-4 h-4 text-[#E31E24] shrink-0" />
-                                                <span className="text-[11px] font-bold text-[#E31E24]">Vehicle <span className="tracking-widest">{formData.regNo}</span> loaded</span>
+                                                <span className="text-[11px] font-bold text-[#E31E24]">{t("situation.vehicleLoaded", { regNo: formData.regNo })}</span>
                                             </div>
                                         )}
 
@@ -1457,15 +1459,15 @@ export default function ValuationWizardCard() {
                                                 ...(!fromHero ? [{
                                                     key: "buy",
                                                     Icon: Car,
-                                                    title: "Buy a new Vehicle",
-                                                    subtitle: "Exchange offers & OEM benefits on your next car",
+                                                    title: t("situation.buy.title"),
+                                                    subtitle: t("situation.buy.subtitle"),
                                                     onClick: () => { setDirection(1); setServiceType("buy"); setStep(0) }
                                                 }] : []),
                                                 {
                                                     key: "scrap",
                                                     Icon: Recycle,
-                                                    title: "Scrap your Vehicle",
-                                                    subtitle: "Best scrap value with eco-friendly pickup",
+                                                    title: t("situation.scrap.title"),
+                                                    subtitle: t("situation.scrap.subtitle"),
                                                     onClick: () => { setDirection(1); setServiceType("scrap"); setStep(fromHero ? 1 : 0) }
                                                 }
                                             ].map((opt) => (
@@ -1487,7 +1489,7 @@ export default function ValuationWizardCard() {
 
                                                     {/* CTA — same on both */}
                                                     <div className="w-full py-2 rounded-xl flex items-center justify-center gap-1.5 bg-[#E31E24] text-white text-[11px] font-bold group-hover:bg-red-700 transition-colors">
-                                                        Get Started <ArrowRight className="w-3 h-3" />
+                                                        {t("situation.getStartedBtn")} <ArrowRight className="w-3 h-3" />
                                                     </div>
                                                 </button>
                                             ))}
@@ -1502,11 +1504,11 @@ export default function ValuationWizardCard() {
                                     <>
                                         {step === 0 && (
                                             <div className="space-y-5 text-center">
-                                                <h3 className="text-xl font-bold text-slate-900">Which vehicle do you want to buy?</h3>
+                                                <h3 className="text-xl font-bold text-slate-900">{t("buyFlow.title")}</h3>
                                                 <div className="space-y-3 max-w-md mx-auto">
                                                     {!formData.desiredCompany ? (
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Brand</label>
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("buyFlow.desiredBrand")}</label>
                                                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                                                                 {BRANDS.map((b) => (
                                                                     <button
@@ -1549,7 +1551,7 @@ export default function ValuationWizardCard() {
                                                             {/* Selected Brand Header */}
                                                             <div className="flex items-center justify-between bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 shadow-sm text-left">
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Brand:</span>
+                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t("buyFlow.brandLabel")}</span>
                                                                     <span className="text-xs font-black text-slate-800">
                                                                         {selectedBrand === "Other" && customBrand ? customBrand : (selectedBrand === "Other" ? "Other" : selectedBrand)}
                                                                     </span>
@@ -1569,17 +1571,17 @@ export default function ValuationWizardCard() {
                                                                     }}
                                                                     className="text-[9px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
                                                                 >
-                                                                    Change
+                                                                    {t("buyFlow.change")}
                                                                 </button>
                                                             </div>
 
                                                             {/* Custom Brand Input (if "Other" brand is selected) */}
                                                             {selectedBrand === "Other" && (
                                                                 <div className="space-y-1 text-left">
-                                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Brand Name</label>
+                                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">{t("buyFlow.brandName")}</label>
                                                                     <input
                                                                         type="text"
-                                                                        placeholder="e.g. Ford, Chevrolet, etc."
+                                                                        placeholder={t("buyFlow.brandPlaceholder")}
                                                                         value={customBrand}
                                                                         onChange={(e) => {
                                                                             const val = e.target.value;
@@ -1593,7 +1595,7 @@ export default function ValuationWizardCard() {
 
                                                             {/* Model Selection (based on selected brand) */}
                                                             <div className="space-y-1.5 text-left">
-                                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Desired Model</label>
+                                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("buyFlow.desiredModel")}</label>
                                                                 {selectedBrand !== "Other" && BRAND_MODELS[selectedBrand] ? (
                                                                     <>
                                                                         <div className="grid grid-cols-3 gap-2">
@@ -1630,10 +1632,10 @@ export default function ValuationWizardCard() {
                                                                         {/* Custom Model Input (if "Other" model is selected from grid) */}
                                                                         {selectedModel === "Other" && (
                                                                             <div className="mt-2.5 space-y-1">
-                                                                                <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Enter Model Name</label>
+                                                                                <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">{t("buyFlow.modelName")}</label>
                                                                                 <input
                                                                                     type="text"
-                                                                                    placeholder="e.g. Nexon, Creta, etc."
+                                                                                    placeholder={t("buyFlow.modelPlaceholder")}
                                                                                     value={customModel}
                                                                                     onChange={(e) => {
                                                                                         const val = e.target.value;
@@ -1660,15 +1662,15 @@ export default function ValuationWizardCard() {
                                                     )}
                                                 </div>
 
-                                                <button disabled={!formData.desiredCompany || !formData.desiredModel} onClick={nextStep} className="w-full max-w-md mx-auto py-3 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[11px]">Continue</button>
+                                                <button disabled={!formData.desiredCompany || !formData.desiredModel} onClick={nextStep} className="w-full max-w-md mx-auto py-3 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[11px]">{t("scrapFlow.confirmAndContinue")}</button>
                                             </div>
                                         )}
                                         {step === 1 && (
                                             <div className="space-y-5 text-center">
                                                 <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
-                                                <h3 className="text-xl font-bold text-slate-900">Tell us your name</h3>
-                                                <input type="text" placeholder="Your Full Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" autoFocus />
-                                                <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">Next Step</button>
+                                                <h3 className="text-xl font-bold text-slate-900">{t("buyFlow.name")}</h3>
+                                                <input type="text" placeholder={t("buyFlow.namePlaceholder")} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" autoFocus />
+                                                <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">{t("buyFlow.continue")}</button>
                                             </div>
                                         )}
                                         {step === 2 && (
@@ -1676,7 +1678,7 @@ export default function ValuationWizardCard() {
                                                 <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                                     {otpSent ? <Lock className="w-7 h-7 text-[#E31E24]" /> : <Smartphone className="w-7 h-7 text-[#E31E24]" />}
                                                 </div>
-                                                <h3 className="text-xl font-bold text-slate-900">{otpSent ? "Verification" : "Mobile Number"}</h3>
+                                                <h3 className="text-xl font-bold text-slate-900">{otpSent ? t("buyFlow.phoneVerification") : t("buyFlow.phone")}</h3>
 
                                                 <div className="space-y-3 max-w-md mx-auto">
                                                     <div className="relative">
@@ -1726,7 +1728,7 @@ export default function ValuationWizardCard() {
                                                                 onClick={() => { setOtpSent(false); setFormData({ ...formData, otp: "" }); setIsSandboxMode(false); }}
                                                                 className="text-[10px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
                                                             >
-                                                                Change Number
+                                                                {t("buyFlow.change")}
                                                             </button>
                                                         </motion.div>
                                                     )}
@@ -1737,7 +1739,7 @@ export default function ValuationWizardCard() {
                                                     onClick={otpSent ? handleVerifyOtp : handleSendOtp}
                                                     className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2"
                                                 >
-                                                    {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "Verify & Complete" : "Get OTP")}
+                                                    {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? t("buyFlow.verifyOtp") : t("buyFlow.sendOtp"))}
                                                 </button>
                                             </div>
                                         )}
@@ -1810,7 +1812,7 @@ export default function ValuationWizardCard() {
                                                     {/* Status text with animated typing dots */}
                                                     <div className="space-y-1.5 text-center">
                                                         <p className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center justify-center gap-1.5">
-                                                            Fetching Specifications
+                                                            {t("scrapFlow.fetching")}
                                                             <span className="flex gap-0.5 items-center">
                                                                 <span className="w-1.5 h-1.5 bg-[#E31E24] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                                                                 <span className="w-1.5 h-1.5 bg-[#E31E24] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -1853,15 +1855,15 @@ export default function ValuationWizardCard() {
 
                                                     <div className="space-y-1 relative z-10">
                                                         <span className="text-[9px] sm:text-[10px] font-black text-[#E31E24] uppercase tracking-[0.2em] bg-red-50/80 px-3 py-1 rounded-full">Registration</span>
-                                                        <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-2.5">Vehicle Number</h3>
-                                                        <p className="text-slate-400 text-[10.5px] sm:text-[11.5px] font-medium px-2">Enter your registration number below to retrieve vehicle details</p>
+                                                        <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-2.5">{t("scrapFlow.regNumber")}</h3>
+                                                        <p className="text-slate-400 text-[10.5px] sm:text-[11.5px] font-medium px-2">{t("scrapFlow.enterReg")}</p>
                                                     </div>
 
                                                     {/* Premium Input Container */}
                                                     <div className="relative max-w-md mx-auto px-1 relative z-10">
                                                         <input
                                                             type="text"
-                                                            placeholder="E.g. DL-01-AB-1234"
+                                                            placeholder={t("scrapFlow.regPlaceholder")}
                                                             value={formData.regNo}
                                                             onChange={(e) => setFormData({ ...formData, regNo: e.target.value.toUpperCase() })}
                                                             onKeyDown={(e) => {
@@ -1885,7 +1887,7 @@ export default function ValuationWizardCard() {
                                                         <span className="absolute inset-0 w-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
 
                                                         <span className="relative z-10 font-bold uppercase tracking-wider text-xs">
-                                                            Fetch Details
+                                                            {t("scrapFlow.fetchDetails")}
                                                         </span>
                                                     </button>
                                                 </div>
@@ -1923,8 +1925,8 @@ export default function ValuationWizardCard() {
                                                 </div>
 
                                                 <div className="text-center pt-2 relative z-10">
-                                                    <h3 className="text-lg font-bold text-slate-900">Verify Vehicle Details</h3>
-                                                    <p className="text-slate-500 text-[11px] font-medium">Auto-filled based on your registration</p>
+                                                    <h3 className="text-lg font-bold text-slate-900">{t("scrapFlow.verifyTitle")}</h3>
+                                                    <p className="text-slate-500 text-[11px] font-medium">{t("scrapFlow.isThisYourVehicle")}</p>
                                                 </div>
 
                                                 <motion.div
@@ -1946,7 +1948,7 @@ export default function ValuationWizardCard() {
                                                         }}
                                                         className="space-y-0.5"
                                                     >
-                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Company / Brand</label>
+                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">{t("scrapFlow.brand")}</label>
                                                         <input type="text" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" />
                                                     </motion.div>
                                                     <motion.div
@@ -1956,7 +1958,7 @@ export default function ValuationWizardCard() {
                                                         }}
                                                         className="space-y-0.5"
                                                     >
-                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Model Name</label>
+                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">{t("scrapFlow.model")}</label>
                                                         <input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Santro" />
                                                     </motion.div>
                                                     <motion.div
@@ -1966,7 +1968,7 @@ export default function ValuationWizardCard() {
                                                         }}
                                                         className="space-y-0.5"
                                                     >
-                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Owner Name</label>
+                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">{t("scrapFlow.ownerName")}</label>
                                                         <input type="text" value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Satish Kumar" />
                                                     </motion.div>
                                                     <motion.div
@@ -1976,7 +1978,7 @@ export default function ValuationWizardCard() {
                                                         }}
                                                         className="space-y-0.5"
                                                     >
-                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Fuel Type</label>
+                                                        <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">{t("scrapFlow.fuel")}</label>
                                                         <input type="text" value={formData.fuel} onChange={(e) => setFormData({ ...formData, fuel: e.target.value })} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" placeholder="e.g. Petrol" />
                                                     </motion.div>
                                                     <motion.div
@@ -1998,7 +2000,7 @@ export default function ValuationWizardCard() {
                                                     onClick={nextStep}
                                                     className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center relative z-10"
                                                 >
-                                                    Confirm & Continue
+                                                    {t("scrapFlow.confirmAndContinue")}
                                                 </motion.button>
                                             </div>
                                         )}
@@ -2006,8 +2008,8 @@ export default function ValuationWizardCard() {
                                         {step === 2 && (
                                             <div className="space-y-5 text-center">
                                                 <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><Car className="w-7 h-7 text-[#E31E24]" /></div>
-                                                <h3 className="text-xl font-bold text-slate-900">Buy a new vehicle?</h3>
-                                                <p className="text-slate-500 text-[11px] font-medium">Would you like to purchase a new vehicle while scrapping this one to claim CD certificate benefits?</p>
+                                                <h3 className="text-xl font-bold text-slate-900">{t("scrapFlow.buyNewQuestion")}</h3>
+                                                <p className="text-slate-500 text-[11px] font-medium">{t("scrapFlow.buyNewSubtitle")}</p>
                                                 <div className="flex gap-3 max-w-md mx-auto justify-center">
                                                     <button onClick={() => { setFormData({ ...formData, buyNew: "yes" }); nextStep("yes") }} className="w-1/2 py-2.5 border border-slate-100 rounded-xl font-bold text-sm text-slate-700 hover:border-[#E31E24] hover:bg-red-50 transition-all shadow-sm">Yes</button>
                                                     <button onClick={() => { setFormData({ ...formData, buyNew: "no" }); nextStep("no") }} className="w-1/2 py-2.5 border border-slate-100 rounded-xl font-bold text-sm text-slate-700 hover:border-[#E31E24] hover:bg-red-50 transition-all shadow-sm">No</button>
@@ -2047,14 +2049,14 @@ export default function ValuationWizardCard() {
                                                 </div>
 
                                                 <div className="space-y-1 relative z-10">
-                                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">Vehicle Choice</h3>
-                                                    <p className="text-slate-500 text-[11px] font-medium mb-3">Details of the new vehicle you wish to buy.</p>
+                                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">{t("scrapFlow.desiredCarTitle")}</h3>
+                                                    <p className="text-slate-500 text-[11px] font-medium mb-3">{t("scrapFlow.desiredCarSubtitle")}</p>
                                                 </div>
 
                                                 <div className="space-y-4 max-w-md mx-auto relative z-10">
                                                     {!selectedBrand ? (
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Brand</label>
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("scrapFlow.brand")}</label>
                                                             <motion.div
                                                                 variants={{
                                                                     hidden: { opacity: 0 },
@@ -2109,7 +2111,7 @@ export default function ValuationWizardCard() {
                                                             {/* Selected Brand Header */}
                                                             <div className="flex items-center justify-between bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 shadow-sm text-left">
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Brand:</span>
+                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t("scrapFlow.brand")}:</span>
                                                                     <span className="text-xs font-black text-slate-800">{selectedBrand === "Other" && customBrand ? customBrand : selectedBrand}</span>
                                                                 </div>
                                                                 <button
@@ -2127,7 +2129,7 @@ export default function ValuationWizardCard() {
                                                                     }}
                                                                     className="text-[9px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
                                                                 >
-                                                                    Change
+                                                                    {t("buyFlow.change")}
                                                                 </button>
                                                             </div>
 
@@ -2138,7 +2140,7 @@ export default function ValuationWizardCard() {
                                                                     animate={{ opacity: 1, y: 0 }}
                                                                     className="mt-1.5 space-y-1 text-left"
                                                                 >
-                                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Enter Brand Name</label>
+                                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">{t("buyFlow.enterBrandName")}</label>
                                                                     <input
                                                                         type="text"
                                                                         placeholder="e.g. Ford, Chevrolet, etc."
@@ -2159,7 +2161,7 @@ export default function ValuationWizardCard() {
                                                                 animate={{ opacity: 1, y: 0 }}
                                                                 className="space-y-1.5 text-left pt-1"
                                                             >
-                                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Model</label>
+                                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("scrapFlow.model")}</label>
 
                                                                 {selectedBrand !== "Other" && BRAND_MODELS[selectedBrand] ? (
                                                                     <>
@@ -2194,17 +2196,16 @@ export default function ValuationWizardCard() {
                                                                             ))}
                                                                         </div>
 
-                                                                        {/* Custom Model Input (if "Other" model is selected from grid) */}
                                                                         {selectedModel === "Other" && (
                                                                             <motion.div
                                                                                 initial={{ opacity: 0, y: 5 }}
                                                                                 animate={{ opacity: 1, y: 0 }}
                                                                                 className="mt-2.5 space-y-1"
                                                                             >
-                                                                                <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Enter Model Name</label>
+                                                                                <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">{t("buyFlow.enterModelName")}</label>
                                                                                 <input
                                                                                     type="text"
-                                                                                    placeholder="e.g. Nexon, Creta, etc."
+                                                                                    placeholder={t("buyFlow.modelPlaceholder")}
                                                                                     value={customModel}
                                                                                     onChange={(e) => {
                                                                                         const val = e.target.value;
@@ -2217,10 +2218,9 @@ export default function ValuationWizardCard() {
                                                                         )}
                                                                     </>
                                                                 ) : (
-                                                                    /* Direct custom model input if brand is custom */
                                                                     <input
                                                                         type="text"
-                                                                        placeholder="e.g. Mustang, Civic, etc."
+                                                                        placeholder={t("buyFlow.modelPlaceholder")}
                                                                         value={customModel}
                                                                         onChange={(e) => {
                                                                             const val = e.target.value;
@@ -2243,7 +2243,7 @@ export default function ValuationWizardCard() {
                                                     onClick={() => nextStep()}
                                                     className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] relative z-10"
                                                 >
-                                                    Continue
+                                                    {t("scrapFlow.confirmAndContinue")}
                                                 </motion.button>
                                             </div>
                                         )}
@@ -2253,26 +2253,24 @@ export default function ValuationWizardCard() {
                                                 <div className="space-y-3">
                                                     <div className="text-center space-y-1 mb-2">
                                                         <span className="bg-red-50 text-red-600 border border-red-100 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                                                            Step {totalSteps} of {totalSteps} — scrap Service 100%
+                                                            {t("header.stepProgress", { current: totalSteps, total: totalSteps })} — scrap Service 100%
                                                         </span>
-                                                        <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight mt-1">Your Scrap Valuation is Ready! 🎉</h3>
+                                                        <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight mt-1">{t("scrapFlow.readyTitle")}</h3>
                                                         <div className="flex justify-center items-center py-2">
-                                                            {/* Phone Verification Card */}
                                                             <div className="w-full max-w-md bg-white border border-slate-200/80 rounded-[1rem] p-5 sm:p-6 flex flex-col justify-center items-center shadow-sm relative overflow-hidden">
                                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-2xl pointer-events-none" />
 
-                                                                {/* Phone Verification / OTP */}
                                                                 <div className="w-full flex flex-col items-center text-center space-y-3.5">
                                                                     <div>
                                                                         <h4 className="text-xs sm:text-sm font-black text-[#E31E24] uppercase tracking-wider mb-1">
-                                                                            {otpSent ? "VERIFY IDENTITY" : (formData.buyNew === "no" ? "UNLOCK VALUATION & BENEFITS" : "UNLOCK CD BENEFITS")}
+                                                                            {otpSent ? t("scrapFlow.verifyIdentity") : (formData.buyNew === "no" ? t("scrapFlow.unlockValuation") : t("scrapFlow.unlockCd"))}
                                                                         </h4>
                                                                         <p className="text-[11px] text-slate-500 font-semibold leading-relaxed max-w-xs mx-auto">
                                                                             {otpSent
-                                                                                ? "Enter the OTP sent to your phone."
+                                                                                ? t("scrapFlow.enterOtpSent")
                                                                                 : (formData.buyNew === "no"
-                                                                                    ? "Enter your phone number to unlock your scrap valuation and partner benefits."
-                                                                                    : "Enter your phone number to unlock your CD certificate and partner benefits.")}
+                                                                                    ? t("scrapFlow.enterPhoneValuation")
+                                                                                    : t("scrapFlow.enterPhoneCd"))}
                                                                         </p>
                                                                     </div>
 
@@ -2309,7 +2307,7 @@ export default function ValuationWizardCard() {
                                                                                     className="text-[9px] font-bold text-slate-400 hover:text-[#E31E24] uppercase tracking-widest transition-colors"
                                                                                     type="button"
                                                                                 >
-                                                                                    Change Number
+                                                                                    {t("scrapFlow.changeNumber")}
                                                                                 </button>
                                                                             </motion.div>
                                                                         )}
@@ -2319,7 +2317,7 @@ export default function ValuationWizardCard() {
                                                                             onClick={otpSent ? handleVerifyOtp : handleSendOtp}
                                                                             className="w-full py-2.5 bg-[#E31E24] hover:bg-red-600 text-white font-black rounded-lg shadow-md shadow-red-500/25 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-1.5"
                                                                         >
-                                                                            {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? "VERIFY & GET VALUATION" : "GET OTP")}
+                                                                            {isSendingOtp || isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : (otpSent ? t("scrapFlow.verifyAndCalculate") : t("scrapFlow.sendOtp"))}
                                                                         </button>
                                                                     </div>
                                                                 </div>

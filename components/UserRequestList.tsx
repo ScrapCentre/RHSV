@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import {
     Car,
     Calendar,
@@ -42,6 +43,7 @@ interface UserRequestListProps {
 }
 
 export default function UserRequestList({ requests }: UserRequestListProps) {
+    const t = useTranslations("ProfilePage.requests")
     const [selectedRequest, setSelectedRequest] = useState<any | null>(null)
     const [mounted, setMounted] = useState(false)
 
@@ -87,56 +89,56 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
             case "pending":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-100">
-                        <Clock className="w-3.5 h-3.5" /> Pending
+                        <Clock className="w-3.5 h-3.5" /> {t("statuses.pending")}
                     </span>
                 )
             case "reviewing":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-100 animate-pulse">
-                        <Clock className="w-3.5 h-3.5" /> Reviewing
+                        <Clock className="w-3.5 h-3.5" /> {t("statuses.reviewing")}
                     </span>
                 )
             case "contacted":
             case "reviewed":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-100">
-                        <CheckCircle className="w-3.5 h-3.5" /> Reviewed
+                        <CheckCircle className="w-3.5 h-3.5" /> {t("statuses.reviewed")}
                     </span>
                 )
             case "approved":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                        <CheckCircle className="w-3.5 h-3.5" /> Approved
+                        <CheckCircle className="w-3.5 h-3.5" /> {t("statuses.approved")}
                     </span>
                 )
             case "pickup_scheduled":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-600 border border-purple-100">
-                        <Car className="w-3.5 h-3.5" /> Pickup Scheduled
+                        <Car className="w-3.5 h-3.5" /> {t("statuses.pickup_scheduled")}
                     </span>
                 )
             case "reached_collection_centre":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-100">
-                        <CheckCircle className="w-3.5 h-3.5" /> Reached CC
+                        <CheckCircle className="w-3.5 h-3.5" /> {t("statuses.reached_collection_centre")}
                     </span>
                 )
             case "car_scrapped":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-650 border border-red-100">
-                        <CheckCircle className="w-3.5 h-3.5" /> Scrapped
+                        <CheckCircle className="w-3.5 h-3.5" /> {t("statuses.car_scrapped")}
                     </span>
                 )
             case "completed":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                        <CheckCircle className="w-3.5 h-3.5" /> Completed
+                        <CheckCircle className="w-3.5 h-3.5" /> {t("statuses.completed")}
                     </span>
                 )
             case "rejected":
                 return (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
-                        <X className="w-3.5 h-3.5" /> Rejected
+                        <X className="w-3.5 h-3.5" /> {t("statuses.rejected")}
                     </span>
                 )
             default:
@@ -150,15 +152,15 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
 
     const getTypeDisplayName = (type: string) => {
         switch (type) {
-            case 'valuation': return "Get Free Quote"
-            case 'scrap': return "Scrap Vehicle"
-            case 'scrap-buy': return "Scrap & Buy New"
+            case 'valuation': return t("types.valuation")
+            case 'scrap': return t("types.scrap")
+            case 'scrap-buy': return t("types.scrapBuy")
             case 'sell': 
-            case 'wizard-sell': return "Sell Old Vehicle"
-            case 'exchange': return "Exchange Vehicle"
+            case 'wizard-sell': return t("types.sell")
+            case 'exchange': return t("types.exchange")
             case 'buy': 
-            case 'wizard-buy': return "Buy New Vehicle"
-            default: return "Vehicle Request"
+            case 'wizard-buy': return t("types.buy")
+            default: return t("types.default")
         }
     }
 
@@ -256,14 +258,14 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 <p className="text-[11px] text-slate-500 font-medium">
                                     {req.ekycStatus === "verified" ? (
                                         <span className="text-emerald-600 flex items-center gap-1.5 font-bold">
-                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-550" /> eKYC Completed & Verified
+                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-550" /> {t("ekyc.verified")}
                                         </span>
                                     ) : req.ekycStatus === "reviewing" || req.ekycStatus === "submitted" ? (
                                         <span className="text-blue-600 flex items-center gap-1.5 font-bold animate-pulse">
-                                            <Clock className="w-3.5 h-3.5 text-blue-550" /> eKYC Documents Under Review
+                                            <Clock className="w-3.5 h-3.5 text-blue-550" /> {t("ekyc.underReview")}
                                         </span>
                                     ) : (
-                                        <span className="text-slate-400">Complete verification to unlock benefits</span>
+                                        <span className="text-slate-400">{t("ekyc.unlockBenefits")}</span>
                                     )}
                                 </p>
                                 <div className="flex items-center gap-2.5 w-full sm:w-auto mt-2 sm:mt-0">
@@ -273,21 +275,21 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                             disabled
                                             className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl flex items-center gap-1.5 cursor-not-allowed opacity-85"
                                         >
-                                            <CheckCircle className="w-3.5 h-3.5" /> Verified
+                                            <CheckCircle className="w-3.5 h-3.5" /> {t("ekyc.btnVerified")}
                                         </button>
                                     ) : req.ekycStatus === "submitted" || req.ekycStatus === "reviewing" ? (
                                         <button
                                             disabled
                                             className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100 rounded-xl flex items-center gap-1.5 cursor-not-allowed opacity-85"
                                         >
-                                            <Clock className="w-3.5 h-3.5" /> Under Review
+                                            <Clock className="w-3.5 h-3.5" /> {t("ekyc.btnUnderReview")}
                                         </button>
                                     ) : (
                                         <button
                                             onClick={(e) => handleEkycClick(e, req)}
                                             className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-red-600 to-[#E31E24] hover:from-red-500 hover:to-red-600 text-white rounded-xl flex items-center gap-1.5 shadow-md shadow-red-600/10 active:scale-[0.97] transition-all whitespace-nowrap"
                                         >
-                                            <Shield className="w-3.5 h-3.5 animate-pulse" /> Complete eKYC
+                                            <Shield className="w-3.5 h-3.5 animate-pulse" /> {t("ekyc.btnComplete")}
                                         </button>
                                     )}
 
@@ -298,17 +300,17 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                             onClick={(e) => e.stopPropagation()}
                                             className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 rounded-xl flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all whitespace-nowrap"
                                         >
-                                            <MessageSquare className="w-3.5 h-3.5 text-red-500 animate-pulse" /> Chat & Negotiate
+                                            <MessageSquare className="w-3.5 h-3.5 text-red-500 animate-pulse" /> {t("actions.chat")}
                                         </Link>
                                     ) : (
                                         <button
                                             onClick={(e) => {
-                                                e.stopPropagation()
-                                                setSelectedRequest(req)
+                                                 e.stopPropagation()
+                                                 setSelectedRequest(req)
                                             }}
                                             className="px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 rounded-xl flex items-center gap-1.5 shadow-sm active:scale-[0.97] transition-all whitespace-nowrap"
                                         >
-                                            <FileText className="w-3.5 h-3.5" /> Details
+                                            <FileText className="w-3.5 h-3.5" /> {t("actions.details")}
                                         </button>
                                     )}
                                 </div>
@@ -356,7 +358,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 {selectedRequest.type === 'valuation' && selectedRequest.estimatedValue != null && (
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-emerald-50 rounded-2xl border border-emerald-100 gap-2">
                                         <span className="text-xs sm:text-sm font-bold text-emerald-700 uppercase tracking-wide flex items-center gap-2">
-                                            Estimated Scrap Value
+                                            {t("modal.estimatedValue")}
                                         </span>
                                         <span className="text-xl sm:text-2xl font-black text-emerald-600">
                                             ₹{(selectedRequest.estimatedValue * 0.8).toLocaleString('en-IN')} - ₹{(selectedRequest.estimatedValue * 1.2).toLocaleString('en-IN')}
@@ -367,18 +369,18 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 {/* Status Timeline Section */}
                                 <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-100">
                                     <div className="flex items-center justify-between mb-6">
-                                        <span className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wide">Status Tracking</span>
+                                        <span className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wide">{t("modal.statusTracking")}</span>
                                         {getStatusBadge(selectedRequest.status)}
                                     </div>
                                     
                                     <div className="relative border-l-2 border-slate-200 ml-3 space-y-6">
                                         {(() => {
                                             const steps = [
-                                                { id: 'pending', label: 'Request Submitted', description: 'Customer requested service.', icon: <Clock className="w-4 h-4" />, date: selectedRequest.createdAt },
-                                                { id: 'approved', label: 'Approved & Published', description: 'Verified by Admin/Executive and published to B2B marketplace.', icon: <CheckCircle className="w-4 h-4" />, date: selectedRequest.updatedAt },
-                                                { id: 'pickup_scheduled', label: 'Pickup Scheduled', description: 'A B2B Partner has accepted the lead.', icon: <Car className="w-4 h-4" />, date: null },
-                                                { id: 'reached_collection_centre', label: 'Reached Collection Centre', description: 'Vehicle successfully arrived at ScrapCentre.', icon: <CheckCircle className="w-4 h-4" />, date: null },
-                                                { id: 'car_scrapped', label: 'Vehicle Scrapped Successfully', description: 'Final processing completed.', icon: <CheckCircle className="w-4 h-4" />, date: null }
+                                                { id: 'pending', label: t("modal.timeline.pending.title"), description: t("modal.timeline.pending.desc"), icon: <Clock className="w-4 h-4" />, date: selectedRequest.createdAt },
+                                                { id: 'approved', label: t("modal.timeline.approved.title"), description: t("modal.timeline.approved.desc"), icon: <CheckCircle className="w-4 h-4" />, date: selectedRequest.updatedAt },
+                                                { id: 'pickup_scheduled', label: t("modal.timeline.scheduled.title"), description: t("modal.timeline.scheduled.desc"), icon: <Car className="w-4 h-4" />, date: null },
+                                                { id: 'reached_collection_centre', label: t("modal.timeline.reached.title"), description: t("modal.timeline.reached.desc"), icon: <CheckCircle className="w-4 h-4" />, date: null },
+                                                { id: 'car_scrapped', label: t("modal.timeline.scrapped.title"), description: t("modal.timeline.scrapped.desc"), icon: <CheckCircle className="w-4 h-4" />, date: null }
                                             ];
 
                                             const currentStatus = selectedRequest.status || 'pending';
@@ -424,109 +426,109 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     {selectedRequest.type === 'valuation' && (
                                         <>
-                                            <DetailItem icon={<Car />} label="Vehicle Type" value={selectedRequest.vehicleType} />
-                                            <DetailItem icon={<Calendar />} label="Model Year" value={selectedRequest.year} />
-                                            <DetailItem icon={<Scale />} label="Approx Weight" value={`${selectedRequest.vehicleWeight} Tons`} />
-                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.address?.pincode} />
+                                            <DetailItem icon={<Car />} label={t("modal.labels.vehicleType")} value={selectedRequest.vehicleType} />
+                                            <DetailItem icon={<Calendar />} label={t("modal.labels.modelYear")} value={selectedRequest.year} />
+                                            <DetailItem icon={<Scale />} label={t("modal.labels.approxWeight")} value={`${selectedRequest.vehicleWeight} Tons`} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.pincode")} value={selectedRequest.address?.pincode} />
                                             {selectedRequest.distance !== undefined && selectedRequest.distance !== null && (
-                                                <DetailItem icon={<MapPin />} label="Distance" value={`${selectedRequest.distance} km`} />
+                                                <DetailItem icon={<MapPin />} label={t("modal.labels.distance")} value={`${selectedRequest.distance} km`} />
                                             )}
                                             {selectedRequest.pickupCost !== undefined && selectedRequest.pickupCost !== null && (
-                                                <DetailItem icon={<IndianRupee />} label="Pickup Cost" value={selectedRequest.pickupCost === 0 ? "Free (< 100km)" : `${selectedRequest.pickupCost.toLocaleString("en-IN")}`} />
+                                                <DetailItem icon={<IndianRupee />} label={t("modal.labels.pickupCost")} value={selectedRequest.pickupCost === 0 ? t("modal.labels.freeCost") : `${selectedRequest.pickupCost.toLocaleString("en-IN")}`} />
                                             )}
                                             {selectedRequest.estimatedValue != null && (
-                                                <DetailItem icon={null} label="Estimated Value" value={`₹${(selectedRequest.estimatedValue * 0.8).toLocaleString("en-IN")} - ₹${(selectedRequest.estimatedValue * 1.2).toLocaleString("en-IN")}`} />
+                                                <DetailItem icon={null} label={t("modal.labels.estimatedValue")} value={`₹${(selectedRequest.estimatedValue * 0.8).toLocaleString("en-IN")} - ₹${(selectedRequest.estimatedValue * 1.2).toLocaleString("en-IN")}`} />
                                             )}
                                         </>
                                     )}
 
                                     {selectedRequest.type === 'sell' && (
                                         <>
-                                            <DetailItem icon={<Hash />} label="Reg. Number" value={selectedRequest.registrationNumber} />
-                                            <DetailItem icon={<Calendar />} label="Reg. Year" value={selectedRequest.registrationYear} />
-                                            <DetailItem icon={<Fuel />} label="Fuel Type" value={selectedRequest.fuelType} />
-                                            <DetailItem icon={<IndianRupee />} label="Pending Loan" value={selectedRequest.pendingLoan} />
-                                            <DetailItem icon={<MapPin />} label="Location" value={`${selectedRequest.city}, ${selectedRequest.state}`} />
-                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                            <DetailItem icon={<Hash />} label={t("modal.labels.regNumber")} value={selectedRequest.registrationNumber} />
+                                            <DetailItem icon={<Calendar />} label={t("modal.labels.regYear")} value={selectedRequest.registrationYear} />
+                                            <DetailItem icon={<Fuel />} label={t("modal.labels.fuelType")} value={selectedRequest.fuelType} />
+                                            <DetailItem icon={<IndianRupee />} label={t("modal.labels.pendingLoan")} value={selectedRequest.pendingLoan} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.location")} value={`${selectedRequest.city}, ${selectedRequest.state}`} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.pincode")} value={selectedRequest.pincode} />
                                         </>
                                     )}
 
                                     {selectedRequest.type === 'exchange' && (
                                         <>
-                                            <DetailItem icon={<Hash />} label="Old Reg. No" value={selectedRequest.oldVehicleRegistration} />
-                                            <DetailItem icon={<Calendar />} label="Old Year" value={selectedRequest.oldVehicleYear} />
-                                            <DetailItem icon={<Fuel />} label="Old Fuel" value={selectedRequest.oldVehicleFuelType} />
-                                            <DetailItem icon={<ShoppingCart />} label="New Brand" value={selectedRequest.newVehicleBrand} />
-                                            <DetailItem icon={<Box />} label="New Model" value={selectedRequest.newVehicleModel} />
-                                            <DetailItem icon={<MapPin />} label="Location" value={`${selectedRequest.city}, ${selectedRequest.state}`} />
+                                            <DetailItem icon={<Hash />} label={t("modal.labels.oldRegNo")} value={selectedRequest.oldVehicleRegistration} />
+                                            <DetailItem icon={<Calendar />} label={t("modal.labels.oldYear")} value={selectedRequest.oldVehicleYear} />
+                                            <DetailItem icon={<Fuel />} label={t("modal.labels.oldFuel")} value={selectedRequest.oldVehicleFuelType} />
+                                            <DetailItem icon={<ShoppingCart />} label={t("modal.labels.newBrand")} value={selectedRequest.newVehicleBrand} />
+                                            <DetailItem icon={<Box />} label={t("modal.labels.newModel")} value={selectedRequest.newVehicleModel} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.location")} value={`${selectedRequest.city}, ${selectedRequest.state}`} />
                                         </>
                                     )}
 
                                     {selectedRequest.type === 'buy' && (
                                         <>
-                                            <DetailItem icon={<IndianRupee />} label="Budget" value={selectedRequest.budgetRange} />
-                                            <DetailItem icon={<Fuel />} label="Fuel Preference" value={selectedRequest.fuelType} />
-                                            <DetailItem icon={<MapPin />} label="Location" value={`${selectedRequest.city}, ${selectedRequest.state}`} />
-                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                            <DetailItem icon={<IndianRupee />} label={t("modal.labels.budget")} value={selectedRequest.budgetRange} />
+                                            <DetailItem icon={<Fuel />} label={t("modal.labels.fuelPreference")} value={selectedRequest.fuelType} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.location")} value={`${selectedRequest.city}, ${selectedRequest.state}`} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.pincode")} value={selectedRequest.pincode} />
                                         </>
                                     )}
 
                                     {/* New WizardLead Types */}
                                     {selectedRequest.type === 'scrap' && (
                                         <>
-                                            <DetailItem icon={<Hash />} label="Reg. Number" value={selectedRequest.regNo} />
-                                            <DetailItem icon={<Calendar />} label="Model Year" value={selectedRequest.year} />
-                                            <DetailItem icon={<Scale />} label="Approx Weight" value={`${selectedRequest.weight} kg`} />
-                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
-                                            {selectedRequest.ownerName && <DetailItem icon={<UserIcon />} label="Owner Name" value={selectedRequest.ownerName} />}
+                                            <DetailItem icon={<Hash />} label={t("modal.labels.regNumber")} value={selectedRequest.regNo} />
+                                            <DetailItem icon={<Calendar />} label={t("modal.labels.modelYear")} value={selectedRequest.year} />
+                                            <DetailItem icon={<Scale />} label={t("modal.labels.approxWeight")} value={`${selectedRequest.weight} kg`} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.pincode")} value={selectedRequest.pincode} />
+                                            {selectedRequest.ownerName && <DetailItem icon={<UserIcon />} label={t("modal.labels.ownerName")} value={selectedRequest.ownerName} />}
                                             {selectedRequest.fuel && selectedRequest.fuel.length > 0 && (
-                                                <DetailItem icon={<Fuel />} label="Fuel Type" value={Array.isArray(selectedRequest.fuel) ? selectedRequest.fuel.join(", ") : selectedRequest.fuel} />
+                                                <DetailItem icon={<Fuel />} label={t("modal.labels.fuelType")} value={Array.isArray(selectedRequest.fuel) ? selectedRequest.fuel.join(", ") : selectedRequest.fuel} />
                                             )}
                                         </>
                                     )}
 
                                     {selectedRequest.type === 'scrap-buy' && (
                                         <>
-                                            <DetailItem icon={<Hash />} label="Scrap Reg. No" value={selectedRequest.regNo} />
-                                            <DetailItem icon={<Calendar />} label="Scrap Year" value={selectedRequest.year} />
-                                            <DetailItem icon={<ShoppingCart />} label="Desired Brand" value={selectedRequest.desiredCompany} />
-                                            <DetailItem icon={<Box />} label="Desired Model" value={selectedRequest.desiredModel} />
-                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
-                                            {selectedRequest.ownerName && <DetailItem icon={<UserIcon />} label="Owner Name" value={selectedRequest.ownerName} />}
+                                            <DetailItem icon={<Hash />} label={t("modal.labels.scrapRegNo")} value={selectedRequest.regNo} />
+                                            <DetailItem icon={<Calendar />} label={t("modal.labels.scrapYear")} value={selectedRequest.year} />
+                                            <DetailItem icon={<ShoppingCart />} label={t("modal.labels.desiredBrand")} value={selectedRequest.desiredCompany} />
+                                            <DetailItem icon={<Box />} label={t("modal.labels.desiredModel")} value={selectedRequest.desiredModel} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.pincode")} value={selectedRequest.pincode} />
+                                            {selectedRequest.ownerName && <DetailItem icon={<UserIcon />} label={t("modal.labels.ownerName")} value={selectedRequest.ownerName} />}
                                             {selectedRequest.fuel && selectedRequest.fuel.length > 0 && (
-                                                <DetailItem icon={<Fuel />} label="Fuel Type" value={Array.isArray(selectedRequest.fuel) ? selectedRequest.fuel.join(", ") : selectedRequest.fuel} />
+                                                <DetailItem icon={<Fuel />} label={t("modal.labels.fuelType")} value={Array.isArray(selectedRequest.fuel) ? selectedRequest.fuel.join(", ") : selectedRequest.fuel} />
                                             )}
                                         </>
                                     )}
 
                                     {selectedRequest.type === 'wizard-sell' && (
                                         <>
-                                            <DetailItem icon={<Hash />} label="Reg. Number" value={selectedRequest.regNo} />
-                                            <DetailItem icon={<Calendar />} label="Model Year" value={selectedRequest.year} />
-                                            <DetailItem icon={<Clock />} label="Kms Driven" value={selectedRequest.kms} />
-                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                            <DetailItem icon={<Hash />} label={t("modal.labels.regNumber")} value={selectedRequest.regNo} />
+                                            <DetailItem icon={<Calendar />} label={t("modal.labels.modelYear")} value={selectedRequest.year} />
+                                            <DetailItem icon={<Clock />} label={t("modal.labels.kmsDriven")} value={selectedRequest.kms} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.pincode")} value={selectedRequest.pincode} />
                                         </>
                                     )}
 
                                     {selectedRequest.type === 'wizard-buy' && (
                                         <>
-                                            <DetailItem icon={<ShoppingCart />} label="Desired Brand" value={selectedRequest.desiredCompany} />
-                                            <DetailItem icon={<Box />} label="Desired Model" value={selectedRequest.desiredModel} />
-                                            <DetailItem icon={<MapPin />} label="Pincode" value={selectedRequest.pincode} />
+                                            <DetailItem icon={<ShoppingCart />} label={t("modal.labels.desiredBrand")} value={selectedRequest.desiredCompany} />
+                                            <DetailItem icon={<Box />} label={t("modal.labels.desiredModel")} value={selectedRequest.desiredModel} />
+                                            <DetailItem icon={<MapPin />} label={t("modal.labels.pincode")} value={selectedRequest.pincode} />
                                         </>
                                     )}
                                 </div>
 
                                 {/* Contact Information */}
                                 <div className="pt-5 border-t border-slate-100">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Contact Information</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{t("modal.contact.title")}</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100/85">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shadow-sm text-[#E31E24] shrink-0">
                                                 <UserIcon className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-bold text-slate-400">Name</p>
+                                                <p className="text-[10px] font-bold text-slate-400">{t("modal.contact.name")}</p>
                                                 <p className="text-sm font-bold text-slate-800">
                                                     {selectedRequest.type === 'valuation' ? selectedRequest.contact?.name : selectedRequest.name || selectedRequest.customerName}
                                                 </p>
@@ -537,7 +539,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                                 <Smartphone className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-bold text-slate-400">Phone</p>
+                                                <p className="text-[10px] font-bold text-slate-400">{t("modal.contact.phone")}</p>
                                                 <p className="text-sm font-bold text-slate-800">
                                                     {selectedRequest.type === 'valuation' ? selectedRequest.contact?.phone : selectedRequest.phone || selectedRequest.customerPhone}
                                                 </p>
@@ -548,7 +550,7 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
 
                                 {/* Footer Note */}
                                 <div className="pt-4 text-center">
-                                    <p className="text-xs text-slate-400 italic">Submitted on {mounted ? new Date(selectedRequest.createdAt).toLocaleString() : "..."}</p>
+                                    <p className="text-xs text-slate-400 italic">{t("modal.submittedOn", { date: mounted ? new Date(selectedRequest.createdAt).toLocaleString() : "..." })}</p>
                                 </div>
                             </div>
 
@@ -559,14 +561,14 @@ export default function UserRequestList({ requests }: UserRequestListProps) {
                                         href={`/profile/chat/${selectedRequest.chatThreadId}`}
                                         className="w-full bg-[#E31E24] hover:bg-red-700 text-white font-extrabold text-xs py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-1.5 active:scale-[0.98]"
                                     >
-                                        <MessageSquare className="w-4 h-4 animate-pulse" /> Open Chat & Negotiate <ArrowRight className="w-4 h-4" />
+                                        <MessageSquare className="w-4 h-4 animate-pulse" /> {t("actions.chat")} <ArrowRight className="w-4 h-4" />
                                     </Link>
                                 )}
                                 <button
                                     onClick={() => setSelectedRequest(null)}
                                     className="w-full bg-white hover:bg-slate-100 text-slate-700 font-bold py-3 sm:py-3.5 rounded-xl transition-all border border-slate-200 active:scale-[0.98]"
                                 >
-                                    Close Details
+                                    {t("actions.close")}
                                 </button>
                             </div>
                         </motion.div>

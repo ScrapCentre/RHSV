@@ -36,11 +36,14 @@ import {
   RefreshCw,
   Percent
 } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import GrowWithUs from "@/components/GrowWithUs"
 import LoadingScreen from "@/components/LoadingScreen"
+import { useTranslations, useLocale } from "next-intl"
 
-export default function AboutPage() {
+export default function AboutClient() {
+  const t = useTranslations("AboutPage")
+  const locale = useLocale()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [ctaHovered, setCtaHovered] = useState(false)
@@ -82,11 +85,11 @@ export default function AboutPage() {
 
 
   return (
-    <div className={`min-h-screen bg-slate-950 text-white selection:bg-red-500/30 selection:text-red-200 overflow-x-hidden ${plusJakartaSans.className}`}>
+    <div className={`min-h-screen bg-slate-950 text-white selection:bg-red-500/30 selection:text-red-200 overflow-x-hidden ${locale === "hi" ? "" : plusJakartaSans.className}`}>
 
 
       {/* Hero Section */}
-      <section className={`relative w-full bg-white text-slate-950 overflow-hidden mt-16 md:mt-20 pt-16 pb-12 min-h-[500px] md:min-h-[550px] flex items-center ${plusJakartaSans.className}`}>
+      <section className={`relative w-full bg-white text-slate-950 overflow-hidden mt-16 md:mt-20 pt-16 pb-12 min-h-[500px] md:min-h-[550px] flex items-center ${locale === "hi" ? "" : plusJakartaSans.className}`}>
         {/* Full-bleed Background Image */}
         <div className="absolute inset-0 w-full h-full z-0">
           <img
@@ -103,15 +106,15 @@ export default function AboutPage() {
             <div className="lg:col-span-8 space-y-6 md:space-y-8">
               <div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-tight tracking-tight">
-                  Why Choose <br className="hidden sm:block" />
-                  <span className="text-[#E31E24]">Scrap</span>
-                  <span className="text-slate-900">Centre</span>
-                  <span className="text-slate-500">.com?</span>
+                  {t("hero.headingPrefix")} <br className="hidden sm:block" />
+                  <span className="text-[#E31E24]">{t("hero.headingBrand")}</span>
+                  <span className="text-slate-900">{t("hero.headingCenter")}</span>
+                  <span className="text-slate-500">{t("hero.headingDomain")}</span>
                 </h1>
               </div>
 
               <p className="text-slate-500 text-sm md:text-base max-w-2xl font-medium leading-relaxed">
-                We bring you exclusive benefits that make your experience simple, valuable and rewarding.
+                {t("hero.description")}
               </p>
 
               {/* Responsive Stats Row - Clean Grid on Mobile, Flex on Desktop */}
@@ -123,7 +126,7 @@ export default function AboutPage() {
                   </div>
                   <div>
                     <div className="text-xl sm:text-2xl font-bold text-red-600 leading-none">500+</div>
-                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">Happy Clients</div>
+                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">{t("hero.stats.clients")}</div>
                   </div>
                 </div>
 
@@ -134,7 +137,7 @@ export default function AboutPage() {
                   </div>
                   <div>
                     <div className="text-xl sm:text-2xl font-bold text-red-600 leading-none">10+</div>
-                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">Years Experience</div>
+                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">{t("hero.stats.experience")}</div>
                   </div>
                 </div>
 
@@ -145,7 +148,7 @@ export default function AboutPage() {
                   </div>
                   <div>
                     <div className="text-xl sm:text-2xl font-bold text-red-600 leading-none">1.2k+</div>
-                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">Projects Done</div>
+                    <div className="text-xs sm:text-sm text-slate-600 font-medium mt-1">{t("hero.stats.projects")}</div>
                   </div>
                 </div>
               </div>
@@ -173,7 +176,7 @@ export default function AboutPage() {
                   <Coins className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
-                  Best Value for <br className="hidden sm:block" /> Your Vehicle
+                  {t("highlights.item1")}
                 </h3>
               </motion.div>
 
@@ -187,7 +190,7 @@ export default function AboutPage() {
                   <FileText className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
-                  Instant COD <br className="hidden sm:block" /> Issuance
+                  {t("highlights.item2")}
                 </h3>
               </motion.div>
 
@@ -201,7 +204,7 @@ export default function AboutPage() {
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
-                  Trusted by Thousands <br className="hidden sm:block" /> Across India
+                  {t("highlights.item3")}
                 </h3>
               </motion.div>
 
@@ -215,7 +218,7 @@ export default function AboutPage() {
                   <Award className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
-                  Best Discounts on <br className="hidden sm:block" /> Insurance & Finance
+                  {t("highlights.item4")}
                 </h3>
               </motion.div>
 
@@ -229,7 +232,7 @@ export default function AboutPage() {
                   <Leaf className="w-6 h-6" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-semibold text-slate-705 leading-snug group-hover/card:text-[#E31E24] transition-colors duration-300">
-                  Driving a Greener <br className="hidden sm:block" /> Tomorrow
+                  {t("highlights.item5")}
                 </h3>
               </motion.div>
 
@@ -287,12 +290,12 @@ export default function AboutPage() {
                     <Award className="w-5 h-5 text-red-500" />
                   </div>
                   <div>
-                    <div className="font-bold text-slate-800 leading-tight">Govt. Authorized</div>
-                    <div className="text-xs text-red-500/90 font-semibold">RVSF Facility</div>
+                    <div className="font-bold text-slate-800 leading-tight">{t("mission.certification.title")}</div>
+                    <div className="text-xs text-red-500/90 font-semibold">{t("mission.certification.subtitle")}</div>
                   </div>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed font-semibold">
-                  Fully compliant with Vehicle Scrappage Policy 2021. Certificate of Deposit (CD) issued instantly.
+                  {t("mission.certification.desc")}
                 </p>
               </motion.div>
             </motion.div>
@@ -316,23 +319,22 @@ export default function AboutPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
-                Our Mission
+                {t("mission.badge")}
               </motion.div>
 
               <motion.h2
                 variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                 className="text-3xl md:text-5xl lg:text-5xl font-black text-slate-900 mb-6 leading-tight tracking-tight animate-gradient-move"
               >
-                Refining the <br />
-                <span className="text-[#E31E24]">Scrapping Experience</span>
+                {t("mission.heading")}
               </motion.h2>
 
               <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="space-y-6 text-sm sm:text-base text-slate-600 leading-relaxed mb-10 font-semibold">
                 <p>
-                  We’re not just a scrapyard; we’re a technology-driven recycling hub. We transform the complex, unorganized process of vehicle scrapping into a seamless, transparent, and rewarding experience for every car owner.
+                  {t("mission.p1")}
                 </p>
                 <p>
-                  Sustainability drives our innovation. By integrating smart logistics and eco-friendly dismantling processes, we ensure maximum material recovery while minimizing environmental impact. Our goal is to create a circular economy where every end-of-life vehicle contributes to a greener future.
+                  {t("mission.p2")}
                 </p>
               </motion.div>
 
@@ -348,8 +350,8 @@ export default function AboutPage() {
                       <CheckCircle2 className="w-4 h-4 text-red-500 group-hover:text-red-650" />
                     </div>
                     <div>
-                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">Legal Assurance</h4>
-                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">Guaranteed de-registration and legal immunity.</p>
+                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">{t("mission.features.legal.title")}</h4>
+                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">{t("mission.features.legal.desc")}</p>
                     </div>
                   </div>
                 </div>
@@ -361,8 +363,8 @@ export default function AboutPage() {
                       <Banknote className="w-4 h-4 text-red-500 group-hover:text-red-650" />
                     </div>
                     <div>
-                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">Best Value</h4>
-                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">Algorithmic pricing based on metal index.</p>
+                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">{t("mission.features.value.title")}</h4>
+                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">{t("mission.features.value.desc")}</p>
                     </div>
                   </div>
                 </div>
@@ -374,8 +376,8 @@ export default function AboutPage() {
                       <Recycle className="w-4 h-4 text-red-500 group-hover:text-red-650" />
                     </div>
                     <div>
-                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">0% Waste Policy</h4>
-                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">Every component is recycled or reused.</p>
+                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">{t("mission.features.waste.title")}</h4>
+                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">{t("mission.features.waste.desc")}</p>
                     </div>
                   </div>
                 </div>
@@ -387,8 +389,8 @@ export default function AboutPage() {
                       <TrendingUp className="w-4 h-4 text-red-500 group-hover:text-red-650" />
                     </div>
                     <div>
-                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">Tax Benefits</h4>
-                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">Get road tax rebates on your next vehicle.</p>
+                      <h4 className="text-slate-800 font-bold mb-1 text-base group-hover:text-[#E31E24]">{t("mission.features.tax.title")}</h4>
+                      <p className="text-slate-500 text-xs font-semibold leading-relaxed group-hover:text-slate-600">{t("mission.features.tax.desc")}</p>
                     </div>
                   </div>
                 </div>
@@ -433,15 +435,15 @@ export default function AboutPage() {
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-50 border border-red-200 text-[#E31E24] text-xs font-bold tracking-wider uppercase shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#E31E24] animate-pulse"></span>
-              Ethos &amp; Values
+              {t("values.badge")}
             </div>
             
             <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
-              Why Choose <span className="text-[#E31E24]">ScrapCentre.com?</span>
+              {t("values.heading")}
             </h2>
             
             <p className="text-slate-600 text-xs md:text-sm font-extrabold tracking-widest uppercase">
-              Smart Choices. Better Value. Greener Tomorrow.
+              {t("values.subtitle")}
             </p>
           </div>
 
@@ -461,8 +463,8 @@ export default function AboutPage() {
                   <Percent className="w-5.5 h-5.5" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Best Value for Your Vehicle</h3>
-                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">Get the maximum value with fast and secure payments.</p>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{t("values.cards.1.title")}</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">{t("values.cards.1.desc")}</p>
                 </div>
               </motion.div>
 
@@ -477,8 +479,8 @@ export default function AboutPage() {
                   <FileText className="w-5.5 h-5.5" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Instant COD Issuance</h3>
-                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">Get your Certificate of Deposit instantly, hassle-free.</p>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{t("values.cards.2.title")}</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">{t("values.cards.2.desc")}</p>
                 </div>
               </motion.div>
             </div>
@@ -510,8 +512,8 @@ export default function AboutPage() {
                   <ShieldCheck className="w-5.5 h-5.5" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Trusted &amp; Reliable</h3>
-                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">OEM benefits, insurance discounts and more assured advantages.</p>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{t("values.cards.3.title")}</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">{t("values.cards.3.desc")}</p>
                 </div>
               </motion.div>
 
@@ -526,8 +528,8 @@ export default function AboutPage() {
                   <Coins className="w-5.5 h-5.5" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Smart Savings Everywhere</h3>
-                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">Special discounts on finance (Green Loans), insurance &amp; more.</p>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{t("values.cards.4.title")}</h3>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">{t("values.cards.4.desc")}</p>
                 </div>
               </motion.div>
             </div>
@@ -549,8 +551,8 @@ export default function AboutPage() {
                 <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
                   <Car className="w-5 h-5" />
                 </div>
-                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Discounts on New Car</h4>
-                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Extra benefits at partner dealerships.</p>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">{t("values.grid.1.title")}</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">{t("values.grid.1.desc")}</p>
               </div>
 
               {/* Item 2 */}
@@ -558,8 +560,8 @@ export default function AboutPage() {
                 <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
                   <Settings className="w-5 h-5" />
                 </div>
-                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Quality Spare Parts</h4>
-                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Refurbished &amp; new spare parts at low prices.</p>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">{t("values.grid.2.title")}</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">{t("values.grid.2.desc")}</p>
               </div>
 
               {/* Item 3 */}
@@ -567,8 +569,8 @@ export default function AboutPage() {
                 <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
                   <Gift className="w-5 h-5" />
                 </div>
-                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Exciting Gifts</h4>
-                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Attractive &amp; assured complimentary gifts.</p>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">{t("values.grid.3.title")}</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">{t("values.grid.3.desc")}</p>
               </div>
 
               {/* Item 4 */}
@@ -576,8 +578,8 @@ export default function AboutPage() {
                 <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
                   <RefreshCw className="w-5 h-5" />
                 </div>
-                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Buy &amp; Sell Confidence</h4>
-                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Vehicle buying &amp; selling facility with COD.</p>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">{t("values.grid.4.title")}</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">{t("values.grid.4.desc")}</p>
               </div>
 
               {/* Item 5 */}
@@ -585,8 +587,8 @@ export default function AboutPage() {
                 <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 text-[#E31E24] flex items-center justify-center mb-3.5 transition-transform group-hover:scale-110 shadow-sm">
                   <Leaf className="w-5 h-5" />
                 </div>
-                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">Go Green EV</h4>
-                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">Convert your vehicle into EV at affordable cost.</p>
+                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-tight leading-snug mb-1">{t("values.grid.5.title")}</h4>
+                <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">{t("values.grid.5.desc")}</p>
               </div>
 
             </div>
@@ -605,10 +607,10 @@ export default function AboutPage() {
               </div>
               <div>
                 <h3 className="text-base md:text-lg font-black uppercase tracking-tight leading-tight mb-1">
-                  More Value. More Benefits. Better for You &amp; the Planet.
+                  {t("values.banner.title")}
                 </h3>
                 <p className="text-[11px] md:text-xs text-white/80 font-medium max-w-2xl leading-relaxed">
-                  Join thousands of smart vehicle owners who trust ScrapCentre.com for best value, benefits and a greener future.
+                  {t("values.banner.desc")}
                 </p>
               </div>
             </div>
@@ -619,7 +621,7 @@ export default function AboutPage() {
                 whileTap={{ scale: 0.95 }}
                 className="px-6 py-3.5 bg-white text-[#E31E24] font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg flex items-center gap-2 group/btn"
               >
-                Get Started Today
+                {t("values.banner.button")}
                 <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
               </motion.button>
             </Link>
@@ -672,16 +674,15 @@ export default function AboutPage() {
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-red-50 border-red-100 text-red-600 font-bold mb-4 tracking-wider uppercase text-[10px]">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
-                Free Service
+                {t("valuationCTA.badge")}
               </div>
 
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-4 leading-[0.95] tracking-tight uppercase">
-                Get <span className="text-red-600">Free</span> Valuation
-                <br /> <span className="text-slate-400">Of Your Car</span>
+                {t("valuationCTA.heading")}
               </h2>
 
               <p className="text-base md:text-lg font-medium text-slate-500 max-w-2xl leading-snug mx-auto md:mx-0">
-                Instantly check the current market scrap value of your vehicle with our AI-powered tool.
+                {t("valuationCTA.description")}
               </p>
             </div>
 
@@ -690,7 +691,7 @@ export default function AboutPage() {
               <Link href="/#services">
                 <button className="c-button--gooey group/btn relative inline-flex items-center justify-center px-8 py-3.5 text-base font-black text-white transition-all duration-300 bg-red-600 rounded-xl hover:bg-red-700 hover:scale-105 active:scale-95 shadow-lg shadow-red-600/30 overflow-hidden">
                   <span className="relative z-10 flex items-center gap-2">
-                    Check For Free
+                    {t("valuationCTA.button")}
                     <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                   </span>
                   <div className="c-button__blobs">
@@ -728,42 +729,41 @@ export default function AboutPage() {
             <div>
               <div className="mb-8">
                 <span className="text-[#E31E24] font-bold uppercase tracking-[0.2em] text-[10px] mb-2 block">
-                  Support <span className="inline-block w-6 h-[1px] bg-[#E31E24] align-middle ml-2"></span>
+                  {t("faq.tagline")} <span className="inline-block w-6 h-[1px] bg-[#E31E24] align-middle ml-2"></span>
                 </span>
                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
-                  Everything You <br />
-                  Need to <span className="text-[#E31E24]">Know</span>
+                  {t("faq.heading")}
                 </h2>
                 <p className="text-slate-500 text-base font-medium leading-relaxed max-w-md">
-                  Find answers to common questions about our services, processes, and policies.
+                  {t("faq.description")}
                 </p>
               </div>
 
               <div className="space-y-3">
                 {[
                   {
-                    question: "How does the vehicle scrapping process work?",
-                    answer: "It's simple! Get a quote, schedule a free pickup, we collect your vehicle, complete the paperwork, and make instant payment."
+                    question: t("faq.questions.1.question"),
+                    answer: t("faq.questions.1.answer")
                   },
                   {
-                    question: "How do I get a quote for my vehicle?",
-                    answer: "You can get an instant quote by entering your vehicle registration number on our homepage or by calling our support team."
+                    question: t("faq.questions.2.question"),
+                    answer: t("faq.questions.2.answer")
                   },
                   {
-                    question: "Do you offer free vehicle pickup?",
-                    answer: "Yes, we provide free doorstep pickup for all vehicles being scrapped through our authorized centers."
+                    question: t("faq.questions.3.question"),
+                    answer: t("faq.questions.3.answer")
                   },
                   {
-                    question: "What documents are required for scrapping my vehicle?",
-                    answer: "Typically, you'll need the RC (Registration Certificate), ID proof, and bank details. We handle all RTO documentation for you."
+                    question: t("faq.questions.4.question"),
+                    answer: t("faq.questions.4.answer")
                   },
                   {
-                    question: "How will I receive my payment?",
-                    answer: "Payments are made instantly via Bank Transfer or UPI once the vehicle is collected and documents are verified."
+                    question: t("faq.questions.5.question"),
+                    answer: t("faq.questions.5.answer")
                   },
                   {
-                    question: "Can I sell a vehicle without RC or insurance?",
-                    answer: "We require basic documentation to verify ownership. Please contact our support team to discuss specific cases."
+                    question: t("faq.questions.6.question"),
+                    answer: t("faq.questions.6.answer")
                   }
                 ].map((faq, index) => (
                   <div 
@@ -805,7 +805,7 @@ export default function AboutPage() {
 
               <div className="mt-8">
                 <button className="px-6 py-3 border-2 border-[#E31E24]/20 rounded-xl text-[#E31E24] font-bold uppercase tracking-wider text-[10px] hover:bg-[#E31E24] hover:text-white transition-all flex items-center gap-2 group">
-                  View All FAQs
+                  {t("faq.viewAll")}
                   <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
@@ -826,10 +826,10 @@ export default function AboutPage() {
               {/* Features Grid - Now in one line under the image */}
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { icon: Headphones, title: "24/7 Support", desc: "We're here to help you anytime." },
-                  { icon: ShieldCheck, title: "Secure & Safe", desc: "Your data and privacy are safe with us." },
-                  { icon: FileText, title: "Transparent Process", desc: "Clear and simple process at every step." },
-                  { icon: Users, title: "Expert Team", desc: "Experienced professionals at your service." }
+                  { icon: Headphones, title: t("faq.supportFeatures.support.title"), desc: t("faq.supportFeatures.support.desc") },
+                  { icon: ShieldCheck, title: t("faq.supportFeatures.secure.title"), desc: t("faq.supportFeatures.secure.desc") },
+                  { icon: FileText, title: t("faq.supportFeatures.transparent.title"), desc: t("faq.supportFeatures.transparent.desc") },
+                  { icon: Users, title: t("faq.supportFeatures.expert.title"), desc: t("faq.supportFeatures.expert.desc") }
                 ].map((feature, i) => (
                   <div key={i} className="bg-white border border-slate-100 p-2 py-7 min-h-[130px] rounded-xl hover:bg-red-50 hover:border-red-200 hover:shadow-xl hover:shadow-red-500/5 transition-all group flex flex-col items-center text-center justify-center">
                     <div className="w-10 h-10 rounded-lg bg-[#E31E24] flex items-center justify-center text-white mb-3 shadow-lg shadow-red-500/20 group-hover:scale-110 transition-transform">

@@ -133,3 +133,25 @@
   transform: scale(1.4) translateY(0) translateZ(0);
 }
 
+/* Devanagari Typography & Matra Clipping Prevention */
+.lang-hi,
+.lang-hi button,
+.lang-hi input,
+.lang-hi textarea,
+.lang-hi select {
+  font-family: var(--font-devanagari), sans-serif;
+}
+
+.lang-hi {
+  line-height: 1.6;
+}
+
+.lang-hi h1,
+.lang-hi h2,
+.lang-hi h3,
+.lang-hi h4,
+.lang-hi h5,
+.lang-hi h6 {
+  line-height: 1.35;
+}
+
