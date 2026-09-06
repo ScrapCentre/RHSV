@@ -82,6 +82,43 @@ export const metadata: Metadata = {
   },
 }
 
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": ["AutomotiveBusiness", "LocalBusiness"],
+  "@id": "https://www.scrapcentre.com/#organization",
+  "name": "ScrapCentre",
+  "alternateName": "ScrapCenter India",
+  "url": "https://www.scrapcentre.com/",
+  "slogan": "India's Largest Capacity RVSF",
+  "priceRange": "₹₹",
+  "logo": {
+    "@type": "ImageObject",
+    "@id": "https://www.scrapcentre.com/#logo",
+    "url": "https://www.scrapcentre.com/logo.png",
+    "caption": "ScrapCentre",
+  },
+  "image": { "@id": "https://www.scrapcentre.com/#logo" },
+  "telephone": "+91-9839447733",
+  "email": "contact@scrapcentre.com",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "21-E, Block Panki",
+    "addressLocality": "Kanpur",
+    "postalCode": "208020",
+    "addressCountry": "IN",
+  },
+}
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://www.scrapcentre.com/#website",
+  "url": "https://www.scrapcentre.com/",
+  "name": "ScrapCentre",
+  "publisher": { "@id": "https://www.scrapcentre.com/#organization" },
+  "inLanguage": "en-IN",
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -97,6 +134,14 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#000000" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
       </head>
       <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
         <GoogleTagManager />

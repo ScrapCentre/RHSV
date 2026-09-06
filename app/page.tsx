@@ -13,6 +13,76 @@ import WelcomePopup from "@/components/WelcomePopup"
 
 
 
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://www.scrapcentre.com/#webpage",
+  "url": "https://www.scrapcentre.com/",
+  "name": "ScrapCenter India - Vehicle Scrapping Services",
+  "description":
+    "Official authorized vehicle scrapping center in India. We specialize in environmentally friendly disposal of end-of-life vehicles (ELVs) in compliance with current regulations.",
+  "isPartOf": { "@id": "https://www.scrapcentre.com/#website" },
+  "about": { "@id": "https://www.scrapcentre.com/#organization" },
+  "publisher": { "@id": "https://www.scrapcentre.com/#organization" },
+  "inLanguage": "en-IN",
+  "primaryImageOfPage": {
+    "@type": "ImageObject",
+    "url": "https://www.scrapcentre.com/logo.png",
+  },
+}
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": "https://www.scrapcentre.com/#faq",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does the vehicle scrapping process work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It's simple! Get a quote, schedule a free pickup, we collect your vehicle, complete the paperwork, and make instant payment.",
+      },
+    },
+    {
+      "@type": "Question",
+      "name": "How do I get a quote for my vehicle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can get an instant quote by entering your vehicle registration number on our homepage or by calling our support team.",
+      },
+    },
+  ],
+}
+
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": "https://www.scrapcentre.com/#service",
+  "name": "Vehicle Scrapping & Buying Services by ScrapCentre",
+  "serviceType":
+    "Vehicle scrapping, RVSF certificate of deposit issuance, and new vehicle buying assistance",
+  "description":
+    "Choose to scrap your old vehicle for the best eco-friendly value, or buy a new vehicle with exclusive OEM benefits and registration discounts.",
+  "provider": { "@id": "https://www.scrapcentre.com/#organization" },
+  "areaServed": { "@type": "Country", "name": "India" },
+  "url": "https://www.scrapcentre.com/",
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "ScrapCentre Services",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Scrap Your Vehicle",
+          "description": "Best scrap value with eco-friendly pickup.",
+        },
+      },
+    ],
+  },
+}
+
 export default function Home() {
   const [showLoader, setShowLoader] = useState(true)
 
@@ -27,6 +97,18 @@ export default function Home() {
 
   return (
     <div className="bg-background min-h-screen text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
       <AnimatePresence>
         {showLoader && (
           <motion.div
