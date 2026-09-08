@@ -1,11 +1,11 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight, RotateCw } from "lucide-react"
+import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight, RotateCw, CalendarDays, Download, X } from "lucide-react"
 import Link from "next/link"
 import DashboardCharts from "./DashboardCharts"
 import { useRouter } from "next/navigation"
-import { useTransition } from "react"
+import { useTransition, useState, useRef, useEffect, useCallback } from "react"
 
 interface DashboardOverviewProps {
     totalRequests: number
@@ -80,11 +80,68 @@ export default function DashboardOverview({
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
 
+    // Calendar / Export state
+    const [calOpen, setCalOpen] = useState(false)
+    const [startDate, setStartDate] = useState("")
+    const [endDate, setEndDate] = useState("")
+    const [isExporting, setIsExporting] = useState(false)
+    const [exportError, setExportError] = useState("")
+    const popoverRef = useRef<HTMLDivElement>(null)
+
+    // Close popover on outside click
+    useEffect(() => {
+        if (!calOpen) return
+        const handler = (e: MouseEvent) => {
+            if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+                setCalOpen(false)
+                setExportError("")
+            }
+        }
+        document.addEventListener("mousedown", handler)
+        return () => document.removeEventListener("mousedown", handler)
+    }, [calOpen])
+
     const handleRefresh = () => {
         startTransition(() => {
             router.refresh()
         })
     }
+
+    const handleExport = useCallback(async () => {
+        if (!startDate || !endDate) {
+            setExportError("Please select both start and end dates.")
+            return
+        }
+        if (new Date(startDate) > new Date(endDate)) {
+            setExportError("Start date must be before end date.")
+            return
+        }
+        setExportError("")
+        setIsExporting(true)
+        try {
+            const res = await fetch(`/api/admin/export-leads?startDate=${startDate}&endDate=${endDate}`)
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}))
+                throw new Error(body.error || "Export failed")
+            }
+            const blob = await res.blob()
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = `leads_${startDate}_to_${endDate}.xlsx`
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            URL.revokeObjectURL(url)
+            setCalOpen(false)
+            setStartDate("")
+            setEndDate("")
+        } catch (err: any) {
+            setExportError(err.message || "Something went wrong.")
+        } finally {
+            setIsExporting(false)
+        }
+    }, [startDate, endDate])
 
     return (
         <motion.div
@@ -180,6 +237,102 @@ export default function DashboardOverview({
                         Market Feed
                     </h2>
                     <div className="flex items-center gap-2">
+                        {/* Calendar Export Button */}
+                        <div className="relative" ref={popoverRef}>
+                            <button
+                                onClick={() => { setCalOpen(v => !v); setExportError("") }}
+                                className={`inline-flex items-center justify-center p-1.5 rounded-lg border shadow-sm transition-all active:scale-95 ${
+                                    calOpen
+                                        ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-emerald-600"
+                                }`}
+                                title="Export Leads to Excel"
+                            >
+                                <CalendarDays className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Date-Range Popover */}
+                            {calOpen && (
+                                <div className="absolute right-0 top-8 z-50 w-72 bg-white dark:bg-[#0E192D] border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-4 space-y-3">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="p-1 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                                                <Download className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-800 dark:text-white">Export Leads</span>
+                                        </div>
+                                        <button
+                                            onClick={() => { setCalOpen(false); setExportError("") }}
+                                            className="p-0.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+
+                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-snug">
+                                        Select a date range to download all leads (Scrap, Exchange &amp; Buy) as an Excel file.
+                                    </p>
+
+                                    {/* Date Inputs */}
+                                    <div className="space-y-2">
+                                        <div>
+                                            <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">From</label>
+                                            <input
+                                                type="date"
+                                                value={startDate}
+                                                max={endDate || undefined}
+                                                onChange={e => setStartDate(e.target.value)}
+                                                className="w-full text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">To</label>
+                                            <input
+                                                type="date"
+                                                value={endDate}
+                                                min={startDate || undefined}
+                                                onChange={e => setEndDate(e.target.value)}
+                                                className="w-full text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Error */}
+                                    {exportError && (
+                                        <p className="text-[10px] text-red-500 font-medium">{exportError}</p>
+                                    )}
+
+                                    {/* Actions */}
+                                    <div className="flex gap-2 pt-1">
+                                        <button
+                                            onClick={() => { setCalOpen(false); setExportError(""); setStartDate(""); setEndDate("") }}
+                                            className="flex-1 text-[10px] font-bold py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleExport}
+                                            disabled={isExporting || !startDate || !endDate}
+                                            className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white transition-all active:scale-95"
+                                        >
+                                            {isExporting ? (
+                                                <>
+                                                    <RotateCw className="w-3 h-3 animate-spin" />
+                                                    Exporting…
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Download className="w-3 h-3" />
+                                                    Download Excel
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <button
                             onClick={handleRefresh}
                             disabled={isPending}
