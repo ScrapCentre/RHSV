@@ -64,7 +64,7 @@
     "lucide-react": "^0.454.0",
     "mongoose": "^9.1.5",
     "motion": "^12.40.0",
-    "next": "^15.2.8",
+    "next": "^15.5.7",
     "next-auth": "^4.24.13",
     "next-intl": "^4.14.2",
     "next-themes": "latest",
@@ -94,10 +94,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9.39.2",
-    "eslint-config-next": "^15.5.11",
+    "eslint-config-next": "^15.5.7",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@next/swc-win32-x64-msvc": "^15.5.7"
   }
 }

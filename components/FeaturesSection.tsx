@@ -17,7 +17,7 @@ export default function FeaturesSection() {
   ] as const
 
   return (
-    <section className="py-10 relative overflow-hidden text-slate-900 bg-white features-section">
+    <section id="how-it-works" className="py-10 relative overflow-hidden text-slate-900 bg-white features-section">
       {/* Background Image - Fitted to section and screen */}
       <div className="absolute inset-0 pointer-events-none z-0 hidden lg:block">
         <img 

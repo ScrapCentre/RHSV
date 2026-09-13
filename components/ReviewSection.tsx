@@ -57,7 +57,7 @@ export default function ReviewSection() {
   }, [nextReview])
 
   return (
-    <section className="pt-20 pb-10 bg-white overflow-hidden relative">
+    <section id="faq" className="pt-20 pb-10 bg-white overflow-hidden relative">
       {/* Abstract Background Shapes */}
       <div className="absolute top-20 right-0 w-96 h-96 bg-slate-50 rounded-full blur-3xl opacity-50 -mr-48 pointer-events-none"></div>
       <div className="absolute bottom-40 left-0 w-64 h-64 bg-red-50 rounded-full blur-3xl opacity-30 -ml-32 pointer-events-none"></div>

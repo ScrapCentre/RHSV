@@ -11,7 +11,7 @@ import GoogleTag from "@/components/GoogleTag"
 import GoogleTagManager from "@/components/GoogleTagManager"
 
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-latin"
 })
@@ -20,10 +20,10 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
   weight: ["400", "500", "600", "700"],
   variable: "--font-devanagari",
 })
-const bebasNeue = Bebas_Neue({ 
-  weight: "400", 
-  subsets: ["latin"], 
-  variable: "--font-bebas" 
+const bebasNeue = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-bebas"
 })
 
 export const metadata: Metadata = {

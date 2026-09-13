@@ -10,6 +10,14 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const handleSectionScroll = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+    const element = document.querySelector(hash)
+    if (element) {
+      e.preventDefault()
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   return (
     <footer className="bg-white pt-4 relative overflow-hidden">
       {/* 1. Back to Top Strip */}
@@ -73,7 +81,7 @@ export default function Footer() {
               <span className="block w-8 h-[2px] bg-[#E31E24] mt-2"></span>
             </h3>
             <ul className="space-y-4">
-              {['Sell Your Car', 'Buy Used Parts', 'Instant Valuation'].map((item, i) => (
+              {['Sell Your Car', 'Instant Valuation'].map((item, i) => (
                 <li key={i}>
                   <Link href="#" className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
                     <ChevronRight size={12} className="text-[#E31E24] transition-transform group-hover:translate-x-1" />
@@ -90,11 +98,15 @@ export default function Footer() {
               <span className="block w-8 h-[2px] bg-[#E31E24] mt-2"></span>
             </h3>
             <ul className="space-y-4">
-              {['About Us', 'Contact Support', 'Privacy Policy', 'Terms & Conditions'].map((item, i) => (
+              {[
+                { name: 'About Us', href: '/about' },
+                { name: 'Contact Support', href: '/contact' },
+                { name: 'Terms & Conditions', href: '/terms' },
+              ].map((item, i) => (
                 <li key={i}>
-                  <Link href="#" className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
+                  <Link href={item.href} className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
                     <ChevronRight size={12} className="text-[#E31E24] transition-transform group-hover:translate-x-1" />
-                    {item}
+                    {item.name}
                   </Link>
                 </li>
               ))}
@@ -107,11 +119,18 @@ export default function Footer() {
               <span className="block w-8 h-[2px] bg-[#E31E24] mt-2"></span>
             </h3>
             <ul className="space-y-4">
-              {['How It Works', 'FAQs', 'Blog', 'Sitemap'].map((item, i) => (
+              {[
+                { name: 'How It Works', href: '/#how-it-works', hash: '#how-it-works' },
+                { name: 'FAQs', href: '/#faq', hash: '#faq' },
+              ].map((item, i) => (
                 <li key={i}>
-                  <Link href="#" className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
+                  <Link
+                    href={item.href}
+                    onClick={(e) => handleSectionScroll(e, item.hash)}
+                    className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group"
+                  >
                     <ChevronRight size={12} className="text-[#E31E24] transition-transform group-hover:translate-x-1" />
-                    {item}
+                    {item.name}
                   </Link>
                 </li>
               ))}
