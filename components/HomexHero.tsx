@@ -240,7 +240,7 @@ export default function HomexHero() {
                 />
             </div>
 
-            <div className={`relative z-20 container mx-auto px-4 sm:px-6 lg:pl-24 flex-1 flex flex-col items-center lg:items-start justify-center ${isLeadVisible ? "pt-32 sm:pt-28 pb-4 lg:pt-24 lg:pb-0" : "pt-28 sm:pt-24 pb-8 lg:pt-20 lg:pb-0"}`}>
+            <div className={`relative z-20 container mx-auto px-4 sm:px-6 lg:px-12 xl:pl-24 flex-1 flex flex-col items-center lg:items-start justify-center ${isLeadVisible ? "pt-32 sm:pt-28 pb-4 lg:pt-24 lg:pb-0" : "pt-28 sm:pt-24 pb-8 lg:pt-20 lg:pb-0"}`}>
                 {/* Content Area - Aligned to Left */}
                 <div className="max-w-4xl lg:text-left text-center">
                     <motion.h1 
@@ -531,7 +531,7 @@ export default function HomexHero() {
                                 key={idx}
                                 whileHover={isLeadVisible ? { scale: 1.03, y: -2 } : { scale: 1.05, y: -4 }}
                                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                                className={`flex flex-col items-center text-center px-1 py-2 group/card transition-all duration-300 hover:bg-red-50/30 cursor-pointer ${isLeadVisible ? "sm:py-3 rounded-xl" : "sm:py-4 rounded-2xl"}`}
+                                className={`flex flex-col items-center text-center px-1 py-2 group/card transition-all duration-300 hover:bg-red-50/30 cursor-pointer last:col-span-2 sm:last:col-span-1 ${isLeadVisible ? "sm:py-3 rounded-xl" : "sm:py-4 rounded-2xl"}`}
                             >
                                 <div className={`rounded-full bg-red-50 flex items-center justify-center text-[#E31E24] border border-red-100 shadow-sm transition-all duration-300 ${isLeadVisible ? "w-9 h-9 sm:w-9 sm:h-9 mb-1.5 group-hover/card:scale-105 group-hover/card:bg-[#E31E24] group-hover/card:text-white" : "w-10 h-10 sm:w-11 sm:h-11 mb-2.5 group-hover/card:scale-110 group-hover/card:bg-[#E31E24] group-hover/card:text-white group-hover/card:ring-4 group-hover/card:ring-red-100/50"}`}>
                                     <feature.icon className={isLeadVisible ? "w-4 h-4 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 h-5"} />

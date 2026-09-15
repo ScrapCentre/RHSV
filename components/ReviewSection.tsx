@@ -21,10 +21,40 @@ export default function ReviewSection() {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  const faqs = [1, 2, 3, 4, 5, 6].map((i) => ({
-    question: t(`faq.questions.${i}.question`),
-    answer:   t(`faq.questions.${i}.answer`),
-  }))
+  const faqs = [
+    {
+      question: "Is vehicle scrapping mandatory in India?",
+      answer: "Vehicles crossing the fitness/age limits or failing mandatory tests must be deregistered — scrapping at an RVSF is the compliant route.",
+    },
+    {
+      question: "How much can I get for scrapping my vehicle?",
+      answer: "Value depends on vehicle type, weight, condition and applicable rebates — get an instant, no-obligation estimate.",
+    },
+    {
+      question: "What documents do I need to scrap my car or bike?",
+      answer: "RC, ID proof, and a signed declaration at minimum — see the full checklist above.",
+    },
+    {
+      question: "Do you scrap two-wheelers, buses and trucks too?",
+      answer: "Yes — car, bike, bus, truck, auto-rickshaw, commercial and EV, all through the same authorised process.",
+    },
+    {
+      question: "Is the pickup really free?",
+      answer: "Yes, doorstep pickup — including towing for non-running vehicles — is included at no extra cost.",
+    },
+    {
+      question: "What is a Certificate of Deposit (COD)?",
+      answer: "Official proof, issued by the RVSF, that your vehicle has been permanently deregistered and scrapped.",
+    },
+    {
+      question: "Can I sell a vehicle without RC or insurance?",
+      answer: "In most cases yes, with additional declarations — our team verifies this case by case.",
+    },
+    {
+      question: "How long does the whole process take?",
+      answer: "Typically same-day to a few days from pickup to COD issuance, depending on documentation.",
+    },
+  ]
 
   const reviews = [1, 2, 3, 4].map((i) => ({
     id: i,
@@ -229,13 +259,13 @@ export default function ReviewSection() {
           <div>
             <div className="mb-8">
               <span className="text-[#E31E24] font-bold uppercase tracking-[0.2em] text-[10px] mb-2 block">
-                {t("faq.tagline")} <span className="inline-block w-6 h-[1px] bg-[#E31E24] align-middle ml-2"></span>
+                Frequently Asked <span className="inline-block w-6 h-[1px] bg-[#E31E24] align-middle ml-2"></span>
               </span>
-              <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
-                {t("faq.heading")}
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
+                Everything owners ask before scrapping
               </h2>
-              <p className="text-slate-500 text-base font-medium leading-relaxed max-w-md">
-                {t("faq.description")}
+              <p className="text-slate-500 text-sm md:text-base font-medium leading-relaxed max-w-md">
+                Find clear answers to common questions about vehicle scrapping in India.
               </p>
             </div>
 
@@ -298,8 +328,8 @@ export default function ReviewSection() {
               />
             </div>
 
-            {/* Features Grid - Now in one line under the image */}
-            <div className="grid grid-cols-4 gap-2">
+            {/* Features Grid - 2 cols on mobile, 4 cols on desktop */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
               {features.map((feature, i) => (
                 <div key={i} className="bg-white border border-slate-100 p-2 py-7 min-h-[130px] rounded-xl hover:bg-red-50 hover:border-red-200 hover:shadow-xl hover:shadow-red-500/5 transition-all group flex flex-col items-center text-center justify-center">
                   <div className="w-10 h-10 rounded-lg bg-[#E31E24] flex items-center justify-center text-white mb-3 shadow-lg shadow-red-500/20 group-hover:scale-110 transition-transform">

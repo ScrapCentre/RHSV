@@ -52,6 +52,7 @@ const LOCALE_EXCLUDED_PREFIXES = [
     "/login",
     "/partner-register",
     "/recreate-password",
+    "/homex",
     "/rvsf",
     "/scrapcentre",
     "/terms",
