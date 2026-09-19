@@ -65,7 +65,7 @@ export default async function Home({
   const webPageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": "https://www.scrapcentre.com/#webpage",
+    "@id": isHindi ? "https://www.scrapcentre.com/hi#webpage" : "https://www.scrapcentre.com/#webpage",
     "url": isHindi
       ? "https://www.scrapcentre.com/hi"
       : "https://www.scrapcentre.com/",
@@ -88,7 +88,7 @@ export default async function Home({
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "@id": "https://www.scrapcentre.com/#faq",
+    "@id": isHindi ? "https://www.scrapcentre.com/hi#faq" : "https://www.scrapcentre.com/#faq",
     "mainEntity": ([1, 2, 3, 4, 5, 6] as const).map((n) => ({
       "@type": "Question",
       "name": faqQuestions[String(n) as keyof typeof faqQuestions].question,
@@ -103,15 +103,14 @@ export default async function Home({
   // url is locale-aware (approved deviation).
   // name, serviceType, description, offer text stay fixed English —
   // no Hindi equivalent exists in messages; per spec rule, not invented.
+  const svcMsg = msg.HomePage.schema.service
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "@id": "https://www.scrapcentre.com/#service",
-    "name": "Vehicle Scrapping & Buying Services by ScrapCentre",
-    "serviceType":
-      "Vehicle scrapping, RVSF certificate of deposit issuance, and new vehicle buying assistance",
-    "description":
-      "Choose to scrap your old vehicle for the best eco-friendly value, or buy a new vehicle with exclusive OEM benefits and registration discounts.",
+    "@id": isHindi ? "https://www.scrapcentre.com/hi#service" : "https://www.scrapcentre.com/#service",
+    "name": svcMsg.name,
+    "serviceType": svcMsg.serviceType,
+    "description": svcMsg.description,
     "provider": { "@id": "https://www.scrapcentre.com/#organization" },
     "areaServed": { "@type": "Country", "name": "India" },
     "url": isHindi
@@ -119,22 +118,22 @@ export default async function Home({
       : "https://www.scrapcentre.com/",
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": "ScrapCentre Services",
+      "name": svcMsg.catalogName,
       "itemListElement": [
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": "Scrap Your Vehicle",
-            "description": "Best scrap value with eco-friendly pickup.",
+            "name": svcMsg.offer1.name,
+            "description": svcMsg.offer1.description,
           },
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": "Buy a New Vehicle",
-            "description": "Exchange offers & OEM benefits on your next car.",
+            "name": svcMsg.offer2.name,
+            "description": svcMsg.offer2.description,
           },
         },
       ],

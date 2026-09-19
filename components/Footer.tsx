@@ -150,7 +150,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-900 uppercase tracking-wider mb-0.5">Visit Us</div>
-                  <div className="text-slate-500 text-xs font-bold">21-E, Block Panki, Kanpur, 208020</div>
+                  <div className="text-slate-500 text-xs font-bold">26-A & B, Block-E, Panki, Kalpi Road, Kanpur, Uttar Pradesh, 208020</div>
                 </div>
               </div>
               <div className="flex items-start gap-4">
