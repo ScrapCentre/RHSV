@@ -45,7 +45,6 @@ export default function Navbar() {
   const navItems = [
     { name: nav.about,         href: localizedHref("/about") },
     { name: nav.freeValuation, href: localizedHref("/know-your-valuation") },
-    { name: nav.services,      href: localizedHref("/vehicle-scrapping-services") },
     { name: nav.rvsf,          href: "/rvsf/apply" },
     { name: nav.contact,       href: localizedHref("/contact") },
   ]
