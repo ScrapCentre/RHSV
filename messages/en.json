@@ -154,6 +154,22 @@
         "expert": { "title": "Expert Team", "desc": "Experienced professionals at your service." }
       }
     },
+    "schema": {
+      "service": {
+        "name": "Vehicle Scrapping & Buying Services by ScrapCentre",
+        "serviceType": "Vehicle scrapping, RVSF certificate of deposit issuance, and new vehicle buying assistance",
+        "description": "Choose to scrap your old vehicle for the best eco-friendly value, or buy a new vehicle with exclusive OEM benefits and registration discounts.",
+        "catalogName": "ScrapCentre Services",
+        "offer1": {
+          "name": "Scrap Your Vehicle",
+          "description": "Best scrap value with eco-friendly pickup."
+        },
+        "offer2": {
+          "name": "Buy a New Vehicle",
+          "description": "Exchange offers & OEM benefits on your next car."
+        }
+      }
+    },
     "welcomePopup": {
       "heading": "Welcome to ScrapCenter!",
       "message": "You have successfully logged in. We are excited to have you on board.",
@@ -476,7 +492,7 @@
       "emailUs": "Email Us",
       "email": "contact@scrapcentre.com",
       "office": "Office",
-      "address": "21-E, Block Panki, Kanpur",
+      "address": "26-A & B, Block-E, Panki, Kalpi Road, Kanpur, 208020",
       "privacyNote": "Your data is safe and encrypted under high privacy standards."
     },
     "form": {
