@@ -2,31 +2,43 @@
 
 import { motion } from "framer-motion"
 import { ClipboardList, Truck, ShieldCheck, Banknote, ArrowRight } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function ScrappingProcessSection() {
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const steps = [
     {
       number: "01",
-      title: "Share Vehicle Details",
-      description: "Tell us the vehicle type, model & location for an instant estimate.",
+      title: isHindi ? "वाहन विवरण साझा करें" : "Share Vehicle Details",
+      description: isHindi
+        ? "तुरंत अनुमान के लिए हमें वाहन का प्रकार, मॉडल और स्थान बताएं।"
+        : "Tell us the vehicle type, model & location for an instant estimate.",
       icon: ClipboardList,
     },
     {
       number: "02",
-      title: "Free Doorstep Pickup",
-      description: "We schedule a convenient pickup — towing included if non-running.",
+      title: isHindi ? "मुफ्त डोरस्टेप पिकअप" : "Free Doorstep Pickup",
+      description: isHindi
+        ? "हम सुविधाजनक पिकअप शेड्यूल करते हैं — बंद वाहनों के लिए टोइंग शामिल।"
+        : "We schedule a convenient pickup — towing included if non-running.",
       icon: Truck,
     },
     {
       number: "03",
-      title: "Documentation Support",
-      description: "RC cancellation & paperwork handled end-to-end.",
+      title: isHindi ? "दस्तावेज सहायता" : "Documentation Support",
+      description: isHindi
+        ? "RC रद्दीकरण और कागजी कार्रवाई शुरू से अंत तक संभाली जाती है।"
+        : "RC cancellation & paperwork handled end-to-end.",
       icon: ShieldCheck,
     },
     {
       number: "04",
-      title: "Payment + COD Issued",
-      description: "Instant payment and your Certificate of Deposit, same day.",
+      title: isHindi ? "भुगतान + COD जारी" : "Payment + COD Issued",
+      description: isHindi
+        ? "तुरंत भुगतान और आपका जमा प्रमाणपत्र (COD), उसी दिन।"
+        : "Instant payment and your Certificate of Deposit, same day.",
       icon: Banknote,
     },
   ]
@@ -69,13 +81,20 @@ export default function ScrappingProcessSection() {
           {/* Tag */}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2 border border-black shadow-xs">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E31E24] animate-pulse" />
-            PROCESS
+            {isHindi ? "प्रक्रिया" : "PROCESS"}
           </div>
 
           {/* Heading */}
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-            Four steps, start to{" "}
-            <span className="text-[#E31E24]">Certificate of Deposit</span>
+            {isHindi ? (
+              <>
+                चार आसान चरण, शुरुआत से <span className="text-[#E31E24]">जमा प्रमाणपत्र तक</span>
+              </>
+            ) : (
+              <>
+                Four steps, start to <span className="text-[#E31E24]">Certificate of Deposit</span>
+              </>
+            )}
           </h2>
         </motion.div>
 
@@ -133,7 +152,7 @@ export default function ScrappingProcessSection() {
                   {/* Step Connector Footer */}
                   <div className="mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between text-slate-400 group-hover:text-[#E31E24] transition-colors">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider">
-                      Step {item.number}
+                      {isHindi ? `चरण ${item.number}` : `Step ${item.number}`}
                     </span>
                     <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-300" />
                   </div>

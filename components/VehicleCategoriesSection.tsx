@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import {
   Car,
   Bike,
@@ -15,70 +16,73 @@ import {
 } from "lucide-react"
 
 export default function VehicleCategoriesSection() {
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const whatsappUrl =
     "https://wa.me/919839447733?text=Hi%2C%20I%20have%20a%20vehicle%20category%20query"
 
   const categories = [
     {
-      title: "Car Scrapping",
-      description: "Sedans, hatchbacks, SUVs — running or non-running.",
-      cta: "Scrap My Car",
+      title: isHindi ? "कार स्क्रैपिंग" : "Car Scrapping",
+      description: isHindi ? "सेडान, हैचबैक, SUV — चालू या बंद।" : "Sedans, hatchbacks, SUVs — running or non-running.",
+      cta: isHindi ? "मेरी कार स्क्रैप करें" : "Scrap My Car",
       href: "/quote?type=car",
       icon: Car,
     },
     {
-      title: "Bike / Two-Wheeler",
-      description: "Motorcycles, scooters, mopeds of any age.",
-      cta: "Scrap My Bike",
+      title: isHindi ? "बाइक / टू-व्हीलर" : "Bike / Two-Wheeler",
+      description: isHindi ? "किसी भी उम्र की मोटरसाइकिल, स्कूटर, मोपेड।" : "Motorcycles, scooters, mopeds of any age.",
+      cta: isHindi ? "मेरी बाइक स्क्रैप करें" : "Scrap My Bike",
       href: "/quote?type=bike",
       icon: Bike,
     },
     {
-      title: "Bus Scrapping",
-      description: "School, staff and institutional buses.",
-      cta: "Scrap My Bus",
+      title: isHindi ? "बस स्क्रैपिंग" : "Bus Scrapping",
+      description: isHindi ? "स्कूल, स्टाफ और संस्थागत बसें।" : "School, staff and institutional buses.",
+      cta: isHindi ? "मेरी बस स्क्रैप करें" : "Scrap My Bus",
       href: "/quote?type=bus",
       icon: Bus,
     },
     {
-      title: "Truck Scrapping",
-      description: "Light and heavy commercial trucks.",
-      cta: "Scrap My Truck",
+      title: isHindi ? "ट्रक स्क्रैपिंग" : "Truck Scrapping",
+      description: isHindi ? "हल्के और भारी वाणिज्यिक ट्रक।" : "Light and heavy commercial trucks.",
+      cta: isHindi ? "मेरा ट्रक स्क्रैप करें" : "Scrap My Truck",
       href: "/quote?type=truck",
       icon: Truck,
     },
     {
-      title: "Auto-Rickshaw",
-      description: "Passenger and cargo three-wheelers.",
-      cta: "Scrap My Auto",
+      title: isHindi ? "ऑटो-रिक्शा" : "Auto-Rickshaw",
+      description: isHindi ? "यात्री और कार्गो थ्री-व्हीलर।" : "Passenger and cargo three-wheelers.",
+      cta: isHindi ? "मेरा ऑटो स्क्रैप करें" : "Scrap My Auto",
       href: "/quote?type=auto",
       icon: Car,
     },
     {
-      title: "Commercial Fleet",
-      description: "Bulk scrapping for businesses & dealerships.",
-      cta: "See Fleet Page",
+      title: isHindi ? "वाणिज्यिक फ्लीट" : "Commercial Fleet",
+      description: isHindi ? "व्यापारियों और डीलरशिप के लिए थोक स्क्रैपिंग।" : "Bulk scrapping for businesses & dealerships.",
+      cta: isHindi ? "फ्लीट पेज देखें" : "See Fleet Page",
       href: "/quote?type=fleet",
       icon: Building2,
     },
     {
-      title: "Electric Vehicles",
-      description: "EV cars & two-wheelers, battery-safe recycling.",
-      cta: "Scrap My EV",
+      title: isHindi ? "इलेक्ट्रिक वाहन" : "Electric Vehicles",
+      description: isHindi ? "EV कारें और टू-व्हीलर, सुरक्षित बैटरी रीसाइक्लिंग।" : "EV cars & two-wheelers, battery-safe recycling.",
+      cta: isHindi ? "मेरा EV स्क्रैप करें" : "Scrap My EV",
       href: "/quote?type=ev",
       icon: Zap,
     },
     {
-      title: "Industrial / Agri",
-      description: "Tractors, loaders, farm & site machinery.",
-      cta: "Scrap My Vehicle",
+      title: isHindi ? "औद्योगिक / कृषि" : "Industrial / Agri",
+      description: isHindi ? "ट्रैक्टर, लोडर, कृषि और साइट मशीनरी।" : "Tractors, loaders, farm & site machinery.",
+      cta: isHindi ? "वाहन स्क्रैप करें" : "Scrap My Vehicle",
       href: "/quote?type=agri",
       icon: Tractor,
     },
     {
-      title: "Others",
-      description: "Not listed? We still take it — ask our team.",
-      cta: "Talk to Us",
+      title: isHindi ? "अन्य वाहन" : "Others",
+      description: isHindi ? "सूचीबद्ध नहीं है? हम फिर भी स्वीकार करते हैं — पूछें।" : "Not listed? We still take it — ask our team.",
+      cta: isHindi ? "हमसे बात करें" : "Talk to Us",
       href: whatsappUrl,
       isExternal: true,
       icon: Plus,
@@ -149,12 +153,20 @@ export default function VehicleCategoriesSection() {
             className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2 border border-black shadow-sm"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#E31E24] animate-pulse" />
-            COVERAGE
+            {isHindi ? "कवरेज" : "COVERAGE"}
           </motion.div>
 
           {/* Title */}
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-black tracking-tight leading-tight">
-            One RVSF. <span className="text-[#E31E24]">Every vehicle category.</span>
+            {isHindi ? (
+              <>
+                एक RVSF। <span className="text-[#E31E24]">प्रत्येक वाहन श्रेणी।</span>
+              </>
+            ) : (
+              <>
+                One RVSF. <span className="text-[#E31E24]">Every vehicle category.</span>
+              </>
+            )}
           </h2>
         </motion.div>
 

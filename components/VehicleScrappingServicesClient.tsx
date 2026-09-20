@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import HomexHero from "@/components/HomexHero"
-import ServicesSection from "@/components/ServicesSection"
+import HomexServiceHero from "@/components/HomexServiceHero"
 import HomexWhatIsSection from "@/components/HomexWhatIsSection"
 import QualifyVehicleBanner from "@/components/QualifyVehicleBanner"
 import VehicleCategoriesSection from "@/components/VehicleCategoriesSection"
@@ -15,20 +14,18 @@ import RvsfTrustSection from "@/components/RvsfTrustSection"
 import DocumentsRequiredSection from "@/components/DocumentsRequiredSection"
 import ChecklistWhatsAppBanner from "@/components/ChecklistWhatsAppBanner"
 import CommonMistakesSection from "@/components/CommonMistakesSection"
+import CoverageRegionSection from "@/components/CoverageRegionSection"
+import CityAvailabilityBanner from "@/components/CityAvailabilityBanner"
 import ReviewSection from "@/components/ReviewSection"
 import FinalCtaSection from "@/components/FinalCtaSection"
 import WelcomePopup from "@/components/WelcomePopup"
 
-export default function HomexClient() {
+export default function VehicleScrappingServicesClient() {
   const [showLoader, setShowLoader] = useState(true)
 
   useEffect(() => {
-    // Loader animation duration
     const loaderTimeout = setTimeout(() => setShowLoader(false), 1800)
-
-    return () => {
-      clearTimeout(loaderTimeout)
-    }
+    return () => clearTimeout(loaderTimeout)
   }, [])
 
   return (
@@ -72,8 +69,7 @@ export default function HomexClient() {
       {!showLoader && (
         <>
           <WelcomePopup />
-          <HomexHero />
-          <ServicesSection />
+          <HomexServiceHero />
           <HomexWhatIsSection />
           <QualifyVehicleBanner />
           <VehicleCategoriesSection />
@@ -85,6 +81,8 @@ export default function HomexClient() {
           <DocumentsRequiredSection />
           <ChecklistWhatsAppBanner />
           <CommonMistakesSection />
+          <CoverageRegionSection />
+          <CityAvailabilityBanner />
           <ReviewSection />
           <FinalCtaSection />
         </>

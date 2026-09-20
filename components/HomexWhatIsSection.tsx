@@ -1,33 +1,47 @@
-"use client"
-
 import { motion } from "framer-motion"
 import { Car, FileText, ClipboardX, Coins, ShieldCheck, Leaf } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function HomexWhatIsSection() {
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const criteriaList = [
     {
       icon: Car,
-      text: "Vehicle not crossed its RC validity / fitness age limit",
+      text: isHindi
+        ? "वाहन की RC वैधता / फिटनेस उम्र सीमा समाप्त नहीं हुई है"
+        : "Vehicle not crossed its RC validity / fitness age limit",
     },
     {
       icon: FileText,
-      text: "Vehicle failed its fitness or emissions test",
+      text: isHindi
+        ? "वाहन फिटनेस या प्रदूषण (Emissions) जांच में विफल रहा"
+        : "Vehicle failed its fitness or emissions test",
     },
     {
       icon: ClipboardX,
-      text: "Registration has lapsed and re-registration isn't viable",
+      text: isHindi
+        ? "पंजीकरण समाप्त हो गया है और पुन: पंजीकरण व्यावहारिक नहीं है"
+        : "Registration has lapsed and re-registration isn't viable",
     },
     {
       icon: Coins,
-      text: "Repair cost now exceeds the vehicle's resale value",
+      text: isHindi
+        ? "मरम्मत की लागत अब वाहन के रीसेल मूल्य से अधिक है"
+        : "Repair cost now exceeds the vehicle's resale value",
     },
     {
       icon: ShieldCheck,
-      text: "Vehicle is no longer roadworthy or safe to use",
+      text: isHindi
+        ? "वाहन अब सड़क पर चलने योग्य या उपयोग के लिए सुरक्षित नहीं है"
+        : "Vehicle is no longer roadworthy or safe to use",
     },
     {
       icon: Leaf,
-      text: "Supporting a cleaner, greener tomorrow",
+      text: isHindi
+        ? "पर्यावरण-अनुकूल और हरित भविष्य का समर्थन"
+        : "Supporting a cleaner, greener tomorrow",
     },
   ]
 
@@ -87,31 +101,50 @@ export default function HomexWhatIsSection() {
           <div className="flex items-center gap-3 mb-3">
             <span className="h-[2px] w-6 bg-[#E31E24]"></span>
             <span className="text-[#E31E24] font-bold text-[11px] sm:text-xs uppercase tracking-[0.2em]">
-              HOW VEHICLE SCRAPPING WORKS
+              {isHindi ? "वाहन स्क्रैपिंग कैसे काम करता है" : "HOW VEHICLE SCRAPPING WORKS"}
             </span>
             <span className="h-[2px] w-6 bg-[#E31E24]"></span>
           </div>
 
           {/* Main Title */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-[1.15] mb-4 tracking-tight">
-            A quick, extractable{" "}
-            <span className="text-[#E31E24]">answer</span> — then the detail
+            {isHindi ? (
+              <>
+                एक त्वरित, स्पष्ट <span className="text-[#E31E24]">उत्तर</span> — विवरण के साथ
+              </>
+            ) : (
+              <>
+                A quick, extractable <span className="text-[#E31E24]">answer</span> — then the detail
+              </>
+            )}
           </h2>
 
           {/* Subtitle / Paragraph */}
           <p className="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed font-medium">
-            Vehicle scrapping is the{" "}
-            <strong className="text-[#E31E24] font-bold">
-              legal, permanent deregistration and dismantling
-            </strong>{" "}
-            of an end-of-life vehicle at a government-authorised Registered Vehicle Scrapping Facility (RVSF), which issues a Certificate of Deposit (COD) in exchange for the vehicle's material and salvage value.
+            {isHindi ? (
+              <>
+                वाहन स्क्रैपिंग सरकारी पंजीकृत वाहन स्क्रैपिंग सुविधा (RVSF) में किसी भी पुरानी कार का{" "}
+                <strong className="text-[#E31E24] font-bold">
+                  कानूनी, स्थायी डी-रजिस्ट्रेशन और डिस्मेंटलिंग
+                </strong>{" "}
+                है, जो वाहन के मलबे और सामग्री मूल्य के बदले जमा प्रमाणपत्र (COD) जारी करती है।
+              </>
+            ) : (
+              <>
+                Vehicle scrapping is the{" "}
+                <strong className="text-[#E31E24] font-bold">
+                  legal, permanent deregistration and dismantling
+                </strong>{" "}
+                of an end-of-life vehicle at a government-authorised Registered Vehicle Scrapping Facility (RVSF), which issues a Certificate of Deposit (COD) in exchange for the vehicle's material and salvage value.
+              </>
+            )}
           </p>
         </motion.div>
 
         {/* 6 Criteria Cards Grid with Staggered Scroll Entrance */}
         <motion.div
           variants={containerVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mt-20 md:mt-32 lg:mt-40 mb-8 md:mb-10"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mt-6 md:mt-12 lg:mt-16 mb-8 md:mb-10"
         >
           {criteriaList.map((item, idx) => {
             const Icon = item.icon

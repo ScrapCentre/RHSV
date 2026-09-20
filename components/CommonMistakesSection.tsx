@@ -2,38 +2,66 @@
 
 import { motion } from "framer-motion"
 import { Flag } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function CommonMistakesSection() {
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const redFlags = [
     {
       id: "01",
-      title: "Accepting a verbal quote with no written breakdown",
-      detail: "Always insist on an itemized written quote including scrap value and government certificate details.",
+      title: isHindi
+        ? "बिना किसी लिखित विवरण के केवल मौखिक कोट स्वीकार करना"
+        : "Accepting a verbal quote with no written breakdown",
+      detail: isHindi
+        ? "हमेशा स्क्रैप मूल्य और सरकारी प्रमाणपत्र विवरण सहित आइटम वार लिखित कोट की मांग करें।"
+        : "Always insist on an itemized written quote including scrap value and government certificate details.",
     },
     {
       id: "02",
-      title: "Skipping RC cancellation after handing over the vehicle",
-      detail: "Handing over a car without RC cancellation leaves you legally responsible for any future misuse.",
+      title: isHindi
+        ? "वाहन सौंपने के बाद RC रद्दीकरण को छोड़ देना"
+        : "Skipping RC cancellation after handing over the vehicle",
+      detail: isHindi
+        ? "RC रद्दीकरण के बिना कार सौंपना आपको भविष्य में किसी भी दुरुपयोग के लिए कानूनी रूप से उत्तरदायी बनाता है।"
+        : "Handing over a car without RC cancellation leaves you legally responsible for any future misuse.",
     },
     {
       id: "03",
-      title: "Not collecting the Certificate of Deposit (COD)",
-      detail: "The official COD issued by an authorised RVSF is your legal proof of permanent vehicle destruction.",
+      title: isHindi
+        ? "जमा प्रमाणपत्र (COD) एकत्र न करना"
+        : "Not collecting the Certificate of Deposit (COD)",
+      detail: isHindi
+        ? "एक अधिकृत RVSF द्वारा जारी आधिकारिक COD स्थायी वाहन विनिष्टीकरण का आपका कानूनी प्रमाण है।"
+        : "The official COD issued by an authorised RVSF is your legal proof of permanent vehicle destruction.",
     },
     {
       id: "04",
-      title: "Choosing an unauthorised scrapper for a slightly higher cash offer",
-      detail: "Unregistered dealers often resell old parts illegally or use chassis numbers on counterfeit vehicles.",
+      title: isHindi
+        ? "थोड़े अधिक नकद प्रस्ताव के लिए अनधिकृत कबाड़ी को चुनना"
+        : "Choosing an unauthorised scrapper for a slightly higher cash offer",
+      detail: isHindi
+        ? "गैर-पंजीकृत डीलर अक्सर अवैध रूप से पुराने पुर्जे बेचते हैं या फर्जी वाहनों पर चेसिस नंबर का उपयोग करते हैं।"
+        : "Unregistered dealers often resell old parts illegally or use chassis numbers on counterfeit vehicles.",
     },
     {
       id: "05",
-      title: "Delaying scrapping on a long-unused, tax-accruing vehicle",
-      detail: "Lapsed fitness certificates and unpaid road taxes accumulate compound penalties every month.",
+      title: isHindi
+        ? "लंबे समय से अप्रयुक्त, टैक्स जमा होने वाले वाहन के स्क्रैपिंग में देरी"
+        : "Delaying scrapping on a long-unused, tax-accruing vehicle",
+      detail: isHindi
+        ? "समाप्त फिटनेस प्रमाणपत्र और अवांछित रोड टैक्स हर महीने चक्रवृद्धि जुर्माना जमा करते हैं।"
+        : "Lapsed fitness certificates and unpaid road taxes accumulate compound penalties every month.",
     },
     {
       id: "06",
-      title: "Not verifying the facility's RVSF/RTO authorisation first",
-      detail: "Ensure the scrapping center holds a valid government RVSF registration number before handing over keys.",
+      title: isHindi
+        ? "पहले सुविधा के RVSF/RTO प्राधिकरण का सत्यापन न करना"
+        : "Not verifying the facility's RVSF/RTO authorisation first",
+      detail: isHindi
+        ? "चाबियां सौंपने से पहले सुनिश्चित करें कि स्क्रैपिंग सेंटर के पास वैध सरकारी RVSF पंजीकरण नंबर है।"
+        : "Ensure the scrapping center holds a valid government RVSF registration number before handing over keys.",
     },
   ]
 
@@ -74,17 +102,26 @@ export default function CommonMistakesSection() {
           {/* Category Tag */}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2 border border-black shadow-xs">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E31E24] animate-pulse" />
-            AVOID THESE
+            {isHindi ? "इनसे बचें" : "AVOID THESE"}
           </div>
 
           {/* Title */}
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-2">
-            Mistakes owners make when{" "}
-            <span className="text-[#E31E24]">scrapping their vehicle</span>
+            {isHindi ? (
+              <>
+                वाहन स्क्रैप करते समय <span className="text-[#E31E24]">मालिकों द्वारा की जाने वाली गलतियाँ</span>
+              </>
+            ) : (
+              <>
+                Mistakes owners make when <span className="text-[#E31E24]">scrapping their vehicle</span>
+              </>
+            )}
           </h2>
 
           <p className="text-slate-600 text-xs sm:text-sm font-medium">
-            Avoid these 6 critical red flags to protect yourself from legal liabilities, unpaid challans, and scams.
+            {isHindi
+              ? "कानूनी देनदारियों, बकाया चालानों और घोटालों से खुद को बचाने के लिए इन 6 महत्वपूर्ण गलतियों से बचें।"
+              : "Avoid these 6 critical red flags to protect yourself from legal liabilities, unpaid challans, and scams."}
           </p>
         </motion.div>
 

@@ -2,43 +2,47 @@
 
 import { motion } from "framer-motion"
 import { Coins, FileText, FileCheck, Car, Award, Info, X, Check, Minus } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function HomexComparisonSection() {
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const comparisonRows = [
     {
       icon: Coins,
-      label: "Cash value",
+      label: isHindi ? "नकद मूल्य" : "Cash value",
       unauthorisedSymbol: "dash", // red minus/dash
       unauthorisedText: "₹23,000",
-      scrapcentreText: "₹1,45,000 total",
+      scrapcentreText: isHindi ? "₹1,45,000 कुल" : "₹1,45,000 total",
     },
     {
       icon: FileText,
-      label: "Road tax rebate",
+      label: isHindi ? "रोड टैक्स में छूट" : "Road tax rebate",
       unauthorisedSymbol: "cross", // red X
-      unauthorisedText: "Not applicable",
-      scrapcentreText: "Up to ₹95,000",
+      unauthorisedText: isHindi ? "लागू नहीं" : "Not applicable",
+      scrapcentreText: isHindi ? "₹95,000 तक" : "Up to ₹95,000",
     },
     {
       icon: FileCheck,
-      label: "Registration waiver",
+      label: isHindi ? "पंजीकरण शुल्क छूट" : "Registration waiver",
       unauthorisedSymbol: "cross", // red X
       unauthorisedText: "—",
-      scrapcentreText: "Up to ₹600",
+      scrapcentreText: isHindi ? "₹600 तक" : "Up to ₹600",
     },
     {
       icon: Car,
-      label: "CEM discount on new vehicle",
+      label: isHindi ? "नए वाहन पर OEM छूट" : "OEM discount on new vehicle",
       unauthorisedSymbol: "cross", // red X
       unauthorisedText: "—",
-      scrapcentreText: "Up to ₹20,000",
+      scrapcentreText: isHindi ? "₹20,000 तक" : "Up to ₹20,000",
     },
     {
       icon: Award,
-      label: "Certificate of Deposit (COD)",
+      label: isHindi ? "जमा प्रमाणपत्र (COD)" : "Certificate of Deposit (COD)",
       unauthorisedSymbol: "cross", // red X
-      unauthorisedText: "— RC stays your liability",
-      scrapcentreText: "Issued instantly",
+      unauthorisedText: isHindi ? "— RC आपकी जिम्मेदारी रहती है" : "— RC stays your liability",
+      scrapcentreText: isHindi ? "तुरंत जारी" : "Issued instantly",
     },
   ]
 
@@ -85,20 +89,30 @@ export default function HomexComparisonSection() {
         >
           {/* Badge: — WHY CHOOSE US */}
           <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#E31E24] text-[#E31E24] text-xs font-bold uppercase tracking-wider mb-4 bg-white/90 backdrop-blur-sm shadow-xs">
-            <span className="font-semibold">—</span> WHY CHOOSE US
+            <span className="font-semibold">—</span> {isHindi ? "हमें क्यों चुनें" : "WHY CHOOSE US"}
           </div>
 
           {/* Title */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.15] mb-4">
-            The real difference between{" "}
-            <span className="text-[#E31E24] block sm:inline">
-              a scrap dealer and an RVSF
-            </span>
+            {isHindi ? (
+              <>
+                कबाड़ी (Scrap Dealer) और <span className="text-[#E31E24] block sm:inline">RVSF के बीच वास्तविक अंतर</span>
+              </>
+            ) : (
+              <>
+                The real difference between{" "}
+                <span className="text-[#E31E24] block sm:inline">
+                  a scrap dealer and an RVSF
+                </span>
+              </>
+            )}
           </h2>
 
           {/* Subtitle / Paragraph */}
           <p className="text-slate-600 text-sm sm:text-base lg:text-lg font-medium leading-relaxed">
-            At ScrapCentre, we follow a transparent, fair and hassle-free process — giving you the best value for your old vehicles, with no hidden charges.
+            {isHindi
+              ? "ScrapCentre पर हम एक पारदर्शी, निष्पक्ष और परेशानी मुक्त प्रक्रिया का पालन करते हैं — बिना किसी छिपे हुए शुल्क के आपके पुराने वाहनों का सर्वोत्तम मूल्य प्रदान करते हैं।"
+              : "At ScrapCentre, we follow a transparent, fair and hassle-free process — giving you the best value for your old vehicles, with no hidden charges."}
           </p>
         </motion.div>
 
@@ -114,13 +128,13 @@ export default function HomexComparisonSection() {
             {/* Table Header Row */}
             <div className="grid grid-cols-12 items-center p-2.5 sm:p-5 bg-[#FAF3F3] border-b border-red-100/80 text-slate-700 text-[9px] xs:text-[10px] sm:text-xs font-extrabold uppercase tracking-wider">
               <div className="col-span-5 sm:col-span-4 text-left">
-                WHAT YOU GET
+                {isHindi ? "आपको क्या मिलता है" : "WHAT YOU GET"}
               </div>
               <div className="col-span-3 sm:col-span-4 text-center sm:text-left">
-                UNAUTHORISED SCRAPPER
+                {isHindi ? "अनधिकृत कबाड़ी" : "UNAUTHORISED SCRAPPER"}
               </div>
               <div className="col-span-4 sm:col-span-4 text-left">
-                SCRAPCENTRE RVSF
+                {isHindi ? "स्क्रैपसेंटर RVSF" : "SCRAPCENTRE RVSF"}
               </div>
             </div>
 
@@ -152,19 +166,19 @@ export default function HomexComparisonSection() {
                     </div>
 
                     {/* Column 2: Unauthorised Scrapper */}
-                    <div className="col-span-3 sm:col-span-4 flex items-center gap-1 sm:gap-2 text-[#E31E24] font-bold text-[10px] sm:text-sm pr-1 sm:pr-2">
+                    <div className="col-span-3 sm:col-span-4 flex items-center gap-1 sm:gap-2 text-[#E31E24] font-bold text-[9px] xs:text-[11px] sm:text-sm pr-1 sm:pr-2">
                       {row.unauthorisedSymbol === "dash" ? (
                         <Minus size={14} strokeWidth={3} className="shrink-0 text-[#E31E24]" />
                       ) : (
                         <X size={14} strokeWidth={3} className="shrink-0 text-[#E31E24]" />
                       )}
-                      <span className="truncate">{row.unauthorisedText}</span>
+                      <span className="leading-tight break-words">{row.unauthorisedText}</span>
                     </div>
 
                     {/* Column 3: ScrapCentre RVSF */}
-                    <div className="col-span-4 sm:col-span-4 flex items-center gap-1 sm:gap-2 text-emerald-600 font-extrabold text-[10px] sm:text-sm">
+                    <div className="col-span-4 sm:col-span-4 flex items-center gap-1 sm:gap-2 text-emerald-600 font-extrabold text-[9px] xs:text-[11px] sm:text-sm">
                       <Check size={15} strokeWidth={3} className="shrink-0 text-emerald-600" />
-                      <span className="truncate">{row.scrapcentreText}</span>
+                      <span className="leading-tight break-words">{row.scrapcentreText}</span>
                     </div>
                   </motion.div>
                 )

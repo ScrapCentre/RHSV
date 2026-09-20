@@ -14,13 +14,15 @@ export default function AdminAwareLayout({ children }: { children: React.ReactNo
                     pathname?.startsWith("/rvsf") ||
                     pathname?.startsWith("/cc")
 
+    const isFreeValuation = pathname?.includes("/know-your-valuation") || pathname?.includes("/free-valuation")
+
     return (
         <div className="min-h-screen bg-background text-foreground">
             {!isAdmin && <Navbar />}
             <main className="relative">
                 {children}
             </main>
-            {!isAdmin && pathname !== "/login" && <Footer />}
+            {!isAdmin && pathname !== "/login" && !isFreeValuation && <Footer />}
 
             {!isAdmin && <WhatsAppFloatingButton />}
         </div>

@@ -44,9 +44,10 @@ export default function Navbar() {
 
   const navItems = [
     { name: nav.about,         href: localizedHref("/about") },
-    { name: nav.freeValuation, href: "#services" },
-    { name: nav.rvsf,         href: "/rvsf/apply" },
-    { name: nav.contact,      href: localizedHref("/contact") },
+    { name: nav.freeValuation, href: localizedHref("/know-your-valuation") },
+    { name: nav.services,      href: localizedHref("/vehicle-scrapping-services") },
+    { name: nav.rvsf,          href: "/rvsf/apply" },
+    { name: nav.contact,       href: localizedHref("/contact") },
   ]
 
   useEffect(() => {
@@ -141,14 +142,14 @@ export default function Navbar() {
     }
 
     const targetHref =
-      href === "/" || href === "/about" || href === "/contact" || href === "/profile"
+      href === "/" || href === "/about" || href === "/contact" || href === "/profile" || href === "/vehicle-scrapping-services" || href === "/know-your-valuation"
         ? localizedHref(href)
         : href
 
     router.push(targetHref)
   }
 
-  const isTransparent = (pathname === "/homex" || pathname === "/" || pathname === "/hi") && !isScrolled
+  const isTransparent = (pathname === "/homex" || pathname === "/" || pathname === "/hi" || pathname?.includes("/vehicle-scrapping-services") || pathname?.includes("/know-your-valuation")) && !isScrolled
 
   return (
     <nav

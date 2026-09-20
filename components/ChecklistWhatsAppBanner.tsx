@@ -2,10 +2,18 @@
 
 import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function ChecklistWhatsAppBanner() {
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const phoneNumber = "919839447733"
-  const message = encodeURIComponent("Hi, please send me the vehicle scrapping document checklist.")
+  const message = encodeURIComponent(
+    isHindi
+      ? "नमस्ते, कृपया मुझे वाहन स्क्रैपिंग दस्तावेज़ चेकलिस्ट भेजें।"
+      : "Hi, please send me the vehicle scrapping document checklist."
+  )
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
 
   return (
@@ -20,10 +28,10 @@ export default function ChecklistWhatsAppBanner() {
           className="flex-1"
         >
           <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white leading-snug">
-            Get the Checklist on WhatsApp
+            {isHindi ? "WhatsApp पर चेकलिस्ट प्राप्त करें" : "Get the Checklist on WhatsApp"}
           </h3>
           <p className="text-white/95 text-xs sm:text-sm md:text-base font-normal mt-1">
-            We'll send a printable copy instantly
+            {isHindi ? "हम तुरंत एक प्रिंट करने योग्य प्रति भेजेंगे" : "We'll send a printable copy instantly"}
           </p>
         </motion.div>
 
@@ -41,7 +49,7 @@ export default function ChecklistWhatsAppBanner() {
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#18181b] hover:bg-black text-white text-sm sm:text-base font-bold transition-all duration-300 shadow-md hover:scale-105 active:scale-95 w-full sm:w-auto group"
           >
-            <span>Send Me the Checklist</span>
+            <span>{isHindi ? "मुझे चेकलिस्ट भेजें" : "Send Me the Checklist"}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </a>
         </motion.div>

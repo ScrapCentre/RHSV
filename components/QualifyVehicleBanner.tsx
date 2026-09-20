@@ -2,10 +2,18 @@
 
 import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function QualifyVehicleBanner() {
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const phoneNumber = "919839447733"
-  const message = encodeURIComponent("Hi, I want to qualify my vehicle in 30 seconds.")
+  const message = encodeURIComponent(
+    isHindi
+      ? "नमस्ते, मैं 30 सेकंड में अपने वाहन की योग्यता जांचना चाहता हूं।"
+      : "Hi, I want to qualify my vehicle in 30 seconds."
+  )
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
 
   return (
@@ -19,10 +27,10 @@ export default function QualifyVehicleBanner() {
           className="flex-1"
         >
           <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white leading-snug">
-            Qualify Your Vehicle in 30 Seconds
+            {isHindi ? "30 सेकंड में अपने वाहन की योग्यता जांचें" : "Qualify Your Vehicle in 30 Seconds"}
           </h3>
           <p className="text-white/95 text-xs sm:text-sm md:text-base font-normal mt-1">
-            Instant WhatsApp check — no form-fill needed
+            {isHindi ? "तुरंत WhatsApp जांच — फॉर्म भरने की आवश्यकता नहीं" : "Instant WhatsApp check — no form-fill needed"}
           </p>
         </motion.div>
 
@@ -39,7 +47,7 @@ export default function QualifyVehicleBanner() {
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#18181b] hover:bg-black text-white text-sm sm:text-base font-bold transition-all duration-300 shadow-md hover:scale-105 active:scale-95 w-full sm:w-auto group"
           >
-            <span>Check Eligibility</span>
+            <span>{isHindi ? "पात्रता जांचें" : "Check Eligibility"}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </a>
         </motion.div>

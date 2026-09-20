@@ -2,15 +2,19 @@
 
 import { motion } from "framer-motion"
 import { CheckSquare, ShieldCheck, FileText, Info } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function DocumentsRequiredSection() {
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const documentList = [
-    "Original Registration Certificate (RC)",
-    "Valid Aadhaar / photo ID proof",
-    "PUC certificate, if available",
-    "Insurance copy (if valid)",
-    "NOC from financier, if hypothecated",
-    "Signed owner declaration form",
+    isHindi ? "मूल पंजीकरण प्रमाणपत्र (RC)" : "Original Registration Certificate (RC)",
+    isHindi ? "वैध आधार / फोटो पहचान पत्र" : "Valid Aadhaar / photo ID proof",
+    isHindi ? "PUC प्रमाणपत्र (यदि उपलब्ध हो)" : "PUC certificate, if available",
+    isHindi ? "बीमा प्रति (यदि वैध हो)" : "Insurance copy (if valid)",
+    isHindi ? "फाइनेंसर से NOC (यदि हाइपोथिकेटेड हो)" : "NOC from financier, if hypothecated",
+    isHindi ? "हस्ताक्षरित मालिक घोषणा पत्र" : "Signed owner declaration form",
   ]
 
   const containerVariants = {
@@ -56,16 +60,26 @@ export default function DocumentsRequiredSection() {
               {/* Category Tag */}
               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] mb-3 border border-black shadow-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#E31E24] animate-pulse" />
-                BEFORE YOU BOOK
+                {isHindi ? "बुक करने से पहले" : "BEFORE YOU BOOK"}
               </div>
 
               {/* Main Heading */}
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-3">
-                What you'll need to <span className="text-[#E31E24]">hand over</span>
+                {isHindi ? (
+                  <>
+                    आपको क्या <span className="text-[#E31E24]">जमा करना होगा</span>
+                  </>
+                ) : (
+                  <>
+                    What you'll need to <span className="text-[#E31E24]">hand over</span>
+                  </>
+                )}
               </h2>
 
               <p className="text-slate-600 text-sm sm:text-base font-medium">
-                Keep these documents ready for a smooth, hassle-free pickup and instant RTO deregistration.
+                {isHindi
+                  ? "सुचारू, परेशानी मुक्त पिकअप और त्वरित RTO डी-रजिस्ट्रेशन के लिए इन दस्तावेजों को तैयार रखें।"
+                  : "Keep these documents ready for a smooth, hassle-free pickup and instant RTO deregistration."}
               </p>
             </motion.div>
 
@@ -108,7 +122,9 @@ export default function DocumentsRequiredSection() {
             >
               <Info size={15} className="shrink-0 text-slate-400" />
               <span>
-                Exact document list to be verified with ScrapCentre's compliance team before publishing.
+                {isHindi
+                  ? "सटीक दस्तावेज सूची का सत्यापन स्क्रैपसेंटर टीम द्वारा किया जाएगा।"
+                  : "Exact document list to be verified with ScrapCentre's compliance team before publishing."}
               </span>
             </motion.div>
           </div>
@@ -136,22 +152,24 @@ export default function DocumentsRequiredSection() {
 
               {/* Card Title */}
               <h3 className="text-lg font-black text-slate-900 mb-2 tracking-tight">
-                100% RTO Verified Process
+                {isHindi ? "100% RTO सत्यापित प्रक्रिया" : "100% RTO Verified Process"}
               </h3>
 
               <p className="text-slate-600 text-xs font-medium leading-relaxed mb-6">
-                Our team assists you with complete paperwork & legal COD issuance right at your doorstep.
+                {isHindi
+                  ? "हमारी टीम आपके दरवाजे पर ही पूरी कागजी कार्रवाई और कानूनी COD जारी करने में आपकी सहायता करती है।"
+                  : "Our team assists you with complete paperwork & legal COD issuance right at your doorstep."}
               </p>
 
               {/* Feature Badges */}
               <div className="space-y-2 text-left bg-slate-50 rounded-xl p-3.5 border border-slate-100 text-xs font-bold text-slate-800">
                 <div className="flex items-center gap-2 text-[#E31E24]">
                   <ShieldCheck size={16} />
-                  <span>Government Authorised RVSF</span>
+                  <span>{isHindi ? "सरकार द्वारा अधिकृत RVSF" : "Government Authorised RVSF"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-emerald-600">
                   <FileText size={16} />
-                  <span>Instant Certificate of Deposit</span>
+                  <span>{isHindi ? "त्वरित जमा प्रमाणपत्र" : "Instant Certificate of Deposit"}</span>
                 </div>
               </div>
             </div>

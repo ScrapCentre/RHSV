@@ -2,11 +2,14 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { ArrowRight, ShieldCheck } from "lucide-react"
 
 export default function FinalCtaSection() {
   const router = useRouter()
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
+
   const [regNumber, setRegNumber] = useState("")
   const [mobileNumber, setMobileNumber] = useState("")
 
@@ -15,7 +18,8 @@ export default function FinalCtaSection() {
     const query = new URLSearchParams()
     if (regNumber) query.set("reg", regNumber)
     if (mobileNumber) query.set("phone", mobileNumber)
-    router.push(`/quote?${query.toString()}`)
+    const targetPath = isHindi ? `/hi/know-your-valuation?${query.toString()}` : `/know-your-valuation?${query.toString()}`
+    router.push(targetPath)
   }
 
   return (
@@ -37,15 +41,19 @@ export default function FinalCtaSection() {
             <div className="lg:col-span-7 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-[11px] font-extrabold uppercase tracking-widest mb-6 border border-white/20">
                 <ShieldCheck size={14} className="text-white" />
-                FAST & FREE VALUATION
+                {isHindi ? "तेज और मुफ्त वैल्यूएशन" : "FAST & FREE VALUATION"}
               </div>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.15] mb-5">
-                Ready to scrap your vehicle the right way?
+                {isHindi
+                  ? "क्या आप सही तरीके से अपना वाहन स्क्रैप करने के लिए तैयार हैं?"
+                  : "Ready to scrap your vehicle the right way?"}
               </h2>
 
               <p className="text-white/90 text-sm sm:text-base lg:text-lg font-medium leading-relaxed max-w-xl">
-                Free valuation, free pickup, Certificate of Deposit — start with your vehicle number.
+                {isHindi
+                  ? "मुफ्त वैल्यूएशन, मुफ्त पिकअप, जमा प्रमाणपत्र (COD) — अपने वाहन नंबर से शुरू करें।"
+                  : "Free valuation, free pickup, Certificate of Deposit — start with your vehicle number."}
               </p>
             </div>
 
@@ -58,7 +66,7 @@ export default function FinalCtaSection() {
                     type="text"
                     value={regNumber}
                     onChange={(e) => setRegNumber(e.target.value)}
-                    placeholder="Vehicle registration number"
+                    placeholder={isHindi ? "वाहन पंजीकरण संख्या (उदा. DL01AB1234)" : "Vehicle registration number"}
                     className="w-full px-5 py-4 rounded-xl bg-white/15 border border-white/30 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white font-semibold text-sm sm:text-base transition-all duration-300"
                     required
                   />
@@ -70,7 +78,7 @@ export default function FinalCtaSection() {
                     type="tel"
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value)}
-                    placeholder="Mobile number"
+                    placeholder={isHindi ? "मोबाइल नंबर" : "Mobile number"}
                     className="w-full px-5 py-4 rounded-xl bg-white/15 border border-white/30 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white font-semibold text-sm sm:text-base transition-all duration-300"
                     required
                   />
@@ -83,7 +91,7 @@ export default function FinalCtaSection() {
                   type="submit"
                   className="w-full py-4 px-6 rounded-full bg-white text-[#D33D2A] hover:bg-black hover:text-white text-base font-extrabold transition-all duration-300 shadow-xl flex items-center justify-center gap-2 group cursor-pointer"
                 >
-                  <span>Get My Free Quote</span>
+                  <span>{isHindi ? "मुफ्त कोट प्राप्त करें" : "Get My Free Quote"}</span>
                   <ArrowRight size={18} className="group-hover:translate-x-1.5 transition-transform duration-300" />
                 </motion.button>
               </form>
