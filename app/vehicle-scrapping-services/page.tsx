@@ -4,9 +4,9 @@ import VehicleScrappingServicesClient from "@/components/VehicleScrappingService
 import enMessages from "@/messages/en.json"
 
 export const metadata: Metadata = {
-  title: "Vehicle Scrapping Services | ScrapCentre India",
+  title: "Vehicle Scrapping Services in India | ScrapCentre",
   description:
-    "Safe, legal and eco-friendly vehicle scrapping services by ScrapCentre. Get instant valuation, free doorstep pickup and hassle-free RTO documentation.",
+    "Professional vehicle scrapping services with RVSF-certified deposit, free doorstep pickup, and best scrap value. Book your vehicle scrapping with ScrapCentre today!",
 }
 
 export default function VehicleScrappingServicesPage() {
