@@ -12,56 +12,56 @@ export default function CommonMistakesSection() {
     {
       id: "01",
       title: isHindi
-        ? "बिना किसी लिखित विवरण के केवल मौखिक कोट स्वीकार करना"
-        : "Accepting a verbal quote with no written breakdown",
+        ? "केवल मौखिक कोट स्वीकार करना:"
+        : "Accepting a verbal-only quote:",
       detail: isHindi
-        ? "हमेशा स्क्रैप मूल्य और सरकारी प्रमाणपत्र विवरण सहित आइटम वार लिखित कोट की मांग करें।"
-        : "Always insist on an itemized written quote including scrap value and government certificate details.",
+        ? "अपने वाहन को सौंपने से पहले हमेशा स्क्रैप मूल्य और लागू लाभों का स्पष्ट रूप से दस्तावेजीकरण करवाएं।"
+        : "Always get the scrap value and applicable benefits clearly documented before handing over your vehicle.",
     },
     {
       id: "02",
       title: isHindi
-        ? "वाहन सौंपने के बाद RC रद्दीकरण को छोड़ देना"
-        : "Skipping RC cancellation after handing over the vehicle",
+        ? "RC रद्दीकरण को छोड़ना:"
+        : "Skipping RC cancellation:",
       detail: isHindi
-        ? "RC रद्दीकरण के बिना कार सौंपना आपको भविष्य में किसी भी दुरुपयोग के लिए कानूनी रूप से उत्तरदायी बनाता है।"
-        : "Handing over a car without RC cancellation leaves you legally responsible for any future misuse.",
+        ? "सुनिश्चित करें कि अधिकृत स्क्रैपिंग प्रक्रिया के हिस्से के रूप में वाहन का पंजीकरण ठीक से रद्द किया गया है।"
+        : "Make sure the vehicle's registration is properly cancelled as part of the authorised scrapping process.",
     },
     {
       id: "03",
       title: isHindi
-        ? "जमा प्रमाणपत्र (COD) एकत्र न करना"
-        : "Not collecting the Certificate of Deposit (COD)",
+        ? "COD एकत्र न करना:"
+        : "Not collecting the COD:",
       detail: isHindi
-        ? "एक अधिकृत RVSF द्वारा जारी आधिकारिक COD स्थायी वाहन विनिष्टीकरण का आपका कानूनी प्रमाण है।"
-        : "The official COD issued by an authorised RVSF is your legal proof of permanent vehicle destruction.",
+        ? "यह प्रमाण देने के लिए कि आपका वाहन स्क्रैपिंग के लिए जमा कर दिया गया है, हमेशा अपना जमा प्रमाणपत्र (COD) एकत्र करें।"
+        : "Always collect your Certificate of Deposit (COD) as proof that your vehicle has been deposited for scrapping.",
     },
     {
       id: "04",
       title: isHindi
-        ? "थोड़े अधिक नकद प्रस्ताव के लिए अनधिकृत कबाड़ी को चुनना"
-        : "Choosing an unauthorised scrapper for a slightly higher cash offer",
+        ? "थोड़े अधिक नकद के लिए अनधिकृत स्क्रैपर को चुनना:"
+        : "Choosing an unauthorised scrapper for slightly more cash:",
       detail: isHindi
-        ? "गैर-पंजीकृत डीलर अक्सर अवैध रूप से पुराने पुर्जे बेचते हैं या फर्जी वाहनों पर चेसिस नंबर का उपयोग करते हैं।"
-        : "Unregistered dealers often resell old parts illegally or use chassis numbers on counterfeit vehicles.",
+        ? "एक उच्च अग्रिम प्रस्ताव अधिकृत कार स्क्रैपर के माध्यम से उपलब्ध दस्तावेज़ीकरण और औपचारिक प्रक्रिया प्रदान नहीं कर सकता है।"
+        : "A higher upfront offer may not provide the documentation and formal process available through an authorised car scrapper.",
     },
     {
       id: "05",
       title: isHindi
-        ? "लंबे समय से अप्रयुक्त, टैक्स जमा होने वाले वाहन के स्क्रैपिंग में देरी"
-        : "Delaying scrapping on a long-unused, tax-accruing vehicle",
+        ? "लंबे समय से अप्रयुक्त वाहन के लिए स्क्रैपिंग में देरी:"
+        : "Delaying scrapping for a long-unused vehicle:",
       detail: isHindi
-        ? "समाप्त फिटनेस प्रमाणपत्र और अवांछित रोड टैक्स हर महीने चक्रवृद्धि जुर्माना जमा करते हैं।"
-        : "Lapsed fitness certificates and unpaid road taxes accumulate compound penalties every month.",
+        ? "यदि कोई वाहन लंबे समय से अप्रयुक्त है, तो उसकी स्थिति की जांच करें और उसे लावारिस छोड़ने के बजाय उचित अधिकृत स्क्रैपिंग मार्ग पर विचार करें।"
+        : "If a vehicle has been unused for a long time, check its status and consider the appropriate authorised scrapping route instead of leaving it unattended.",
     },
     {
       id: "06",
       title: isHindi
-        ? "पहले सुविधा के RVSF/RTO प्राधिकरण का सत्यापन न करना"
-        : "Not verifying the facility's RVSF/RTO authorisation first",
+        ? "RVSF प्राधिकरण का सत्यापन न करना:"
+        : "Not verifying RVSF authorisation:",
       detail: isHindi
-        ? "चाबियां सौंपने से पहले सुनिश्चित करें कि स्क्रैपिंग सेंटर के पास वैध सरकारी RVSF पंजीकरण नंबर है।"
-        : "Ensure the scrapping center holds a valid government RVSF registration number before handing over keys.",
+        ? "अपना वाहन सौंपने से पहले, पुष्टि करें कि आप पंजीकृत RVSF के माध्यम से संचालित अधिकृत वाहन स्क्रैपर के साथ व्यवहार कर रहे हैं।"
+        : "Before handing over your vehicle, confirm that you are dealing with an authorised vehicle scrapper operating through a registered RVSF.",
     },
   ]
 
@@ -102,27 +102,21 @@ export default function CommonMistakesSection() {
           {/* Category Tag */}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] mb-2 border border-black shadow-xs">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E31E24] animate-pulse" />
-            {isHindi ? "इनसे बचें" : "AVOID THESE"}
+            {isHindi ? "इनसे बचें" : "MISTAKES TO AVOID"}
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-2">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
             {isHindi ? (
               <>
-                वाहन स्क्रैप करते समय <span className="text-[#E31E24]">मालिकों द्वारा की जाने वाली गलतियाँ</span>
+                वाहन स्क्रैप करते समय <span className="text-[#E31E24]">बचने योग्य सामान्य गलतियाँ</span>
               </>
             ) : (
               <>
-                Mistakes owners make when <span className="text-[#E31E24]">scrapping their vehicle</span>
+                Common Mistakes to Avoid When <span className="text-[#E31E24]">Scrapping Your Vehicle</span>
               </>
             )}
           </h2>
-
-          <p className="text-slate-600 text-xs sm:text-sm font-medium">
-            {isHindi
-              ? "कानूनी देनदारियों, बकाया चालानों और घोटालों से खुद को बचाने के लिए इन 6 महत्वपूर्ण गलतियों से बचें।"
-              : "Avoid these 6 critical red flags to protect yourself from legal liabilities, unpaid challans, and scams."}
-          </p>
         </motion.div>
 
         {/* 6 Compact Red Flag Cards Grid */}

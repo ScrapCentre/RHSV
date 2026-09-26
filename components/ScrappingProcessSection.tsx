@@ -11,34 +11,34 @@ export default function ScrappingProcessSection() {
   const steps = [
     {
       number: "01",
-      title: isHindi ? "वाहन विवरण साझा करें" : "Share Vehicle Details",
+      title: isHindi ? "अपना वाहन विवरण साझा करें" : "Share Your Vehicle Details",
       description: isHindi
-        ? "तुरंत अनुमान के लिए हमें वाहन का प्रकार, मॉडल और स्थान बताएं।"
-        : "Tell us the vehicle type, model & location for an instant estimate.",
+        ? "अपने वाहन के लिए अनुमान प्राप्त करने के लिए अपना वाहन नंबर और बुनियादी विवरण प्रदान करें।"
+        : "Provide your vehicle number and basic details to receive an estimate for your vehicle.",
       icon: ClipboardList,
     },
     {
       number: "02",
-      title: isHindi ? "मुफ्त डोरस्टेप पिकअप" : "Free Doorstep Pickup",
+      title: isHindi ? "मुफ्त डोरस्टेप पिकअप प्राप्त करें" : "Get Free Doorstep Pickup",
       description: isHindi
-        ? "हम सुविधाजनक पिकअप शेड्यूल करते हैं — बंद वाहनों के लिए टोइंग शामिल।"
-        : "We schedule a convenient pickup — towing included if non-running.",
+        ? "एक बार स्क्रैपिंग की पुष्टि होने के बाद, हम मुफ्त डोरस्टेप पिकअप की व्यवस्था करते हैं। जो वाहन चलने की स्थिति में नहीं हैं, उनके लिए टोइंग सहायता उपलब्ध है।"
+        : "Once the scrapping is confirmed, we arrange free doorstep pickup. Towing support is available for vehicles that are not in running condition.",
       icon: Truck,
     },
     {
       number: "03",
-      title: isHindi ? "दस्तावेज सहायता" : "Documentation Support",
+      title: isHindi ? "दस्तावेजीकरण और RC रद्दीकरण पूरा करें" : "Complete Documentation & RC Cancellation",
       description: isHindi
-        ? "RC रद्दीकरण और कागजी कार्रवाई शुरू से अंत तक संभाली जाती है।"
-        : "RC cancellation & paperwork handled end-to-end.",
+        ? "कार स्क्रैपिंग प्रक्रिया के हिस्से के रूप में आवश्यक दस्तावेज जमा करें और आवश्यक कागजी कार्रवाई और आरसी रद्दीकरण के साथ सहायता प्राप्त करें।"
+        : "Submit the required documents and get support with the necessary paperwork and RC cancellation as part of the car scrapping process.",
       icon: ShieldCheck,
     },
     {
       number: "04",
-      title: isHindi ? "भुगतान + COD जारी" : "Payment + COD Issued",
+      title: isHindi ? "भुगतान और जमा प्रमाणपत्र प्राप्त करें" : "Receive Payment & Certificate of Deposit",
       description: isHindi
-        ? "तुरंत भुगतान और आपका जमा प्रमाणपत्र (COD), उसी दिन।"
-        : "Instant payment and your Certificate of Deposit, same day.",
+        ? "एक बार जब वाहन को अधिकृत RVSF में संसाधित किया जाता है, तो आपको लागू भुगतान और जमा प्रमाणपत्र (COD) प्राप्त होता है।"
+        : "Once the vehicle is processed at the authorised RVSF, you receive the applicable payment and Certificate of Deposit (COD).",
       icon: Banknote,
     },
   ]
@@ -85,17 +85,24 @@ export default function ScrappingProcessSection() {
           </div>
 
           {/* Heading */}
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-3">
             {isHindi ? (
               <>
-                चार आसान चरण, शुरुआत से <span className="text-[#E31E24]">जमा प्रमाणपत्र तक</span>
+                वाहन स्क्रैपिंग कैसे काम करता है — <span className="text-[#E31E24]">कोट से जमा प्रमाणपत्र तक</span>
               </>
             ) : (
               <>
-                Four steps, start to <span className="text-[#E31E24]">Certificate of Deposit</span>
+                How Vehicle Scrapping Works — <span className="text-[#E31E24]">From Quote to Certificate of Deposit</span>
               </>
             )}
           </h2>
+
+          {/* Subtitle */}
+          <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed">
+            {isHindi
+              ? "वाहन स्क्रैपिंग प्रक्रिया को एक पुराने या एंड-ऑफ-लाइफ वाहन को स्क्रैप करना आसान बनाने के लिए डिज़ाइन किया गया है, मूल्यांकन प्राप्त करने से लेकर अपना जमा प्रमाणपत्र प्राप्त करने तक।"
+              : "The vehicle scrapping process is designed to make scrapping an old or end-of-life vehicle simple, from getting a valuation to receiving your Certificate of Deposit."}
+          </p>
         </motion.div>
 
         {/* Process Steps Grid */}

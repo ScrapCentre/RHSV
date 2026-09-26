@@ -38,23 +38,43 @@ export default function FAQSection({ variant = "red" }: { variant?: "red" | "gre
     const faqs = [
         {
             id: "item-1",
-            question: "Process of scrapping my vehicle?",
-            answer: "Get the best scrap value for your old car with instant payment and free pickup. We ensure eco-friendly recycling and provide an official Certificate of Deposit."
+            question: "1. Is vehicle scrapping mandatory in India?",
+            answer: "Vehicle scrapping is not mandatory for every vehicle in India. However, vehicles that are no longer eligible for continued use under applicable rules may need to be scrapped or deregistered. The vehicle scrappage policy India framework covers requirements related to vehicle age, fitness and registration."
         },
         {
             id: "item-2",
-            question: "Process of buying a used vehicle?",
-            answer: "Choose from our wide range of quality verified refurbished cars. Enjoy transparent pricing, warranty benefits, and hassle-free documentation transfer."
+            question: "2. How much can I get for scrapping my vehicle?",
+            answer: "The amount depends on the vehicle type, weight, condition and applicable scrap rates. Your vehicle scrap price may also vary based on eligible benefits and current valuation factors. A vehicle-specific valuation can give you a more accurate estimate before you proceed with scrapping."
         },
         {
             id: "item-3",
-            question: "Process of selling my vehicle?",
-            answer: "Sell your car in minutes at the best market price. We offer free home inspection, instant bank transfer, and handle all the paperwork for you."
+            question: "3. What documents do I need to scrap my car or bike?",
+            answer: "You generally need the vehicle's Registration Certificate (RC) and the registered owner's ID proof. PUC and insurance copies may also be required if available. A financier NOC may be needed for a hypothecated vehicle. Check the required vehicle scrapping documents before pickup."
         },
         {
             id: "item-4",
-            question: "Process of exchanging my vehicle?",
-            answer: "Upgrade to a better car by exchanging your old one. Get a great exchange bonus and pay only the difference amount for your new ride."
+            question: "4. Do you scrap two-wheelers, buses and trucks too?",
+            answer: "Yes, ScrapCentre accepts eligible two-wheelers, buses, trucks, auto-rickshaws, commercial vehicles, EVs and other vehicle types. Requirements can vary by category under the vehicle scrapping policy India framework. The vehicle's eligibility can be checked before starting the authorised scrapping process."
+        },
+        {
+            id: "item-5",
+            question: "5. Is the pickup really free?",
+            answer: "Yes, free car pickup for scrapping is available from eligible service locations, subject to applicable terms and service availability. This allows owners to arrange vehicle collection instead of taking an end of life vehicle to the facility themselves. Pickup support may also be available for non-running vehicles."
+        },
+        {
+            id: "item-6",
+            question: "6. What is a Certificate of Deposit (COD)?",
+            answer: "A Certificate of Deposit (COD) is issued when a vehicle is deposited with an authorised RVSF for scrapping. It confirms that the vehicle has entered the authorised scrapping process and supports its permanent deregistration. It is an important document when completing end of life vehicle recycling through an authorised facility."
+        },
+        {
+            id: "item-7",
+            question: "7. Can I scrap a vehicle without RC or insurance?",
+            answer: "A vehicle may still be eligible for scrapping if the RC or insurance document is unavailable, but the required verification and supporting documents should be confirmed first. Missing documents may affect the process. For doorstep car scrapping, share your available vehicle and ownership details to check the requirements."
+        },
+        {
+            id: "item-8",
+            question: "8. How long does the whole process take?",
+            answer: "The timeline depends on document verification, vehicle pickup, inspection and processing at the authorised facility. ELV recycling and deregistration follow the applicable process after the vehicle is received and verified. ScrapCentre can provide an estimated timeline after reviewing your vehicle details, location and documents."
         },
     ]
 

@@ -24,65 +24,83 @@ export default function VehicleCategoriesSection() {
 
   const categories = [
     {
-      title: isHindi ? "कार स्क्रैपिंग" : "Car Scrapping",
-      description: isHindi ? "सेडान, हैचबैक, SUV — चालू या बंद।" : "Sedans, hatchbacks, SUVs — running or non-running.",
+      title: isHindi ? "कार" : "Car",
+      description: isHindi
+        ? "हमारी कार स्क्रैपिंग सुविधा सेवा मालिकों को अधिकृत प्रक्रिया के माध्यम से पुरानी, क्षतिग्रस्त या एंड-ऑफ-लाइफ कारों को स्क्रैप करने में मदद करती है, जिसमें मूल्य निर्धारण, पिकअप और दस्तावेज़ीकरण सहायता शामिल है।"
+        : "Our car scrapping facility service helps owners scrap old, damaged or end-of-life cars through an authorised process, with valuation, pickup and documentation support.",
       cta: isHindi ? "मेरी कार स्क्रैप करें" : "Scrap My Car",
       href: "/quote?type=car",
       icon: Car,
     },
     {
-      title: isHindi ? "बाइक / टू-व्हीलर" : "Bike / Two-Wheeler",
-      description: isHindi ? "किसी भी उम्र की मोटरसाइकिल, स्कूटर, मोपेड।" : "Motorcycles, scooters, mopeds of any age.",
+      title: isHindi ? "बाइक" : "Bike",
+      description: isHindi
+        ? "उचित स्क्रैपिंग प्रक्रिया के माध्यम से अपनी पुरानी या अयोग्य बाइक को स्क्रैप करें, वाहन मूल्यांकन और पिकअप से लेकर आवश्यक दस्तावेज़ीकरण तक सहायता के साथ।"
+        : "Scrap your old or unfit bike through a proper scrapping process, with support from vehicle valuation and pickup to the required documentation.",
       cta: isHindi ? "मेरी बाइक स्क्रैप करें" : "Scrap My Bike",
       href: "/quote?type=bike",
       icon: Bike,
     },
     {
-      title: isHindi ? "बस स्क्रैपिंग" : "Bus Scrapping",
-      description: isHindi ? "स्कूल, स्टाफ और संस्थागत बसें।" : "School, staff and institutional buses.",
+      title: isHindi ? "बस" : "Bus",
+      description: isHindi
+        ? "पुरानी या अयोग्य बसों को एक अधिकृत वाहन स्क्रैपिंग सुविधा के माध्यम से संसाधित किया जा सकता है, जिसमें संग्रह और आवश्यक स्क्रैपिंग औपचारिकताओं के लिए सहायता शामिल है।"
+        : "Old or unfit buses can be processed through an authorised vehicle scrapping facility, with support for collection and the required scrapping formalities.",
       cta: isHindi ? "मेरी बस स्क्रैप करें" : "Scrap My Bus",
       href: "/quote?type=bus",
       icon: Bus,
     },
     {
-      title: isHindi ? "ट्रक स्क्रैपिंग" : "Truck Scrapping",
-      description: isHindi ? "हल्के और भारी वाणिज्यिक ट्रक।" : "Light and heavy commercial trucks.",
+      title: isHindi ? "ट्रक" : "Truck",
+      description: isHindi
+        ? "एक दस्तावेज प्रक्रिया के माध्यम से पुराने, क्षतिग्रस्त या एंड-ऑफ-लाइफ ट्रक को स्क्रैप करें, जिसमें मूल्यांकन, पिकअप और स्क्रैपिंग सहायता शामिल है।"
+        : "Scrap an old, damaged or end-of-life truck through a documented process, with valuation, pickup and scrapping support.",
       cta: isHindi ? "मेरा ट्रक स्क्रैप करें" : "Scrap My Truck",
       href: "/quote?type=truck",
       icon: Truck,
     },
     {
       title: isHindi ? "ऑटो-रिक्शा" : "Auto-Rickshaw",
-      description: isHindi ? "यात्री और कार्गो थ्री-व्हीलर।" : "Passenger and cargo three-wheelers.",
-      cta: isHindi ? "मेरा ऑटो स्क्रैप करें" : "Scrap My Auto",
+      description: isHindi
+        ? "अधिकृत प्रक्रिया के माध्यम से पुराने या अयोग्य ऑटो-रिक्शा को स्क्रैप करें और पिकअप, दस्तावेज़ीकरण और वाहन डी-रजिस्ट्रेशन सहायता प्राप्त करें।"
+        : "Scrap an old or unfit auto-rickshaw through an authorised process and get support with pickup, documentation and vehicle deregistration.",
+      cta: isHindi ? "मेरा ऑटो-रिक्शा स्क्रैप करें" : "Scrap My Auto-Rickshaw",
       href: "/quote?type=auto",
       icon: Car,
     },
     {
-      title: isHindi ? "वाणिज्यिक फ्लीट" : "Commercial Fleet",
-      description: isHindi ? "व्यापारियों और डीलरशिप के लिए थोक स्क्रैपिंग।" : "Bulk scrapping for businesses & dealerships.",
-      cta: isHindi ? "फ्लीट पेज देखें" : "See Fleet Page",
+      title: isHindi ? "वाणिज्यिक वाहन" : "Commercial Vehicles",
+      description: isHindi
+        ? "हम पात्र वाणिज्यिक वाहनों को संभालते हैं जो अपने उपयोगी जीवन के अंत तक पहुंच गए हैं, जिससे मालिकों को मूल्यांकन, संग्रह और स्क्रैपिंग औपचारिकताओं का प्रबंधन करने में मदद मिलती है।"
+        : "We handle eligible commercial vehicles that have reached the end of their usable life, helping owners manage valuation, collection and scrapping formalities.",
+      cta: isHindi ? "वाणिज्यिक वाहन स्क्रैप करें" : "Scrap My Commercial Vehicle",
       href: "/quote?type=fleet",
       icon: Building2,
     },
     {
       title: isHindi ? "इलेक्ट्रिक वाहन" : "Electric Vehicles",
-      description: isHindi ? "EV कारें और टू-व्हीलर, सुरक्षित बैटरी रीसाइक्लिंग।" : "EV cars & two-wheelers, battery-safe recycling.",
+      description: isHindi
+        ? "पुराने, क्षतिग्रस्त या एंड-ऑफ-लाइफ ईवी को उचित अधिकृत स्क्रैपिंग और रीसाइक्लिंग मार्ग के माध्यम से संसाधित किया जा सकता है।"
+        : "Old, damaged or end-of-life EVs can be processed through the appropriate authorised scrapping and recycling route.",
       cta: isHindi ? "मेरा EV स्क्रैप करें" : "Scrap My EV",
       href: "/quote?type=ev",
       icon: Zap,
     },
     {
-      title: isHindi ? "औद्योगिक / कृषि" : "Industrial / Agri",
-      description: isHindi ? "ट्रैक्टर, लोडर, कृषि और साइट मशीनरी।" : "Tractors, loaders, farm & site machinery.",
-      cta: isHindi ? "वाहन स्क्रैप करें" : "Scrap My Vehicle",
+      title: isHindi ? "औद्योगिक और कृषि वाहन" : "Industrial & Agricultural Vehicles",
+      description: isHindi
+        ? "पात्र औद्योगिक और कृषि वाहनों को स्क्रैप करें जो पुराने, क्षतिग्रस्त या अब उपयोग में नहीं हैं, आवश्यक स्क्रैपिंग प्रक्रिया के माध्यम से सहायता प्राप्त करें।"
+        : "Scrap eligible industrial and agricultural vehicles that are old, damaged or no longer in use, with support through the required scrapping process.",
+      cta: isHindi ? "औद्योगिक/कृषि वाहन स्क्रैप करें" : "Scrap My Industrial/Agri Vehicle",
       href: "/quote?type=agri",
       icon: Tractor,
     },
     {
-      title: isHindi ? "अन्य वाहन" : "Others",
-      description: isHindi ? "सूचीबद्ध नहीं है? हम फिर भी स्वीकार करते हैं — पूछें।" : "Not listed? We still take it — ask our team.",
-      cta: isHindi ? "हमसे बात करें" : "Talk to Us",
+      title: isHindi ? "अन्य वाहन" : "Other Vehicles",
+      description: isHindi
+        ? "यदि आपके पास ऐसा वाहन है जो ऊपर दी गई श्रेणियों में फिट नहीं बैठता है, तो अधिकृत स्क्रैपिंग के लिए इसकी पात्रता की जांच के लिए हमसे संपर्क करें।"
+        : "If you have a vehicle that does not fit the categories above, contact us to check its eligibility for authorised scrapping.",
+      cta: isHindi ? "मेरा वाहन स्क्रैप करें" : "Scrap My Vehicle",
       href: whatsappUrl,
       isExternal: true,
       icon: Plus,
@@ -157,17 +175,24 @@ export default function VehicleCategoriesSection() {
           </motion.div>
 
           {/* Title */}
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-black tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-black tracking-tight leading-tight mb-3">
             {isHindi ? (
               <>
-                एक RVSF। <span className="text-[#E31E24]">प्रत्येक वाहन श्रेणी।</span>
+                हर वाहन प्रकार के लिए वाहन स्क्रैपिंग सेवाएं — <span className="text-[#E31E24]">कार, बाइक, बस, ट्रक और अधिक</span>
               </>
             ) : (
               <>
-                One RVSF. <span className="text-[#E31E24]">Every vehicle category.</span>
+                Vehicle Scrapping Services for Every Vehicle Type — <span className="text-[#E31E24]">Car, Bike, Bus, Truck & More</span>
               </>
             )}
           </h2>
+
+          {/* Description Paragraph */}
+          <p className="text-slate-600 text-sm sm:text-base max-w-3xl leading-relaxed font-medium">
+            {isHindi
+              ? "स्क्रैपसेंटर विभिन्न श्रेणियों में पुराने, क्षतिग्रस्त और एंड-ऑफ-लाइफ वाहनों के लिए वाहन स्क्रैपिंग सेवाएं प्रदान करता है। पुरानी कार स्क्रैपिंग से लेकर वाणिज्यिक और औद्योगिक वाहनों तक, आप हमारे RVSF के माध्यम से मूल्यांकन, पिकअप और अधिकृत स्क्रैपिंग सहायता प्राप्त कर सकते हैं।"
+              : "ScrapCentre offers vehicle scrapping services for old, damaged and end-of-life vehicles across different categories. From old car scrapping to commercial and industrial vehicles, you can get valuation, pickup and authorised scrapping support through our RVSF."}
+          </p>
         </motion.div>
 
         {/* Compact 3x3 Animated Cards Grid */}
@@ -233,6 +258,21 @@ export default function VehicleCategoriesSection() {
               </motion.div>
             )
           })}
+        </motion.div>
+
+        {/* Junk Car Scrapping Footer Note */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mt-8 text-slate-600 text-sm sm:text-base font-medium leading-relaxed max-w-3xl"
+        >
+          <p>
+            {isHindi
+              ? "कबाड़ कार स्क्रैपिंग की तलाश कर रहे हैं? स्क्रैपसेंटर आपकी गाड़ी की पात्रता जांचने और अधिकृत स्क्रैपिंग प्रक्रिया में आपका मार्गदर्शन करने में मदद कर सकता है।"
+              : "Looking for junk car scrapping? ScrapCentre can help you check your vehicle's eligibility and guide you through the authorised scrapping process."}
+          </p>
         </motion.div>
       </div>
     </section>

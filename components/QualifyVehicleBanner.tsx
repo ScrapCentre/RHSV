@@ -3,18 +3,11 @@
 import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import { useParams } from "next/navigation"
+import Link from "next/link"
 
 export default function QualifyVehicleBanner() {
   const params = useParams()
   const isHindi = params?.locale === "hi"
-
-  const phoneNumber = "919839447733"
-  const message = encodeURIComponent(
-    isHindi
-      ? "नमस्ते, मैं 30 सेकंड में अपने वाहन की योग्यता जांचना चाहता हूं।"
-      : "Hi, I want to qualify my vehicle in 30 seconds."
-  )
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
 
   return (
     <section className="w-full bg-[#D33D2A] text-white py-6 md:py-7 px-4 sm:px-6 lg:px-8 shadow-inner overflow-hidden">
@@ -30,7 +23,7 @@ export default function QualifyVehicleBanner() {
             {isHindi ? "30 सेकंड में अपने वाहन की योग्यता जांचें" : "Qualify Your Vehicle in 30 Seconds"}
           </h3>
           <p className="text-white/95 text-xs sm:text-sm md:text-base font-normal mt-1">
-            {isHindi ? "तुरंत WhatsApp जांच — फॉर्म भरने की आवश्यकता नहीं" : "Instant WhatsApp check — no form-fill needed"}
+            {isHindi ? "तुरंत ऑनलाइन जांच — फॉर्म भरने की आवश्यकता नहीं" : "Instant online check — no form-fill needed"}
           </p>
         </motion.div>
 
@@ -41,15 +34,13 @@ export default function QualifyVehicleBanner() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="shrink-0 w-full sm:w-auto"
         >
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={isHindi ? "/hi/know-your-valuation" : "/know-your-valuation"}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#18181b] hover:bg-black text-white text-sm sm:text-base font-bold transition-all duration-300 shadow-md hover:scale-105 active:scale-95 w-full sm:w-auto group"
           >
             <span>{isHindi ? "पात्रता जांचें" : "Check Eligibility"}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>

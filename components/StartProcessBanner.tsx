@@ -37,7 +37,7 @@ export default function StartProcessBanner() {
           className="shrink-0 w-full sm:w-auto"
         >
           <Link
-            href="/quote"
+            href={isHindi ? "/hi/know-your-valuation" : "/know-your-valuation"}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#18181b] hover:bg-black text-white text-sm sm:text-base font-bold transition-all duration-300 shadow-md hover:scale-105 active:scale-95 w-full sm:w-auto group"
           >
             <span>{isHindi ? "मेरी स्क्रैपिंग शुरू करें" : "Start My Scrapping"}</span>

@@ -15,6 +15,7 @@ import DocumentsRequiredSection from "@/components/DocumentsRequiredSection"
 import ChecklistWhatsAppBanner from "@/components/ChecklistWhatsAppBanner"
 import CommonMistakesSection from "@/components/CommonMistakesSection"
 import CoverageRegionSection from "@/components/CoverageRegionSection"
+import WhyChooseScrapCentreSection from "@/components/WhyChooseScrapCentreSection"
 import CityAvailabilityBanner from "@/components/CityAvailabilityBanner"
 import ReviewSection from "@/components/ReviewSection"
 import FinalCtaSection from "@/components/FinalCtaSection"
@@ -71,8 +72,8 @@ export default function VehicleScrappingServicesClient() {
           <WelcomePopup />
           <HomexServiceHero />
           <HomexWhatIsSection />
-          <QualifyVehicleBanner />
           <VehicleCategoriesSection />
+          <QualifyVehicleBanner />
           <HomexComparisonSection />
           <VehicleValueBanner />
           <ScrappingProcessSection />
@@ -82,6 +83,7 @@ export default function VehicleScrappingServicesClient() {
           <ChecklistWhatsAppBanner />
           <CommonMistakesSection />
           <CoverageRegionSection />
+          <WhyChooseScrapCentreSection />
           <CityAvailabilityBanner />
           <ReviewSection />
           <FinalCtaSection />

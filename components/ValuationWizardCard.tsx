@@ -311,6 +311,45 @@ export default function ValuationWizardCard() {
         return () => window.removeEventListener('hero-vehicle-data', handleHeroData as EventListener)
     }, [])
 
+    // Auto-fetch vehicle details if URL contains 'reg' query parameter
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const searchParams = new URLSearchParams(window.location.search);
+        const regParam = searchParams.get("reg");
+        if (regParam && regParam.trim().length >= 4) {
+            const cleanReg = regParam.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+            setFormData(prev => ({ ...prev, regNo: cleanReg }));
+            setServiceType("scrap");
+            setStep(1);
+            setMode("wizard");
+            setFromHero(true);
+
+            lookupVehicle(cleanReg).then(rawData => {
+                if (rawData && !rawData.error) {
+                    const data = rawData?.data?.client_id ? rawData.data : rawData;
+                    const addressString = data.present_address || data.permanent_address || "";
+                    const pincodeMatch = addressString.match(/\b\d{6}\b/);
+                    const pincode = pincodeMatch ? pincodeMatch[0] : "";
+
+                    setFormData(prev => ({
+                        ...prev,
+                        brand: data.maker_description || data.maker_name || data.maker || data.rc_maker || prev.brand || "",
+                        model: data.model_description || data.model_name || data.maker_model || data.model || data.rc_model || data.rc_model_name || prev.model || "",
+                        year: data.registration_date ? data.registration_date.split('-')[0] : data.manufacturing_year || prev.year || "",
+                        weight: data.vehicle_weight || data.unladen_weight || prev.weight || "",
+                        fuel: normalizeFuelType(data.fuel_type) || prev.fuel,
+                        ownerName: data.owner_name || data.owner || prev.ownerName || "",
+                        name: data.owner_name || data.owner || prev.name || "",
+                        address: addressString || prev.address,
+                        pincode: pincode || prev.pincode
+                    }));
+                }
+            }).catch(err => {
+                console.error("Auto lookup error from query param:", err);
+            });
+        }
+    }, []);
+
     // Listen for "buy a new vehicle" click from Hero section
     useEffect(() => {
         const handleHeroBuyClick = () => {

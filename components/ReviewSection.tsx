@@ -4,10 +4,13 @@ import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Minus, Phone, Headphones, ShieldCheck, FileText, Users, Star, ChevronRight, Quote, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
+import { useParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 export default function ReviewSection() {
   const t = useTranslations("HomePage")
+  const params = useParams()
+  const isHindi = params?.locale === "hi"
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const [activeIndex, setActiveIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
@@ -23,36 +26,52 @@ export default function ReviewSection() {
 
   const faqs = [
     {
-      question: "Is vehicle scrapping mandatory in India?",
-      answer: "Vehicles crossing the fitness/age limits or failing mandatory tests must be deregistered — scrapping at an RVSF is the compliant route.",
+      questionEn: "1. Is vehicle scrapping mandatory in India?",
+      questionHi: "1. क्या भारत में वाहन स्क्रैपिंग अनिवार्य है?",
+      answerEn: "Vehicle scrapping is not mandatory for every vehicle in India. However, vehicles that are no longer eligible for continued use under applicable rules may need to be scrapped or deregistered. The vehicle scrappage policy India framework covers requirements related to vehicle age, fitness and registration.",
+      answerHi: "भारत में हर वाहन के लिए वाहन स्क्रैपिंग अनिवार्य नहीं है। हालांकि, लागू नियमों के तहत जो वाहन अब आगे उपयोग के पात्र नहीं हैं, उन्हें स्क्रैप या डी-रजिस्टर्ड करने की आवश्यकता हो सकती है। भारत वाहन स्क्रैपेज नीति ढांचा वाहन की आयु, फिटनेस और पंजीकरण से संबंधित आवश्यकताओं को कवर करता है।",
     },
     {
-      question: "How much can I get for scrapping my vehicle?",
-      answer: "Value depends on vehicle type, weight, condition and applicable rebates — get an instant, no-obligation estimate.",
+      questionEn: "2. How much can I get for scrapping my vehicle?",
+      questionHi: "2. मुझे अपना वाहन स्क्रैप करने पर कितना पैसा मिल सकता है?",
+      answerEn: "The amount depends on the vehicle type, weight, condition and applicable scrap rates. Your vehicle scrap price may also vary based on eligible benefits and current valuation factors. A vehicle-specific valuation can give you a more accurate estimate before you proceed with scrapping.",
+      answerHi: "राशि वाहन के प्रकार, वजन, स्थिति और लागू स्क्रैप दरों पर निर्भर करती है। आपकी गाड़ी का स्क्रैप मूल्य पात्र लाभों और वर्तमान मूल्यांकन कारकों के आधार पर भी भिन्न हो सकता है। स्क्रैपिंग के साथ आगे बढ़ने से पहले एक वाहन-विशिष्ट मूल्यांकन आपको अधिक सटीक अनुमान दे सकता है।",
     },
     {
-      question: "What documents do I need to scrap my car or bike?",
-      answer: "RC, ID proof, and a signed declaration at minimum — see the full checklist above.",
+      questionEn: "3. What documents do I need to scrap my car or bike?",
+      questionHi: "3. अपनी कार या बाइक को स्क्रैप करने के लिए मुझे किन दस्तावेजों की आवश्यकता है?",
+      answerEn: "You generally need the vehicle's Registration Certificate (RC) and the registered owner's ID proof. PUC and insurance copies may also be required if available. A financier NOC may be needed for a hypothecated vehicle. Check the required vehicle scrapping documents before pickup.",
+      answerHi: "सामान्य तौर पर आपको वाहन का पंजीकरण प्रमाणपत्र (RC) और पंजीकृत मालिक के पहचान पत्र की आवश्यकता होती है। यदि उपलब्ध हो तो PUC और बीमा की प्रतियां भी आवश्यक हो सकती हैं। हाइपोथिकेटेड वाहन के लिए फाइनेंसर NOC की आवश्यकता हो सकती है। पिकअप से पहले आवश्यक वाहन स्क्रैपिंग दस्तावेजों की जांच करें।",
     },
     {
-      question: "Do you scrap two-wheelers, buses and trucks too?",
-      answer: "Yes — car, bike, bus, truck, auto-rickshaw, commercial and EV, all through the same authorised process.",
+      questionEn: "4. Do you scrap two-wheelers, buses and trucks too?",
+      questionHi: "4. क्या आप दोपहिया वाहन, बसें और ट्रक भी स्क्रैप करते हैं?",
+      answerEn: "Yes, ScrapCentre accepts eligible two-wheelers, buses, trucks, auto-rickshaws, commercial vehicles, EVs and other vehicle types. Requirements can vary by category under the vehicle scrapping policy India framework. The vehicle's eligibility can be checked before starting the authorised scrapping process.",
+      answerHi: "हां, स्क्रैपसेंटर पात्र दोपहिया वाहनों, बसों, ट्रकों, ऑटो-रिक्शा, वाणिज्यिक वाहनों, ईवी और अन्य वाहन प्रकारों को स्वीकार करता है। भारत वाहन स्क्रैपेज नीति ढांचे के तहत श्रेणी के अनुसार आवश्यकताएं भिन्न हो सकती हैं। अधिकृत स्क्रैपिंग प्रक्रिया शुरू करने से पहले वाहन की पात्रता की जांच की जा सकती है।",
     },
     {
-      question: "Is the pickup really free?",
-      answer: "Yes, doorstep pickup — including towing for non-running vehicles — is included at no extra cost.",
+      questionEn: "5. Is the pickup really free?",
+      questionHi: "5. क्या पिकअप वास्तव में मुफ्त है?",
+      answerEn: "Yes, free car pickup for scrapping is available from eligible service locations, subject to applicable terms and service availability. This allows owners to arrange vehicle collection instead of taking an end of life vehicle to the facility themselves. Pickup support may also be available for non-running vehicles.",
+      answerHi: "हां, लागू शर्तों और सेवा उपलब्धता के अधीन, पात्र सेवा स्थानों से स्क्रैपिंग के लिए मुफ्त कार पिकअप उपलब्ध है। यह मालिकों को जीवन के अंतिम चरण वाले वाहन को स्वयं सुविधा तक ले जाने के बजाय वाहन संग्रह की व्यवस्था करने की अनुमति देता है। ना चलने वाले वाहनों के लिए भी पिकअप सहायता उपलब्ध हो सकती है।",
     },
     {
-      question: "What is a Certificate of Deposit (COD)?",
-      answer: "Official proof, issued by the RVSF, that your vehicle has been permanently deregistered and scrapped.",
+      questionEn: "6. What is a Certificate of Deposit (COD)?",
+      questionHi: "6. जमा प्रमाण पत्र (COD) क्या है?",
+      answerEn: "A Certificate of Deposit (COD) is issued when a vehicle is deposited with an authorised RVSF for scrapping. It confirms that the vehicle has entered the authorised scrapping process and supports its permanent deregistration. It is an important document when completing end of life vehicle recycling through an authorised facility.",
+      answerHi: "जब किसी वाहन को स्क्रैपिंग के लिए अधिकृत RVSF में जमा किया जाता है तो जमा प्रमाण पत्र (COD) जारी किया जाता है। यह पुष्टि करता है कि वाहन ने अधिकृत स्क्रैपिंग प्रक्रिया में प्रवेश किया है और इसके स्थायी डी-रजिस्ट्रेशन का समर्थन करता है। अधिकृत सुविधा के माध्यम से वाहन रीसाइक्लिंग पूरा करते समय यह एक महत्वपूर्ण दस्तावेज है।",
     },
     {
-      question: "Can I sell a vehicle without RC or insurance?",
-      answer: "In most cases yes, with additional declarations — our team verifies this case by case.",
+      questionEn: "7. Can I scrap a vehicle without RC or insurance?",
+      questionHi: "7. क्या मैं बिना RC या बीमा के वाहन स्क्रैप कर सकता हूं?",
+      answerEn: "A vehicle may still be eligible for scrapping if the RC or insurance document is unavailable, but the required verification and supporting documents should be confirmed first. Missing documents may affect the process. For doorstep car scrapping, share your available vehicle and ownership details to check the requirements.",
+      answerHi: "यदि RC या बीमा दस्तावेज अनुपलब्ध है तो भी वाहन स्क्रैपिंग के लिए पात्र हो सकता है, लेकिन आवश्यक सत्यापन और सहायक दस्तावेजों की पहले पुष्टि की जानी चाहिए। दस्तावेज गायब होने से प्रक्रिया प्रभावित हो सकती है। डोरस्टेप कार स्क्रैपिंग के लिए, आवश्यकताओं की जांच के लिए अपने उपलब्ध वाहन और स्वामित्व विवरण साझा करें।",
     },
     {
-      question: "How long does the whole process take?",
-      answer: "Typically same-day to a few days from pickup to COD issuance, depending on documentation.",
+      questionEn: "8. How long does the whole process take?",
+      questionHi: "8. पूरी प्रक्रिया में कितना समय लगता है?",
+      answerEn: "The timeline depends on document verification, vehicle pickup, inspection and processing at the authorised facility. ELV recycling and deregistration follow the applicable process after the vehicle is received and verified. ScrapCentre can provide an estimated timeline after reviewing your vehicle details, location and documents.",
+      answerHi: "समय सीमा दस्तावेज सत्यापन, वाहन पिकअप, निरीक्षण और अधिकृत सुविधा पर प्रसंस्करण पर निर्भर करती है। वाहन प्राप्त होने और सत्यापित होने के बाद प्रक्रिया का पालन किया जाता है। आपके वाहन विवरण, स्थान और दस्तावेजों की समीक्षा करने के बाद स्क्रैपसेंटर एक अनुमानित समय सीमा प्रदान कर सकता है।",
     },
   ]
 
@@ -283,10 +302,12 @@ export default function ReviewSection() {
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${openFaq === index ? 'bg-[#E31E24] text-white' : 'bg-red-50 text-[#E31E24]'}`}>
                         {openFaq === index ? <Minus size={14} /> : <Plus size={14} />}
                       </div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-900 leading-tight">{faq.question}</span>
+                      <span className="text-xs font-bold tracking-wide text-slate-900 leading-snug">
+                        {isHindi ? faq.questionHi : faq.questionEn}
+                      </span>
                     </div>
                     <div className={`transition-transform duration-300 ${openFaq === index ? 'rotate-180' : ''}`}>
-                      <ChevronRight size={16} className="text-slate-400" />
+                      <ChevronRight size={16} className="text-slate-400 shrink-0 ml-2" />
                     </div>
                   </button>
                   <AnimatePresence>
@@ -298,21 +319,14 @@ export default function ReviewSection() {
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-10 pb-5 text-slate-500 text-xs leading-relaxed">
-                          {faq.answer}
+                        <div className="px-10 pb-5 text-slate-600 text-xs md:text-sm leading-relaxed font-normal">
+                          {isHindi ? faq.answerHi : faq.answerEn}
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
               ))}
-            </div>
-
-            <div className="mt-8">
-              <button className="px-6 py-3 border-2 border-[#E31E24]/20 rounded-xl text-[#E31E24] font-bold uppercase tracking-wider text-[10px] hover:bg-[#E31E24] hover:text-white transition-all flex items-center gap-2 group">
-                {t("faq.viewAll")}
-                <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
-              </button>
             </div>
           </div>
 

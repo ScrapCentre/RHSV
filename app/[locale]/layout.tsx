@@ -62,7 +62,7 @@ export default async function LocaleLayout({
   // ────────────────────────────────────────────────────────────────────
 
   return (
-    <NextIntlClientProvider messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages}>
       <div className={locale === "hi" ? "lang-hi" : ""}>
         {children}
       </div>

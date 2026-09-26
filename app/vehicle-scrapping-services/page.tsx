@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function VehicleScrappingServicesPage() {
   return (
-    <NextIntlClientProvider messages={enMessages}>
+    <NextIntlClientProvider locale="en" messages={enMessages}>
       <VehicleScrappingServicesClient />
     </NextIntlClientProvider>
   )

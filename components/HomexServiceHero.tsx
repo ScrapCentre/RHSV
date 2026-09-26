@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { ArrowRight, Check, Car, FileText, Gift, Truck, Zap, Leaf, ShieldCheck, IndianRupee } from "lucide-react"
 import { useParams } from "next/navigation"
+import Link from "next/link"
 import { Caveat } from "next/font/google"
 
 const caveat = Caveat({
@@ -14,17 +15,6 @@ export default function HomexServiceHero() {
   const params = useParams()
   const locale = params?.locale === "hi" ? "hi" : "en"
   const isHindi = locale === "hi"
-
-  const phoneNumber = "919839447733"
-  const whatsappMessage = encodeURIComponent("Hi, I want to talk to an expert regarding vehicle scrapping.")
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${whatsappMessage}`
-
-  const scrollToValuation = () => {
-    const el = document.getElementById("valuation-card") || document.getElementById("services")
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
-  }
 
   const checkBadges = [
     { en: "RTO Authorised RVSF", hi: "RTO अधिकृत RVSF" },
@@ -123,16 +113,16 @@ export default function HomexServiceHero() {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.35rem] xl:text-[2.75rem] font-black text-slate-900 tracking-tight leading-[1.14] mb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-3xl lg:text-[2.1rem] xl:text-[2.4rem] font-black text-slate-900 tracking-tight leading-[1.2] mb-4">
               {isHindi ? (
                 <>
-                  अपने पुराने वाहन को बदलें <br />
-                  <span className="text-[#E31E24]">स्क्रैपसेंटर के साथ मूल्य में</span>
+                  भारत में वाहन स्क्रैपिंग सेवाएं — <br className="hidden sm:inline" />
+                  <span className="text-[#E31E24]">भारत के सबसे बड़े क्षमता वाले RVSF से</span>
                 </>
               ) : (
                 <>
-                  Turn Your End-of-Life Vehicle into <br className="hidden md:inline" />
-                  <span className="text-[#E31E24]">Value with Scrapcentre</span>
+                  Vehicle Scrapping Services in India — <br className="hidden sm:inline" />
+                  <span className="text-[#E31E24]">from India’s Largest Capacity RVSF</span>
                 </>
               )}
             </h1>
@@ -140,20 +130,20 @@ export default function HomexServiceHero() {
             {/* Paragraph Description */}
             <p className="text-slate-600 text-sm md:text-[15px] font-normal leading-relaxed mb-6 max-w-[640px]">
               {isHindi
-                ? "हम कारों, बाइकों, बसों, ट्रकों और अधिक के लिए सुरक्षित, कानूनी और पर्यावरण के अनुकूल वाहन स्क्रैपिंग सेवाएं प्रदान करते हैं। त्वरित मूल्यांकन, मुफ्त पिकअप और परेशानी मुक्त दस्तावेज - सब एक ही स्थान पर प्राप्त करें।"
-                : "We provide safe, legal and eco-friendly vehicle scrapping services for cars, bikes, buses, trucks and more. Get instant valuation, free pickup and hassle-free documentation — all in one place."}
+                ? "अधिकृत RVSF पर अपने वाहन को कानूनी रूप से स्क्रैप करें और सर्वोत्तम मूल्य, मुफ्त डोरस्टेप पिकअप और परेशानी मुक्त सहायता प्राप्त करें। हमारी वाहन स्क्रैपिंग सेवाएं व्यक्तिगत मालिकों और व्यवसायों के लिए उपलब्ध हैं।"
+                : "Scrap your vehicle legally at an authorised RVSF and get the best value, free doorstep pickup and hassle-free support. Our vehicle scrapping services are available for individual owners and businesses."}
             </p>
 
-            {/* Red Checkmark Badges */}
-            <div className="flex flex-wrap items-center gap-2.5 mb-6 max-w-[650px]">
+            {/* Red Checkmark Badges - 2x2 Grid on Mobile, Flex on Tablet/Desktop */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 mb-6 max-w-[650px]">
               {checkBadges.map((badge) => (
                 <div
                   key={badge.en}
                   className="
                     flex items-center gap-2
                     bg-[#FFF0F0]/90 border border-[#FFD6D6]
-                    px-3 py-1.5 rounded-full shadow-xs
-                    text-xs font-bold text-slate-900
+                    px-2.5 py-2 sm:px-3 sm:py-1.5 rounded-xl sm:rounded-full shadow-xs
+                    text-[11px] sm:text-xs font-bold text-slate-900 leading-tight
                   "
                 >
                   <span className="w-4 h-4 rounded-full bg-[#E31E24] text-white flex items-center justify-center text-[10px] font-black shrink-0">
@@ -164,39 +154,36 @@ export default function HomexServiceHero() {
               ))}
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <button
-                onClick={scrollToValuation}
+            {/* CTA Buttons - Mobile-Optimized Full-Width Grid & Desktop Inline Flex */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6 w-full max-w-md sm:max-w-none">
+              <Link
+                href={isHindi ? "/hi/know-your-valuation" : "/know-your-valuation"}
                 className="
-                  inline-flex items-center justify-center gap-2
-                  px-4.5 py-2.5 sm:px-5 sm:py-2.5 rounded-full
-                  bg-[#E31E24] hover:bg-[#C1121F] text-white
-                  text-xs sm:text-sm font-bold
-                  shadow-md shadow-red-500/20
-                  transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]
-                  cursor-pointer shrink-0
+                  flex-1 inline-flex items-center justify-center gap-2.5
+                  px-6 py-3.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-full
+                  bg-gradient-to-r from-[#E31E24] to-[#C1121F] hover:from-[#C1121F] hover:to-[#9E1116] text-white
+                  text-sm font-extrabold tracking-wide
+                  shadow-lg shadow-red-500/25 active:scale-[0.98]
+                  transition-all duration-200 cursor-pointer
                 "
               >
                 <span>{isHindi ? "मुफ्त मूल्यांकन प्राप्त करें" : "Get Free Valuation"}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+                <ArrowRight className="w-4 h-4 shrink-0" />
+              </Link>
 
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={isHindi ? "/hi/contact" : "/contact"}
                 className="
-                  inline-flex items-center justify-center gap-2
-                  px-4.5 py-2.5 sm:px-5 sm:py-2.5 rounded-full
-                  border-2 border-[#E31E24] hover:bg-red-50/80
-                  text-[#111827] bg-white text-xs sm:text-sm font-bold
-                  transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]
-                  cursor-pointer shrink-0
+                  flex-1 inline-flex items-center justify-center gap-2.5
+                  px-6 py-3.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-full
+                  border-2 border-[#E31E24] bg-white hover:bg-red-50/80 dark:bg-slate-900 dark:hover:bg-slate-800
+                  text-[#E31E24] font-extrabold text-sm tracking-wide
+                  shadow-sm active:scale-[0.98]
+                  transition-all duration-200 cursor-pointer
                 "
               >
                 <span>{isHindi ? "विशेषज्ञ से बात करें" : "Talk to an Expert"}</span>
-              </a>
+              </Link>
             </div>
           </motion.div>
 
@@ -270,15 +257,8 @@ export default function HomexServiceHero() {
             </motion.div>
           </div>
 
-          {/* Mobile Illustration Graphic + Floating Pills */}
-          <div className="lg:hidden col-span-1 mt-2 space-y-4">
-            <div className="relative">
-              <img
-                src="/servicehero.png"
-                alt="Vehicle Scrapping Services"
-                className="w-full h-auto rounded-2xl shadow-md object-contain"
-              />
-            </div>
+          {/* Mobile Pills Grid (Image removed for mobile as requested) */}
+          <div className="lg:hidden col-span-1 mt-2">
             {/* Mobile Pills Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="bg-white border border-slate-100 shadow-sm rounded-2xl p-3 flex items-center gap-3">
