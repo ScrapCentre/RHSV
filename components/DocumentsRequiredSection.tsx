@@ -168,8 +168,8 @@ export default function DocumentsRequiredSection() {
               <Info size={15} className="shrink-0 text-slate-400" />
               <span>
                 {isHindi
-                  ? "नोट: आवश्यक कार स्क्रैपिंग दस्तावेजों की सटीक सूची का सत्यापन स्क्रैपसेंटर की अनुपालन टीम के साथ किया जाना चाहिए।"
-                  : "Note: The exact list of car scrapping documents required should be verified with ScrapCentre's compliance team before publishing."}
+                  ? "नोट: आपके वाहन की श्रेणी और स्थिति के अनुसार अतिरिक्त दस्तावेज़ आवश्यक हो सकते हैं।"
+                  : "Note: Additional documentation may be required depending on your vehicle category and ownership status."}
               </span>
             </motion.div>
           </div>

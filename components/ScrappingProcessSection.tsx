@@ -129,6 +129,7 @@ export default function ScrappingProcessSection() {
               return (
                 <motion.div
                   key={idx}
+                  id={`step-${idx + 1}`}
                   variants={cardVariants}
                   whileHover={{ y: -5, scale: 1.01 }}
                   transition={{ type: "spring", stiffness: 350, damping: 22 }}

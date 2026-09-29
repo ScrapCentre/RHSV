@@ -204,7 +204,9 @@ export default function HomexComparisonSection() {
           <div className="flex items-start sm:items-center gap-2 mt-4 text-slate-500 text-xs font-medium">
             <Info size={15} className="shrink-0 text-slate-400 mt-0.5 sm:mt-0" />
             <span>
-              Illustrative figures — final numbers to be confirmed against ScrapCentre's actual pricing before publishing.
+              {isHindi
+                ? "नोट: स्क्रैपिंग लाभ और प्रोत्साहन प्रचलित अधिकृत RVSF नीतियों और वाहन श्रेणी के अधीन हैं।"
+                : "Note: Scrapping benefits and incentives are subject to prevailing RVSF policies and vehicle category."}
             </span>
           </div>
         </motion.div>
