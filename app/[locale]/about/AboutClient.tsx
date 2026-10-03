@@ -85,11 +85,11 @@ export default function AboutClient() {
 
 
   return (
-    <div className={`min-h-screen bg-slate-950 text-white selection:bg-red-500/30 selection:text-red-200 overflow-x-hidden ${locale === "hi" ? "" : plusJakartaSans.className}`}>
+    <div className={`min-h-screen bg-white text-slate-900 selection:bg-red-500/30 selection:text-red-200 overflow-x-hidden ${locale === "hi" ? "" : plusJakartaSans.className}`}>
 
 
       {/* Hero Section */}
-      <section className={`relative w-full bg-white text-slate-950 overflow-hidden mt-16 md:mt-20 pt-16 pb-12 min-h-[500px] md:min-h-[550px] flex items-center ${locale === "hi" ? "" : plusJakartaSans.className}`}>
+      <section className={`relative w-full bg-white text-slate-950 overflow-hidden pt-20 md:pt-24 pb-12 min-h-[500px] md:min-h-[550px] flex items-center ${locale === "hi" ? "" : plusJakartaSans.className}`}>
         {/* Full-bleed Background Image */}
         <div className="absolute inset-0 w-full h-full z-0">
           <img

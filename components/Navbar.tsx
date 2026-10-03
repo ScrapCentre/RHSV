@@ -47,6 +47,7 @@ export default function Navbar() {
     { name: nav.services,      href: localizedHref("/vehicle-scrapping-services") },
     { name: nav.freeValuation, href: localizedHref("/know-your-valuation") },
     { name: nav.rvsf,          href: "/rvsf/apply" },
+    { name: nav.blog,          href: localizedHref("/blog") },
     { name: nav.contact,       href: localizedHref("/contact") },
   ]
 
@@ -142,7 +143,7 @@ export default function Navbar() {
     }
 
     const targetHref =
-      href === "/" || href === "/about" || href === "/contact" || href === "/profile" || href === "/vehicle-scrapping-services" || href === "/know-your-valuation"
+      href === "/" || href === "/about" || href === "/contact" || href === "/profile" || href === "/vehicle-scrapping-services" || href === "/know-your-valuation" || href === "/blog"
         ? localizedHref(href)
         : href
 
@@ -160,34 +161,34 @@ export default function Navbar() {
       } ${locale === "hi" ? "lang-hi" : ""}`}
     >
       <div className="container mx-auto px-6">
-        {/* Desktop Layout - Single Row */}
+        {/* Desktop Layout - Single Row Optimized for 14" screens & Laptops */}
         <div className="hidden lg:flex items-center py-2">
           
           {/* Logo Section */}
-          <div className="flex items-center gap-3 cursor-pointer lg:mr-16 xl:mr-24 2xl:mr-48" onClick={() => handleNavClick(localizedHref("/"))}>
+          <div className="flex items-center gap-2 lg:gap-2.5 cursor-pointer lg:mr-5 xl:mr-8 2xl:mr-14 shrink-0" onClick={() => handleNavClick(localizedHref("/"))}>
             <Image 
               src="/logo.png" 
               alt="ScrapCentre Logo" 
               width={240} 
               height={60} 
-              className="h-16 w-auto"
+              className="h-9 lg:h-10 xl:h-12 2xl:h-14 w-auto object-contain transition-all"
               priority
             />
             <div className="flex flex-col">
-              <h1 className="text-2xl font-semibold tracking-tight flex items-baseline">
+              <h1 className="text-base lg:text-lg xl:text-xl 2xl:text-2xl font-semibold tracking-tight flex items-baseline">
                 <span className="text-[#E31E24]">Scrap</span>
                 <span className="text-slate-900">Centre</span>
-                <sup className="text-base font-bold text-slate-600 align-super -ml-0.5">®</sup>
+                <sup className="text-xs lg:text-sm xl:text-base font-bold text-slate-600 align-super -ml-0.5">®</sup>
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 lg:gap-5 xl:gap-8 2xl:gap-10 h-full flex-1">
+          <div className="flex items-center gap-2 lg:gap-3 xl:gap-5 2xl:gap-8 h-full flex-1 ml-4 lg:ml-8 xl:ml-12 2xl:ml-16">
             {navItems.map((item) => (
               <button
                 key={item.name}
                 onClick={() => handleNavClick(item.href)}
-                className={`text-[12px] lg:text-[13px] xl:text-sm font-medium uppercase tracking-wide transition-all duration-200 flex items-center gap-1.5 h-full py-6
+                className={`text-[11px] lg:text-[12px] xl:text-[13px] 2xl:text-sm font-medium uppercase tracking-wide transition-all duration-200 flex items-center gap-1.5 h-full py-4 whitespace-nowrap
                   ${pathname === item.href 
                     ? "text-[#E31E24]" 
                     : "text-black hover:text-[#E31E24]"
@@ -199,15 +200,15 @@ export default function Navbar() {
           </div>
 
           {/* Right Side: Language Toggle + Login */}
-          <div className="flex items-center gap-3 lg:gap-4 ml-auto mr-12 lg:mr-16 xl:mr-20 2xl:mr-24">
+          <div className="flex items-center gap-2.5 lg:gap-3.5 xl:gap-4 ml-auto shrink-0 lg:-mr-2 xl:-mr-3">
             <LanguageToggle />
             {session ? (
               <div className="relative group">
-                <button className="flex items-center gap-2.5 px-3 py-1.5 rounded-full hover:bg-slate-50 transition-all duration-300 group/btn border border-transparent hover:border-slate-100">
-                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center border border-red-200 shadow-sm group-hover/btn:scale-110 transition-transform duration-300">
+                <button className="flex items-center gap-2 px-2.5 py-1.5 rounded-full hover:bg-slate-50 transition-all duration-300 group/btn border border-transparent hover:border-slate-100">
+                  <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-red-100 flex items-center justify-center border border-red-200 shadow-sm group-hover/btn:scale-110 transition-transform duration-300">
                     <span className="text-red-700 font-bold text-xs">{(displayName || "U")[0]}</span>
                   </div>
-                  <span className="text-sm font-bold text-slate-700 group-hover/btn:text-[#E31E24] transition-colors hidden xl:block">
+                  <span className="text-xs xl:text-sm font-bold text-slate-700 group-hover/btn:text-[#E31E24] transition-colors hidden xl:block">
                     {displayName}
                   </span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-[#E31E24] group-hover/btn:rotate-180 transition-all duration-300" />
@@ -228,7 +229,7 @@ export default function Navbar() {
             ) : (
               <button
                 onClick={() => handleNavClick("/login")}
-                className="c-button--gooey px-6 py-2 lg:px-5 lg:py-2 xl:px-8 xl:py-2.5 bg-[#E31E24] text-white border-2 border-[#E31E24] rounded-xl text-xs xl:text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-lg shadow-red-500/20 relative overflow-hidden"
+                className="c-button--gooey px-3.5 py-1.5 lg:px-4 lg:py-1.5 xl:px-6 xl:py-2 bg-[#E31E24] text-white border-2 border-[#E31E24] rounded-xl text-[10px] lg:text-[11px] xl:text-xs 2xl:text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-md shadow-red-500/20 relative overflow-hidden whitespace-nowrap"
               >
                 <span className="relative z-10">{nav.loginSignup}</span>
                 <div className="c-button__blobs">

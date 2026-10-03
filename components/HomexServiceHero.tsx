@@ -188,7 +188,7 @@ export default function HomexServiceHero() {
           </motion.div>
 
           {/* Right Column - 3 Floating Feature Pills & Red/Black Hash Accent (From Design Mockup) */}
-          <div className="hidden lg:flex lg:col-span-4 flex-col items-end justify-center space-y-3 pr-0 translate-x-24 xl:translate-x-36 z-20">
+          <div className="hidden lg:flex lg:col-span-4 flex-col items-end justify-center space-y-3 pr-0 translate-x-2 lg:translate-x-6 xl:translate-x-16 2xl:translate-x-36 z-20 transition-all">
             {/* Top Right Red/Black Hash Accent Lines */}
             <div className="flex gap-1.2 mb-1 mr-2 opacity-90 select-none">
               <span className="w-1.2 h-5 bg-[#E31E24] rounded-full transform rotate-[25deg]" />
