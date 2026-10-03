@@ -81,11 +81,15 @@ export default function Footer() {
               <span className="block w-8 h-[2px] bg-[#E31E24] mt-2"></span>
             </h3>
             <ul className="space-y-4">
-              {['Sell Your Car', 'Instant Valuation'].map((item, i) => (
+              {[
+                { name: 'Sell Your Car', href: '/free-valuation' },
+                { name: 'Instant Valuation', href: '/know-your-valuation' },
+                { name: 'Vehicle Scrapping Services', href: '/vehicle-scrapping-services' },
+              ].map((item, i) => (
                 <li key={i}>
-                  <Link href="#" className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
+                  <Link href={item.href} className="text-slate-500 text-[11px] font-bold uppercase tracking-wide hover:text-[#E31E24] transition-all flex items-center gap-2 group">
                     <ChevronRight size={12} className="text-[#E31E24] transition-transform group-hover:translate-x-1" />
-                    {item}
+                    {item.name}
                   </Link>
                 </li>
               ))}

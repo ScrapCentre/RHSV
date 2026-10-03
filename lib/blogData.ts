@@ -95,7 +95,7 @@ export const BLOG_POSTS: BlogPost[] = [
       intro: [
         "If you have recently scrapped an old car, you may be wondering: Can I get a road tax rebate after scrapping my car? The answer depends on the state rules and the new vehicle you plan to register. This is where your Certificate of Deposit (CoD) becomes important.",
         "A CoD is issued when you hand over your vehicle to a Registered Vehicle Scrapping Facility (RVSF). It proves the vehicle has been legally deposited for scrapping and can help you claim benefits when you register another vehicle. Understanding how the CoD works, how long it remains valid, and how the road-tax concession is applied can help you make an informed decision after scrapping your old vehicle.",
-        "To understand how these benefits work, let's look at what a Certificate of Deposit for vehicle scrapping is and why it matters.",
+        "To understand how these benefits work, let's look at what a Certificate of Deposit for [vehicle scrapping](https://www.scrapcentre.com/vehicle-scrapping-services) is and why it matters.",
       ],
       whatIsCod: {
         title: "What Is a Certificate of Deposit for Vehicle Scrapping?",
@@ -247,7 +247,7 @@ export const BLOG_POSTS: BlogPost[] = [
         title: "Scrap Your Old Vehicle Through an RVSF",
         paragraphs: [
           "If your old vehicle has reached the end of its useful life, getting it scrapped through an RVSF helps you complete the process through the proper channel. Once the vehicle is accepted for scrapping, you receive a Certificate of Deposit that can be used to claim eligible benefits when registering a new vehicle.",
-          "ScrapCentre is an RVSF registered by the State Transport Department under the Motor Vehicles (Registration and Functions of Vehicle Scrapping Facility) Rules, 2021, framed by the Ministry of Road Transport and Highways (MoRTH). Its authorisation can be verified through the VAHAN vehicle-scrapping system.",
+          "[ScrapCentre](https://www.scrapcentre.com/) is an RVSF registered by the State Transport Department under the Motor Vehicles (Registration and Functions of Vehicle Scrapping Facility) Rules, 2021, framed by the Ministry of Road Transport and Highways (MoRTH). Its authorisation can be verified through the VAHAN vehicle-scrapping system.",
           "If you're thinking about scrapping your old vehicle, you can start by checking its estimated value through ScrapCentre's Instant Valuation service.",
         ],
         phone: "+91-9839447733",

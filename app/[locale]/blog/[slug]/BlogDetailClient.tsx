@@ -16,6 +16,40 @@ import {
   ShieldCheck,
 } from "lucide-react"
 
+function renderFormattedText(text: string, linkClassName?: string) {
+  const regex = /\[([^\]]+)\]\(([^)]+)\)/g
+  const parts: (string | React.ReactNode)[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index))
+    }
+    const label = match[1]
+    const url = match[2]
+
+    parts.push(
+      <Link
+        key={match.index}
+        href={url}
+        target={url.startsWith("http") && !url.includes("scrapcentre.com") ? "_blank" : undefined}
+        rel={url.startsWith("http") && !url.includes("scrapcentre.com") ? "noopener noreferrer" : undefined}
+        className={linkClassName || "text-blue-600 hover:text-blue-800 underline font-semibold transition-colors"}
+      >
+        {label}
+      </Link>
+    )
+    lastIndex = regex.lastIndex
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex))
+  }
+
+  return parts.length > 0 ? parts : text
+}
+
 export default function BlogDetailClient({ slug }: { slug: string }) {
   const params = useParams()
   const locale = (params?.locale as string) || "en"
@@ -188,7 +222,7 @@ export default function BlogDetailClient({ slug }: { slug: string }) {
               >
                 {post.content.intro.map((para, idx) => (
                   <p key={idx} className="text-slate-700 leading-relaxed font-medium">
-                    {para}
+                    {renderFormattedText(para)}
                   </p>
                 ))}
               </motion.div>
@@ -208,7 +242,7 @@ export default function BlogDetailClient({ slug }: { slug: string }) {
                 </h2>
                 {post.content.whatIsCod.paragraphs.map((p, idx) => (
                   <p key={idx} className="text-slate-700 leading-relaxed">
-                    {p}
+                    {renderFormattedText(p)}
                   </p>
                 ))}
               </motion.section>
@@ -308,7 +342,7 @@ export default function BlogDetailClient({ slug }: { slug: string }) {
                 </h2>
                 {post.content.roadTaxRebate.paragraphs.map((p, idx) => (
                   <p key={idx} className="text-slate-700 leading-relaxed">
-                    {p}
+                    {renderFormattedText(p)}
                   </p>
                 ))}
 
@@ -504,7 +538,7 @@ export default function BlogDetailClient({ slug }: { slug: string }) {
                 </h2>
                 {post.content.rvsfVsKabadi.paragraphs.map((p, idx) => (
                   <p key={idx} className="text-slate-700 leading-relaxed">
-                    {p}
+                    {renderFormattedText(p)}
                   </p>
                 ))}
               </motion.section>
@@ -527,7 +561,7 @@ export default function BlogDetailClient({ slug }: { slug: string }) {
                 </div>
                 {post.content.callToAction.paragraphs.map((p, idx) => (
                   <p key={idx} className="text-red-50 text-xs sm:text-sm leading-relaxed">
-                    {p}
+                    {renderFormattedText(p, "text-green-300 hover:text-green-100 underline font-bold transition-colors")}
                   </p>
                 ))}
 
