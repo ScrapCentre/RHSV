@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   ShieldCheck,
+  ArrowLeft,
 } from "lucide-react"
 
 function renderFormattedText(text: string, linkClassName?: string) {
@@ -143,7 +144,18 @@ export default function BlogDetailClient({ slug }: { slug: string }) {
 
       {!showLoader && (
         <article className="pt-20 sm:pt-16 lg:pt-24 pb-12 sm:pb-20">
-          <div className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 xl:px-12 max-w-7xl">
+          <div className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 xl:px-12 max-w-6xl">
+            
+            {/* Navigation / Back Link */}
+            <div className="mb-4 sm:mb-6">
+              <Link
+                href={isHindi ? "/hi/blog" : "/blog"}
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#E31E24] transition-colors"
+              >
+                <ArrowLeft size={16} />
+                <span>{isHindi ? "ब्लॉग सूची पर वापस जाएं" : "Back to All Blogs"}</span>
+              </Link>
+            </div>
             
             {/* Blog Main Card Header */}
             <motion.header
@@ -226,365 +238,653 @@ export default function BlogDetailClient({ slug }: { slug: string }) {
                   </p>
                 ))}
               </motion.div>
-
               <hr className="border-slate-100" />
 
               {/* What Is CoD */}
-              <motion.section
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="space-y-3 sm:space-y-4"
-              >
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {post.content.whatIsCod.title}
-                </h2>
-                {post.content.whatIsCod.paragraphs.map((p, idx) => (
-                  <p key={idx} className="text-slate-700 leading-relaxed">
-                    {renderFormattedText(p)}
-                  </p>
-                ))}
-              </motion.section>
+              {post.content.whatIsCod && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.whatIsCod.title}
+                    </h2>
+                    {post.content.whatIsCod.paragraphs.map((p, idx) => (
+                      <p key={idx} className="text-slate-700 leading-relaxed">
+                        {renderFormattedText(p)}
+                      </p>
+                    ))}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
-              <hr className="border-slate-100" />
+              {/* What Is Scrapping */}
+              {post.content.whatIsScrapping && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.whatIsScrapping.title}
+                    </h2>
+                    {post.content.whatIsScrapping.paragraphs.map((p, idx) => (
+                      <p key={idx} className="text-slate-700 leading-relaxed">
+                        {renderFormattedText(p)}
+                      </p>
+                    ))}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
+
+              {/* When Should You Consider Scrapping */}
+              {post.content.whenToConsider && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-4 sm:space-y-6"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.whenToConsider.title}
+                    </h2>
+                    <p className="text-slate-700 font-medium leading-relaxed">
+                      {post.content.whenToConsider.intro}
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                      {post.content.whenToConsider.points.map((pt, idx) => (
+                        <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 hover:border-[#E31E24] transition-all">
+                          <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1.5 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#E31E24] shrink-0" />
+                            {pt.title}
+                          </h3>
+                          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                            {pt.desc}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {post.content.whenToConsider.closingNote && (
+                      <p className="text-slate-700 italic bg-amber-50 border border-amber-200/80 p-3.5 sm:p-4 rounded-xl text-xs sm:text-sm leading-relaxed">
+                        {post.content.whenToConsider.closingNote}
+                      </p>
+                    )}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
               {/* How to Get CoD */}
-              <motion.section
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="space-y-5 sm:space-y-6"
-              >
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {post.content.howToGet.title}
-                </h2>
-                <p className="text-slate-700 font-medium leading-relaxed">
-                  {post.content.howToGet.intro}
-                </p>
+              {post.content.howToGet && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-5 sm:space-y-6"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.howToGet.title}
+                    </h2>
+                    <p className="text-slate-700 font-medium leading-relaxed">
+                      {post.content.howToGet.intro}
+                    </p>
 
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.1 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4"
-                >
-                  {post.content.howToGet.steps.map((step) => (
                     <motion.div
-                      key={step.number}
-                      variants={cardVariants}
-                      whileHover={{ y: -3 }}
-                      className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 hover:border-[#E31E24] transition-all"
+                      variants={containerVariants}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, amount: 0.1 }}
+                      className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4"
                     >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#E31E24] text-white font-black text-xs sm:text-sm flex items-center justify-center mb-2.5 sm:mb-3">
-                        0{step.number}
-                      </div>
-                      <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1">
-                        {step.title}
-                      </h3>
-                      <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                        {step.desc}
-                      </p>
+                      {post.content.howToGet.steps.map((step) => (
+                        <motion.div
+                          key={step.number}
+                          variants={cardVariants}
+                          whileHover={{ y: -3 }}
+                          className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 hover:border-[#E31E24] transition-all"
+                        >
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#E31E24] text-white font-black text-xs sm:text-sm flex items-center justify-center mb-2.5 sm:mb-3">
+                            0{step.number}
+                          </div>
+                          <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1">
+                            {step.title}
+                          </h3>
+                          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                            {step.desc}
+                          </p>
+                        </motion.div>
+                      ))}
                     </motion.div>
-                  ))}
-                </motion.div>
 
-                <p className="text-slate-700 italic bg-amber-50 border border-amber-200/80 p-3.5 sm:p-4 rounded-xl text-xs sm:text-sm leading-relaxed">
-                  {post.content.howToGet.summaryNote}
-                </p>
-              </motion.section>
+                    <p className="text-slate-700 italic bg-amber-50 border border-amber-200/80 p-3.5 sm:p-4 rounded-xl text-xs sm:text-sm leading-relaxed">
+                      {post.content.howToGet.summaryNote}
+                    </p>
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
-              <hr className="border-slate-100" />
+              {/* How Scrapping Process Works */}
+              {post.content.howItWorks && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-5 sm:space-y-6"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.howItWorks.title}
+                    </h2>
+                    <p className="text-slate-700 font-medium leading-relaxed">
+                      {post.content.howItWorks.intro}
+                    </p>
+
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, amount: 0.1 }}
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4"
+                    >
+                      {post.content.howItWorks.steps.map((step) => (
+                        <motion.div
+                          key={step.number}
+                          variants={cardVariants}
+                          whileHover={{ y: -3 }}
+                          className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 hover:border-[#E31E24] transition-all flex flex-col justify-between"
+                        >
+                          <div>
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#E31E24] text-white font-black text-xs sm:text-sm flex items-center justify-center mb-2.5 sm:mb-3">
+                              0{step.number}
+                            </div>
+                            <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1">
+                              {step.title}
+                            </h3>
+                            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                              {renderFormattedText(step.desc)}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
               {/* Validity */}
-              <motion.section
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="space-y-3 sm:space-y-4"
-              >
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {post.content.validity.title}
-                </h2>
-                <p className="text-slate-700 font-medium leading-relaxed">
-                  {post.content.validity.intro}
-                </p>
+              {post.content.validity && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.validity.title}
+                    </h2>
+                    <p className="text-slate-700 font-medium leading-relaxed">
+                      {post.content.validity.intro}
+                    </p>
 
-                <div className="space-y-2.5 sm:space-y-3 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
-                  {post.content.validity.points.map((pt, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                      <span className="font-black text-slate-900 text-xs sm:text-sm min-w-28 uppercase tracking-wider text-[#E31E24]">
-                        • {pt.label}:
-                      </span>
-                      <span className="text-slate-700 text-xs sm:text-sm font-medium leading-relaxed">
-                        {pt.text}
-                      </span>
+                    <div className="space-y-2.5 sm:space-y-3 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                      {post.content.validity.points.map((pt, idx) => (
+                        <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                          <span className="font-black text-slate-900 text-xs sm:text-sm min-w-28 uppercase tracking-wider text-[#E31E24]">
+                            • {pt.label}:
+                          </span>
+                          <span className="text-slate-700 text-xs sm:text-sm font-medium leading-relaxed">
+                            {pt.text}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </motion.section>
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
-              <hr className="border-slate-100" />
+              {/* CoD Benefits */}
+              {post.content.codBenefits && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-4 sm:space-y-5"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.codBenefits.title}
+                    </h2>
+                    <div className="text-slate-700 font-medium leading-relaxed whitespace-pre-line">
+                      {post.content.codBenefits.intro}
+                    </div>
+
+                    <div className="space-y-2.5 sm:space-y-3 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                      {post.content.codBenefits.points.map((pt, idx) => (
+                        <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
+                          <span className="font-black text-slate-900 text-xs sm:text-sm min-w-36 uppercase tracking-wider text-[#E31E24] shrink-0">
+                            • {pt.label}:
+                          </span>
+                          <span className="text-slate-700 text-xs sm:text-sm font-medium leading-relaxed">
+                            {pt.text}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {post.content.codBenefits.closingNote && (
+                      <p className="text-slate-700 italic bg-amber-50 border border-amber-200/80 p-3.5 sm:p-4 rounded-xl text-xs sm:text-sm leading-relaxed">
+                        {post.content.codBenefits.closingNote}
+                      </p>
+                    )}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
               {/* Road Tax Rebate & Table */}
-              <motion.section
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="space-y-3 sm:space-y-4"
-              >
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {post.content.roadTaxRebate.title}
-                </h2>
-                {post.content.roadTaxRebate.paragraphs.map((p, idx) => (
-                  <p key={idx} className="text-slate-700 leading-relaxed">
-                    {renderFormattedText(p)}
-                  </p>
-                ))}
+              {post.content.roadTaxRebate && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.roadTaxRebate.title}
+                    </h2>
+                    {post.content.roadTaxRebate.paragraphs.map((p, idx) => (
+                      <p key={idx} className="text-slate-700 leading-relaxed">
+                        {renderFormattedText(p)}
+                      </p>
+                    ))}
 
-                {/* Table with horizontal scroll on mobile */}
-                <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-xs my-3 sm:my-4">
-                  <table className="w-full min-w-[320px] text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-900 text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider">
-                        <th className="p-3 sm:p-4">Vehicle Type</th>
-                        <th className="p-3 sm:p-4">Maximum Concession</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 text-xs sm:text-sm font-medium">
-                      {post.content.roadTaxRebate.nationalTable.map((row, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                          <td className="p-3 sm:p-4 font-bold text-slate-900">{row.category}</td>
-                          <td className="p-3 sm:p-4 text-[#E31E24] font-extrabold">{row.concession}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-xs my-3 sm:my-4">
+                      <table className="w-full min-w-[320px] text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-900 text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider">
+                            <th className="p-3 sm:p-4">Vehicle Type</th>
+                            <th className="p-3 sm:p-4">Maximum Concession</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 text-xs sm:text-sm font-medium">
+                          {post.content.roadTaxRebate.nationalTable.map((row, idx) => (
+                            <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                              <td className="p-3 sm:p-4 font-bold text-slate-900">{row.category}</td>
+                              <td className="p-3 sm:p-4 text-[#E31E24] font-extrabold">{row.concession}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
 
-                {post.content.roadTaxRebate.details.map((d, idx) => (
-                  <p key={idx} className="text-slate-700 text-xs sm:text-sm leading-relaxed">
-                    {d}
-                  </p>
-                ))}
-              </motion.section>
-
-              <hr className="border-slate-100" />
+                    {post.content.roadTaxRebate.details.map((d, idx) => (
+                      <p key={idx} className="text-slate-700 text-xs sm:text-sm leading-relaxed">
+                        {d}
+                      </p>
+                    ))}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
               {/* UP Concession & Hyundai Creta Example */}
-              <motion.section
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="space-y-5 sm:space-y-6"
-              >
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {post.content.upConcession.title}
-                </h2>
-                {post.content.upConcession.paragraphs.map((p, idx) => {
-                  if (p.includes("(Source)")) {
-                    const parts = p.split("(Source)")
-                    return (
-                      <p key={idx} className="text-slate-700 leading-relaxed">
-                        {parts[0]}
-                        <a
-                          href="https://www.abplive.com/auto/uttar-pradesh-1-lakh-95-thousand-old-vehicles-scrap-policy-till-30-june-2026-know-details-3163217?utm_source=chatgpt.com"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[#E31E24] hover:underline font-bold"
-                        >
-                          (Source)
-                        </a>
-                        {parts[1]}
-                      </p>
-                    )
-                  }
-                  return (
-                    <p key={idx} className="text-slate-700 leading-relaxed">
-                      {p}
-                    </p>
-                  )
-                })}
-
-                {/* Creta Example Box */}
-                <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-8 space-y-4 sm:space-y-5 shadow-lg">
-                  <h3 className="text-base sm:text-xl font-black text-emerald-400">
-                    {post.content.upConcession.cretaExample.title}
-                  </h3>
-                  <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    {post.content.upConcession.cretaExample.intro}
-                  </p>
-
-                  {/* Creta Breakdown Table with Mobile Overflow Scroll */}
-                  <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-800">
-                    <table className="w-full min-w-[400px] text-left border-collapse text-xs sm:text-sm">
-                      <thead>
-                        <tr className="bg-slate-950 text-slate-300 font-bold uppercase tracking-wider border-b border-slate-700 text-[10px] sm:text-xs">
-                          <th className="p-2.5 sm:p-4">Benefit or Payment</th>
-                          <th className="p-2.5 sm:p-4 text-right">Estimated Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-700 font-medium">
-                        {post.content.upConcession.cretaExample.table.map((row, idx) => {
-                          const isTotal = idx === post.content.upConcession.cretaExample.table.length - 1
-                          return (
-                            <tr
-                              key={idx}
-                              className={isTotal ? "bg-emerald-950/80 font-black text-emerald-400 text-xs sm:text-sm" : "hover:bg-slate-800/80"}
+              {post.content.upConcession && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-5 sm:space-y-6"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.upConcession.title}
+                    </h2>
+                    {post.content.upConcession.paragraphs.map((p, idx) => {
+                      if (p.includes("(Source)")) {
+                        const parts = p.split("(Source)")
+                        return (
+                          <p key={idx} className="text-slate-700 leading-relaxed">
+                            {parts[0]}
+                            <a
+                              href="https://www.abplive.com/auto/uttar-pradesh-1-lakh-95-thousand-old-vehicles-scrap-policy-till-30-june-2026-know-details-3163217?utm_source=chatgpt.com"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#E31E24] hover:underline font-bold"
                             >
-                              <td className="p-2.5 sm:p-4">{row.item}</td>
-                              <td className="p-2.5 sm:p-4 text-right whitespace-nowrap">{row.amount}</td>
+                              (Source)
+                            </a>
+                            {parts[1]}
+                          </p>
+                        )
+                      }
+                      return (
+                        <p key={idx} className="text-slate-700 leading-relaxed">
+                          {p}
+                        </p>
+                      )
+                    })}
+
+                    <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-8 space-y-4 sm:space-y-5 shadow-lg">
+                      <h3 className="text-base sm:text-xl font-black text-emerald-400">
+                        {post.content.upConcession.cretaExample.title}
+                      </h3>
+                      <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                        {post.content.upConcession.cretaExample.intro}
+                      </p>
+
+                      <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-800">
+                        <table className="w-full min-w-[400px] text-left border-collapse text-xs sm:text-sm">
+                          <thead>
+                            <tr className="bg-slate-950 text-slate-300 font-bold uppercase tracking-wider border-b border-slate-700 text-[10px] sm:text-xs">
+                              <th className="p-2.5 sm:p-4">Benefit or Payment</th>
+                              <th className="p-2.5 sm:p-4 text-right">Estimated Amount</th>
                             </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                          </thead>
+                          <tbody className="divide-y divide-slate-700 font-medium">
+                            {post.content.upConcession.cretaExample.table.map((row, idx) => {
+                              const isTotal = idx === post.content.upConcession?.cretaExample.table.length! - 1
+                              return (
+                                <tr
+                                  key={idx}
+                                  className={isTotal ? "bg-emerald-950/80 font-black text-emerald-400 text-xs sm:text-sm" : "hover:bg-slate-800/80"}
+                                >
+                                  <td className="p-2.5 sm:p-4">{row.item}</td>
+                                  <td className="p-2.5 sm:p-4 text-right whitespace-nowrap">{row.amount}</td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
 
-                  <div className="space-y-1.5 text-[11px] sm:text-xs text-slate-400 leading-relaxed border-t border-slate-800 pt-3 sm:pt-4">
-                    {post.content.upConcession.cretaExample.notes.map((n, idx) => (
-                      <p key={idx}>* {n}</p>
-                    ))}
-                  </div>
-                </div>
-              </motion.section>
-
-              <hr className="border-slate-100" />
+                      <div className="space-y-1.5 text-[11px] sm:text-xs text-slate-400 leading-relaxed border-t border-slate-800 pt-3 sm:pt-4">
+                        {post.content.upConcession.cretaExample.notes.map((n, idx) => (
+                          <p key={idx}>* {n}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
               {/* Other Benefits */}
-              <motion.section
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="space-y-3 sm:space-y-4"
-              >
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {post.content.otherBenefits.title}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {post.content.otherBenefits.points.map((item, idx) => (
-                    <div key={idx} className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-xl">
-                      <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-1 flex items-center gap-2">
-                        <Award size={16} className="text-[#E31E24] shrink-0" />
-                        {item.name}
-                      </h3>
-                      <p className="text-slate-600 text-xs leading-relaxed">{item.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.section>
-
-              <hr className="border-slate-100" />
-
-              {/* Comparison Table */}
-              <motion.section
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="space-y-3 sm:space-y-4"
-              >
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {post.content.comparison.title}
-                </h2>
-                <p className="text-slate-700 font-medium leading-relaxed">
-                  {post.content.comparison.intro}
-                </p>
-
-                <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-xs my-3 sm:my-4">
-                  <table className="w-full min-w-[340px] text-left border-collapse text-xs sm:text-sm">
-                    <thead>
-                      <tr className="bg-slate-900 text-white font-bold uppercase tracking-wider text-[10px] sm:text-xs">
-                        <th className="p-3 sm:p-4 w-5/12 sm:w-1/3">Certificate</th>
-                        <th className="p-3 sm:p-4">Purpose</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {post.content.comparison.table.map((row, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                          <td className="p-3 sm:p-4 font-bold text-slate-900">{row.type}</td>
-                          <td className="p-3 sm:p-4 text-slate-700 leading-relaxed">{row.purpose}</td>
-                        </tr>
+              {post.content.otherBenefits && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.otherBenefits.title}
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      {post.content.otherBenefits.points.map((item, idx) => (
+                        <div key={idx} className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-xl">
+                          <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-1 flex items-center gap-2">
+                            <Award size={16} className="text-[#E31E24] shrink-0" />
+                            {item.name}
+                          </h3>
+                          <p className="text-slate-600 text-xs leading-relaxed">{item.desc}</p>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </div>
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
-                {post.content.comparison.explanation.map((e, idx) => (
-                  <p key={idx} className="text-slate-700 text-xs sm:text-sm leading-relaxed">
-                    {e}
-                  </p>
-                ))}
-              </motion.section>
+              {/* Comparison */}
+              {post.content.comparison && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.comparison.title}
+                    </h2>
+                    <p className="text-slate-700 font-medium leading-relaxed">
+                      {post.content.comparison.intro}
+                    </p>
 
-              <hr className="border-slate-100" />
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-xs my-3 sm:my-4">
+                      <table className="w-full min-w-[340px] text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                          <tr className="bg-slate-900 text-white font-bold uppercase tracking-wider text-[10px] sm:text-xs">
+                            <th className="p-3 sm:p-4 w-5/12 sm:w-1/3">Certificate</th>
+                            <th className="p-3 sm:p-4">Purpose</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {post.content.comparison.table.map((row, idx) => (
+                            <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                              <td className="p-3 sm:p-4 font-bold text-slate-900">{row.type}</td>
+                              <td className="p-3 sm:p-4 text-slate-700 leading-relaxed">{row.purpose}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {post.content.comparison.explanation.map((e, idx) => (
+                      <p key={idx} className="text-slate-700 text-xs sm:text-sm leading-relaxed">
+                        {e}
+                      </p>
+                    ))}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
+
+              {/* 3-Column Comparison Table (Scrapping vs Junkyard vs Donating) */}
+              {post.content.comparisonTable && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-4 sm:space-y-5"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.comparisonTable.title}
+                    </h2>
+                    <p className="text-slate-700 font-medium leading-relaxed">
+                      {post.content.comparisonTable.intro}
+                    </p>
+
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-xs my-3 sm:my-4">
+                      <table className="w-full min-w-[540px] text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                          <tr className="bg-slate-900 text-white font-bold uppercase tracking-wider text-[10px] sm:text-xs">
+                            {post.content.comparisonTable.columns.map((col, idx) => (
+                              <th key={idx} className="p-3 sm:p-4">{col}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {post.content.comparisonTable.rows.map((row, idx) => (
+                            <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                              <td className="p-3 sm:p-4 font-bold text-slate-900">{row.feature}</td>
+                              <td className="p-3 sm:p-4 text-slate-700 leading-relaxed">{row.scrapping}</td>
+                              <td className="p-3 sm:p-4 text-slate-700 leading-relaxed">{row.junkyard}</td>
+                              <td className="p-3 sm:p-4 text-slate-700 leading-relaxed">{row.donating}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {post.content.comparisonTable.closingNote && (
+                      <p className="text-slate-700 text-xs sm:text-sm leading-relaxed font-medium">
+                        {post.content.comparisonTable.closingNote}
+                      </p>
+                    )}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
               {/* RVSF vs Kabadi */}
-              <motion.section
-                variants={sectionVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="space-y-3 sm:space-y-4"
-              >
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {post.content.rvsfVsKabadi.title}
-                </h2>
-                {post.content.rvsfVsKabadi.paragraphs.map((p, idx) => (
-                  <p key={idx} className="text-slate-700 leading-relaxed">
-                    {renderFormattedText(p)}
-                  </p>
-                ))}
-              </motion.section>
+              {post.content.rvsfVsKabadi && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.rvsfVsKabadi.title}
+                    </h2>
+                    {post.content.rvsfVsKabadi.paragraphs.map((p, idx) => (
+                      <p key={idx} className="text-slate-700 leading-relaxed">
+                        {renderFormattedText(p)}
+                      </p>
+                    ))}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
-              <hr className="border-slate-100" />
+              {/* Scrap With Us Section */}
+              {post.content.scrapWithUs && (
+                <>
+                  <motion.section
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.1 }}
+                    className="space-y-4 sm:space-y-5"
+                  >
+                    <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                      {post.content.scrapWithUs.title}
+                    </h2>
+                    {post.content.scrapWithUs.paragraphs.map((p, idx) => (
+                      <p key={idx} className="text-slate-700 leading-relaxed font-medium">
+                        {renderFormattedText(p)}
+                      </p>
+                    ))}
+                  </motion.section>
+                  <hr className="border-slate-100" />
+                </>
+              )}
 
               {/* CTA Banner Section */}
-              <motion.section
-                initial={{ opacity: 0, scale: 0.97 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, amount: 0.1 }}
-                transition={{ duration: 0.5 }}
-                className="bg-gradient-to-r from-red-600 via-[#E31E24] to-red-700 text-white rounded-2xl p-5 sm:p-8 space-y-4 shadow-xl"
-              >
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <ShieldCheck size={26} className="text-white shrink-0" />
-                  <h2 className="text-lg sm:text-2xl font-black tracking-tight">
-                    {post.content.callToAction.title}
-                  </h2>
-                </div>
-                {post.content.callToAction.paragraphs.map((p, idx) => (
-                  <p key={idx} className="text-red-50 text-xs sm:text-sm leading-relaxed">
-                    {renderFormattedText(p, "text-green-300 hover:text-green-100 underline font-bold transition-colors")}
-                  </p>
-                ))}
+              {post.content.callToAction && (
+                <motion.section
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, amount: 0.1 }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-gradient-to-r from-red-600 via-[#E31E24] to-red-700 text-white rounded-2xl p-5 sm:p-8 space-y-4 shadow-xl"
+                >
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <ShieldCheck size={26} className="text-white shrink-0" />
+                    <h2 className="text-lg sm:text-2xl font-black tracking-tight">
+                      {post.content.callToAction.title}
+                    </h2>
+                  </div>
+                  {post.content.callToAction.paragraphs.map((p, idx) => (
+                    <p key={idx} className="text-red-50 text-xs sm:text-sm leading-relaxed">
+                      {renderFormattedText(p, "text-green-300 hover:text-green-100 underline font-bold transition-colors")}
+                    </p>
+                  ))}
 
-                <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
-                  <Link
-                    href={isHindi ? "/hi/free-valuation" : "/free-valuation"}
-                    className="bg-white hover:bg-slate-100 text-[#E31E24] font-black text-xs sm:text-sm px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl text-center shadow-md transition-all active:scale-95"
-                  >
-                    Check Your Vehicle Value with ScrapCentre
-                  </Link>
-                  <a
-                    href={`https://wa.me/919839447733?text=${encodeURIComponent(
-                      "Hello ScrapCentre, I want to inquire about Certificate of Deposit (CoD) and scrapping my vehicle."
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl text-center shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    <PhoneCall size={16} />
-                    <span>WhatsApp: {post.content.callToAction.whatsapp}</span>
-                  </a>
-                </div>
-              </motion.section>
+                  <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+                    <Link
+                      href={isHindi ? "/hi/free-valuation" : "/free-valuation"}
+                      className="bg-white hover:bg-slate-100 text-[#E31E24] font-black text-xs sm:text-sm px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl text-center shadow-md transition-all active:scale-95"
+                    >
+                      Check Your Vehicle Value with ScrapCentre
+                    </Link>
+                    <a
+                      href={`https://wa.me/919839447733?text=${encodeURIComponent(
+                        "Hello ScrapCentre, I want to inquire about Certificate of Deposit (CoD) and scrapping my vehicle."
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl text-center shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <PhoneCall size={16} />
+                      <span>WhatsApp: {post.content.callToAction.whatsapp}</span>
+                    </a>
+                  </div>
+                </motion.section>
+              )}
+
+              {!post.content.callToAction && (
+                <motion.section
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, amount: 0.1 }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-gradient-to-r from-red-600 via-[#E31E24] to-red-700 text-white rounded-2xl p-5 sm:p-8 space-y-4 shadow-xl"
+                >
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <ShieldCheck size={26} className="text-white shrink-0" />
+                    <h2 className="text-lg sm:text-2xl font-black tracking-tight">
+                      Scrap Your Car with ScrapCentre
+                    </h2>
+                  </div>
+                  <p className="text-red-50 text-xs sm:text-sm leading-relaxed">
+                    Get an instant online valuation and free doorstep pickup for your old vehicle through our authorised RVSF.
+                  </p>
+
+                  <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+                    <Link
+                      href={isHindi ? "/hi/free-valuation" : "/free-valuation"}
+                      className="bg-white hover:bg-slate-100 text-[#E31E24] font-black text-xs sm:text-sm px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl text-center shadow-md transition-all active:scale-95"
+                    >
+                      Check Your Vehicle Value with ScrapCentre
+                    </Link>
+                    <a
+                      href={`https://wa.me/919839447733?text=${encodeURIComponent(
+                        "Hello ScrapCentre, I want to inquire about scrapping my vehicle."
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl text-center shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <PhoneCall size={16} />
+                      <span>WhatsApp: +91-9839447733</span>
+                    </a>
+                  </div>
+                </motion.section>
+              )}
 
               {/* FAQs Accordion */}
               <motion.section

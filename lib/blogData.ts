@@ -1,6 +1,8 @@
 export interface BlogPost {
   id: string
   slug: string
+  metaTitle?: string
+  metaDescription?: string
   title: string
   subtitle: string
   excerpt: string
@@ -12,28 +14,49 @@ export interface BlogPost {
   keyHighlights: string[]
   content: {
     intro: string[]
-    whatIsCod: {
+    whatIsCod?: {
       title: string
       paragraphs: string[]
     }
-    howToGet: {
+    whatIsScrapping?: {
+      title: string
+      paragraphs: string[]
+    }
+    whenToConsider?: {
+      title: string
+      intro: string
+      points: { title: string; desc: string }[]
+      closingNote: string
+    }
+    howToGet?: {
       title: string
       intro: string
       steps: { number: number; title: string; desc: string }[]
       summaryNote: string
     }
-    validity: {
+    howItWorks?: {
+      title: string
+      intro: string
+      steps: { number: number; title: string; desc: string }[]
+    }
+    validity?: {
       title: string
       intro: string
       points: { label: string; text: string }[]
     }
-    roadTaxRebate: {
+    codBenefits?: {
+      title: string
+      intro: string
+      points: { label: string; text: string }[]
+      closingNote: string
+    }
+    roadTaxRebate?: {
       title: string
       paragraphs: string[]
       nationalTable: { category: string; concession: string }[]
       details: string[]
     }
-    upConcession: {
+    upConcession?: {
       title: string
       paragraphs: string[]
       cretaExample: {
@@ -43,21 +66,37 @@ export interface BlogPost {
         notes: string[]
       }
     }
-    otherBenefits: {
+    otherBenefits?: {
       title: string
       points: { name: string; desc: string }[]
     }
-    comparison: {
+    comparison?: {
       title: string
       intro: string
       table: { type: string; purpose: string }[]
       explanation: string[]
     }
-    rvsfVsKabadi: {
+    comparisonTable?: {
+      title: string
+      intro: string
+      columns: string[]
+      rows: {
+        feature: string
+        scrapping: string
+        junkyard: string
+        donating: string
+      }[]
+      closingNote: string
+    }
+    rvsfVsKabadi?: {
       title: string
       paragraphs: string[]
     }
-    callToAction: {
+    scrapWithUs?: {
+      title: string
+      paragraphs: string[]
+    }
+    callToAction?: {
       title: string
       paragraphs: string[]
       phone: string
@@ -297,4 +336,186 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     },
   },
+  {
+    id: "car-scrapping-guide-india",
+    slug: "car-scrapping-guide-india",
+    metaTitle: "What Is Car Scrapping? Process, Benefits & CoD Guide (2026)",
+    metaDescription: "Car scrapping means sending an old car to an authorized RVSF for dismantling and recycling. Learn the process, CoD benefits and how to scrap your car.",
+    title: "What Is Car Scrapping? Complete Guide for Indian Car Owners (2026)",
+    subtitle: "Car scrapping is the process of sending an old, damaged or unusable car to an authorised scrapping facility, where it is dismantled and its usable parts and recyclable materials are recovered.",
+    excerpt: "Car scrapping means sending an old car to an authorized RVSF for dismantling and recycling. Learn the process, CoD benefits and how to scrap your car.",
+    image: "/blog2.png",
+    author: "ScrapCentre Editorial",
+    date: "October 4, 2026",
+    readTime: "6 min read",
+    category: "Car Scrapping Guide",
+    keyHighlights: [
+      "Understand what car scrapping means and when you should consider it.",
+      "Learn how the car scrapping process works at an authorised RVSF.",
+      "Compare car scrapping with selling an old car to a local junkyard or donating it.",
+      "Know where you can scrap your car and what to expect from the process.",
+      "Learn how ScrapCentre helps with old car scrapping, including online valuation and free doorstep pickup.",
+    ],
+    content: {
+      intro: [
+        "Keeping an old car can become difficult. It may need frequent repairs, become expensive to maintain, or no longer feel reliable on the road. In such cases, car scrapping can be an option.",
+        "But what happens when you scrap a car? How does the process work, and what are your other options? This guide explains car scrapping in simple terms and covers what Indian car owners need to know before scrapping, selling or donating an old vehicle.",
+      ],
+      whatIsScrapping: {
+        title: "What Is Car Scrapping?",
+        paragraphs: [
+          "Car scrapping is the process of getting rid of an old, damaged or unusable car by sending it to an authorised scrapping facility. The vehicle is dismantled, and its usable parts and recyclable materials are separated for recovery. This makes car scrapping different from simply abandoning an old car or selling it as scrap.",
+          "A car may reach a point where keeping it on the road is no longer practical. It may have major damage, need frequent repairs, or no longer be suitable for regular use. In such cases, old car scrapping can be an option for disposing of the vehicle in a more organised way.",
+          "Car scrapping also supports car recycling by allowing materials from old vehicles to be recovered and used again. Instead of letting an unwanted car sit unused, owners can choose a formal car disposal option through an authorised facility. Owners can opt for authorised [vehicle scrapping services](https://www.scrapcentre.com/vehicle-scrapping-services) to ensure responsible car disposal while supporting car recycling and material recovery.",
+        ],
+      },
+      whenToConsider: {
+        title: "When Should You Consider Scrapping Your Old Car?",
+        intro: "Not every old car needs to be scrapped. If your car is still safe, reliable and affordable to maintain, you may continue using it. However, some signs can tell you that old car scrapping may be worth considering.",
+        points: [
+          {
+            title: "Frequent repairs and breakdowns:",
+            desc: "If your car needs repairs often or keeps breaking down, maintaining it can become difficult. Frequent problems may also make the car less reliable for everyday use.",
+          },
+          {
+            title: "Repair costs are too high:",
+            desc: "When you keep spending money on repairs, the cost may no longer seem reasonable for the car. If major repairs are needed again and again, it may be time to consider car disposal.",
+          },
+          {
+            title: "Safety and reliability concerns:",
+            desc: "An old or damaged car may not feel safe or dependable on the road. If you are no longer comfortable driving it or cannot rely on it for regular travel, scrapping can be one option to consider.",
+          },
+          {
+            title: "Registration or roadworthiness issues:",
+            desc: "Problems with the vehicle’s registration or roadworthiness may affect your ability to continue using it. If the car cannot meet the required conditions for use, you may need to consider other options, including scrapping.",
+          },
+        ],
+        closingNote: "The decision does not depend on the car’s age alone. Its condition, repair needs, safety, usability and applicable requirements should all be considered before deciding whether to keep it or opt for car scrapping.",
+      },
+      howItWorks: {
+        title: "How Does the Car Scrapping Process Work with an Authorised RVSF?",
+        intro: "Scrapping a car through an authorised RVSF gives you a clear way to hand over your old vehicle and complete the required formalities. The car scrapping process can be broken down into a few simple steps:",
+        steps: [
+          {
+            number: 1,
+            title: "Check your car’s value",
+            desc: "Start by checking how much your old car may be worth. ScrapCentre offers an [instant online valuation](https://www.scrapcentre.com/know-your-valuation), so you can enter your vehicle details and get an estimated value before moving ahead.",
+          },
+          {
+            number: 2,
+            title: "Arrange doorstep pickup",
+            desc: "Once you decide to scrap the car, you can arrange for it to be collected from your location. ScrapCentre offers free doorstep pickup, making it easier to hand over your vehicle without having to arrange separate transportation.",
+          },
+          {
+            number: 3,
+            title: "Complete the required formalities",
+            desc: "The vehicle is handed over to the authorised facility, where its details and ownership are checked. The required documentation and other formalities are completed as part of the scrapping process.",
+          },
+          {
+            number: 4,
+            title: "The car is dismantled and recycled",
+            desc: "After the required checks are completed, the vehicle is taken through the scrapping process at the RVSF. The car is dismantled, and reusable parts and recyclable materials are separated for further use or processing.",
+          },
+          {
+            number: 5,
+            title: "Receive the relevant documents and payment",
+            desc: "Once the vehicle is accepted for scrapping, the Certificate of Deposit (CoD) is issued through the authorised system. The CoD serves as a record of the vehicle being deposited for scrapping and can be useful for claiming eligible scrapping-related benefits. You also receive the payment based on the agreed valuation of your vehicle.",
+          },
+        ],
+      },
+      codBenefits: {
+        title: "What Are the Benefits of a Certificate of Deposit (CoD)?",
+        intro: "A Certificate of Deposit (CoD) is an important document issued when you deposit your vehicle at an authorised Registered Vehicle Scrapping Facility (RVSF). It serves as proof that your vehicle has been deposited for scrapping and may help you access eligible benefits when purchasing a new vehicle, subject to applicable rules.\n\nHere are the key benefits of a CoD:",
+        points: [
+          {
+            label: "Proof of vehicle scrapping",
+            text: "The CoD provides an official record that your vehicle has been deposited at an authorised scrapping facility.",
+          },
+          {
+            label: "Access to eligible benefits",
+            text: "Depending on the applicable rules and eligibility conditions, the CoD may help you claim scrapping-related benefits when purchasing a new vehicle.",
+          },
+          {
+            label: "Useful when replacing your old car",
+            text: "If you plan to buy another vehicle after scrapping your old one, the CoD can be useful for checking and claiming any applicable benefits.",
+          },
+          {
+            label: "A record to keep for your records",
+            text: "The CoD gives you documented proof of the vehicle’s deposit for scrapping and can be kept for future reference.",
+          },
+        ],
+        closingNote: "When you scrap your car through ScrapCentre, you receive the CoD as part of the process. You can keep it for your records and check your eligibility for applicable benefits when purchasing your next vehicle.",
+      },
+      comparisonTable: {
+        title: "Car Scrapping vs Selling to a Local Junkyard vs Donating",
+        intro: "When you no longer want to keep an old car, scrapping is not the only option. You may also think about selling it to a local junkyard or donating it. Each option works differently, so it is useful to understand what happens to the vehicle and what you can expect from the process.",
+        columns: ["Feature / Aspect", "Car Scrapping", "Selling to a Local Junkyard", "Donating"],
+        rows: [
+          {
+            feature: "What happens to the car?",
+            scrapping: "The vehicle is dismantled, and usable parts and recyclable materials are separated.",
+            junkyard: "The vehicle may be dismantled, reused or sold for parts, depending on the buyer.",
+            donating: "The vehicle may be used, repaired or sold by the organisation receiving it.",
+          },
+          {
+            feature: "Payment",
+            scrapping: "You may receive payment based on the vehicle’s scrap value.",
+            junkyard: "You may receive a price agreed with the buyer.",
+            donating: "Usually, there is no direct payment to the owner.",
+          },
+          {
+            feature: "Documentation",
+            scrapping: "The vehicle goes through the required formalities with an authorised facility.",
+            junkyard: "Documentation depends on the buyer and the transaction.",
+            donating: "The documents and transfer process depend on the organisation.",
+          },
+          {
+            feature: "Best suited for",
+            scrapping: "Cars that are old, damaged or no longer practical to use.",
+            junkyard: "Owners looking for a direct sale to a local scrap buyer.",
+            donating: "Vehicles that are still usable and suitable for donation.",
+          },
+        ],
+        closingNote: "The right choice depends on the condition of your car and what you want to do with it. If the vehicle is no longer practical to use, car scrapping through an authorised facility can provide a more formal way to handle its disposal and recycling.",
+      },
+      scrapWithUs: {
+        title: "Scrap Your Car with ScrapCentre",
+        paragraphs: [
+          "Choosing the right way to dispose of an old car can make the process simpler and more organised. If you are considering car scrapping, ScrapCentre helps you get started with an instant online valuation and free doorstep pickup.",
+          "As an authorised RVSF, [ScrapCentre](https://www.scrapcentre.com/) manages the required car scrapping process and provides the Certificate of Deposit (CoD) as part of the process. You can check your car’s value online and connect with the ScrapCentre team to understand the next steps.",
+        ],
+      },
+      faqs: {
+        english: [
+          {
+            q: "Is car scrapping mandatory?",
+            a: "No, car scrapping is not mandatory for every old car. It may be considered when a vehicle is no longer safe, usable or practical to maintain.",
+          },
+          {
+            q: "Where can I scrap my car?",
+            a: "You can scrap your car at an authorised car scrapping company or Registered Vehicle Scrapping Facility (RVSF) that follows the required car scrapping process and provides the necessary documentation.",
+          },
+          {
+            q: "Is scrapping a car free?",
+            a: "Car scrapping is not always free. However, ScrapCentre offers free doorstep pickup for eligible vehicles, while the vehicle’s scrap value and other terms depend on the arrangement.",
+          },
+        ],
+        hinglish: [
+          {
+            q: "Kya car scrapping zaroori (mandatory) hai?",
+            a: "Nahi, car scrapping har purani car ke liye mandatory nahi hai. Yeh tab consider kiya ja sakta hai jab gaadi safe, usable ya maintain karne ke liye practical na rahe.",
+          },
+          {
+            q: "Main apni car kahan scrap kar sakta hoon?",
+            a: "Aap apni car ek authorised car scrapping company ya Registered Vehicle Scrapping Facility (RVSF) mein scrap kar sakte hain jo zaroori process follow karti hai aur documentation provide karti hai.",
+          },
+          {
+            q: "Kya car scrap karna free hai?",
+            a: "Car scrapping hamesha free nahi hoti. Lekin, ScrapCentre eligible vehicles ke liye free doorstep pickup offer karta hai, jabki vehicle ki scrap value aur baaki terms arrangement par depend karti hain.",
+          },
+        ],
+      },
+    },
+  },
 ]
+

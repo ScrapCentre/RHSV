@@ -20,8 +20,8 @@ export async function generateMetadata({
   const post = BLOG_POSTS.find((p) => p.slug === slug) || BLOG_POSTS[0]
   const alternates = getAlternates(typedLocale, `/blog/${post.slug}`)
 
-  const title = `${post.title} | ScrapCentre`
-  const description = post.excerpt
+  const title = post.metaTitle ? `${post.metaTitle} | ScrapCentre` : `${post.title} | ScrapCentre`
+  const description = post.metaDescription || post.excerpt
 
   return {
     title,
@@ -64,7 +64,47 @@ export default async function BlogDetailPage({
   const post = BLOG_POSTS.find((p) => p.slug === slug) || BLOG_POSTS[0]
   const pageUrl = `https://www.scrapcentre.com${typedLocale === "hi" ? "/hi" : ""}/blog/${post.slug}`
 
-  // Article JSON-LD Schema
+  // Custom @graph Schema for the car-scrapping-guide-india blog post
+  if (post.slug === "car-scrapping-guide-india") {
+    const graphSchema = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Article",
+          "headline": "What Is Car Scrapping? Complete Guide for Indian Car Owners (2026)",
+          "description": "Car scrapping means sending an old car to an authorised RVSF for dismantling and recycling. Learn the process, CoD benefits and how to scrap your car.",
+          "author": { "@type": "Person", "name": post.author || "ScrapCentre Editorial" },
+          "publisher": { "@type": "Organization", "name": "ScrapCentre" },
+          "datePublished": "2026-10-04",
+          "dateModified": "2026-10-04",
+          "mainEntityOfPage": pageUrl,
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": post.content.faqs.english.map((faq) => ({
+            "@type": "Question",
+            "name": faq.q,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": faq.a,
+            },
+          })),
+        },
+      ],
+    }
+
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(graphSchema) }}
+        />
+        <BlogDetailClient slug={slug} />
+      </>
+    )
+  }
+
+  // Article JSON-LD Schema for other posts
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -88,7 +128,7 @@ export default async function BlogDetailPage({
     },
   }
 
-  // FAQPage JSON-LD Schema for the blog post FAQs
+  // FAQPage JSON-LD Schema for other posts
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
