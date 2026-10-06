@@ -105,7 +105,7 @@ export default async function VehicleScrappingServicesLocalePage({
     ],
   }
 
-  // 3. Service Schema (with OfferCatalog, Audience, AggregateRating & Reviews)
+  // 3. Service Schema (with OfferCatalog & Audience)
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -230,54 +230,6 @@ export default async function VehicleScrappingServicesLocalePage({
         },
       ],
     },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "bestRating": "5",
-      "worstRating": "1",
-      "ratingCount": "15000",
-    },
-    "review": [
-      {
-        "@type": "Review",
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": "5",
-          "bestRating": "5",
-        },
-        "author": {
-          "@type": "Person",
-          "name": "Amit Patel",
-        },
-        "reviewBody": "The process was quick, transparent and I got the best value for my old car. Highly recommended!",
-      },
-      {
-        "@type": "Review",
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": "5",
-          "bestRating": "5",
-        },
-        "author": {
-          "@type": "Person",
-          "name": "Neha Sharma",
-        },
-        "reviewBody": "Very professional team and hassle-free documentation. Payment was done instantly. Great experience!",
-      },
-      {
-        "@type": "Review",
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": "5",
-          "bestRating": "5",
-        },
-        "author": {
-          "@type": "Person",
-          "name": "Rohit Verma",
-        },
-        "reviewBody": "I compared many platforms but got the best price here. Super smooth and trustworthy service.",
-      },
-    ],
   }
 
   // 4. FAQPage Schema (All 8 FAQs matching exact requested JSON-LD)
