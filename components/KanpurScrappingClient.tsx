@@ -360,10 +360,10 @@ export default function KanpurScrappingClient() {
       ───────────────────────────────────────────────────────────── */}
       <section className="relative w-full pt-24 sm:pt-28 md:pt-28 lg:pt-16 pb-8 sm:pb-10 lg:pb-12 bg-white overflow-hidden border-b border-slate-100">
 
-        {/* Kanpur Hero Background Car Image (from public/locationimg/kanpurbg.png) */}
+        {/* Kanpur Hero Background Car Image (from public/Locationimg/kanpurbg.png) */}
         <div
-          className="absolute inset-0 pointer-events-none bg-no-repeat bg-right-top bg-contain z-0 hidden sm:block"
-          style={{ backgroundImage: "url('/locationimg/kanpurbg.png')" }}
+          className="absolute inset-0 pointer-events-none bg-no-repeat bg-right-top bg-contain z-0 opacity-25 sm:opacity-100"
+          style={{ backgroundImage: "url('/Locationimg/kanpurbg.png')" }}
         />
 
         {/* Soft Ambient Light Effects (Subtle organic light accents, matching reference) */}

@@ -13,6 +13,14 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/locationimg/:path*',
+        destination: '/Locationimg/:path*',
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
