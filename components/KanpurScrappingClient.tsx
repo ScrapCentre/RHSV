@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Caveat } from "next/font/google"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import LoadingScreen from "@/components/LoadingScreen"
 import {
   Check,
   CheckCircle2,
@@ -55,6 +56,7 @@ const caveat = Caveat({
 export default function KanpurScrappingClient() {
   const params = useParams()
   const isHindi = params?.locale === "hi"
+  const [loading, setLoading] = useState(true)
 
   // FAQ state (only 1 open by default, single open accordion)
   const [openFaq, setOpenFaq] = useState<number | null>(0)
@@ -353,6 +355,45 @@ export default function KanpurScrappingClient() {
     },
   ]
 
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 35 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.65,
+        ease: [0.22, 1, 0.36, 1] as const,
+      },
+    },
+  }
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.05,
+      },
+    },
+  }
+
+  const cardFadeIn = {
+    hidden: { opacity: 0, y: 22 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: [0.22, 1, 0.36, 1] as const,
+      },
+    },
+  }
+
+  if (loading) {
+    return <LoadingScreen onComplete={() => setLoading(false)} />
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* ─────────────────────────────────────────────────────────────
@@ -362,7 +403,7 @@ export default function KanpurScrappingClient() {
 
         {/* Kanpur Hero Background Car Image (from public/Locationimg/kanpurbg.png) */}
         <div
-          className="absolute inset-0 pointer-events-none bg-no-repeat bg-right-top bg-contain z-0 opacity-25 sm:opacity-100"
+          className="absolute inset-0 pointer-events-none bg-no-repeat bg-right-top bg-contain z-0 hidden sm:block"
           style={{ backgroundImage: "url('/Locationimg/kanpurbg.png')" }}
         />
 
@@ -459,7 +500,11 @@ export default function KanpurScrappingClient() {
           <div className="w-full border-t border-slate-100 mb-5 sm:mb-6 lg:mb-7" />
 
           {/* 5. Three Key Advantage Cards - Sequentially Auto-Highlighted */}
-          <div 
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
             className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-5 w-full"
             onMouseEnter={() => setIsAdvantageHovered(true)}
             onMouseLeave={() => setIsAdvantageHovered(false)}
@@ -536,7 +581,7 @@ export default function KanpurScrappingClient() {
                 </div>
               )
             })}
-          </div>
+          </motion.div>
 
         </div>
 
@@ -653,7 +698,13 @@ export default function KanpurScrappingClient() {
       {/* ─────────────────────────────────────────────────────────────
           SECTION 2: AUTHORISED VEHICLE SCRAPPING IN KANPUR (REDESIGNED)
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-20 bg-gradient-to-b from-white via-slate-50/40 to-white text-slate-900 border-b border-slate-100 relative overflow-hidden">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.12 }}
+        variants={sectionVariants}
+        className="py-14 sm:py-20 bg-gradient-to-b from-white via-slate-50/40 to-white text-slate-900 border-b border-slate-100 relative overflow-hidden"
+      >
         {/* Soft background ambient glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-red-50/50 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-100/60 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
@@ -905,12 +956,18 @@ export default function KanpurScrappingClient() {
 
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           SECTION 3: VEHICLES WE SCRAP IN KANPUR (REDESIGNED & RESPONSIVE)
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-20 bg-slate-50/60 text-slate-900 border-b border-slate-100 relative">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.08 }}
+        variants={sectionVariants}
+        className="py-14 sm:py-20 bg-slate-50/60 text-slate-900 border-b border-slate-100 relative"
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
 
           {/* Section Header */}
@@ -936,7 +993,13 @@ export default function KanpurScrappingClient() {
           </div>
 
           {/* 3 x 3 Responsive Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+          <motion.div 
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.05 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6"
+          >
             {[
               {
                 id: "cars",
@@ -1059,8 +1122,9 @@ export default function KanpurScrappingClient() {
               const IconComp = v.icon
               const isSpecial = v.id === "other"
               return (
-                <div
+                <motion.div
                   key={v.id}
+                  variants={cardFadeIn}
                   className={`group relative bg-white rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 overflow-hidden ${
                     isSpecial
                       ? "border border-emerald-200/90 hover:border-emerald-500 shadow-xs hover:shadow-xl hover:shadow-emerald-500/10"
@@ -1149,18 +1213,24 @@ export default function KanpurScrappingClient() {
                       <ArrowRight className="w-3.5 h-3.5 shrink-0 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   )}
-                </div>
+                </motion.div>
               )
             })}
-          </div>
+          </motion.div>
 
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           SECTION 4: RED NOTIFICATION BAR
       ───────────────────────────────────────────────────────────── */}
-      <section className="bg-[#E31E24] text-white py-5 sm:py-6">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+        className="bg-[#E31E24] text-white py-5 sm:py-6"
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
             <div>
@@ -1183,12 +1253,18 @@ export default function KanpurScrappingClient() {
             </a>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           SECTION 5: 4-STEP SCRAPPING PROCESS (REDESIGNED & COMPACT)
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-12 sm:py-16 bg-white text-slate-900 border-b border-slate-100 relative">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.12 }}
+        variants={sectionVariants}
+        className="py-12 sm:py-16 bg-white text-slate-900 border-b border-slate-100 relative"
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
 
           {/* Section Header */}
@@ -1228,12 +1304,19 @@ export default function KanpurScrappingClient() {
           </div>
 
           {/* 4 Compact Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-4.5">
+          <motion.div 
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.08 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-4.5"
+          >
             {processSteps.map((step, idx) => {
               const Icon = step.icon
               return (
-                <div
+                <motion.div
                   key={idx}
+                  variants={cardFadeIn}
                   className="group relative bg-white border border-slate-200/80 hover:border-[#E31E24] rounded-2xl p-4 sm:p-4.5 lg:p-5 flex flex-col justify-between shadow-xs hover:shadow-xl hover:shadow-red-500/8 transition-all duration-300 hover:-translate-y-1.5 overflow-hidden"
                 >
                   {/* Glowing Top Accent Line on Hover */}
@@ -1271,18 +1354,24 @@ export default function KanpurScrappingClient() {
                     <span>{step.footerStep}</span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#E31E24] group-hover:translate-x-1 transition-all" />
                   </div>
-                </div>
+                </motion.div>
               )
             })}
-          </div>
+          </motion.div>
 
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           SECTION 6: DOCUMENTS & RC CANCELLATION (REDESIGNED)
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-20 bg-slate-50/60 text-slate-900 border-b border-slate-100 relative">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={sectionVariants}
+        className="py-14 sm:py-20 bg-slate-50/60 text-slate-900 border-b border-slate-100 relative"
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
 
           <div className="text-left mb-8 sm:mb-12 max-w-4xl">
@@ -1462,12 +1551,18 @@ export default function KanpurScrappingClient() {
           </div>
 
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           SECTION 7: WHAT DECIDES SCRAP VALUE IN KANPUR (FACTORS)
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-20 bg-white text-slate-900 border-b border-slate-100 relative">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={sectionVariants}
+        className="py-14 sm:py-20 bg-white text-slate-900 border-b border-slate-100 relative"
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
 
           <div className="text-left mb-8 sm:mb-12 max-w-4xl">
@@ -1543,12 +1638,18 @@ export default function KanpurScrappingClient() {
           </div>
 
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           SECTION 8: VEHICLE SCRAPPING ACROSS KANPUR LOCALITIES
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-20 bg-slate-50/60 text-slate-900 border-b border-slate-100 relative">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={sectionVariants}
+        className="py-14 sm:py-20 bg-slate-50/60 text-slate-900 border-b border-slate-100 relative"
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
@@ -1686,12 +1787,18 @@ export default function KanpurScrappingClient() {
           </div>
 
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           SECTION 9: KANPUR VEHICLE SCRAPPING FAQs (REDESIGNED)
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-14 sm:py-20 bg-white text-slate-900 border-b border-slate-100 relative overflow-hidden">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={sectionVariants}
+        className="py-14 sm:py-20 bg-white text-slate-900 border-b border-slate-100 relative overflow-hidden"
+      >
         {/* Soft Ambient Light Effects */}
         <div className="absolute top-1/4 right-0 w-80 h-80 bg-red-50/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-slate-50 rounded-full blur-3xl pointer-events-none" />
@@ -1848,12 +1955,18 @@ export default function KanpurScrappingClient() {
           </div>
 
         </div>
-      </section>
+      </motion.section>
 
       {/* ─────────────────────────────────────────────────────────────
           SECTION 10: BOTTOM RED CTA BANNER
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-12 sm:py-16 bg-white text-slate-900">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.15 }}
+        variants={sectionVariants}
+        className="py-12 sm:py-16 bg-white text-slate-900"
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="bg-[#E31E24] text-white rounded-3xl p-6 sm:p-10 lg:p-12 shadow-xl relative overflow-hidden">
 
@@ -1945,7 +2058,7 @@ export default function KanpurScrappingClient() {
 
           </div>
         </div>
-      </section>
+      </motion.section>
 
     </div>
   )
