@@ -101,7 +101,7 @@
   left: 0;
   bottom: -3px;
   right: -1px;
-  z-index: -1;
+  z-index: 1;
 }
 
 .c-button--gooey .c-button__blobs div {
