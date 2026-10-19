@@ -33,13 +33,7 @@ import {
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
-import { Plus_Jakarta_Sans } from "next/font/google"
 import VehiclePhotosSection from "@/components/admin/VehiclePhotosSection"
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700", "800"],
-})
 
 export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ type: string, id: string }> }) {
     const router = useRouter()
@@ -132,7 +126,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
 
     if (loading) {
         return (
-            <div className={`flex items-center justify-center min-h-[400px] ${plusJakartaSans.className}`}>
+            <div className="flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                     <div className="text-gray-500 text-sm font-semibold">Loading details...</div>
@@ -143,7 +137,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
 
     if (!request) {
         return (
-            <div className={`flex flex-col items-center justify-center min-h-[400px] p-6 bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800 text-center ${plusJakartaSans.className}`}>
+            <div className="flex flex-col items-center justify-center min-h-[400px] p-6 bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
                 <p className="text-slate-500 dark:text-slate-400 font-bold mb-2">Lead details not found.</p>
                 <Link href="/executive/dashboard" className="text-xs font-bold text-red-650 hover:underline uppercase tracking-widest">Return to Dashboard</Link>
             </div>
@@ -214,7 +208,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
     // ── VIEW 1: Scrap Only Lead ──
     const QuoteDetailView = () => {
         return (
-            <div className={`space-y-5 ${plusJakartaSans.className}`}>
+            <div className="space-y-5">
                 {/* Banner Section */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-cyan-50/20 dark:from-emerald-950/15 dark:to-transparent border border-emerald-100/60 dark:border-emerald-900/30 p-5 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-start gap-3.5 z-10 max-w-xl">
@@ -432,7 +426,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
     // ── VIEW 2: Scrap & Buy New Lead ──
     const ScrapBuyDetailView = () => {
         return (
-            <div className={`space-y-5 ${plusJakartaSans.className}`}>
+            <div className="space-y-5">
                 {/* Banner Section */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-50/70 via-fuchsia-50/40 to-pink-50/20 dark:from-purple-950/15 dark:to-transparent border border-purple-100/60 dark:border-purple-900/30 p-5 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-start gap-3.5 z-10 max-w-xl">
@@ -626,7 +620,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
     // ── VIEW 3: Buy Only Lead ──
     const BuyDetailView = () => {
         return (
-            <div className={`space-y-5 ${plusJakartaSans.className}`}>
+            <div className="space-y-5">
                 {/* Banner Section */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-50/70 via-amber-50/40 to-yellow-50/20 dark:from-orange-950/15 dark:to-transparent border border-orange-100/60 dark:border-orange-900/30 p-5 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-start gap-3.5 z-10 max-w-xl">
@@ -769,7 +763,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
     // ── VIEW 4: Exchange Lead ──
     const ExchangeDetailView = () => {
         return (
-            <div className={`space-y-5 ${plusJakartaSans.className}`}>
+            <div className="space-y-5">
                 {/* Banner Section */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-50/70 via-fuchsia-50/40 to-pink-50/20 dark:from-purple-950/15 dark:to-transparent border border-purple-100/60 dark:border-purple-900/30 p-5 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-start gap-3.5 z-10 max-w-xl">
@@ -1067,7 +1061,7 @@ export default function ExecutiveLeadDetailPage({ params }: { params: Promise<{ 
     }
 
     return (
-        <div className={`min-h-screen bg-[#F8FAFC] dark:bg-[#070e1a] p-4 md:p-6 lg:p-8 space-y-5 max-w-7xl mx-auto ${plusJakartaSans.className}`}>
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#070e1a] p-4 md:p-6 lg:p-8 space-y-5 max-w-7xl mx-auto">
             {/* Back Button */}
             <div className="flex items-center mb-1">
                 <Link 

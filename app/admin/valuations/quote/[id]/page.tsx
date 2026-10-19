@@ -32,14 +32,8 @@ import {
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus_Jakarta_Sans } from "next/font/google"
 import { useSession } from "next-auth/react"
 import VehiclePhotosSection from "@/components/admin/VehiclePhotosSection"
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700", "800"],
-})
 
 export default function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { data: session } = useSession()
@@ -260,7 +254,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
 
     if (loading) {
         return (
-            <div className={`flex items-center justify-center min-h-[400px] ${plusJakartaSans.className}`}>
+            <div className="flex items-center justify-center min-h-[400px]">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     <div className="text-gray-500 text-sm font-semibold">Loading details...</div>
@@ -271,7 +265,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
 
     if (!request) {
         return (
-            <div className={`flex flex-col items-center justify-center min-h-[400px] p-6 bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800 text-center ${plusJakartaSans.className}`}>
+            <div className="flex flex-col items-center justify-center min-h-[400px] p-6 bg-white dark:bg-[#0E192D] rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
                 <p className="text-slate-500 dark:text-slate-400 font-bold mb-2">Lead details not found.</p>
                 <Link href="/admin" className="text-xs font-bold text-blue-655 hover:underline uppercase tracking-widest">Back to Dashboard</Link>
             </div>
@@ -279,7 +273,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
     }
 
     return (
-        <div className={`min-h-screen bg-[#F8FAFC] dark:bg-[#070e1a] p-4 md:p-6 lg:p-8 space-y-5 max-w-7xl mx-auto ${plusJakartaSans.className}`}>
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#070e1a] p-4 md:p-6 lg:p-8 space-y-5 max-w-7xl mx-auto">
             
             {/* Back Button */}
             <div className="flex items-center mb-1">

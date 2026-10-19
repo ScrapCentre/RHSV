@@ -37,7 +37,7 @@ import NotificationBox from "@/components/admin/NotificationBox"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
-    weight: ["400", "500", "600", "700", "800"],
+    display: "swap",
 })
 
 const sidebarLinkVariants = {
