@@ -294,7 +294,7 @@ export default function HomexServiceHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-6 md:mt-8 bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)] p-4 sm:p-5 md:p-6"
+          className="mt-10 md:mt-14 lg:mt-16 bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)] p-4 sm:p-5 md:p-6"
         >
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
             {bottomFeatures.map((feat, idx) => {
