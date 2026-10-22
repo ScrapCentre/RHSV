@@ -25,6 +25,7 @@ import {
   Link2,
   IndianRupee,
   ChevronDown,
+  Leaf,
   LucideIcon
 } from "lucide-react"
 
@@ -435,7 +436,7 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
       {/* ─────────────────────────────────────────────────────────────
           SECTION 1: HERO SECTION (Image 2)
       ───────────────────────────────────────────────────────────── */}
-      <section className="relative w-full pt-28 sm:pt-32 lg:pt-24 xl:pt-28 pb-8 sm:pb-10 lg:pb-10 xl:pb-12 bg-white overflow-hidden border-b border-slate-100">
+      <section className="relative w-full pt-24 sm:pt-28 md:pt-28 lg:pt-20 xl:pt-24 pb-8 sm:pb-10 lg:pb-10 xl:pb-12 bg-white overflow-hidden border-b border-slate-100">
         <div className="absolute -left-24 top-8 w-96 h-96 bg-red-100/30 rounded-full blur-3xl pointer-events-none -z-0" />
         <div className="absolute -right-24 top-16 w-96 h-96 bg-red-50/40 rounded-full blur-3xl pointer-events-none -z-0" />
         <div className="absolute top-0 left-1/3 w-96 h-64 bg-slate-50/60 rounded-full blur-3xl pointer-events-none -z-0" />
@@ -472,18 +473,18 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
             </nav>
           )}
 
-          <div className={`grid grid-cols-1 ${hero.rightHighlight ? "lg:grid-cols-12" : ""} gap-8 lg:gap-8 xl:gap-10 items-center mb-8 sm:mb-10`}>
+          <div className={`grid grid-cols-1 ${hero.rightHighlight ? "lg:grid-cols-12" : ""} gap-8 lg:gap-8 xl:gap-10 items-center mb-6 sm:mb-8`}>
             {/* Left Content Area */}
             <div className={`${hero.rightHighlight ? "lg:col-span-7 xl:col-span-8" : hero.bgImage ? "max-w-2xl sm:max-w-3xl lg:max-w-4xl" : "w-full max-w-4xl"} text-left`}>
-              {/* Category Pill Badge (Optional) */}
+              {/* Category Pill Badge (Matching Services Page) */}
               {hero.categoryBadge && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200/80 text-[#E31E24] text-xs font-black uppercase tracking-wider mb-4 shadow-2xs"
+                  className="inline-flex items-center gap-2 bg-[#FFF0F0] border border-[#FFD6D6] text-[#E31E24] text-xs font-bold px-4 py-1.5 rounded-full shadow-xs mb-3 sm:mb-3.5"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-[#E31E24]" />
+                  <Leaf className="w-3.5 h-3.5 text-[#E31E24] fill-[#E31E24]" />
                   <span>{isHindi ? hero.categoryBadge.hi : hero.categoryBadge.en}</span>
                 </motion.div>
               )}
@@ -493,7 +494,7 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="text-2xl sm:text-3xl lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem] font-black text-slate-900 tracking-tight leading-[1.2] mb-3.5 sm:mb-4 text-left"
+                className="text-2xl sm:text-3xl lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem] font-black text-slate-900 tracking-tight leading-[1.2] mb-3 sm:mb-3.5 text-left"
               >
                 <span className="block">{isHindi ? hero.h1Line1.hi : hero.h1Line1.en}</span>
                 <span className="block text-[#E31E24] mt-1.5 sm:mt-2">
@@ -507,7 +508,7 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.15 }}
-                  className={`text-slate-600 text-sm sm:text-base lg:text-[15px] xl:text-[17px] font-normal leading-relaxed my-4 ${hero.bgImage ? "max-w-xl sm:max-w-2xl lg:max-w-2xl" : "max-w-3xl"} text-left`}
+                  className={`text-slate-600 text-sm sm:text-base lg:text-[15px] xl:text-[17px] font-normal leading-relaxed my-3 sm:my-3.5 ${hero.bgImage ? "max-w-xl sm:max-w-2xl lg:max-w-2xl" : "max-w-3xl"} text-left`}
                 >
                   {isHindi && hero.supportingText.hi ? hero.supportingText.hi : hero.supportingText.en}
                 </motion.p>
@@ -526,7 +527,7 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex flex-wrap items-center justify-start gap-2 sm:gap-2.5 my-5 sm:my-6"
+                className="flex flex-wrap items-center justify-start gap-2 sm:gap-2.5 my-4 sm:my-4.5"
               >
                 {hero.trustBadges.map((badge, i) => (
                   <div
@@ -614,7 +615,7 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
             )}
           </div>
 
-          <div className="w-full border-t border-slate-100 mb-5 sm:mb-6 lg:mb-7" />
+          <div className="w-full border-t border-slate-100 mb-4 sm:mb-5 lg:mb-5" />
 
           {/* 3 Key Advantage Cards */}
           <motion.div

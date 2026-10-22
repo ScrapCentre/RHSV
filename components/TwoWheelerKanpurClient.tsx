@@ -30,6 +30,10 @@ export default function TwoWheelerKanpurClient({ isHindi: isHindiProp }: TwoWhee
   const twoWheelerKanpurConfig: VehicleCategoryPageConfig = {
     hero: {
       bgImage: "/Locationimg/twowheeler.png",
+      categoryBadge: {
+        en: "Two-Wheeler Scrapping Services Kanpur",
+        hi: "टू-व्हीलर स्क्रैपिंग सेवाएं कानपुर",
+      },
       h1Line1: {
         en: "Two-Wheeler Scrapping in Kanpur —",
         hi: "कानपुर में टू-व्हीलर स्क्रैपिंग —",

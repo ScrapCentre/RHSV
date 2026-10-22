@@ -150,12 +150,16 @@ export default function Navbar() {
     router.push(targetHref)
   }
 
-  const isTransparent = (pathname === "/homex" || pathname === "/" || pathname === "/hi" || pathname?.includes("/vehicle-scrapping-services") || pathname?.includes("/know-your-valuation")) && !isScrolled
+  const isTransparent = (pathname === "/homex" || pathname === "/" || pathname === "/hi") && !isScrolled
 
   return (
     <nav
-      className={`navbar fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out hover:bg-white hover:shadow-md ${
-        isTransparent ? "bg-transparent" : "bg-white shadow-md"
+      className={`navbar fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+        isTransparent
+          ? "bg-transparent hover:bg-white hover:shadow-md"
+          : isScrolled
+          ? "bg-white shadow-md"
+          : "bg-white"
       } ${
         isVisible ? "translate-y-0" : "-translate-y-full"
       } ${locale === "hi" ? "lang-hi" : ""}`}
@@ -243,7 +247,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Navigation Header */}
-        <div className={`lg:hidden flex items-center justify-between w-full h-20 px-4 transition-colors duration-300 ${isTransparent ? "bg-transparent" : "bg-white border-b"}`}>
+        <div className={`lg:hidden flex items-center justify-between w-full h-20 px-4 transition-colors duration-300 ${isTransparent ? "bg-transparent" : isScrolled ? "bg-white border-b" : "bg-white"}`}>
           <div className="logo flex items-center cursor-pointer gap-2" onClick={() => handleNavClick(localizedHref("/"))}>
             <Image 
               src="/logo.png" 
