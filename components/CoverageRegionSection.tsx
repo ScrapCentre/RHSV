@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useParams } from "next/navigation"
+import Link from "next/link"
 
 export default function CoverageRegionSection() {
   const params = useParams()
@@ -9,8 +10,11 @@ export default function CoverageRegionSection() {
 
   const isHindi = locale === "hi"
 
+  const localizedHref = (path: string) =>
+    isHindi ? `/hi${path === "/" ? "" : path}` : path
+
   const activeCities = [
-    { en: "Kanpur", hi: "कानपुर" },
+    { en: "Kanpur", hi: "कानपुर", href: "/vehicle-scrapping-services-kanpur" },
     { en: "Etawah", hi: "इटावा" },
     { en: "Auraiya", hi: "औरैया" },
   ]
@@ -81,25 +85,61 @@ export default function CoverageRegionSection() {
             transition={{ duration: 0.4 }}
             className="flex flex-wrap items-center gap-2.5 md:gap-3"
           >
-            {activeCities.map((city) => (
-              <motion.div
-                key={city.en}
-                whileHover={{ scale: 1.03, y: -1 }}
-                className="
-                  flex items-center gap-2
-                  bg-white dark:bg-slate-800
-                  px-4 py-2 md:px-4.5 md:py-2.5
-                  rounded-full shadow-sm hover:shadow-md
-                  border border-emerald-200 dark:border-emerald-800
-                  text-slate-900 dark:text-white
-                  font-bold text-xs md:text-sm
-                  transition-all duration-200 cursor-default
-                "
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                <span>{isHindi ? city.hi : city.en}</span>
-              </motion.div>
-            ))}
+            {activeCities.map((city) => {
+              const pillContent = (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                  <span>{isHindi ? city.hi : city.en}</span>
+                </>
+              )
+
+              if (city.href) {
+                return (
+                  <motion.div
+                    key={city.en}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <Link
+                      href={localizedHref(city.href)}
+                      className="
+                        flex items-center gap-2
+                        bg-white dark:bg-slate-800
+                        px-4 py-2 md:px-4.5 md:py-2.5
+                        rounded-full shadow-sm hover:shadow-md
+                        border border-emerald-300 dark:border-emerald-700
+                        hover:border-emerald-500 dark:hover:border-emerald-500
+                        hover:bg-emerald-50/50 dark:hover:bg-slate-800/90
+                        text-slate-900 dark:text-white
+                        font-bold text-xs md:text-sm
+                        transition-all duration-200 cursor-pointer
+                      "
+                    >
+                      {pillContent}
+                    </Link>
+                  </motion.div>
+                )
+              }
+
+              return (
+                <motion.div
+                  key={city.en}
+                  whileHover={{ scale: 1.03, y: -1 }}
+                  className="
+                    flex items-center gap-2
+                    bg-white dark:bg-slate-800
+                    px-4 py-2 md:px-4.5 md:py-2.5
+                    rounded-full shadow-sm hover:shadow-md
+                    border border-emerald-200 dark:border-emerald-800
+                    text-slate-900 dark:text-white
+                    font-bold text-xs md:text-sm
+                    transition-all duration-200 cursor-default
+                  "
+                >
+                  {pillContent}
+                </motion.div>
+              )
+            })}
           </motion.div>
         </div>
 
