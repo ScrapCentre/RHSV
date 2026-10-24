@@ -127,6 +127,7 @@ export interface VehicleCategoryPageConfig {
   hero: {
     bgImage?: string
     categoryBadge?: { en: string; hi: string }
+    categoryBadgeIcon?: LucideIcon
     h1Line1: { en: string; hi: string }
     h1Line2: { en: string; hi: string }
     supportingText?: { en: string; hi?: string }
@@ -180,6 +181,7 @@ export interface VehicleCategoryPageConfig {
       liveStatus: { en: string; hi: string }
       subtitle: { en: string; hi: string }
       weScrap: {
+        icon?: LucideIcon
         label: { en: string; hi: string }
         value: { en: string; hi: string }
       }
@@ -202,6 +204,7 @@ export interface VehicleCategoryPageConfig {
   }
   popularModels: {
     badge: { en: string; hi: string }
+    itemIcon?: LucideIcon
     h2Part1: { en: string; hi: string }
     h2Highlight: { en: string; hi: string }
     introText?: { en: string; hi?: string }
@@ -251,12 +254,19 @@ export interface VehicleCategoryPageConfig {
       keywords: string
     }
     leftCard1: {
+      icon?: LucideIcon
       title: { en: string; hi: string }
       text?: { en: string; hi?: string }
       guideTag?: string
       guideTitle?: string
     }
+    leftCardExtra?: {
+      icon?: LucideIcon
+      title: { en: string; hi: string }
+      text?: { en: string; hi?: string }
+    }
     leftCard2: {
+      icon?: LucideIcon
       title: { en: string; hi: string }
       guideText: string
       linkText: string
@@ -315,7 +325,7 @@ export interface VehicleCategoryPageConfig {
   bottomCta: {
     badge: { en: string; hi: string }
     h2: { en: string; hi: string }
-    supportingIntro: { en: string; hi: string }
+    supportingIntro?: { en: string; hi: string }
     supportingDesc: { en: string; hi: string }
     trustBadges: Array<{ icon: LucideIcon; text: { en: string; hi: string } }>
     formBadge: { en: string; hi: string }
@@ -425,9 +435,11 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
 
   const handleBottomFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const baseLink = hero.valuationLink || "/know-your-valuation?type=two-wheeler"
+    const separator = baseLink.includes("?") ? "&" : "?"
     const targetUrl = vehicleNoInput.trim()
-      ? `/know-your-valuation?vehicle=${encodeURIComponent(vehicleNoInput.trim())}&type=two-wheeler`
-      : `/know-your-valuation?type=two-wheeler`
+      ? `${baseLink}${separator}vehicle=${encodeURIComponent(vehicleNoInput.trim())}`
+      : baseLink
     window.location.href = targetUrl
   }
 
@@ -484,7 +496,11 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
                   transition={{ duration: 0.4 }}
                   className="inline-flex items-center gap-2 bg-[#FFF0F0] border border-[#FFD6D6] text-[#E31E24] text-xs font-bold px-4 py-1.5 rounded-full shadow-xs mb-3 sm:mb-3.5"
                 >
-                  <Leaf className="w-3.5 h-3.5 text-[#E31E24] fill-[#E31E24]" />
+                  {hero.categoryBadgeIcon ? (
+                    <hero.categoryBadgeIcon className="w-3.5 h-3.5 text-[#E31E24]" />
+                  ) : (
+                    <Leaf className="w-3.5 h-3.5 text-[#E31E24] fill-[#E31E24]" />
+                  )}
                   <span>{isHindi ? hero.categoryBadge.hi : hero.categoryBadge.en}</span>
                 </motion.div>
               )}
@@ -867,7 +883,11 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
                   <div className="p-3 sm:p-3.5 hover:bg-slate-50/70 rounded-2xl transition-colors">
                     <div className="flex items-start gap-3.5">
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-red-50 text-[#E31E24] flex items-center justify-center shrink-0 mt-0.5">
-                        <Bike className="w-4 h-4" />
+                        {intro.atAGlance.weScrap.icon ? (
+                          <intro.atAGlance.weScrap.icon className="w-4 h-4" />
+                        ) : (
+                          <Bike className="w-4 h-4" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="mb-1">
@@ -1000,7 +1020,11 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
                       <td className="py-3 px-3.5 sm:py-4 sm:px-6">
                         <div className="flex items-center gap-2.5 sm:gap-3">
                           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-50 text-[#E31E24] flex items-center justify-center shrink-0">
-                            <Bike className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            {popularModels.itemIcon ? (
+                              <popularModels.itemIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            ) : (
+                              <Bike className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            )}
                           </div>
                           <span className="font-bold text-slate-900 text-xs sm:text-sm md:text-base">
                             {idx + 1}. {item.name}
@@ -1276,7 +1300,11 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
               <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
                 <div className="flex items-start gap-4">
                   <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
-                    <FileText className="w-4 h-4" />
+                    {documents.leftCard1.icon ? (
+                      <documents.leftCard1.icon className="w-4 h-4" />
+                    ) : (
+                      <FileText className="w-4 h-4" />
+                    )}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-base font-black text-slate-900 mb-2">
@@ -1298,11 +1326,40 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
                 </div>
               </div>
 
-              {/* Card 2: Need the full list? */}
+              {/* Card Extra: Car RC cancellation (Optional) */}
+              {documents.leftCardExtra && (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+                  <div className="flex items-start gap-4">
+                    <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
+                      {documents.leftCardExtra.icon ? (
+                        <documents.leftCardExtra.icon className="w-4 h-4" />
+                      ) : (
+                        <FileText className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-base font-black text-slate-900 mb-2">
+                        {isHindi ? documents.leftCardExtra.title.hi : documents.leftCardExtra.title.en}
+                      </h3>
+                      {documents.leftCardExtra.text && (
+                        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed font-normal">
+                          {isHindi && documents.leftCardExtra.text.hi ? documents.leftCardExtra.text.hi : documents.leftCardExtra.text.en}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Card 2: Need the full list / Complete document list */}
               <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
                 <div className="flex items-start gap-4">
                   <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
-                    <FileText className="w-4 h-4" />
+                    {documents.leftCard2.icon ? (
+                      <documents.leftCard2.icon className="w-4 h-4" />
+                    ) : (
+                      <FileText className="w-4 h-4" />
+                    )}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-base font-black text-slate-900 mb-1.5">
@@ -1689,9 +1746,11 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
                 </h2>
 
                 <div className="space-y-1 text-white/90 text-sm sm:text-base leading-relaxed max-w-xl">
-                  <p className="font-bold text-white">
-                    {isHindi ? bottomCta.supportingIntro.hi : bottomCta.supportingIntro.en}
-                  </p>
+                  {bottomCta.supportingIntro && (isHindi ? bottomCta.supportingIntro.hi : bottomCta.supportingIntro.en) && (
+                    <p className="font-bold text-white">
+                      {isHindi ? bottomCta.supportingIntro.hi : bottomCta.supportingIntro.en}
+                    </p>
+                  )}
                   <p>
                     {isHindi ? bottomCta.supportingDesc.hi : bottomCta.supportingDesc.en}
                   </p>

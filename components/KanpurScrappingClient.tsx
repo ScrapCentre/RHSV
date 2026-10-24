@@ -982,7 +982,7 @@ export default function KanpurScrappingClient() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
 
           {/* Section Header */}
-          <div className="text-left mb-8 sm:mb-12 max-w-4xl">
+          <div className="text-left mb-8 sm:mb-12 max-w-6xl">
             {/* Pill Tag */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-100 text-[#E31E24] text-xs font-black uppercase tracking-wider mb-3">
               <span className="w-2 h-2 rounded-full bg-[#E31E24] animate-pulse" />
@@ -990,9 +990,9 @@ export default function KanpurScrappingClient() {
             </div>
 
             {/* Main Headline */}
-            <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-black text-slate-900 tracking-tight leading-[1.25] mb-3">
-              Truck, Bus, Auto, Tractor & Commercial Vehicle Scrapping in Kanpur <br className="hidden sm:inline" />
-              <span className="text-[#E31E24]">— Every Vehicle Type, One Team</span>
+            <h2 className="text-2xl sm:text-3xl lg:text-[30px] xl:text-[34px] font-black text-slate-900 tracking-tight leading-[1.25] mb-3">
+              <span className="block">Truck, Bus, Auto, Tractor & Commercial Vehicle Scrapping in Kanpur</span>
+              <span className="text-[#E31E24] block">— Every Vehicle Type, One Team</span>
             </h2>
 
             {/* Section Intro */}
