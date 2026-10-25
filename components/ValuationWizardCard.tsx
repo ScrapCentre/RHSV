@@ -206,7 +206,7 @@ export default function ValuationWizardCard() {
     const t = useTranslations("HomePage.valuationWizard")
     const router = useRouter()
     const { toast } = useToast()
-    const [mode, setMode] = useState<"options" | "wizard" | "success" | "scrap-valuation">("wizard")
+    const [mode, setMode] = useState<"options" | "wizard" | "success" | "scrap-valuation" | "buy-valuation">("wizard")
     const [serviceType, setServiceType] = useState<string>("")
     const [step, setStep] = useState(0)
     const [direction, setDirection] = useState(1)
@@ -508,9 +508,10 @@ export default function ValuationWizardCard() {
         }
     }, [formData.pincode]);
 
-    // Scrap Valuation Pricing
+    // Valuation Pricing
     const [cdDiscount, setCdDiscount] = useState<number | null>(null)
     const [newCarPrice, setNewCarPrice] = useState<number | null>(null)
+    const [registrationFee, setRegistrationFee] = useState<number | null>(null)
     const [isFetchingPrice, setIsFetchingPrice] = useState(false)
     const [baseScrapRate, setBaseScrapRate] = useState<number>(25) // Default to 25
 
@@ -532,7 +533,7 @@ export default function ValuationWizardCard() {
     }, []);
 
     useEffect(() => {
-        if (formData.buyNew === "yes" && formData.desiredCompany && formData.desiredModel && !cdDiscount && !isFetchingPrice) {
+        if ((formData.buyNew === "yes" || serviceType === "buy") && formData.desiredCompany && formData.desiredModel && !cdDiscount && !isFetchingPrice) {
             setIsFetchingPrice(true)
             fetch('/api/car-price', {
                 method: 'POST',
@@ -544,16 +545,19 @@ export default function ValuationWizardCard() {
                     if (data.success) {
                         setCdDiscount(data.data.cdDiscount)
                         setNewCarPrice(data.data.basePrice)
+                        setRegistrationFee(data.data.registrationFee)
                     }
                 })
                 .catch(err => {
                     console.error("Car price fetch error:", err)
                     // Set default discount if API fails to show something to the user
                     setCdDiscount(20000)
+                    setNewCarPrice(800000)
+                    setRegistrationFee(80000)
                 })
                 .finally(() => setIsFetchingPrice(false))
         }
-    }, [formData.buyNew, formData.desiredCompany, formData.desiredModel, cdDiscount, isFetchingPrice])
+    }, [formData.buyNew, serviceType, formData.desiredCompany, formData.desiredModel, cdDiscount, isFetchingPrice])
 
     // Scrap valuation calculations (shared between step 7 pre-auth and final page)
     const weightNum = parseInt(String(formData.weight).replace(/\D/g, '')) || 1200;
@@ -567,13 +571,25 @@ export default function ValuationWizardCard() {
     // CD certificate value
     const potentialCDDiscount = (serviceType === "scrap" && formData.buyNew === "no") ? 0 : (cdDiscount !== null ? cdDiscount : 55000);
 
-    // Totals
+    // Totals for Scrap Flow
     const maxTotalBenefit = maxScrapValue + potentialCDDiscount;
     const dealerOemDiscount = 10000;
     const greenFinanceSavings = 15000;
     const greenInsuranceSavings = 8000;
 
     const grandTotalBenefit = averageScrapValue + potentialCDDiscount + dealerOemDiscount + greenFinanceSavings + greenInsuranceSavings;
+
+    // Calculations specifically for Buy New Vehicle Flow
+    const calculatedNewCarPrice = newCarPrice || 850000;
+    const calculatedRegFee = registrationFee || Math.round(calculatedNewCarPrice * 0.10);
+    const calculatedCdDiscount = cdDiscount || Math.round(calculatedRegFee * 0.25);
+    const buyDealerOemDiscount = 15000;
+    const buyGreenFinanceSavings = 15000;
+    const buyGreenInsuranceSavings = 8000;
+    const buyTotalSavings = calculatedCdDiscount + buyDealerOemDiscount + buyGreenFinanceSavings + buyGreenInsuranceSavings;
+    const buyStandardOnRoad = calculatedNewCarPrice + calculatedRegFee;
+    const buyFinalEffectivePrice = Math.max(0, buyStandardOnRoad - buyTotalSavings);
+
     const formatCurrency = (amount: number) => amount.toLocaleString('en-IN');
 
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
@@ -1017,6 +1033,8 @@ export default function ValuationWizardCard() {
             triggerConfetti(4);
             if (serviceType === "scrap") {
                 setMode("scrap-valuation")
+            } else if (serviceType === "buy") {
+                setMode("buy-valuation")
             } else {
                 setMode("success")
             }
@@ -1354,6 +1372,343 @@ export default function ValuationWizardCard() {
         )
     }
 
+    if (mode === "buy-valuation") {
+        return (
+            <>
+                <div id="wizard-recaptcha-container"></div>
+                <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 py-2 sm:py-3 lg:py-4">
+                    <motion.div
+                        initial={{ scale: 0.98, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-white border-x-0 sm:border-x border-y border-slate-100 sm:rounded-2xl p-3 sm:p-4 lg:p-5 shadow-none sm:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.06)] relative overflow-hidden"
+                    >
+                        {/* Accent top line */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-[#E31E24] to-emerald-500" />
+
+                        <div className="relative z-10">
+                            {/* Header Row */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3 sm:mb-3.5 pb-2.5 sm:pb-3 border-b border-slate-100">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0 shadow-inner overflow-hidden p-1 relative border border-red-100/60">
+                                        <Car className="w-4 h-4 sm:w-5 sm:h-5 text-[#E31E24]" />
+                                        {BRAND_LOGOS[formData.desiredCompany] && (
+                                            <img
+                                                src={BRAND_LOGOS[formData.desiredCompany]}
+                                                alt={formData.desiredCompany}
+                                                className="absolute inset-0 w-full h-full object-contain p-1.5 bg-red-50"
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                            />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <p className="text-[8px] sm:text-[9px] font-black text-[#E31E24] uppercase tracking-[0.18em] mb-0.5 flex items-center gap-1">
+                                            <Sparkles className="w-2.5 h-2.5 text-[#E31E24]" />
+                                            {t("buyEvaluationFinalized.tag")}
+                                        </p>
+                                        <h2 className="text-base sm:text-lg md:text-xl font-black text-slate-900 tracking-tight leading-tight">
+                                            {formData.desiredCompany || "Vehicle"} {formData.desiredModel || "Valuation"}
+                                        </h2>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 self-start sm:self-auto">
+                                    <div className="px-2.5 sm:px-3 py-1 bg-slate-950 rounded-full shadow-sm border border-slate-800 flex items-center">
+                                        <p className="text-[7.5px] sm:text-[8px] font-black text-white uppercase tracking-widest">{t("buyEvaluationFinalized.quoteId", { id: quoteId || "SC-XXXXXX" })}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Main Grid — single col on mobile, 12-col on lg */}
+                            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-5">
+                                {/* Left Column: Highlight Banner & Benefit Cards (7 cols) */}
+                                <div className="lg:col-span-7 space-y-2.5 sm:space-y-3">
+                                    {/* Total Potential Benefit Box */}
+                                    <div className="bg-gradient-to-br from-[#0c1622] via-[#122333] to-[#0a1420] rounded-xl sm:rounded-2xl p-3 sm:p-4 text-white relative overflow-hidden shadow-lg border border-slate-800">
+                                        {/* Subtle ambient light glow */}
+                                        <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                                        <p className="text-[7.5px] sm:text-[8px] font-black text-emerald-400 uppercase tracking-[0.16em] mb-1 flex items-center gap-1.5">
+                                            <Zap className="w-3 h-3 fill-emerald-400 text-emerald-400" />
+                                            {t("buyEvaluationFinalized.totalSavings")}
+                                        </p>
+
+                                        <div className="relative z-10">
+                                            <div className="flex flex-wrap items-baseline gap-2 mb-1">
+                                                <h3 className="text-xl sm:text-2xl md:text-[1.65rem] font-extrabold text-white leading-none tracking-tight text-emerald-400">
+                                                    {isFetchingPrice ? (
+                                                        <Loader2 className="w-6 h-6 animate-spin inline text-emerald-400" />
+                                                    ) : (
+                                                        t("buyEvaluationFinalized.saveUpTo", { amount: formatCurrency(buyTotalSavings) })
+                                                    )}
+                                                </h3>
+                                            </div>
+
+                                            <p className="text-slate-300 text-[9.5px] sm:text-[11px] mb-2 font-medium">
+                                                Effective on-road price drops from{" "}
+                                                <span className="line-through text-slate-400 font-bold">₹{formatCurrency(buyStandardOnRoad)}</span>{" "}
+                                                to{" "}
+                                                <span className="text-white font-black underline decoration-emerald-400 decoration-2">
+                                                    ₹{formatCurrency(buyFinalEffectivePrice)}*
+                                                </span>
+                                            </p>
+
+                                            {/* Breakdown Mini-Tiles */}
+                                            <div className="grid grid-cols-2 gap-2 mb-2">
+                                                <div className="border border-white/10 bg-white/[0.04] backdrop-blur-sm rounded-lg p-2">
+                                                    <p className="text-[7px] sm:text-[7.5px] font-bold text-slate-400 uppercase tracking-wider">{t("buyEvaluationFinalized.standardOnRoad")}</p>
+                                                    <p className="text-[11px] sm:text-xs font-black text-white mt-0.5">₹{formatCurrency(buyStandardOnRoad)}</p>
+                                                </div>
+                                                <div className="border border-emerald-500/20 bg-emerald-500/[0.06] backdrop-blur-sm rounded-lg p-2">
+                                                    <p className="text-[7px] sm:text-[7.5px] font-bold text-emerald-400 uppercase tracking-wider">{t("buyEvaluationFinalized.effectivePrice")}</p>
+                                                    <p className="text-[11px] sm:text-xs font-black text-emerald-400 mt-0.5">
+                                                        ₹{formatCurrency(buyFinalEffectivePrice)}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-1 items-center mb-1">
+                                                <span className="inline-block px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[6.5px] sm:text-[7px] font-bold rounded-full tracking-wider uppercase">
+                                                    ✓ 25% ROAD TAX CD WAIVER
+                                                </span>
+                                                <span className="inline-block px-2 py-0.5 bg-white/10 border border-white/10 text-slate-200 text-[6.5px] sm:text-[7px] font-bold rounded-full tracking-wider uppercase">
+                                                    ✓ OEM DEALER BONUS
+                                                </span>
+                                            </div>
+
+                                            <p className="text-slate-400 text-[7px] sm:text-[7.5px] leading-tight italic mt-0.5">
+                                                {t("buyEvaluationFinalized.disclaimer")}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Primary Desktop Action Button */}
+                                    <div className="hidden lg:block pt-0.5 relative z-10">
+                                        <div className="absolute inset-x-0 bottom-0 top-1 bg-[#E31E24]/20 blur-md rounded-xl animate-[pulse_2.5s_infinite] -z-10 pointer-events-none" />
+                                        <a
+                                            href="tel:+919839447733"
+                                            className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#E31E24] via-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-black rounded-xl border border-red-600/30 hover:border-white/60 transition-all duration-200 ease-out uppercase tracking-widest text-xs sm:text-[13px] relative overflow-hidden group hover:scale-[1.01] active:scale-[0.98] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),_0_6px_14px_rgba(227,30,36,0.25)]"
+                                        >
+                                            <Phone className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+                                            <span className="relative z-10">
+                                                {t("buyEvaluationFinalized.claimDiscountBtn")}
+                                            </span>
+                                        </a>
+                                    </div>
+
+                                    {/* 2x2 Grid of Benefit Cards */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {/* Card 1: CD Certificate Advantage */}
+                                        <div className="bg-[#f0fdf4] border border-emerald-200 rounded-xl p-2 sm:p-2.5 relative shadow-sm hover:shadow-md transition-all">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[7.5px] sm:text-[8px] font-black text-emerald-800 uppercase tracking-wider">CD CERTIFICATE BENEFIT</p>
+                                                <span className="text-[6.5px] sm:text-[7px] font-black bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">25% TAX WAIVER</span>
+                                            </div>
+                                            <p className="text-sm sm:text-[15px] font-black text-emerald-700 mt-0.5">
+                                                - ₹{formatCurrency(calculatedCdDiscount)}
+                                            </p>
+                                            <p className="text-[7.5px] sm:text-[8px] text-emerald-900/80 font-medium mt-0.5 leading-tight">
+                                                {t("buyEvaluationFinalized.cdExemptionSubtitle")}
+                                            </p>
+                                        </div>
+
+                                        {/* Card 2: Dealer OEM Discount */}
+                                        <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2 sm:p-2.5 relative shadow-sm hover:shadow-md transition-all">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[7.5px] sm:text-[8px] font-black text-slate-500 uppercase tracking-wider">DEALER OEM BONUS</p>
+                                                <span className="text-[6.5px] sm:text-[7px] font-black bg-slate-200 text-slate-700 px-1 py-0.5 rounded">EXCHANGE</span>
+                                            </div>
+                                            <p className="text-sm sm:text-[15px] font-black text-slate-800 mt-0.5">
+                                                - ₹{formatCurrency(buyDealerOemDiscount)}
+                                            </p>
+                                            <p className="text-[7.5px] sm:text-[8px] text-slate-500 font-medium mt-0.5 leading-tight">
+                                                {t("buyEvaluationFinalized.dealerBonusSubtitle")}
+                                            </p>
+                                        </div>
+
+                                        {/* Card 3: Green Auto Finance */}
+                                        <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2 sm:p-2.5 relative shadow-sm hover:shadow-md transition-all">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[7.5px] sm:text-[8px] font-black text-slate-500 uppercase tracking-wider">GREEN AUTO FINANCE</p>
+                                                <span className="text-[6.5px] sm:text-[7px] font-black bg-blue-50 text-blue-700 px-1 py-0.5 rounded">LOAN SAVINGS</span>
+                                            </div>
+                                            <p className="text-sm sm:text-[15px] font-black text-slate-800 mt-0.5">
+                                                - ₹{formatCurrency(buyGreenFinanceSavings)}
+                                            </p>
+                                            <p className="text-[7.5px] sm:text-[8px] text-slate-500 font-medium mt-0.5 leading-tight">
+                                                {t("buyEvaluationFinalized.greenFinanceSubtitle")}
+                                            </p>
+                                        </div>
+
+                                        {/* Card 4: Green Motor Insurance */}
+                                        <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-2 sm:p-2.5 relative shadow-sm hover:shadow-md transition-all">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[7.5px] sm:text-[8px] font-black text-slate-500 uppercase tracking-wider">GREEN INSURANCE</p>
+                                                <span className="text-[6.5px] sm:text-[7px] font-black bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded">REBATE</span>
+                                            </div>
+                                            <p className="text-sm sm:text-[15px] font-black text-slate-800 mt-0.5">
+                                                - ₹{formatCurrency(buyGreenInsuranceSavings)}
+                                            </p>
+                                            <p className="text-[7.5px] sm:text-[8px] text-slate-500 font-medium mt-0.5 leading-tight">
+                                                {t("buyEvaluationFinalized.greenInsuranceSubtitle")}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Invoice Benefit Summary Receipt (5 cols) */}
+                                <div className="lg:col-span-5">
+                                    <div className="bg-[#f8fafc] border border-slate-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 md:p-4 flex flex-col justify-between shadow-inner h-full">
+                                        <div className="space-y-2 sm:space-y-2.5">
+                                            {/* Invoice Header */}
+                                            <div className="flex items-start justify-between">
+                                                <div>
+                                                    <p className="text-[7.5px] sm:text-[8px] font-black text-slate-400 uppercase tracking-wider mb-0.5">EST. INVOICE</p>
+                                                    <h4 className="text-slate-900 font-black text-xs sm:text-[13px] leading-tight uppercase tracking-tight">BENEFIT SUMMARY RECEIPT</h4>
+                                                </div>
+                                                <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[7.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">CD-DISCOUNTED</span>
+                                            </div>
+
+                                            {/* Dotted Divider */}
+                                            <div className="border-t border-dashed border-slate-300 my-2 sm:my-2.5" />
+
+                                            {/* Row: DESIRED NEW VEHICLE */}
+                                            <div className="flex justify-between items-start gap-3 text-xs">
+                                                <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">NEW VEHICLE</span>
+                                                <span className="text-slate-900 font-black text-right uppercase max-w-[180px] leading-tight text-[10px] sm:text-[11px]">
+                                                    {formData.desiredCompany || "NEW VEHICLE"} {formData.desiredModel}
+                                                </span>
+                                            </div>
+
+                                            {/* Row: EX-SHOWROOM BASE PRICE */}
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">EX-SHOWROOM (EST)</span>
+                                                <span className="text-slate-900 font-black text-[10px] sm:text-[11px]">
+                                                    {isFetchingPrice ? <Loader2 className="w-3 h-3 animate-spin inline" /> : `₹${formatCurrency(calculatedNewCarPrice)}`}
+                                                </span>
+                                            </div>
+
+                                            {/* Row: ROAD TAX & REGISTRATION */}
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="text-slate-400 font-bold uppercase tracking-wider text-[8px] sm:text-[9px]">ROAD TAX & REG (10%)</span>
+                                                <span className="text-slate-900 font-black text-[10px] sm:text-[11px]">
+                                                    + ₹{formatCurrency(calculatedRegFee)}
+                                                </span>
+                                            </div>
+
+                                            {/* Row: STANDARD ON-ROAD ESTIMATE */}
+                                            <div className="flex justify-between items-center text-xs py-1 px-2 bg-slate-100 rounded-lg">
+                                                <span className="text-slate-600 font-extrabold uppercase tracking-wider text-[7.5px] sm:text-[8px]">STANDARD ON-ROAD</span>
+                                                <span className="text-slate-900 font-black text-[10px] sm:text-[11px]">₹{formatCurrency(buyStandardOnRoad)}</span>
+                                            </div>
+
+                                            {/* Solid Divider */}
+                                            <div className="border-t border-slate-200 my-1.5 sm:my-2" />
+
+                                            {/* Deductions Items */}
+                                            <div className="space-y-1.5 sm:space-y-2">
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-emerald-700 font-bold text-[10px] sm:text-[11px]">CD Road Tax Concession (25%)</span>
+                                                    <span className="text-emerald-600 font-extrabold text-[10px] sm:text-[11px]">- ₹{formatCurrency(calculatedCdDiscount)}</span>
+                                                </div>
+
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-slate-600 font-medium text-[10px] sm:text-[11px]">Dealer OEM Scrappage Bonus</span>
+                                                    <span className="text-slate-900 font-extrabold text-[10px] sm:text-[11px]">- ₹{formatCurrency(buyDealerOemDiscount)}</span>
+                                                </div>
+
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-slate-600 font-medium text-[10px] sm:text-[11px]">Green Finance Subsidy</span>
+                                                    <span className="text-slate-900 font-extrabold text-[10px] sm:text-[11px]">- ₹{formatCurrency(buyGreenFinanceSavings)}</span>
+                                                </div>
+
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-slate-600 font-medium text-[10px] sm:text-[11px]">Green Insurance Concession</span>
+                                                    <span className="text-slate-900 font-extrabold text-[10px] sm:text-[11px]">- ₹{formatCurrency(buyGreenInsuranceSavings)}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Dashed Divider */}
+                                            <div className="border-t border-dashed border-slate-300 my-2 sm:my-2.5" />
+
+                                            {/* Grand Total Card */}
+                                            <div className="bg-[#0f172a] rounded-xl p-2.5 sm:p-3 text-white shadow-md border border-slate-800 space-y-1.5">
+                                                <div className="flex items-center justify-between pb-1.5 border-b border-slate-800">
+                                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">TOTAL SAVINGS</span>
+                                                    <span className="text-xs sm:text-[13px] font-black text-emerald-400">Save ₹{formatCurrency(buyTotalSavings)}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between pt-0.5">
+                                                    <div>
+                                                        <p className="text-[7.5px] sm:text-[8px] font-black text-slate-300 uppercase tracking-wider mb-0.5">FINAL EFFECTIVE PRICE</p>
+                                                        <p className="text-[7px] text-slate-400">With CD + Partner Benefits</p>
+                                                    </div>
+                                                    <span className="text-base sm:text-lg font-black text-white">₹{formatCurrency(buyFinalEffectivePrice)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* eKYC Lock Button */}
+                                        <div className="pt-3 space-y-1.5">
+                                            <a
+                                                href="/ekyc"
+                                                onClick={() => {
+                                                    localStorage.setItem("kycFormData", JSON.stringify(formData));
+                                                    localStorage.setItem("kycSource", "buy");
+                                                }}
+                                                className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-[#E31E24] text-white font-black rounded-xl shadow-md hover:bg-red-600 transition-all uppercase tracking-widest text-[9.5px]"
+                                            >
+                                                {t("buyEvaluationFinalized.lockOfferBtn")}
+                                                <ArrowRight className="w-3 h-3" />
+                                            </a>
+
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setCdDiscount(null);
+                                                        setNewCarPrice(null);
+                                                        setRegistrationFee(null);
+                                                        setStep(0);
+                                                        setMode("wizard");
+                                                    }}
+                                                    className="w-1/2 py-1.5 border border-slate-200 text-slate-600 hover:text-slate-900 font-bold rounded-xl hover:bg-slate-50 transition-all uppercase tracking-wider text-[8px]"
+                                                >
+                                                    {t("buyEvaluationFinalized.recalculateBtn")}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setServiceType("");
+                                                        setStep(0);
+                                                        setMode("wizard");
+                                                    }}
+                                                    className="w-1/2 py-1.5 border border-slate-200 text-slate-600 hover:text-slate-900 font-bold rounded-xl hover:bg-slate-50 transition-all uppercase tracking-wider text-[8px]"
+                                                >
+                                                    {t("buyEvaluationFinalized.backHomeBtn")}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Mobile action button at bottom */}
+                            <div className="lg:hidden pt-2.5 space-y-2 relative z-10">
+                                <div className="absolute inset-x-0 bottom-0 top-1 bg-[#E31E24]/20 blur-md rounded-xl animate-[pulse_2.5s_infinite] -z-10 pointer-events-none" />
+                                <a
+                                    href="tel:+919839447733"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#E31E24] via-red-500 to-rose-600 text-white font-black rounded-xl border border-red-600/30 uppercase tracking-widest text-[11px] relative overflow-hidden shadow-lg"
+                                >
+                                    <Phone className="w-3.5 h-3.5" />
+                                    <span>{t("buyEvaluationFinalized.claimDiscountBtn")}</span>
+                                </a>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </>
+        )
+    }
+
     if (mode === "success") {
         return (
             <>
@@ -1557,6 +1912,9 @@ export default function ValuationWizardCard() {
                                                                             setSelectedBrand(b);
                                                                             setSelectedModel("");
                                                                             setCustomModel("");
+                                                                            setCdDiscount(null);
+                                                                            setNewCarPrice(null);
+                                                                            setRegistrationFee(null);
                                                                             setFormData(prev => ({
                                                                                 ...prev,
                                                                                 desiredCompany: b,
@@ -1602,6 +1960,9 @@ export default function ValuationWizardCard() {
                                                                         setSelectedModel("");
                                                                         setCustomBrand("");
                                                                         setCustomModel("");
+                                                                        setCdDiscount(null);
+                                                                        setNewCarPrice(null);
+                                                                        setRegistrationFee(null);
                                                                         setFormData(prev => ({
                                                                             ...prev,
                                                                             desiredCompany: "",
@@ -1644,6 +2005,9 @@ export default function ValuationWizardCard() {
                                                                                     type="button"
                                                                                     onClick={() => {
                                                                                         setSelectedModel(m);
+                                                                                        setCdDiscount(null);
+                                                                                        setNewCarPrice(null);
+                                                                                        setRegistrationFee(null);
                                                                                         setFormData(prev => ({
                                                                                             ...prev,
                                                                                             desiredModel: m === "Other" ? customModel : m
@@ -1708,8 +2072,29 @@ export default function ValuationWizardCard() {
                                             <div className="space-y-5 text-center">
                                                 <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><User className="w-7 h-7 text-[#E31E24]" /></div>
                                                 <h3 className="text-xl font-bold text-slate-900">{t("buyFlow.name")}</h3>
-                                                <input type="text" placeholder={t("buyFlow.namePlaceholder")} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]" autoFocus />
-                                                <button disabled={!formData.name} onClick={nextStep} className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px]">{t("buyFlow.continue")}</button>
+                                                <input
+                                                    type="text"
+                                                    placeholder={t("buyFlow.namePlaceholder")}
+                                                    value={formData.name}
+                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            if (formData.name && formData.name.trim()) {
+                                                                nextStep();
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="w-full max-w-md mx-auto px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E31E24]"
+                                                    autoFocus
+                                                />
+                                                <button
+                                                    disabled={!formData.name || !formData.name.trim()}
+                                                    onClick={nextStep}
+                                                    className="w-full max-w-md mx-auto py-2.5 bg-[#E31E24] text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    {t("buyFlow.continue")}
+                                                </button>
                                             </div>
                                         )}
                                         {step === 2 && (
