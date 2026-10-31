@@ -15,7 +15,6 @@ import { useTranslations } from "next-intl"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     subsets: ["latin"],
-    weight: ["400", "500", "600", "700", "800"],
 })
 
 const normalizeFuelType = (fuel?: string): string => {

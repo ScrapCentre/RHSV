@@ -4,12 +4,6 @@ import { motion } from "framer-motion"
 import { ArrowRight, Check, Car, FileText, Gift, Truck, Zap, Leaf, ShieldCheck, IndianRupee } from "lucide-react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
-import { Caveat } from "next/font/google"
-
-const caveat = Caveat({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-})
 
 export default function HomexServiceHero() {
   const params = useParams()
@@ -59,7 +53,7 @@ export default function HomexServiceHero() {
         initial={{ opacity: 0, rotate: -12, scale: 0.9 }}
         animate={{ opacity: 1, rotate: -8, scale: 1 }}
         transition={{ duration: 0.7, delay: 0.3 }}
-        className={`${caveat.className} hidden lg:flex flex-col items-start absolute top-28 md:top-32 left-[68%] xl:left-[65%] z-20 select-none pointer-events-none`}
+        className="font-sans italic font-bold hidden lg:flex flex-col items-start absolute top-28 md:top-32 left-[68%] xl:left-[65%] z-20 select-none pointer-events-none"
       >
         <div className="relative text-left leading-[0.95]">
           <span className="block text-slate-900 text-2xl xl:text-3xl font-bold tracking-tight">

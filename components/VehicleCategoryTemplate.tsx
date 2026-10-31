@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Caveat } from "next/font/google"
 import Link from "next/link"
 import LoadingScreen from "@/components/LoadingScreen"
 import {
@@ -28,11 +27,6 @@ import {
   Leaf,
   LucideIcon
 } from "lucide-react"
-
-const caveat = Caveat({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-})
 
 export function WireframeGuideBox({
   tag,
@@ -596,7 +590,7 @@ export default function VehicleCategoryTemplate({ isHindi, config }: VehicleCate
               <div className="hidden lg:flex lg:col-span-5 xl:col-span-4 flex-col items-center lg:items-end justify-center pt-2 lg:pt-0">
                 <div className="w-full max-w-sm bg-gradient-to-br from-slate-50 via-white to-red-50/40 p-5 sm:p-6 lg:p-5 xl:p-6 rounded-3xl border border-red-100/80 shadow-lg shadow-red-500/5 relative text-left">
                   <div className="mb-5 sm:mb-6">
-                    <div className={`text-2xl sm:text-3xl lg:text-2xl xl:text-3xl font-black text-slate-900 leading-tight ${caveat.className} tracking-wide`}>
+                    <div className="text-2xl sm:text-3xl lg:text-2xl xl:text-3xl font-black text-slate-900 leading-tight tracking-wide font-sans">
                       {isHindi ? hero.rightHighlight.headlinePart1.hi : hero.rightHighlight.headlinePart1.en}
                     </div>
                     <div className="text-xl sm:text-2xl lg:text-lg xl:text-2xl font-black text-slate-800 leading-tight">

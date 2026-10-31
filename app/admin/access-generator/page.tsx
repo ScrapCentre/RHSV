@@ -8,13 +8,7 @@ import {
     Search, Trash2, ShieldAlert, X
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { Plus_Jakarta_Sans } from "next/font/google"
 import { motion, AnimatePresence } from "framer-motion"
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700", "800"],
-})
 
 type UserType = "b2b" | "executive" | "scrapcentre" | "rvsf"
 
@@ -389,7 +383,7 @@ function AccessGeneratorContent() {
     )
 
     return (
-        <div className={`${plusJakartaSans.className} space-y-6 max-w-7xl mx-auto text-slate-800 dark:text-slate-100`}>
+        <div className="space-y-6 max-w-7xl mx-auto text-slate-800 dark:text-slate-100">
             
             {/* Page Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 p-5 rounded-2xl shadow-sm">

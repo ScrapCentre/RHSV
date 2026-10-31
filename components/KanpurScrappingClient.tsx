@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Caveat } from "next/font/google"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import LoadingScreen from "@/components/LoadingScreen"
@@ -47,11 +46,6 @@ import {
   Link2,
   IndianRupee
 } from "lucide-react"
-
-const caveat = Caveat({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-})
 
 export default function KanpurScrappingClient() {
   const params = useParams()
