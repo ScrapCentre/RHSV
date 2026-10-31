@@ -15,6 +15,7 @@ export default function CoverageRegionSection() {
 
   const activeCities = [
     { en: "Kanpur", hi: "कानपुर", href: "/vehicle-scrapping-services-kanpur" },
+    { en: "Agra", hi: "आगरा", href: "/vehicle-scrapping-services-agra" },
     { en: "Etawah", hi: "इटावा" },
     { en: "Auraiya", hi: "औरैया" },
   ]
@@ -24,7 +25,6 @@ export default function CoverageRegionSection() {
     { en: "Kannauj", hi: "कन्नौज" },
     { en: "Firozabad", hi: "फिरोजाबाद" },
     { en: "Farrukhabad", hi: "फर्रुखाबाद" },
-    { en: "Agra", hi: "आगरा" },
     { en: "Lucknow", hi: "लखनऊ" },
   ]
 
