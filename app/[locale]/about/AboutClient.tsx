@@ -416,7 +416,7 @@ export default function AboutClient() {
       </section>
 
       {/* Values/Features Redesign */}
-      <section className="py-20 md:py-28 bg-[#FAFAFA] text-slate-900 relative overflow-hidden border-t border-slate-100">
+      <section className="py-12 sm:py-20 md:py-28 bg-[#FAFAFA] text-slate-900 relative overflow-hidden border-t border-slate-100">
         {/* Core Values Background Image Backdrop - Only visible on desktop to avoid vertical scaling distortion on stacked mobile layouts */}
         <div className="absolute inset-0 w-full h-full z-0 pointer-events-none select-none hidden lg:block">
           <img
@@ -431,26 +431,26 @@ export default function AboutClient() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Header section styled exactly like the provided image */}
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-50 border border-red-200 text-[#E31E24] text-xs font-bold tracking-wider uppercase shadow-sm">
+          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 md:mb-16 space-y-3 sm:space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-[#E31E24] text-[10px] sm:text-xs font-bold tracking-wider uppercase shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-[#E31E24] animate-pulse"></span>
               {t("values.badge")}
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
+            <h2 className="text-[1.75rem] leading-tight sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight md:leading-none px-2">
               {t("values.heading")}
             </h2>
             
-            <p className="text-slate-600 text-xs md:text-sm font-extrabold tracking-widest uppercase">
+            <p className="text-slate-600 text-[10px] sm:text-xs md:text-sm font-extrabold tracking-wider sm:tracking-widest uppercase px-4">
               {t("values.subtitle")}
             </p>
           </div>
 
           {/* Main Values Circular Layout Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center max-w-6xl mx-auto relative z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-center max-w-6xl mx-auto relative z-10">
             
             {/* Left Column: 2 Cards (lg:col-span-4) */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="lg:col-span-4 space-y-4 sm:space-y-6">
               {/* Card 1 */}
               <motion.div
                 whileHover={{ scale: 1.03, y: -4 }}
@@ -485,9 +485,9 @@ export default function AboutClient() {
             </div>
 
             {/* Center Column: Centerpiece illustration on mobile, clean spacer on desktop (lg:col-span-4) */}
-            <div className="lg:col-span-4 flex items-center justify-center py-6 lg:py-0 relative">
+            <div className="sm:col-span-2 lg:col-span-4 order-first lg:order-none flex items-center justify-center py-0 lg:py-0 relative">
               {/* Foreground graphic visible only on mobile/tablet screens */}
-              <div className="w-full max-w-[280px] sm:max-w-[320px] aspect-square flex items-center justify-center lg:hidden relative z-10 pointer-events-none">
+              <div className="w-full max-w-[200px] sm:max-w-[280px] aspect-square flex items-center justify-center lg:hidden relative z-10 pointer-events-none">
                 <img
                   src="/about/core.png"
                   alt="ScrapCentre Core Showcase"
@@ -499,7 +499,7 @@ export default function AboutClient() {
             </div>
 
             {/* Right Column: 2 Cards (lg:col-span-4) */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="lg:col-span-4 space-y-4 sm:space-y-6">
               {/* Card 3 */}
               <motion.div
                 whileHover={{ scale: 1.03, y: -4 }}
@@ -541,9 +541,9 @@ export default function AboutClient() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.8 }}
-            className="mt-8 sm:mt-12 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16 relative z-20 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2rem] p-6 sm:p-8 max-w-6xl mx-auto"
+            className="mt-8 sm:mt-12 lg:-translate-y-16 relative z-20 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-3xl sm:rounded-[2rem] p-4 sm:p-8 max-w-6xl mx-auto"
           >
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-6 md:divide-x divide-slate-100 [&>div:last-child]:col-span-2 md:[&>div:last-child]:col-span-1 [&>div]:rounded-2xl [&>div]:bg-slate-50/70 md:[&>div]:bg-transparent [&>div]:p-3 md:[&>div]:p-2 [&>div]:pt-3 md:[&>div]:pt-2">
               
               {/* Item 1 */}
               <div className="flex flex-col items-center text-center p-2 group cursor-default">
@@ -598,7 +598,7 @@ export default function AboutClient() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-4 sm:mt-6 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16 relative z-20 bg-gradient-to-r from-[#E31E24] via-red-600 to-rose-600 rounded-[1.75rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-red-500/10 max-w-6xl mx-auto"
+            className="mt-4 sm:mt-6 lg:-translate-y-16 relative z-20 bg-gradient-to-r from-[#E31E24] via-red-600 to-rose-600 rounded-3xl sm:rounded-[1.75rem] p-5 sm:p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6 shadow-xl shadow-red-500/10 max-w-6xl mx-auto"
           >
             <div className="flex items-center gap-4 text-white text-center md:text-left">
               <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-inner hidden sm:flex">
@@ -614,11 +614,11 @@ export default function AboutClient() {
               </div>
             </div>
             
-            <Link href="/#services" className="shrink-0">
+            <Link href="/#services" className="shrink-0 w-full md:w-auto">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-6 py-3.5 bg-white text-[#E31E24] font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg flex items-center gap-2 group/btn"
+                className="w-full md:w-auto justify-center px-6 py-3.5 bg-white text-[#E31E24] font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg flex items-center gap-2 group/btn"
               >
                 {t("values.banner.button")}
                 <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />

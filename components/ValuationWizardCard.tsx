@@ -17,6 +17,10 @@ import { signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import confetti from "canvas-confetti"
 import { lookupVehicle } from "@/app/actions"
+import {
+    SiSuzuki, SiHyundai, SiTata, SiMahindra, SiToyota, SiHonda,
+    SiKia, SiSkoda, SiVolkswagen, SiMg, SiNissan, SiRenault, SiFord, SiJeep
+} from "@icons-pack/react-simple-icons"
 
 
 import { indiaData, states as STATES } from "@/lib/india-data"
@@ -43,22 +47,29 @@ const BRAND_MODELS: Record<string, string[]> = {
 const YEARS = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "Older"]
 const FUEL_TYPES = ["Petrol", "Diesel", "CNG", "Electric", "Hybrid"]
 
-const BRAND_LOGOS: Record<string, string> = {
-    "Maruti Suzuki": "https://logo.clearbit.com/marutisuzuki.com",
-    "Hyundai": "https://logo.clearbit.com/hyundai.com",
-    "Tata": "https://logo.clearbit.com/tatamotors.com",
-    "Mahindra": "https://logo.clearbit.com/mahindra.com",
-    "Toyota": "https://logo.clearbit.com/toyota.com",
-    "Honda": "https://logo.clearbit.com/honda.com",
-    "Kia": "https://logo.clearbit.com/kia.com",
-    "Skoda": "https://logo.clearbit.com/skoda-auto.com",
-    "Volkswagen": "https://logo.clearbit.com/volkswagen.co.in",
-    "MG": "https://logo.clearbit.com/mgmotor.co.in",
-    "Nissan": "https://logo.clearbit.com/nissan.in",
-    "Renault": "https://logo.clearbit.com/renault.co.in",
-    "Ford": "https://logo.clearbit.com/india.ford.com",
-    "Jeep": "https://logo.clearbit.com/jeep-india.com",
-    "Other": ""
+type BrandIcon = React.ComponentType<{ size?: number | string; color?: string; className?: string; title?: string }>
+
+const BRAND_LOGOS: Record<string, BrandIcon> = {
+    "Maruti Suzuki": SiSuzuki,
+    "Hyundai": SiHyundai,
+    "Tata": SiTata,
+    "Mahindra": SiMahindra,
+    "Toyota": SiToyota,
+    "Honda": SiHonda,
+    "Kia": SiKia,
+    "Skoda": SiSkoda,
+    "Volkswagen": SiVolkswagen,
+    "MG": SiMg,
+    "Nissan": SiNissan,
+    "Renault": SiRenault,
+    "Ford": SiFord,
+    "Jeep": SiJeep,
+}
+
+const BrandLogo = ({ brand, className }: { brand: string; className?: string }) => {
+    const Icon = BRAND_LOGOS[brand]
+    if (!Icon) return null
+    return <Icon color="default" className={className} title={brand} />
 }
 
 const normalizeFuelType = (fuel?: string): string => {
@@ -1392,12 +1403,9 @@ export default function ValuationWizardCard() {
                                     <div className="w-9 h-9 sm:w-10 sm:h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0 shadow-inner overflow-hidden p-1 relative border border-red-100/60">
                                         <Car className="w-4 h-4 sm:w-5 sm:h-5 text-[#E31E24]" />
                                         {BRAND_LOGOS[formData.desiredCompany] && (
-                                            <img
-                                                src={BRAND_LOGOS[formData.desiredCompany]}
-                                                alt={formData.desiredCompany}
-                                                className="absolute inset-0 w-full h-full object-contain p-1.5 bg-red-50"
-                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-red-50 p-2">
+                                                <BrandLogo brand={formData.desiredCompany} className="w-full h-full" />
+                                            </div>
                                         )}
                                     </div>
                                     <div>
@@ -1921,7 +1929,7 @@ export default function ValuationWizardCard() {
                                                                                 desiredModel: ""
                                                                             }));
                                                                         }}
-                                                                        className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${formData.desiredCompany === b
+                                                                        className={`group flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${formData.desiredCompany === b
                                                                                 ? 'border-[#E31E24] bg-red-50 shadow-sm'
                                                                                 : b === "Other"
                                                                                     ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30'
@@ -1929,7 +1937,9 @@ export default function ValuationWizardCard() {
                                                                             }`}
                                                                     >
                                                                         {BRAND_LOGOS[b] ? (
-                                                                            <img src={BRAND_LOGOS[b]} alt={b} className="w-8 h-8 sm:w-10 sm:h-10 object-contain mb-1 sm:mb-1.5 drop-shadow-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
+                                                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-110">
+                                                                                <BrandLogo brand={b} className="w-6 h-6 sm:w-7 sm:h-7" />
+                                                                            </div>
                                                                         ) : (
                                                                             <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-100 rounded-full mb-1 sm:mb-1.5"><Car className="w-4 h-4 text-slate-400" /></div>
                                                                         )}
@@ -1948,6 +1958,11 @@ export default function ValuationWizardCard() {
                                                             {/* Selected Brand Header */}
                                                             <div className="flex items-center justify-between bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 shadow-sm text-left">
                                                                 <div className="flex items-center gap-2">
+                                                                    {selectedBrand && BRAND_LOGOS[selectedBrand] && (
+                                                                        <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                                                                            <BrandLogo brand={selectedBrand} className="w-4 h-4" />
+                                                                        </div>
+                                                                    )}
                                                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t("buyFlow.brandLabel")}</span>
                                                                     <span className="text-xs font-black text-slate-800">
                                                                         {selectedBrand === "Other" && customBrand ? customBrand : (selectedBrand === "Other" ? "Other" : selectedBrand)}
@@ -2473,14 +2488,14 @@ export default function ValuationWizardCard() {
                                                 </div>
 
                                                 <div className="space-y-1 relative z-10">
-                                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">{t("scrapFlow.desiredCarTitle")}</h3>
+                                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">{t("buyFlow.title")}</h3>
                                                     <p className="text-slate-500 text-[11px] font-medium mb-3">{t("scrapFlow.desiredCarSubtitle")}</p>
                                                 </div>
 
                                                 <div className="space-y-4 max-w-md mx-auto relative z-10">
                                                     {!selectedBrand ? (
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("scrapFlow.brand")}</label>
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{t("buyFlow.desiredBrand")}</label>
                                                             <motion.div
                                                                 variants={{
                                                                     hidden: { opacity: 0 },
@@ -2505,27 +2520,37 @@ export default function ValuationWizardCard() {
                                                                             setSelectedBrand(b);
                                                                             setSelectedModel("");
                                                                             setCustomModel("");
+                                                                            setCdDiscount(null);
+                                                                            setNewCarPrice(null);
+                                                                            setRegistrationFee(null);
                                                                             setFormData(prev => ({
                                                                                 ...prev,
                                                                                 desiredCompany: b === "Other" ? customBrand : b,
                                                                                 desiredModel: ""
                                                                             }));
                                                                         }}
-                                                                        className={`py-2 px-1 sm:py-2.5 sm:px-2 rounded-xl border text-[10px] sm:text-xs font-semibold text-center transition-all ${selectedBrand === b
-                                                                                ? 'border-[#E31E24] bg-red-50 text-[#E31E24] font-bold shadow-sm'
+                                                                        className={`group flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${(selectedBrand === b || formData.desiredCompany === b)
+                                                                                ? 'border-[#E31E24] bg-red-50 shadow-sm'
                                                                                 : b === "Other"
-                                                                                    ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30 text-slate-500 hover:text-[#E31E24]'
-                                                                                    : 'border-slate-100 bg-white hover:border-red-100 hover:bg-red-50/20 text-slate-600'
+                                                                                    ? 'border-dashed border-slate-200 bg-white hover:border-[#E31E24] hover:bg-red-50/30'
+                                                                                    : 'border-slate-100 bg-white hover:border-red-200 hover:bg-red-50/50'
                                                                             }`}
                                                                     >
-                                                                        {b === "Other" ? (
-                                                                            <span className="flex items-center justify-center gap-1.5">
-                                                                                {b}
-                                                                                <span className={`w-1.5 h-1.5 rounded-full transition-all ${selectedBrand === b ? 'bg-[#E31E24] scale-125' : 'bg-red-400'}`} />
-                                                                            </span>
+                                                                        {BRAND_LOGOS[b] ? (
+                                                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-110">
+                                                                                <BrandLogo brand={b} className="w-6 h-6 sm:w-7 sm:h-7" />
+                                                                            </div>
                                                                         ) : (
-                                                                            b
+                                                                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-100 rounded-full mb-1 sm:mb-1.5">
+                                                                                <Car className="w-4 h-4 text-slate-400" />
+                                                                            </div>
                                                                         )}
+                                                                        <span className="text-[10px] sm:text-xs font-bold text-slate-700 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full px-0.5 flex items-center justify-center gap-1">
+                                                                            {b}
+                                                                            {b === "Other" && (
+                                                                                <span className={`w-1 h-1 rounded-full transition-all ${(selectedBrand === b || formData.desiredCompany === b) ? 'bg-[#E31E24] scale-125' : 'bg-red-400'}`} />
+                                                                            )}
+                                                                        </span>
                                                                     </motion.button>
                                                                 ))}
                                                             </motion.div>
@@ -2535,7 +2560,12 @@ export default function ValuationWizardCard() {
                                                             {/* Selected Brand Header */}
                                                             <div className="flex items-center justify-between bg-slate-50/80 border border-slate-200/60 rounded-xl px-4 py-2.5 shadow-sm text-left">
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t("scrapFlow.brand")}:</span>
+                                                                    {selectedBrand && BRAND_LOGOS[selectedBrand] && (
+                                                                        <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                                                                            <BrandLogo brand={selectedBrand} className="w-4 h-4" />
+                                                                        </div>
+                                                                    )}
+                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{t("buyFlow.brandLabel")}</span>
                                                                     <span className="text-xs font-black text-slate-800">{selectedBrand === "Other" && customBrand ? customBrand : selectedBrand}</span>
                                                                 </div>
                                                                 <button
@@ -2545,6 +2575,9 @@ export default function ValuationWizardCard() {
                                                                         setSelectedModel("");
                                                                         setCustomBrand("");
                                                                         setCustomModel("");
+                                                                        setCdDiscount(null);
+                                                                        setNewCarPrice(null);
+                                                                        setRegistrationFee(null);
                                                                         setFormData(prev => ({
                                                                             ...prev,
                                                                             desiredCompany: "",
