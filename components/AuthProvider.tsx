@@ -36,9 +36,8 @@ function PasswordGuard({ children }: { children: React.ReactNode }) {
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
-        <SessionProvider>
+        <SessionProvider basePath="/api/auth" refetchOnWindowFocus={false}>
             <PasswordGuard>{children}</PasswordGuard>
         </SessionProvider>
     )
 }
-

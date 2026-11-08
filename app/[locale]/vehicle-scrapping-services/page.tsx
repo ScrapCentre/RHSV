@@ -121,8 +121,9 @@ export default async function VehicleScrappingServicesLocalePage({
     "provider": { "@id": "https://www.scrapcentre.com/#organization" },
     "areaServed": [
       { "@type": "City", "name": "Kanpur" },
-      { "@type": "City", "name": "Etawah" },
-      { "@type": "City", "name": "Auraiya" },
+      { "@type": "City", "name": "Agra" },
+      { "@type": "City", "name": "Lucknow" },
+      { "@type": "City", "name": "Kannauj" },
     ],
     "audience": {
       "@type": "Audience",

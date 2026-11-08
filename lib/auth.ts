@@ -180,7 +180,7 @@ async function handleFailedAdminAttempt(identifier: string) {
 }
 
 export const authOptions: NextAuthOptions = {
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET || "HxwqoLUiUEDpLs2nZp568tTY7rYo/WH2mqFCJa+ND3o=",
     providers: [
         CredentialsProvider({
             id: "credentials",
@@ -715,8 +715,8 @@ export const authOptions: NextAuthOptions = {
             }
         }),
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
         }),
     ],
     callbacks: {

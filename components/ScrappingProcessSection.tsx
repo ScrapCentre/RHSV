@@ -65,7 +65,7 @@ export default function ScrappingProcessSection() {
   }
 
   return (
-    <section className="relative py-8 sm:py-10 lg:py-12 bg-gradient-to-b from-white via-[#FDF7F7] to-white text-slate-900 overflow-hidden">
+    <section id="how-it-works" className="scroll-mt-20 relative py-8 sm:py-10 lg:py-12 bg-gradient-to-b from-white via-[#FDF7F7] to-white text-slate-900 overflow-hidden">
       {/* Background Red Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[200px] bg-[#E31E24]/5 rounded-full blur-3xl pointer-events-none" />
 

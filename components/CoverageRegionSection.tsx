@@ -16,16 +16,16 @@ export default function CoverageRegionSection() {
   const activeCities = [
     { en: "Kanpur", hi: "कानपुर", href: "/vehicle-scrapping-services-kanpur" },
     { en: "Agra", hi: "आगरा", href: "/vehicle-scrapping-services-agra" },
-    { en: "Etawah", hi: "इटावा" },
-    { en: "Auraiya", hi: "औरैया" },
+    { en: "Lucknow", hi: "लखनऊ", href: "/vehicle-scrapping-services-lucknow" },
+    { en: "Kannauj", hi: "कन्नौज", href: "/vehicle-scrapping-services-kannauj" },
   ]
 
   const comingSoonCities = [
     { en: "Mainpuri", hi: "मैनपुरी" },
-    { en: "Kannauj", hi: "कन्नौज" },
+    { en: "Etawah", hi: "इटावा" },
+    { en: "Auraiya", hi: "औरैया" },
     { en: "Firozabad", hi: "फिरोजाबाद" },
     { en: "Farrukhabad", hi: "फर्रुखाबाद" },
-    { en: "Lucknow", hi: "लखनऊ" },
   ]
 
   return (

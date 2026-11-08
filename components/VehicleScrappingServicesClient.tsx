@@ -25,7 +25,17 @@ export default function VehicleScrappingServicesClient() {
   const [showLoader, setShowLoader] = useState(true)
 
   useEffect(() => {
-    const loaderTimeout = setTimeout(() => setShowLoader(false), 1800)
+    const loaderTimeout = setTimeout(() => {
+      setShowLoader(false)
+      if (typeof window !== "undefined" && window.location.hash) {
+        setTimeout(() => {
+          const el = document.querySelector(window.location.hash)
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" })
+          }
+        }, 120)
+      }
+    }, 1800)
     return () => clearTimeout(loaderTimeout)
   }, [])
 

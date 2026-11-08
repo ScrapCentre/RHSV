@@ -7,7 +7,7 @@
  * │ LAYER 1 — Burst Rate Limiter (runs on EVERY matched request)    │
  * │                                                                 │
  * │  • In-memory sliding window: > 120 req/min per IP → 429        │
- * │  • NextAuth internal routes (/api/auth/session|csrf|providers)  │
+ * │  • NextAuth internal routes (/api/auth/*)                       │
  * │    are whitelisted and pass straight through.                   │
  * │  • If blocked → return 429 immediately. Locale logic never runs.│
  * └───────────────────────────┬─────────────────────────────────────┘
@@ -42,7 +42,7 @@ const intlMiddleware = createMiddleware(routing);
 // ─── Paths that should NEVER be processed by locale middleware ────────────────
 // These are all non-localized routes that live outside app/[locale]/.
 const LOCALE_EXCLUDED_PREFIXES = [
-    "/api/",
+    "/api",
     "/admin",
     "/executive",
     "/cc",
@@ -135,35 +135,32 @@ function checkBurstLimit(ip: string): boolean {
 export function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
+    // ── Bypass NextAuth completely ───────────────────────────────────────────
+    // NextAuth internal routes must never be intercepted or throttled.
+    if (pathname.startsWith("/api/auth")) {
+        return NextResponse.next();
+    }
+
     // ── LAYER 1: Burst Rate Limiter ──────────────────────────────────────────
-    // Whitelist NextAuth internal routes — these must never be throttled
-    // (session polling, CSRF token fetches hit these on every page load).
-    const isNextAuthInternal =
-        pathname.startsWith("/api/auth/session") ||
-        pathname.startsWith("/api/auth/csrf") ||
-        pathname.startsWith("/api/auth/providers");
+    const ip = getClientIpFromMiddleware(req);
+    const allowed = checkBurstLimit(ip);
 
-    if (!isNextAuthInternal) {
-        const ip = getClientIpFromMiddleware(req);
-        const allowed = checkBurstLimit(ip);
-
-        if (!allowed) {
-            return NextResponse.json(
-                {
-                    error: "Too many requests",
-                    message: "You are sending too many requests. Please slow down and try again in a minute.",
-                    retryAfter: 60,
+    if (!allowed) {
+        return NextResponse.json(
+            {
+                error: "Too many requests",
+                message: "You are sending too many requests. Please slow down and try again in a minute.",
+                retryAfter: 60,
+            },
+            {
+                status: 429,
+                headers: {
+                    "Retry-After": "60",
+                    "X-RateLimit-Limit": String(BURST_MAX),
+                    "X-RateLimit-Remaining": "0",
                 },
-                {
-                    status: 429,
-                    headers: {
-                        "Retry-After": "60",
-                        "X-RateLimit-Limit": String(BURST_MAX),
-                        "X-RateLimit-Remaining": "0",
-                    },
-                }
-            );
-        }
+            }
+        );
     }
 
     // ── LAYER 2: next-intl Locale Middleware ─────────────────────────────────
@@ -178,19 +175,20 @@ export function middleware(req: NextRequest) {
 
 // ─── Matcher ─────────────────────────────────────────────────────────────────
 // Covers:
-//   • All API routes (for rate limiting)
+//   • All API routes (for rate limiting, except NextAuth)
 //   • All localized page routes: /, /about, /contact, /profile (and /hi/*)
 //   • All other non-API pages (admin, login, etc.) — rate limiter still
 //     protects these; locale middleware skips them via isLocaleExcluded().
-// Excludes Next.js internals (_next/static, _next/image) for performance.
+// Excludes NextAuth API routes and Next.js internals (_next/static, _next/image) for performance.
 export const config = {
     matcher: [
         /*
          * Match all request paths EXCEPT:
+         *   - api/auth      (NextAuth API routes)
          *   - _next/static  (static assets)
          *   - _next/image   (image optimization)
          *   - _next/webpack-hmr (HMR websocket)
          */
-        "/((?!_next/static|_next/image|_next/webpack-hmr).*)",
+        "/((?!api/auth|_next/static|_next/image|_next/webpack-hmr).*)",
     ],
 };
