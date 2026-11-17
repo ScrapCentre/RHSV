@@ -18,11 +18,11 @@ export default function CoverageRegionSection() {
     { en: "Agra", hi: "आगरा", href: "/vehicle-scrapping-services-agra" },
     { en: "Lucknow", hi: "लखनऊ", href: "/vehicle-scrapping-services-lucknow" },
     { en: "Kannauj", hi: "कन्नौज", href: "/vehicle-scrapping-services-kannauj" },
+    { en: "Etawah", hi: "इटावा", href: "/vehicle-scrapping-services-etawah" },
   ]
 
   const comingSoonCities = [
     { en: "Mainpuri", hi: "मैनपुरी" },
-    { en: "Etawah", hi: "इटावा" },
     { en: "Auraiya", hi: "औरैया" },
     { en: "Firozabad", hi: "फिरोजाबाद" },
     { en: "Farrukhabad", hi: "फर्रुखाबाद" },

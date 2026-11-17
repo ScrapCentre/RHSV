@@ -37,10 +37,21 @@ export default function Footer() {
     {
       title: isHindi ? "सेवाएं (Services)" : "Services",
       links: [
-        { label: isHindi ? "तुरंत मूल्यांकन (Instant Valuation)" : "Instant Valuation", href: "/know-your-valuation" },
-        { label: isHindi ? "वाहन स्क्रैपिंग सेवाएं" : "Vehicle Scrapping Services", href: "/vehicle-scrapping-services" },
+        { label: isHindi ? "तुरंत मूल्यांकन" : "Instant Valuation", href: "/know-your-valuation" },
+        { label: isHindi ? "भारत में वाहन स्क्रैपिंग सेवाएं" : "Vehicle Scrapping Services India", href: "/vehicle-scrapping-services" },
         { label: isHindi ? "कार स्क्रैपिंग" : "Car Scrapping", href: "/four-wheeler-scrapping-kanpur" },
         { label: isHindi ? "बाइक और टू-व्हीलर स्क्रैपिंग" : "Two-Wheeler Scrapping", href: "/two-wheeler-scrapping-kanpur" },
+      ],
+    },
+    {
+      title: isHindi ? "शहर एवं लोकेशन" : "Locations We Serve",
+      links: [
+        { label: isHindi ? "कानपुर वाहन स्क्रैपिंग" : "Vehicle Scrapping Kanpur", href: "/vehicle-scrapping-services-kanpur" },
+        { label: isHindi ? "लखनऊ वाहन स्क्रैपिंग" : "Vehicle Scrapping Lucknow", href: "/vehicle-scrapping-services-lucknow" },
+        { label: isHindi ? "आगरा वाहन स्क्रैपिंग" : "Vehicle Scrapping Agra", href: "/vehicle-scrapping-services-agra" },
+        { label: isHindi ? "कन्नौज वाहन स्क्रैपिंग" : "Vehicle Scrapping Kannauj", href: "/vehicle-scrapping-services-kannauj" },
+        { label: isHindi ? "इटावा वाहन स्क्रैपिंग" : "Vehicle Scrapping Etawah", href: "/vehicle-scrapping-services-etawah" },
+        { label: isHindi ? "अखिल भारतीय सेवाएं" : "All India Services", href: "/vehicle-scrapping-services" },
       ],
     },
     {
@@ -126,7 +137,7 @@ export default function Footer() {
     },
     {
       name: isHindi ? "इटावा वाहन स्क्रैपिंग" : "Vehicle Scrapping Etawah",
-      href: "/vehicle-scrapping-services",
+      href: "/vehicle-scrapping-services-etawah",
     },
     {
       name: isHindi ? "औरैया वाहन स्क्रैपिंग" : "Vehicle Scrapping Auraiya",
@@ -234,7 +245,7 @@ export default function Footer() {
         {/* ─────────────────────────────────────────────────────────────
             2. MAIN COLUMNS GRID (Matches Mahindra Lifespaces Structure)
         ───────────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 py-10 sm:py-12 text-left">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6 lg:gap-7 py-10 sm:py-12 text-left">
           {footerColumns.map((col, idx) => (
             <div key={idx} className="space-y-3.5">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-red-500/20 pb-2">
