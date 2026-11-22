@@ -698,25 +698,51 @@ export default function EtawahScrappingClient() {
                     className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 hover:bg-red-50/40 border border-slate-200 hover:border-red-200 text-slate-900 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-[#25D366] text-white flex items-center justify-center shrink-0">
-                        <MessageCircle className="w-4 h-4" />
+                      <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+                        <MessageCircle className="w-4 h-4 text-[#E31E24]" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">WhatsApp Desk</div>
-                        <div className="text-sm font-black text-slate-900">Instant Chat & Dispatch</div>
+                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">WhatsApp Dispatch</div>
+                        <div className="text-sm font-black text-slate-900">Chat with Etawah Specialist</div>
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-emerald-600">Chat Now →</span>
+                    <span className="text-xs font-bold text-slate-700">Open Chat →</span>
                   </a>
+
+                  {/* Option 3: Facility Address */}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                    <div className="font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#E31E24]" />
+                      <span>Authorised RVSF Location</span>
+                    </div>
+                    <div className="font-semibold text-slate-800 leading-snug">
+                      {cityHeroConfig.facilityLocation}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-500 leading-relaxed">
-                  <span className="font-bold text-slate-700">RVSF Dispatch Facility:</span> {cityHeroConfig.facilityLocation}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowTeamModal(false)}
+                  className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* SVG Filter for Gooey Button Effect */}
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={{ display: "none" }}>
+          <defs>
+            <filter id="goo">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+              <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+              <feBlend in="SourceGraphic" in2="goo" />
+            </filter>
+          </defs>
+        </svg>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────

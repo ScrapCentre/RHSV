@@ -1,7 +1,8 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { ArrowRight, Check, Car, FileText, Gift, Truck, Zap, Leaf, ShieldCheck, IndianRupee } from "lucide-react"
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { ArrowRight, Check, Car, FileText, Gift, Truck, Zap, Leaf, ShieldCheck, IndianRupee, Phone, MessageCircle, MapPin } from "lucide-react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 
@@ -9,6 +10,7 @@ export default function HomexServiceHero() {
   const params = useParams()
   const locale = params?.locale === "hi" ? "hi" : "en"
   const isHindi = locale === "hi"
+  const [showTeamModal, setShowTeamModal] = useState(false)
 
   const checkBadges = [
     { en: "RTO Authorised RVSF", hi: "RTO अधिकृत RVSF" },
@@ -110,13 +112,13 @@ export default function HomexServiceHero() {
             <h1 className="text-2xl sm:text-3xl md:text-3xl lg:text-[2.1rem] xl:text-[2.4rem] font-black text-slate-900 tracking-tight leading-[1.2] mb-4">
               {isHindi ? (
                 <>
-                  भारत में वाहन स्क्रैपिंग सेवाएं — <br className="hidden sm:inline" />
-                  <span className="text-[#E31E24]">भारत के सबसे बड़े क्षमता वाले RVSF से</span>
+                  <span className="block">भारत में वाहन स्क्रैपिंग सेवाएं —</span>
+                  <span className="block text-[#E31E24] mt-2 sm:mt-2.5">भारत के सबसे बड़े क्षमता वाले RVSF से</span>
                 </>
               ) : (
                 <>
-                  Vehicle Scrapping Services in India — <br className="hidden sm:inline" />
-                  <span className="text-[#E31E24]">from India’s Largest Capacity RVSF</span>
+                  <span className="block">Vehicle Scrapping Services in India —</span>
+                  <span className="block text-[#E31E24] mt-2 sm:mt-2.5">from India’s Largest Capacity RVSF</span>
                 </>
               )}
             </h1>
@@ -153,20 +155,28 @@ export default function HomexServiceHero() {
               <Link
                 href={isHindi ? "/hi/know-your-valuation" : "/know-your-valuation"}
                 className="
-                  flex-1 inline-flex items-center justify-center gap-2.5
+                  c-button--gooey flex-1 inline-flex items-center justify-center gap-2.5
                   px-6 py-3.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-full
-                  bg-gradient-to-r from-[#E31E24] to-[#C1121F] hover:from-[#C1121F] hover:to-[#9E1116] text-white
+                  bg-[#E31E24] text-white border-2 border-[#E31E24]
                   text-sm font-extrabold tracking-wide
                   shadow-lg shadow-red-500/25 active:scale-[0.98]
-                  transition-all duration-200 cursor-pointer
+                  transition-all duration-300 relative overflow-hidden cursor-pointer
                 "
               >
-                <span>{isHindi ? "मुफ्त मूल्यांकन प्राप्त करें" : "Get Free Valuation"}</span>
-                <ArrowRight className="w-4 h-4 shrink-0" />
+                <span className="relative z-10 flex items-center gap-2.5">
+                  <span>{isHindi ? "मुफ्त मूल्यांकन प्राप्त करें" : "Get Free Valuation"}</span>
+                  <ArrowRight className="w-4 h-4 shrink-0" />
+                </span>
+                <div className="c-button__blobs">
+                  <div />
+                  <div />
+                  <div />
+                </div>
               </Link>
 
-              <Link
-                href={isHindi ? "/hi/contact" : "/contact"}
+              <button
+                type="button"
+                onClick={() => setShowTeamModal(true)}
                 className="
                   flex-1 inline-flex items-center justify-center gap-2.5
                   px-6 py-3.5 sm:px-6 sm:py-3 rounded-xl sm:rounded-full
@@ -177,7 +187,7 @@ export default function HomexServiceHero() {
                 "
               >
                 <span>{isHindi ? "विशेषज्ञ से बात करें" : "Talk to an Expert"}</span>
-              </Link>
+              </button>
             </div>
           </motion.div>
 
@@ -310,6 +320,115 @@ export default function HomexServiceHero() {
           </div>
         </motion.div>
       </div>
+
+      {/* Team Contact Modal (Exact Kanpur Design) */}
+      <AnimatePresence>
+        {showTeamModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+            onClick={() => setShowTeamModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-red-100 text-left relative"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-red-50 text-[#E31E24] flex items-center justify-center font-bold">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900">
+                      {isHindi ? "हमारी टीम से संपर्क करें" : "Talk to Our Team"}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">Direct dispatch & paperwork support</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowTeamModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {/* Option 1: Direct Phone */}
+                <a
+                  href="tel:+919839447733"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-red-50/60 hover:bg-red-50 border border-red-100 text-slate-900 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#E31E24] text-white flex items-center justify-center shrink-0">
+                      <Phone className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Direct Hotline</div>
+                      <div className="text-sm font-black text-slate-900">+91-9839447733</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-[#E31E24]">Call Now →</span>
+                </a>
+
+                {/* Option 2: WhatsApp Chat */}
+                <a
+                  href="https://wa.me/919839447733?text=Hello%20ScrapCentre,%20I%20have%20a%20vehicle%20to%20scrap."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 hover:bg-red-50/40 border border-slate-200 hover:border-red-200 text-slate-900 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+                      <MessageCircle className="w-4 h-4 text-[#E31E24]" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">WhatsApp Dispatch</div>
+                      <div className="text-sm font-black text-slate-900">Chat with RVSF Specialist</div>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-slate-700">Open Chat →</span>
+                </a>
+
+                {/* Option 3: Facility Address */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                  <div className="font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#E31E24]" />
+                    <span>Authorised RVSF Location</span>
+                  </div>
+                  <div className="font-semibold text-slate-800 leading-snug">
+                    26-A & B, Block-E, Panki, Kalpi Road, Kanpur - 208020
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowTeamModal(false)}
+                className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* SVG Filter for Gooey Button Effect */}
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style={{ display: "none" }}>
+        <defs>
+          <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+            <feBlend in="SourceGraphic" in2="goo" />
+          </filter>
+        </defs>
+      </svg>
     </section>
   )
 }

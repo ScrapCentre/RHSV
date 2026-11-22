@@ -60,7 +60,7 @@ export default async function AdminPage() {
             WizardLead.countDocuments({ serviceType: 'scrap', category: { $ne: 'scrap_and_buy' } }),
             WizardLead.countDocuments({ serviceType: 'scrap', category: 'scrap_and_buy' }),
             WizardLead.countDocuments({ serviceType: 'buy' }),
-            WizardLead.find().sort({ createdAt: -1 }).limit(10).lean(),
+            WizardLead.find({}, { aadharFile: 0, rcFile: 0, photoFront: 0, photoBack: 0, photoLeft: 0, photoRight: 0, carPhoto: 0, additionalPhotos: 0 }).sort({ createdAt: -1 }).lean(),
             WizardLead.find({}, { weight: 1 }).lean()
         ])
 
@@ -79,8 +79,8 @@ export default async function AdminPage() {
             latestExchanges,
             latestBuys
         ] = await Promise.all([
-            ExchangeVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
-            BuyVehicle.find().sort({ createdAt: -1 }).limit(5).lean(),
+            ExchangeVehicle.find({}, { aadharFile: 0, rcFile: 0, carPhoto: 0, additionalPhotos: 0 }).sort({ createdAt: -1 }).lean(),
+            BuyVehicle.find({}, { carPhoto: 0, additionalPhotos: 0 }).sort({ createdAt: -1 }).lean(),
         ])
 
         marketFeed = [

@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronRight, RotateCw, CalendarDays, Download, X } from "lucide-react"
+import { Shield, FileText, CheckCircle, Users, UploadCloud, ChevronLeft, ChevronRight, RotateCw, CalendarDays, Download, X } from "lucide-react"
 import Link from "next/link"
 import DashboardCharts from "./DashboardCharts"
 import { useRouter } from "next/navigation"
@@ -88,6 +88,32 @@ export default function DashboardOverview({
     const [exportError, setExportError] = useState("")
     const popoverRef = useRef<HTMLDivElement>(null)
 
+    // Market Feed Filter, Pagination & Page Size state
+    const [typeFilter, setTypeFilter] = useState<string>("all")
+    const [statusFilter, setStatusFilter] = useState<string>("all")
+    const [pageSize, setPageSize] = useState<number>(10)
+    const [currentPage, setCurrentPage] = useState<number>(1)
+
+    const filteredFeed = marketFeed.filter((item) => {
+        if (typeFilter !== "all") {
+            if (typeFilter === "scrap-buy") {
+                if (item.type !== "scrap-buy" && item.type !== "exchange") return false
+            } else if (item.type !== typeFilter) {
+                return false
+            }
+        }
+        if (statusFilter === "all") return true
+        const normalizedStatus = (item.status || "pending").toLowerCase()
+        return normalizedStatus === statusFilter
+    })
+
+    const totalLeads = filteredFeed.length
+    const totalPages = Math.max(1, Math.ceil(totalLeads / pageSize))
+    const safePage = Math.min(currentPage, totalPages)
+    const startIdx = (safePage - 1) * pageSize
+    const endIdx = Math.min(startIdx + pageSize, totalLeads)
+    const paginatedFeed = filteredFeed.slice(startIdx, startIdx + pageSize)
+
     // Close popover on outside click
     useEffect(() => {
         if (!calOpen) return
@@ -102,6 +128,10 @@ export default function DashboardOverview({
     }, [calOpen])
 
     const handleRefresh = () => {
+        setTypeFilter("all")
+        setStatusFilter("all")
+        setPageSize(10)
+        setCurrentPage(1)
         startTransition(() => {
             router.refresh()
         })
@@ -341,7 +371,69 @@ export default function DashboardOverview({
                         >
                             <RotateCw className={`w-3.5 h-3.5 ${isPending ? 'animate-spin' : ''}`} />
                         </button>
-                        <span className="text-[9px] font-bold px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 tracking-wider uppercase">
+
+                        {/* Type Filter Dropdown */}
+                        <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 shadow-sm">
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Type:</span>
+                            <select
+                                value={typeFilter}
+                                onChange={(e) => {
+                                    setTypeFilter(e.target.value)
+                                    setCurrentPage(1)
+                                }}
+                                className="text-[11px] font-bold text-slate-800 dark:text-white bg-transparent focus:outline-none cursor-pointer"
+                            >
+                                <option value="all" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">All Types</option>
+                                <option value="quote" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Srap</option>
+                                <option value="scrap-buy" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Scrap&amp;Buy</option>
+                                <option value="buy" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Buy</option>
+                            </select>
+                        </div>
+
+                        {/* Status Filter Dropdown */}
+                        <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 shadow-sm">
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Status:</span>
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => {
+                                    setStatusFilter(e.target.value)
+                                    setCurrentPage(1)
+                                }}
+                                className="text-[11px] font-bold text-slate-800 dark:text-white bg-transparent focus:outline-none cursor-pointer"
+                            >
+                                <option value="all" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">All Statuses</option>
+                                <option value="pending" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Pending</option>
+                                <option value="reviewing" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Reviewing</option>
+                                <option value="reviewed" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Reviewed</option>
+                                <option value="contacted" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Contacted</option>
+                                <option value="approved" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Approved</option>
+                                <option value="approved_to_rvsf" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Approved to RVSF</option>
+                                <option value="pickup_scheduled" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Pickup Scheduled</option>
+                                <option value="reached_collection_centre" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Picked Up</option>
+                                <option value="car_scrapped" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Scrapped</option>
+                                <option value="completed" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Completed</option>
+                                <option value="rejected" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Rejected</option>
+                            </select>
+                        </div>
+
+                        {/* Leads per page selector (10, 25, 50) */}
+                        <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 shadow-sm">
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Show:</span>
+                            <select
+                                value={pageSize}
+                                onChange={(e) => {
+                                    setPageSize(Number(e.target.value))
+                                    setCurrentPage(1)
+                                }}
+                                className="text-[11px] font-bold text-slate-800 dark:text-white bg-transparent focus:outline-none cursor-pointer"
+                            >
+                                <option value={10} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">10 Leads</option>
+                                <option value={25} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">25 Leads</option>
+                                <option value={50} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">50 Leads</option>
+                            </select>
+                        </div>
+
+                        <span className="hidden sm:inline-block text-[9px] font-bold px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 tracking-wider uppercase">
                             Latest Activities
                         </span>
                     </div>
@@ -361,13 +453,20 @@ export default function DashboardOverview({
                             </tr>
                         </thead>
                         <motion.tbody
-                            key={marketFeed.map(item => item._id).join(',')}
+                            key={`${typeFilter}-${statusFilter}-${paginatedFeed.map(item => item._id).join(',')}`}
                             variants={listVariants}
                             initial="hidden"
                             animate="visible"
                             className="divide-y divide-gray-100 dark:divide-slate-800"
                         >
-                            {marketFeed.map((item: any, index: number) => (
+                            {paginatedFeed.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-8 text-center text-slate-400 text-xs">
+                                        No leads found for the selected filters.
+                                    </td>
+                                </tr>
+                            ) : (
+                                paginatedFeed.map((item: any, index: number) => (
                                 <motion.tr
                                     key={item._id}
                                     variants={rowVariants}
@@ -443,25 +542,26 @@ export default function DashboardOverview({
                                         </Link>
                                     </td>
                                 </motion.tr>
-                            ))}
+                                ))
+                            )}
                         </motion.tbody>
                     </table>
                 </div>
 
                 {/* Mobile View (Cards) */}
                 <motion.div
-                    key={marketFeed.map(item => item._id).join(',')}
+                    key={paginatedFeed.map(item => item._id).join(',')}
                     variants={listVariants}
                     initial="hidden"
                     animate="visible"
                     className="md:hidden p-3 space-y-3 bg-gray-50/30"
                 >
-                    {marketFeed.length === 0 ? (
+                    {paginatedFeed.length === 0 ? (
                         <div className="px-4 py-6 text-center text-slate-400 text-xs bg-white rounded-xl border border-gray-100">
                             No recent activity found.
                         </div>
                     ) : (
-                        marketFeed.map((item: any, index: number) => (
+                        paginatedFeed.map((item: any, index: number) => (
                             <motion.div
                                 key={item._id}
                                 variants={rowVariants}
@@ -547,6 +647,96 @@ export default function DashboardOverview({
                         ))
                     )}
                 </motion.div>
+
+                {/* Market Feed Pagination Footer */}
+                <div className="px-4 py-3 border-t border-gray-100 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    {/* Left: Showing count & Quick Page Size Toggle */}
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                        <span>
+                            Showing <span className="font-bold text-slate-800 dark:text-white">{totalLeads === 0 ? 0 : startIdx + 1}</span>–<span className="font-bold text-slate-800 dark:text-white">{endIdx}</span> of <span className="font-bold text-slate-800 dark:text-white">{totalLeads}</span> leads
+                        </span>
+
+                        <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-0.5">
+                            {[10, 25, 50].map((size) => (
+                                <button
+                                    key={size}
+                                    type="button"
+                                    onClick={() => {
+                                        setPageSize(size)
+                                        setCurrentPage(1)
+                                    }}
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                                        pageSize === size
+                                            ? "bg-[#E31E24] text-white shadow-xs"
+                                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                    }`}
+                                >
+                                    {size}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Right: Page Navigation Controls */}
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={safePage <= 1}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer shadow-2xs"
+                        >
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                            <span>Prev</span>
+                        </button>
+
+                        {/* Page Number Buttons */}
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                .filter((page) => {
+                                    if (totalPages <= 7) return true
+                                    if (page === 1 || page === totalPages) return true
+                                    return Math.abs(page - safePage) <= 1
+                                })
+                                .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                                    if (idx > 0 && typeof arr[idx - 1] === "number" && (page as number) - (arr[idx - 1] as number) > 1) {
+                                        acc.push("...")
+                                    }
+                                    acc.push(page)
+                                    return acc
+                                }, [])
+                                .map((item, idx) =>
+                                    item === "..." ? (
+                                        <span key={`ellipsis-${idx}`} className="px-1.5 text-xs text-slate-400 font-bold select-none">
+                                            …
+                                        </span>
+                                    ) : (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            onClick={() => setCurrentPage(item as number)}
+                                            className={`min-w-[26px] h-[26px] px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                                                safePage === item
+                                                    ? "bg-[#E31E24] text-white shadow-sm shadow-red-500/20"
+                                                    : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                            }`}
+                                        >
+                                            {item}
+                                        </button>
+                                    )
+                                )}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={safePage >= totalPages}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer shadow-2xs"
+                        >
+                            <span>Next</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                </div>
             </motion.div>
         </motion.div>
     )
