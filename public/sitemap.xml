@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- ScrapCentre sitemap. Canonical, indexable, live URLs only. English + Hindi pairs carry reciprocal hreflang.
+       The two articles are English-only for now: their /hi/ versions still have English body text. -->
+  <url>
+    <loc>https://www.scrapcentre.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/vehicle-scrapping-services</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/vehicle-scrapping-services</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/vehicle-scrapping-services-kanpur</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-kanpur"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/vehicle-scrapping-services-kanpur</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-kanpur"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/two-wheeler-scrapping-kanpur</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/two-wheeler-scrapping-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/two-wheeler-scrapping-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/two-wheeler-scrapping-kanpur"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/two-wheeler-scrapping-kanpur</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/two-wheeler-scrapping-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/two-wheeler-scrapping-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/two-wheeler-scrapping-kanpur"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/four-wheeler-scrapping-kanpur</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/four-wheeler-scrapping-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/four-wheeler-scrapping-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/four-wheeler-scrapping-kanpur"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/four-wheeler-scrapping-kanpur</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/four-wheeler-scrapping-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/four-wheeler-scrapping-kanpur"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/four-wheeler-scrapping-kanpur"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/vehicle-scrapping-services-agra</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-agra"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-agra"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-agra"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/vehicle-scrapping-services-agra</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-agra"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-agra"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-agra"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/vehicle-scrapping-services-lucknow</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-lucknow"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-lucknow"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-lucknow"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/vehicle-scrapping-services-lucknow</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-lucknow"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-lucknow"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-lucknow"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/vehicle-scrapping-services-kannauj</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-kannauj"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-kannauj"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-kannauj"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/vehicle-scrapping-services-kannauj</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-kannauj"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-kannauj"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-kannauj"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/vehicle-scrapping-services-etawah</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-etawah"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-etawah"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-etawah"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/vehicle-scrapping-services-etawah</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/vehicle-scrapping-services-etawah"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/vehicle-scrapping-services-etawah"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/vehicle-scrapping-services-etawah"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/free-valuation</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/free-valuation"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/free-valuation"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/free-valuation"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/free-valuation</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/free-valuation"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/free-valuation"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/free-valuation"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/blog</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/blog"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/blog"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/blog"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/blog</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/blog"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/blog"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/blog"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/blog/car-scrapping-guide-india</loc>
+    <lastmod>2026-10-04</lastmod>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/blog/certificate-of-deposit-for-vehicle-scrapping</loc>
+    <lastmod>2026-09-30</lastmod>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/about"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/about"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/about"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/about"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/contact"/>
+  </url>
+  <url>
+    <loc>https://www.scrapcentre.com/hi/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.scrapcentre.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.scrapcentre.com/hi/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.scrapcentre.com/contact"/>
+  </url>
+</urlset>

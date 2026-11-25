@@ -1,0 +1,33 @@
+# robots.txt for https://www.scrapcentre.com
+# Public pages are open to search engines and AI assistants.
+# Do NOT block /api/ or /_next/ : pages are rendered with JavaScript and need them.
+#
+# PHASE 1 (ACTIVE): Internal/auth portals (/admin, /executive, /cc, /personal, /rvsf,
+# /scrapcentre, /ekyc, /login, /register, /profile) serve `X-Robots-Tag: noindex, nofollow, noarchive`
+# headers so search engines can crawl and drop any indexed private URLs.
+#
+# PHASE 2 (only after /admin and /executive show noindex AND have dropped out of Google):
+#   Disallow: /admin
+#   Disallow: /executive
+# Blocking them earlier hides the noindex header from Google, so they would stay listed.
+
+User-agent: *
+Allow: /
+
+# Search and AI assistants named explicitly so the intent is clear.
+# (A bot with its own group ignores the * group, so any future Disallow lines must be repeated here.)
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Applebot
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://www.scrapcentre.com/sitemap.xml

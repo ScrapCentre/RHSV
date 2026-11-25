@@ -1,0 +1,37 @@
+# ScrapCentre
+
+> ScrapCentre is a government-authorised Registered Vehicle Scrapping Facility (RVSF) in India, based in Kanpur, Uttar Pradesh. It offers free vehicle valuation, free doorstep pickup, RC cancellation support and an official Certificate of Deposit (CoD) issued through the Parivahan system, for cars, two-wheelers, trucks, buses and autos. The site is available in English and Hindi.
+
+Key facts
+- Business: ScrapCentre (also written ScrapCenter India), an automotive business and RVSF; the site describes it as India's largest capacity RVSF.
+- Address: 26-A & B, Block-E, Panki, Kalpi Road, Kanpur, Uttar Pradesh 208020, India.
+- Phone: +91-9839447733. Email: contact@scrapcentre.com.
+- Cities with a live ScrapCentre service page: Kanpur, Agra, Lucknow, Kannauj, Etawah.
+- What you get: free valuation, free doorstep pickup, Certificate of Deposit (CoD), RC cancellation assistance.
+- Hindi pages live under /hi/ (for example https://www.scrapcentre.com/hi).
+
+## Guides
+- [What Is Car Scrapping? Process, Benefits & CoD Guide (2026)](https://www.scrapcentre.com/blog/car-scrapping-guide-india): What car scrapping means, how the process works with an authorised RVSF, and the benefits of the Certificate of Deposit.
+- [Certificate of Deposit for Vehicle Scrapping: How the Road-Tax Rebate Works](https://www.scrapcentre.com/blog/certificate-of-deposit-for-vehicle-scrapping): What a CoD is, who issues it, and how it can help with a road-tax concession when registering a new vehicle.
+- [Blog](https://www.scrapcentre.com/blog): All ScrapCentre guides on vehicle scrapping and RVSF rules.
+
+## Tools
+- [Free Vehicle Valuation & Scrap Calculator](https://www.scrapcentre.com/free-valuation): Instant RTO details and scrap value estimate for your vehicle in about 60 seconds.
+
+## Services
+- [Vehicle Scrapping Services in India](https://www.scrapcentre.com/vehicle-scrapping-services): Overview of vehicle scrapping with an RVSF-certified deposit, free doorstep pickup and scrap value.
+- [Vehicle Scrapping Services in Kanpur](https://www.scrapcentre.com/vehicle-scrapping-services-kanpur): Authorised vehicle scrapping in Kanpur with instant CoD via Parivahan and free doorstep pickup.
+- [Two-Wheeler Scrapping in Kanpur](https://www.scrapcentre.com/two-wheeler-scrapping-kanpur): Bike, scooter and motorcycle scrapping in Kanpur with free doorstep pickup.
+- [Car Scrapping in Kanpur (Four-Wheeler)](https://www.scrapcentre.com/four-wheeler-scrapping-kanpur): Scrap an old, damaged or end-of-life car, SUV or hatchback in Kanpur with RC cancellation support.
+- [Vehicle Scrapping Services in Agra](https://www.scrapcentre.com/vehicle-scrapping-services-agra): Authorised vehicle scrapping in Agra with free pickup, CoD and RC cancellation support.
+- [Vehicle Scrapping Services in Lucknow](https://www.scrapcentre.com/vehicle-scrapping-services-lucknow): Free valuation, free doorstep pickup, RC cancellation help and an official CoD in Lucknow.
+- [Vehicle Scrapping Services in Kannauj](https://www.scrapcentre.com/vehicle-scrapping-services-kannauj): Free valuation, free doorstep pickup, RC cancellation help and an official CoD in Kannauj.
+- [Vehicle Scrapping Services in Etawah](https://www.scrapcentre.com/vehicle-scrapping-services-etawah): Free valuation, free doorstep pickup, RC cancellation help and an official CoD in Etawah.
+
+## Company
+- [About ScrapCentre](https://www.scrapcentre.com/about): Who ScrapCentre is: an authorised RVSF focused on eco-friendly end-of-life vehicle recycling and CoD benefits.
+- [Contact ScrapCentre](https://www.scrapcentre.com/contact): Support for scrapping queries, doorstep pickup scheduling and RVSF enquiries.
+
+## Optional
+- [ScrapCentre in Hindi (home)](https://www.scrapcentre.com/hi): Hindi version of the home page.
+- [Vehicle scrapping services in Hindi](https://www.scrapcentre.com/hi/vehicle-scrapping-services): Hindi version of the vehicle scrapping services page.

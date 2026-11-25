@@ -62,15 +62,45 @@ const LOCALE_EXCLUDED_PREFIXES = [
     "/logo",
     "/apple-touch",
     "/site.webmanifest",
+    "/robots.txt",
+    "/sitemap.xml",
+    "/llms.txt",
 ];
 
 // Static file extensions — skip locale logic for these too
-const STATIC_EXT_RE = /\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|js|css|woff2?|ttf|otf|map)$/i;
+const STATIC_EXT_RE = /\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|js|css|woff2?|ttf|otf|map|txt|xml)$/i;
 
 /** Returns true if the pathname should bypass locale middleware. */
 function isLocaleExcluded(pathname: string): boolean {
     if (STATIC_EXT_RE.test(pathname)) return true;
     return LOCALE_EXCLUDED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+// ─── Internal / Auth routes that must never be indexed by search engines ─────
+// Applies X-Robots-Tag: noindex, nofollow, noarchive so crawlers can drop them
+// cleanly (Phase 1) without blocking crawl discovery via robots.txt.
+const NOINDEX_PREFIXES = [
+    "/api",
+    "/admin",
+    "/executive",
+    "/cc",
+    "/personal",
+    "/ekyc",
+    "/register",
+    "/login",
+    "/partner-register",
+    "/recreate-password",
+    "/rvsf",
+    "/scrapcentre",
+    "/profile",
+    "/hi/profile",
+];
+
+/** Returns true if the pathname is an internal, auth, or API route. */
+function shouldNoIndex(pathname: string): boolean {
+    return NOINDEX_PREFIXES.some(
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    );
 }
 
 // ─── In-memory sliding window store ──────────────────────────────────────────
@@ -138,7 +168,9 @@ export function middleware(req: NextRequest) {
     // ── Bypass NextAuth completely ───────────────────────────────────────────
     // NextAuth internal routes must never be intercepted or throttled.
     if (pathname.startsWith("/api/auth")) {
-        return NextResponse.next();
+        const res = NextResponse.next();
+        res.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+        return res;
     }
 
     // ── LAYER 1: Burst Rate Limiter ──────────────────────────────────────────
@@ -166,11 +198,15 @@ export function middleware(req: NextRequest) {
     // ── LAYER 2: next-intl Locale Middleware ─────────────────────────────────
     // Only run on page routes that belong to the [locale] segment.
     // All excluded prefixes (API, admin, non-localized pages) pass through.
-    if (!isLocaleExcluded(pathname)) {
-        return intlMiddleware(req);
+    const response = !isLocaleExcluded(pathname)
+        ? intlMiddleware(req)
+        : NextResponse.next();
+
+    if (shouldNoIndex(pathname)) {
+        response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     }
 
-    return NextResponse.next();
+    return response;
 }
 
 // ─── Matcher ─────────────────────────────────────────────────────────────────
@@ -179,16 +215,17 @@ export function middleware(req: NextRequest) {
 //   • All localized page routes: /, /about, /contact, /profile (and /hi/*)
 //   • All other non-API pages (admin, login, etc.) — rate limiter still
 //     protects these; locale middleware skips them via isLocaleExcluded().
-// Excludes NextAuth API routes and Next.js internals (_next/static, _next/image) for performance.
+// Excludes NextAuth API routes, SEO static root files, and Next.js internals.
 export const config = {
     matcher: [
         /*
          * Match all request paths EXCEPT:
-         *   - api/auth      (NextAuth API routes)
-         *   - _next/static  (static assets)
-         *   - _next/image   (image optimization)
+         *   - api/auth         (NextAuth API routes)
+         *   - _next/static     (static assets)
+         *   - _next/image      (image optimization)
          *   - _next/webpack-hmr (HMR websocket)
+         *   - robots.txt, sitemap.xml, llms.txt (public SEO/AEO root files)
          */
-        "/((?!api/auth|_next/static|_next/image|_next/webpack-hmr).*)",
+        "/((?!api/auth|_next/static|_next/image|_next/webpack-hmr|robots\\.txt|sitemap\\.xml|llms\\.txt).*)",
     ],
 };
